@@ -17,6 +17,7 @@ class AIService {
     final enableHistory = await _settingsService.getEnableHistory();
     final historyContextLength = await _settingsService.getHistoryContextLength();
     final userProfile = await _userService.getUserProfile();
+    final customSystemPrompt = await _settingsService.getCustomSystemPrompt();
 
     if (apiKey.isEmpty) {
       throw Exception('请先在设置中配置API密钥');
@@ -25,9 +26,15 @@ class AIService {
     try {
       List<Map<String, String>> messages = [];
 
+      String baseSystemPrompt = '用户的名字是"${userProfile.username}",请在对话中适当地使用这个名字来称呼用户。';
+      String fullSystemPrompt = baseSystemPrompt;
+      if (customSystemPrompt.isNotEmpty) {
+        fullSystemPrompt += customSystemPrompt;
+      }
+
       messages.add({
         'role': 'system',
-        'content': '你是一个友善、有帮助的AI助手。用户的名字是"${userProfile.username}"，请在对话中适当地使用这个名字来称呼用户，让对话更加自然和亲切。',
+        'content': fullSystemPrompt,
       });
 
       if (enableHistory && chatHistory.isNotEmpty) {

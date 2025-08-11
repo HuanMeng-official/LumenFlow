@@ -17,6 +17,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final TextEditingController _modelController = TextEditingController();
   final TextEditingController _maxTokensController = TextEditingController();
   final TextEditingController _historyContextLengthController = TextEditingController();
+  final TextEditingController _customSystemPromptController = TextEditingController();
 
   double _temperature = SettingsService.defaultTemperature;
   bool _enableHistory = SettingsService.defaultEnableHistory;
@@ -38,6 +39,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final maxTokens = await _settingsService.getMaxTokens();
     final enableHistory = await _settingsService.getEnableHistory();
     final historyContextLength = await _settingsService.getHistoryContextLength();
+    final customPrompt = await _settingsService.getCustomSystemPrompt();
 
     setState(() {
       _endpointController.text = endpoint;
@@ -47,6 +49,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _maxTokensController.text = maxTokens.toString();
       _enableHistory = enableHistory;
       _historyContextLengthController.text = historyContextLength.toString();
+      _customSystemPromptController.text = customPrompt;
       _isLoading = false;
     });
   }
@@ -68,6 +71,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await _settingsService.setHistoryContextLength(
           int.tryParse(_historyContextLengthController.text) ?? SettingsService.defaultHistoryContextLength
       );
+      await _settingsService.setCustomSystemPrompt(_customSystemPromptController.text.trim());
 
       if (mounted) {
         showCupertinoDialog(
@@ -131,6 +135,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _maxTokensController.text = SettingsService.defaultMaxTokens.toString();
                 _enableHistory = SettingsService.defaultEnableHistory;
                 _historyContextLengthController.text = SettingsService.defaultHistoryContextLength.toString();
+                _customSystemPromptController.text = SettingsService.defaultCustomSystemPrompt.toString();
               });
             },
           ),
@@ -279,6 +284,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   placeholder: '输入最大Token数',
                   subtitle: '限制单次回复的长度，建议500-4000',
                   keyboardType: TextInputType.number,
+                ),
+                _buildInputTile(
+                    'System Prompt',
+                    controller: _customSystemPromptController,
+                    placeholder: '输入 System Prompt',
+                    subtitle: '例如：始终使用中文回答',
+                    keyboardType: TextInputType.multiline,
                 ),
                 _buildSliderTile(
                   '温度',
@@ -645,6 +657,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _modelController.dispose();
     _maxTokensController.dispose();
     _historyContextLengthController.dispose();
+    _customSystemPromptController.dispose();
     super.dispose();
   }
 }

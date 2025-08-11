@@ -8,6 +8,8 @@ class SettingsService {
   static const String _maxTokensKey = 'max_tokens';
   static const String _enableHistoryKey = 'enable_history';
   static const String _historyContextLengthKey = 'history_context_length';
+  static const String _customSystemPromptKey = 'custom_system_prompt';
+  static const String defaultCustomSystemPrompt = '';
 
   static const String defaultEndpoint = 'https://api.openai.com/v1';
   static const String defaultModel = 'gpt-5';
@@ -89,5 +91,15 @@ class SettingsService {
   Future<bool> isConfigured() async {
     final apiKey = await getApiKey();
     return apiKey.isNotEmpty;
+  }
+
+  Future<String> getCustomSystemPrompt() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_customSystemPromptKey) ?? defaultCustomSystemPrompt;
+  }
+
+  Future<void> setCustomSystemPrompt(String prompt) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_customSystemPromptKey, prompt);
   }
 }
