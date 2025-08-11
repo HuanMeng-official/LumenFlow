@@ -168,15 +168,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: const Text('常用模型'),
         content: const Text(
             'OpenAI:\n'
-                '• gpt-3.5-turbo\n'
-                '• gpt-4\n'
-                '• gpt-4-turbo-preview\n\n'
+                '• gpt-5\n\n'
                 'Anthropic:\n'
-                '• claude-3-sonnet-20240229\n'
-                '• claude-3-opus-20240229\n\n'
+                '• claude-sonnet-4-20250514\n\n'
                 'DeepSeek:\n'
                 '• deepseek-chat\n'
-                '• deepseek-coder\n\n'
+                '• deepseek-coder\n'
+                '• deepseek-reasoner\n\n'
                 '请根据您的API端点选择对应的模型。'
         ),
         actions: [
@@ -271,7 +269,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   '模型',
                   controller: _modelController,
                   placeholder: '输入模型名称',
-                  subtitle: '例如: gpt-3.5-turbo, claude-3-sonnet-20240229',
+                  subtitle: '例如: gpt-5, deepseek-chat',
                   showHelpButton: true,
                   onHelpPressed: _showModelHelp,
                 ),
