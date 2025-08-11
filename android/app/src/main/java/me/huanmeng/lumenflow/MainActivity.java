@@ -1,4 +1,4 @@
-package me.huanmeng.lumenflow.lumen_flow;
+package me.huanmeng.lumenflow;
 
 import io.flutter.embedding.android.FlutterActivity;
 
