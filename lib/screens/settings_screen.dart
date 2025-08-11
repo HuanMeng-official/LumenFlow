@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../services/settings_service.dart';
+import 'user_profile_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -213,6 +214,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: SafeArea(
         child: ListView(
           children: [
+            // 用户信息部分
+            _buildSection(
+              '用户信息',
+              [
+                _buildNavigationTile(
+                  '个人资料',
+                  subtitle: '设置头像和用户名',
+                  icon: CupertinoIcons.person_crop_circle,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      CupertinoPageRoute(
+                        builder: (context) => const UserProfileScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+
             // API设置部分
             _buildSection(
               '基础设置',
@@ -405,6 +426,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
     }
     return dividedChildren;
+  }
+
+  Widget _buildNavigationTile(
+      String title, {
+        String? subtitle,
+        required IconData icon,
+        required VoidCallback onTap,
+      }) {
+    return CupertinoListTile(
+      leading: Icon(
+        icon,
+        color: CupertinoColors.systemBlue,
+      ),
+      title: Text(title),
+      subtitle: subtitle != null ? Text(
+        subtitle,
+        style: const TextStyle(
+          fontSize: 13,
+          color: CupertinoColors.systemGrey,
+        ),
+      ) : null,
+      trailing: const Icon(CupertinoIcons.chevron_right),
+      onTap: onTap,
+    );
   }
 
   Widget _buildInputTile(

@@ -1,11 +1,39 @@
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 import '../models/message.dart';
+import '../models/user_profile.dart';
+import '../services/user_service.dart';
+import 'avatar_widget.dart';
 
-class MessageBubble extends StatelessWidget {
+class MessageBubble extends StatefulWidget {
   final Message message;
 
   const MessageBubble({Key? key, required this.message}) : super(key: key);
+
+  @override
+  State<MessageBubble> createState() => _MessageBubbleState();
+}
+
+class _MessageBubbleState extends State<MessageBubble> {
+  final UserService _userService = UserService();
+  UserProfile? _userProfile;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.message.isUser) {
+      _loadUserProfile();
+    }
+  }
+
+  Future<void> _loadUserProfile() async {
+    final profile = await _userService.getUserProfile();
+    if (mounted) {
+      setState(() {
+        _userProfile = profile;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,21 +41,21 @@ class MessageBubble extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment:
-        message.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        widget.message.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (!message.isUser) ...[
+          if (!widget.message.isUser) ...[
             Container(
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: message.status == MessageStatus.error
+                color: widget.message.status == MessageStatus.error
                     ? CupertinoColors.systemRed
                     : CupertinoColors.systemBlue,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Icon(
-                message.status == MessageStatus.error
+                widget.message.status == MessageStatus.error
                     ? CupertinoIcons.exclamationmark
                     : CupertinoIcons.sparkles,
                 color: CupertinoColors.white,
@@ -43,9 +71,9 @@ class MessageBubble extends StatelessWidget {
               ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: message.isUser
+                color: widget.message.isUser
                     ? CupertinoColors.systemBlue
-                    : (message.status == MessageStatus.error
+                    : (widget.message.status == MessageStatus.error
                     ? CupertinoColors.systemRed.withOpacity(0.1)
                     : CupertinoColors.systemGrey6),
                 borderRadius: BorderRadius.circular(20),
@@ -54,11 +82,11 @@ class MessageBubble extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    message.content,
+                    widget.message.content,
                     style: TextStyle(
-                      color: message.isUser
+                      color: widget.message.isUser
                           ? CupertinoColors.white
-                          : (message.status == MessageStatus.error
+                          : (widget.message.status == MessageStatus.error
                           ? CupertinoColors.systemRed
                           : CupertinoColors.black),
                       fontSize: 16,
@@ -69,15 +97,15 @@ class MessageBubble extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        DateFormat('HH:mm').format(message.timestamp),
+                        DateFormat('HH:mm').format(widget.message.timestamp),
                         style: TextStyle(
-                          color: message.isUser
+                          color: widget.message.isUser
                               ? CupertinoColors.white.withOpacity(0.7)
                               : CupertinoColors.systemGrey,
                           fontSize: 12,
                         ),
                       ),
-                      if (message.status == MessageStatus.sending) ...[
+                      if (widget.message.status == MessageStatus.sending) ...[
                         const SizedBox(width: 4),
                         const SizedBox(
                           width: 12,
@@ -85,7 +113,7 @@ class MessageBubble extends StatelessWidget {
                           child: CupertinoActivityIndicator(),
                         ),
                       ],
-                      if (message.status == MessageStatus.error) ...[
+                      if (widget.message.status == MessageStatus.error) ...[
                         const SizedBox(width: 4),
                         const Icon(
                           CupertinoIcons.exclamationmark_circle_fill,
@@ -99,9 +127,14 @@ class MessageBubble extends StatelessWidget {
               ),
             ),
           ),
-          if (message.isUser) ...[
+          if (widget.message.isUser) ...[
             const SizedBox(width: 8),
-            Container(
+            _userProfile != null
+                ? AvatarWidget(
+              userProfile: _userProfile!,
+              size: 32,
+            )
+                : Container(
               width: 32,
               height: 32,
               decoration: BoxDecoration(

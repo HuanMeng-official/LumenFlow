@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'settings_service.dart';
+import 'user_service.dart';
 import '../models/message.dart';
 
 class AIService {
   final SettingsService _settingsService = SettingsService();
+  final UserService _userService = UserService();
 
   Future<String> sendMessage(String message, List<Message> chatHistory) async {
     final apiEndpoint = await _settingsService.getApiEndpoint();
@@ -14,6 +16,7 @@ class AIService {
     final maxTokens = await _settingsService.getMaxTokens();
     final enableHistory = await _settingsService.getEnableHistory();
     final historyContextLength = await _settingsService.getHistoryContextLength();
+    final userProfile = await _userService.getUserProfile();
 
     if (apiKey.isEmpty) {
       throw Exception('请先在设置中配置API密钥');
@@ -21,6 +24,11 @@ class AIService {
 
     try {
       List<Map<String, String>> messages = [];
+
+      messages.add({
+        'role': 'system',
+        'content': '你是一个友善、有帮助的AI助手。用户的名字是"${userProfile.username}"，请在对话中适当地使用这个名字来称呼用户，让对话更加自然和亲切。',
+      });
 
       if (enableHistory && chatHistory.isNotEmpty) {
         final recentHistory = chatHistory
@@ -46,17 +54,17 @@ class AIService {
       });
 
       final response = await http.post(
-        Uri.parse('$apiEndpoint/chat/completions'),
-        headers: {
+          Uri.parse('$apiEndpoint/chat/completions'),
+          headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $apiKey',
-        },
-        body: jsonEncode({
+          },
+          body: jsonEncode({
           'model': model,
           'messages': messages,
-          'max_tokens': maxTokens,
-          'temperature': temperature,
-        }),
+            'max_tokens': maxTokens,
+            'temperature': temperature,
+          }),
       );
 
       if (response.statusCode == 200) {
