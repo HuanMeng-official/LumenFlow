@@ -1,6 +1,8 @@
 # LumenFlow
 
-A Flutter-based AI chat application that integrates with OpenAI's API to provide conversational AI capabilities.
+> A Flutter-based AI chat application that integrates with OpenAI's API to provide conversational AI capabilities.
+
+[English Version](./README.md) [中文版本](./README/README.zh_CN.md)
 
 ## Project Structure
 
