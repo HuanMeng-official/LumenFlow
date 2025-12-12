@@ -82,9 +82,10 @@ class _MessageBubbleState extends State<MessageBubble> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  MarkdownBody(
-                    data: widget.message.content,
-                    selectable: true,
+                  SelectableRegion(
+                    selectionControls: cupertinoTextSelectionControls,
+                    child: MarkdownBody(
+                      data: widget.message.content,
                     styleSheet: MarkdownStyleSheet(
                       p: TextStyle(
                         color: widget.message.isUser
@@ -218,6 +219,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                       ),
                     ),
                   ),
+                ),
                   const SizedBox(height: 4),
                   Row(
                     mainAxisSize: MainAxisSize.min,
