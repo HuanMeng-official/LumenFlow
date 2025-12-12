@@ -128,31 +128,62 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
     await _saveCurrentConversation();
 
-    try {
-      final aiResponse = await _aiService.sendMessage(content, _messages);
-      final aiMessage = Message(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        content: aiResponse,
+    // Create a placeholder AI message for streaming
+    final aiMessageId = DateTime.now().millisecondsSinceEpoch.toString();
+    var aiMessageIndex = _messages.length; // Index where AI message will be added
+
+    setState(() {
+      _messages.add(Message(
+        id: aiMessageId,
+        content: '',
         isUser: false,
         timestamp: DateTime.now(),
-      );
+        status: MessageStatus.sending,
+      ));
+      _isLoading = false; // We'll handle loading state differently for streaming
+      aiMessageIndex = _messages.length - 1; // Update index after adding
+    });
+    _scrollToBottom();
 
+    try {
+      final stream = _aiService.sendMessageStreaming(content, _messages);
+      final buffer = StringBuffer();
+
+      await for (final chunk in stream) {
+        buffer.write(chunk);
+        // Update the AI message with new content
+        setState(() {
+          _messages[aiMessageIndex] = Message(
+            id: aiMessageId,
+            content: buffer.toString(),
+            isUser: false,
+            timestamp: _messages[aiMessageIndex].timestamp,
+            status: MessageStatus.sending,
+          );
+        });
+        _scrollToBottom();
+      }
+
+      // Streaming completed successfully - update status to sent
       setState(() {
-        _messages.add(aiMessage);
-        _isLoading = false;
+        _messages[aiMessageIndex] = Message(
+          id: aiMessageId,
+          content: buffer.toString(),
+          isUser: false,
+          timestamp: _messages[aiMessageIndex].timestamp,
+          status: MessageStatus.sent,
+        );
       });
     } catch (e) {
-      final errorMessage = Message(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        content: '错误: ${e.toString().replaceAll('Exception: ', '')}',
-        isUser: false,
-        timestamp: DateTime.now(),
-        status: MessageStatus.error,
-      );
-
+      // Error during streaming
       setState(() {
-        _messages.add(errorMessage);
-        _isLoading = false;
+        _messages[aiMessageIndex] = Message(
+          id: aiMessageId,
+          content: '错误: ${e.toString().replaceAll('Exception: ', '')}',
+          isUser: false,
+          timestamp: _messages[aiMessageIndex].timestamp,
+          status: MessageStatus.error,
+        );
       });
     }
 
