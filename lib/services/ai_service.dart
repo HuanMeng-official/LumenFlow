@@ -8,15 +8,32 @@ import 'file_service.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
 
+/// AI服务类，负责处理与AI模型（OpenAI和Google Gemini）的通信
+/// 支持文本对话、文件附件处理、流式输出等功能
+/// 提供统一的接口供聊天界面调用，隐藏不同API的差异
 class AIService {
   final SettingsService _settingsService = SettingsService();
   final UserService _userService = UserService();
   final FileService _fileService = FileService();
 
+  /// Base64编码的最大文件大小（25MB）
+  /// 超过此大小的文件无法通过Base64方式上传到AI API
   static const int maxFileSizeForBase64 = 25 * 1024 * 1024;
+
+  /// 文本提取的最大文件大小（10MB）
+  /// 超过此大小的文本文件将不尝试提取内容，只发送文件名和元数据
   static const int maxFileSizeForTextExtraction = 10 * 1024 * 1024;
+
+  /// 所有附件的总大小限制（50MB）
+  /// 单次请求中所有附件大小之和不能超过此限制
   static const int maxTotalAttachmentsSize = 50 * 1024 * 1024;
 
+  /// 格式化文件大小为人类可读的字符串
+  ///
+  /// 参数:
+  ///   bytes - 文件大小（字节）
+  /// 返回值:
+  ///   格式化后的字符串，如 "10.5 MB"、"256 KB"
   String _formatFileSize(int bytes) {
     if (bytes < 1024) {
       return '$bytes B';
@@ -29,6 +46,14 @@ class AIService {
     }
   }
 
+  /// 检查附件是否支持视觉API（图片、视频、音频）
+  ///
+  /// 参数:
+  ///   attachment - 附件对象
+  /// 返回值:
+  ///   true表示支持视觉API，false表示不支持
+  /// 说明:
+  ///   支持的文件类型：image/*, video/*, audio/*
   bool _isVisionSupportedFile(Attachment attachment) {
     final mimeType = attachment.mimeType?.toLowerCase() ?? '';
     return mimeType.startsWith('image/') ||
@@ -36,6 +61,20 @@ class AIService {
            mimeType.startsWith('audio/');
   }
 
+  /// 构建OpenAI API的消息内容结构
+  ///
+  /// 参数:
+  ///   message - 用户输入的文本消息
+  ///   attachments - 附件列表（可选）
+  /// 返回值:
+  ///   如果是纯文本消息，返回字符串
+  ///   如果包含附件或多模态内容，返回包含内容部件的列表
+  /// 说明:
+  ///   1. 检查附件总大小限制
+  ///   2. 支持视觉文件（图片/视频/音频）的Base64编码
+  ///   3. 支持文本文件的提取和发送
+  ///   4. 处理文件不存在或过大的情况
+  ///   5. 返回格式符合OpenAI API的消息内容规范
   Future<dynamic> _buildOpenAIMessageContent(String message, List<Attachment> attachments) async {
     if (attachments.isEmpty) {
       return message;
@@ -127,6 +166,22 @@ class AIService {
     return contentParts;
   }
 
+  /// 构建Gemini API的内容结构
+  ///
+  /// 参数:
+  ///   message - 用户输入的文本消息
+  ///   chatHistory - 聊天历史记录（用于上下文）
+  ///   attachments - 附件列表（可选）
+  ///   systemPrompt - 系统提示词（自定义指令）
+  ///   enableHistory - 是否启用历史上下文
+  ///   historyContextLength - 历史上下文长度（对话轮数）
+  /// 返回值:
+  ///   Gemini API要求的contents列表，包含角色和内容部件
+  /// 说明:
+  ///   1. 支持系统提示词转换为用户-模型对话对
+  ///   2. 支持聊天历史上下文的截断和格式化
+  ///   3. 整合文件附件到内容部件中
+  ///   4. 遵循Gemini API的消息格式规范
   Future<List<Map<String, dynamic>>> _buildGeminiContents(
     String message,
     List<Message> chatHistory,
@@ -198,6 +253,18 @@ class AIService {
     return contents;
   }
 
+  /// 为Gemini API准备文件附件内容
+  ///
+  /// 参数:
+  ///   attachments - 附件列表
+  /// 返回值:
+  ///   包含文件内容的部件列表，可直接添加到Gemini消息中
+  /// 说明:
+  ///   1. 检查附件总大小限制
+  ///   2. 验证文件存在性
+  ///   3. 处理媒体文件（图片/视频/音频）的Base64编码
+  ///   4. 提取文本文件内容（如果文件大小允许）
+  ///   5. 处理文件处理过程中的各种异常情况
   Future<List<Map<String, dynamic>>> _prepareFilesForGemini(List<Attachment> attachments) async {
     final fileParts = <Map<String, dynamic>>[];
 
@@ -277,6 +344,23 @@ class AIService {
     return fileParts;
   }
 
+  /// 发送消息到AI模型（同步方式）
+  ///
+  /// 参数:
+  ///   message - 用户输入的文本消息
+  ///   chatHistory - 聊天历史记录（用于上下文）
+  ///   attachments - 附件列表（可选，默认为空）
+  /// 返回值:
+  ///   AI模型的响应文本
+  /// 异常:
+  ///   抛出Exception当API密钥未配置或网络请求失败时
+  /// 说明:
+  ///   1. 从设置服务获取所有配置参数
+  ///   2. 根据API类型（OpenAI或Gemini）选择不同的处理逻辑
+  ///   3. 构建完整的消息上下文（包括系统提示、历史记录、当前消息）
+  ///   4. 处理文件附件（如果存在）
+  ///   5. 发送HTTP请求并处理响应
+  ///   6. 统一错误处理，将API错误转换为用户友好的异常消息
   Future<String> sendMessage(String message, List<Message> chatHistory, {List<Attachment> attachments = const []}) async {
     final apiEndpoint = await _settingsService.getApiEndpoint();
     final apiKey = await _settingsService.getApiKey();
@@ -383,6 +467,22 @@ class AIService {
     }
   }
 
+  /// 发送消息到AI模型（流式方式）
+  ///
+  /// 参数:
+  ///   message - 用户输入的文本消息
+  ///   chatHistory - 聊天历史记录（用于上下文）
+  ///   attachments - 附件列表（可选，默认为空）
+  /// 返回值:
+  ///   返回一个Stream<String>，实时输出AI模型的响应片段
+  /// 异常:
+  ///   抛出Exception当API密钥未配置或网络请求失败时
+  /// 说明:
+  ///   1. 支持流式输出，实时显示AI响应
+  ///   2. 与sendMessage方法类似，但使用流式API
+  ///   3. 处理Server-Sent Events (SSE) 数据流
+  ///   4. 针对OpenAI和Gemini API提供不同的流式实现
+  ///   5. 实时解析和yield响应片段
   Stream<String> sendMessageStreaming(String message, List<Message> chatHistory, {List<Attachment> attachments = const []}) async* {
     final apiEndpoint = await _settingsService.getApiEndpoint();
     final apiKey = await _settingsService.getApiKey();
@@ -516,6 +616,26 @@ class AIService {
     }
   }
 
+  /// 发送非流式请求到Gemini API
+  ///
+  /// 参数:
+  ///   apiEndpoint - API端点URL
+  ///   apiKey - API密钥
+  ///   model - 模型名称
+  ///   temperature - 温度参数（0.0-1.0）
+  ///   maxTokens - 最大输出token数
+  ///   contents - 内容列表，包含对话历史和当前消息
+  /// 返回值:
+  ///   Gemini模型的响应文本
+  /// 异常:
+  ///   抛出Exception当API请求失败或响应格式无效时
+  /// 说明:
+  ///   1. 构建Gemini API请求体
+  ///   2. 处理URL格式，确保包含正确的路径和查询参数
+  ///   3. 发送HTTP POST请求
+  ///   4. 解析响应，提取文本内容
+  ///   5. 处理安全过滤器阻止的情况
+  ///   6. 统一错误处理，提供详细的错误信息
   Future<String> _sendGeminiMessage({
     required String apiEndpoint,
     required String apiKey,
@@ -580,6 +700,25 @@ class AIService {
     }
   }
 
+  /// 发送流式请求到Gemini API
+  ///
+  /// 参数:
+  ///   apiEndpoint - API端点URL
+  ///   apiKey - API密钥
+  ///   model - 模型名称
+  ///   temperature - 温度参数（0.0-1.0）
+  ///   maxTokens - 最大输出token数
+  ///   contents - 内容列表，包含对话历史和当前消息
+  /// 返回值:
+  ///   返回一个Stream<String>，实时输出Gemini模型的响应片段
+  /// 异常:
+  ///   抛出Exception当API请求失败或响应格式无效时
+  /// 说明:
+  ///   1. 构建Gemini流式API请求
+  ///   2. 使用streamGenerateContent端点或添加流式参数
+  ///   3. 处理Server-Sent Events (SSE) 数据流
+  ///   4. 实时解析响应，yield文本片段
+  ///   5. 处理连接关闭和错误情况
   Stream<String> _sendGeminiMessageStreaming({
     required String apiEndpoint,
     required String apiKey,

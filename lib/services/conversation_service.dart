@@ -2,10 +2,21 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/conversation.dart';
 
+/// 对话服务，管理对话的持久化存储和CRUD操作
+///
+/// 使用SharedPreferences作为本地存储，存储对话列表和当前对话ID
+/// 提供对话的创建、读取、更新、删除等完整功能
+///
+/// 设计特点:
+/// - 自动按更新时间排序（最近更新的对话在前）
+/// - 维护当前对话ID，支持快速切换
+/// - 线程安全的异步操作
 class ConversationService {
   static const String _conversationsKey = 'conversations';
   static const String _currentConversationIdKey = 'current_conversation_id';
 
+  /// 从本地存储加载所有对话
+  /// 返回按更新时间倒序排序的对话列表（最近更新的在前）
   Future<List<Conversation>> loadConversations() async {
     final prefs = await SharedPreferences.getInstance();
     final conversationsString = prefs.getString(_conversationsKey);

@@ -3,6 +3,14 @@ import 'package:flutter/material.dart';
 import '../services/settings_service.dart';
 import 'user_profile_screen.dart';
 
+/// 应用设置界面，配置AI API参数和用户偏好
+///
+/// 主要功能：
+/// - 配置API端点、密钥和模型
+/// - 调整温度、最大token数等生成参数
+/// - 管理对话历史设置
+/// - 设置自定义系统提示词
+/// - 切换API类型（OpenAI/Gemini）
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -10,6 +18,17 @@ class SettingsScreen extends StatefulWidget {
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
+/// SettingsScreen的状态类，管理所有设置相关的状态和业务逻辑
+///
+/// 状态变量:
+/// - 多个TextEditingController用于输入框控制
+/// - 温度、启用历史等设置值
+/// - 加载状态、保存状态、API密钥显示状态
+/// - API类型（OpenAI/Gemini）
+///
+/// 生命周期:
+/// - initState: 初始化时加载现有设置
+/// - dispose: 清理TextEditingController资源
 class _SettingsScreenState extends State<SettingsScreen> {
   final SettingsService _settingsService = SettingsService();
   final TextEditingController _endpointController = TextEditingController();
@@ -29,9 +48,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
+    /// 初始化时加载现有的设置值到状态变量和控制器中
     _loadSettings();
   }
 
+  /// 从设置服务加载所有配置值
+  ///
+  /// 异步获取所有设置项，更新对应的控制器和状态变量
+  /// 设置加载完成后更新_isLoading状态
   Future<void> _loadSettings() async {
     final endpoint = await _settingsService.getApiEndpoint();
     final apiKey = await _settingsService.getApiKey();

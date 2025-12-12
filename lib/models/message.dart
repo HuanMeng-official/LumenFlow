@@ -1,5 +1,18 @@
 import './attachment.dart';
 
+/// 消息数据模型，表示聊天中的一条消息
+///
+/// 属性说明:
+/// - id: 消息唯一标识符
+/// - content: 消息文本内容
+/// - isUser: 是否为用户发送的消息（true为用户，false为AI）
+/// - timestamp: 消息时间戳
+/// - status: 消息状态（发送中、已发送、错误）
+/// - attachments: 附件列表，支持文件、图片等
+///
+/// 功能:
+/// - toJson/fromJson: 支持JSON序列化和反序列化
+/// - copyWith: 创建消息的副本并修改指定字段
 class Message {
   final String id;
   final String content;
@@ -59,6 +72,12 @@ class Message {
   }
 }
 
+/// 消息状态枚举，表示消息的发送状态
+///
+/// 状态说明:
+/// - sending: 消息正在发送中（适用于AI响应流式输出）
+/// - sent: 消息已成功发送/接收
+/// - error: 消息发送/接收失败
 enum MessageStatus {
   sending,
   sent,
