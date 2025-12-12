@@ -11,10 +11,10 @@ enum AttachmentType {
 class Attachment {
   final String id;
   final String fileName;
-  final String? filePath; // 本地文件路径
-  final String? url; // 远程URL（如果已上传）
+  final String? filePath;
+  final String? url;
   final AttachmentType type;
-  final int? fileSize; // 文件大小（字节）
+  final int? fileSize;
   final String? mimeType;
   final DateTime createdAt;
 

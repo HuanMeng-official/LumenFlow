@@ -100,7 +100,6 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _handleAttachmentsSelected(List<Attachment> attachments) async {
     if (attachments.isEmpty) return;
 
-    // 创建一个只有附件的消息（没有文本内容）
     await _sendMessage('', attachments: attachments);
   }
 
@@ -137,9 +136,8 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
     await _saveCurrentConversation();
 
-    // Create a placeholder AI message for streaming
     final aiMessageId = DateTime.now().millisecondsSinceEpoch.toString();
-    var aiMessageIndex = _messages.length; // Index where AI message will be added
+    var aiMessageIndex = _messages.length;
 
     setState(() {
       _messages.add(Message(
@@ -149,8 +147,8 @@ class _ChatScreenState extends State<ChatScreen> {
         timestamp: DateTime.now(),
         status: MessageStatus.sending,
       ));
-      _isLoading = false; // We'll handle loading state differently for streaming
-      aiMessageIndex = _messages.length - 1; // Update index after adding
+      _isLoading = false;
+      aiMessageIndex = _messages.length - 1;
     });
     _scrollToBottom();
 
@@ -160,7 +158,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
       await for (final chunk in stream) {
         buffer.write(chunk);
-        // Update the AI message with new content
         setState(() {
           _messages[aiMessageIndex] = Message(
             id: aiMessageId,
@@ -173,7 +170,6 @@ class _ChatScreenState extends State<ChatScreen> {
         _scrollToBottom();
       }
 
-      // Streaming completed successfully - update status to sent
       setState(() {
         _messages[aiMessageIndex] = Message(
           id: aiMessageId,
@@ -184,7 +180,6 @@ class _ChatScreenState extends State<ChatScreen> {
         );
       });
     } catch (e) {
-      // Error during streaming
       setState(() {
         _messages[aiMessageIndex] = Message(
           id: aiMessageId,

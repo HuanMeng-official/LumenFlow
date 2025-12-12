@@ -13,10 +13,9 @@ class AIService {
   final UserService _userService = UserService();
   final FileService _fileService = FileService();
 
-  // 文件大小限制（字节）
-  static const int maxFileSizeForBase64 = 20 * 1024 * 1024; // 20MB
-  static const int maxFileSizeForTextExtraction = 5 * 1024 * 1024; // 5MB
-  static const int maxTotalAttachmentsSize = 50 * 1024 * 1024; // 50MB
+  static const int maxFileSizeForBase64 = 25 * 1024 * 1024;
+  static const int maxFileSizeForTextExtraction = 10 * 1024 * 1024;
+  static const int maxTotalAttachmentsSize = 50 * 1024 * 1024;
 
   String _formatFileSize(int bytes) {
     if (bytes < 1024) {
@@ -30,7 +29,6 @@ class AIService {
     }
   }
 
-  // 检查文件类型是否支持Vision API（图片、视频、音频）
   bool _isVisionSupportedFile(Attachment attachment) {
     final mimeType = attachment.mimeType?.toLowerCase() ?? '';
     return mimeType.startsWith('image/') ||
@@ -38,13 +36,11 @@ class AIService {
            mimeType.startsWith('audio/');
   }
 
-  // 构建OpenAI Vision API格式的消息内容
   Future<dynamic> _buildOpenAIMessageContent(String message, List<Attachment> attachments) async {
     if (attachments.isEmpty) {
       return message;
     }
 
-    // 检查总附件大小
     final totalSize = attachments.fold<int>(0, (sum, attachment) => sum + (attachment.fileSize ?? 0));
     if (totalSize > maxTotalAttachmentsSize) {
       throw Exception('附件总大小超过${maxTotalAttachmentsSize ~/ (1024 * 1024)}MB限制');
@@ -52,7 +48,6 @@ class AIService {
 
     final contentParts = <Map<String, dynamic>>[];
 
-    // 添加文本部分（如果有）
     if (message.isNotEmpty) {
       contentParts.add({
         'type': 'text',
@@ -63,7 +58,6 @@ class AIService {
     for (final attachment in attachments) {
       try {
         if (attachment.filePath == null || !await _fileService.fileExists(attachment.filePath!)) {
-          // 文件不存在，添加错误信息
           contentParts.add({
             'type': 'text',
             'text': '文件 ${attachment.fileName} 不存在或已删除'
@@ -74,7 +68,6 @@ class AIService {
         final file = File(attachment.filePath!);
         final fileSize = attachment.fileSize ?? await _fileService.getFileSize(attachment.filePath!);
 
-        // 检查单个文件大小
         if (fileSize > maxFileSizeForBase64) {
           contentParts.add({
             'type': 'text',
@@ -84,7 +77,6 @@ class AIService {
         }
 
         if (_isVisionSupportedFile(attachment)) {
-          // 支持Vision API的文件类型：图片、视频、音频
           try {
             final dataUrl = await _fileService.getFileDataUrl(file, attachment.mimeType);
             contentParts.add({
@@ -100,7 +92,6 @@ class AIService {
             });
           }
         } else {
-          // 不支持Vision API的文件类型：尝试读取文本内容
           if (fileSize <= maxFileSizeForTextExtraction) {
             try {
               final content = await _fileService.readTextFile(file);
@@ -109,14 +100,12 @@ class AIService {
                 'text': '文件: ${attachment.fileName} (${_formatFileSize(fileSize)})\n内容:\n$content'
               });
             } catch (e) {
-              // 读取失败，只发送文件名信息
               contentParts.add({
                 'type': 'text',
                 'text': '附件: ${attachment.fileName} (${_formatFileSize(fileSize)}, ${attachment.mimeType ?? '未知类型'}) - 无法读取内容'
               });
             }
           } else {
-            // 文件太大，只发送文件名信息
             contentParts.add({
               'type': 'text',
               'text': '附件: ${attachment.fileName} (${_formatFileSize(fileSize)}, ${attachment.mimeType ?? '未知类型'})'
@@ -131,7 +120,6 @@ class AIService {
       }
     }
 
-    // 如果只有一个文本部分，返回字符串（兼容性）
     if (contentParts.length == 1 && contentParts[0]['type'] == 'text') {
       return contentParts[0]['text'] as String;
     }
@@ -139,7 +127,6 @@ class AIService {
     return contentParts;
   }
 
-  // 构建Gemini API格式的消息内容
   Future<List<Map<String, dynamic>>> _buildGeminiContents(
     String message,
     List<Message> chatHistory,
@@ -150,7 +137,6 @@ class AIService {
   ) async {
     final contents = <Map<String, dynamic>>[];
 
-    // 处理系统提示：作为第一个用户消息，然后是模型确认
     if (systemPrompt.isNotEmpty) {
       contents.add({
         'role': 'user',
@@ -166,7 +152,6 @@ class AIService {
       });
     }
 
-    // 处理历史对话
     if (enableHistory && chatHistory.isNotEmpty) {
       final recentHistory = chatHistory
           .where((msg) => msg.status != MessageStatus.error)
@@ -187,23 +172,18 @@ class AIService {
       }
     }
 
-    // 处理当前消息和附件
     final userMessageParts = <Map<String, dynamic>>[];
 
-    // 添加文本部分
     if (message.isNotEmpty) {
       userMessageParts.add({'text': message});
     }
 
-    // 添加文件附件部分
     if (attachments.isNotEmpty) {
       final fileParts = await _prepareFilesForGemini(attachments);
       userMessageParts.addAll(fileParts);
     }
 
-    // 只有当有内容时才添加用户消息
     if (userMessageParts.isNotEmpty) {
-      // 如果上一条消息已经是用户消息，则合并
       if (contents.isNotEmpty && contents.last['role'] == 'user') {
         final lastParts = (contents.last['parts'] as List<Map<String, dynamic>>);
         lastParts.addAll(userMessageParts);
@@ -218,11 +198,9 @@ class AIService {
     return contents;
   }
 
-  // 准备文件附件用于Gemini API
   Future<List<Map<String, dynamic>>> _prepareFilesForGemini(List<Attachment> attachments) async {
     final fileParts = <Map<String, dynamic>>[];
 
-    // 检查总附件大小
     final totalSize = attachments.fold<int>(0, (sum, attachment) => sum + (attachment.fileSize ?? 0));
     if (totalSize > maxTotalAttachmentsSize) {
       throw Exception('附件总大小超过${maxTotalAttachmentsSize ~/ (1024 * 1024)}MB限制');
@@ -240,7 +218,6 @@ class AIService {
         final file = File(attachment.filePath!);
         final fileSize = attachment.fileSize ?? await _fileService.getFileSize(attachment.filePath!);
 
-        // 检查单个文件大小
         if (fileSize > maxFileSizeForBase64) {
           fileParts.add({
             'text': '文件 ${attachment.fileName} (${_formatFileSize(fileSize)}) 过大，无法处理'
@@ -248,7 +225,6 @@ class AIService {
           continue;
         }
 
-        // 检查是否为支持的媒体类型（图片、视频、音频）
         final mimeType = attachment.mimeType?.toLowerCase() ?? '';
         final isSupportedMedia = mimeType.startsWith('image/') ||
                                 mimeType.startsWith('video/') ||
@@ -256,9 +232,7 @@ class AIService {
 
         if (isSupportedMedia) {
           try {
-            // 获取base64数据（不含data URL前缀）
             final base64Data = await _fileService.getFileBase64(file);
-            // 移除可能的data URL前缀
             String cleanBase64 = base64Data;
             if (base64Data.contains(',')) {
               cleanBase64 = base64Data.split(',').last;
@@ -276,7 +250,6 @@ class AIService {
             });
           }
         } else {
-          // 非媒体文件：尝试读取文本内容
           if (fileSize <= maxFileSizeForTextExtraction) {
             try {
               final content = await _fileService.readTextFile(file);
@@ -284,13 +257,11 @@ class AIService {
                 'text': '文件: ${attachment.fileName} (${_formatFileSize(fileSize)})\n内容:\n$content'
               });
             } catch (e) {
-              // 读取失败，只发送文件名信息
               fileParts.add({
                 'text': '附件: ${attachment.fileName} (${_formatFileSize(fileSize)}, ${attachment.mimeType ?? '未知类型'}) - 无法读取内容'
               });
             }
           } else {
-            // 文件太大，只发送文件名信息
             fileParts.add({
               'text': '附件: ${attachment.fileName} (${_formatFileSize(fileSize)}, ${attachment.mimeType ?? '未知类型'})'
             });
@@ -362,7 +333,6 @@ class AIService {
 
       String responseText;
       if (apiType == 'gemini') {
-        // 构建Gemini格式的消息内容
         final contents = await _buildGeminiContents(
           message,
           chatHistory,
@@ -431,7 +401,6 @@ class AIService {
 
     try {
       if (apiType == 'gemini') {
-        // 构建Gemini格式的消息内容
         final contents = await _buildGeminiContents(
           message,
           chatHistory,
@@ -441,7 +410,6 @@ class AIService {
           historyContextLength,
         );
 
-        // 使用Gemini流式API
         yield* _sendGeminiMessageStreaming(
           apiEndpoint: apiEndpoint,
           apiKey: apiKey,
@@ -453,7 +421,6 @@ class AIService {
         return;
       }
 
-      // OpenAI格式处理
       List<Map<String, dynamic>> messages = [];
 
       String baseSystemPrompt = '用户的名字是"${userProfile.username}",请在对话中适当地使用这个名字来称呼用户。';
@@ -558,7 +525,6 @@ class AIService {
     required List<Map<String, dynamic>> contents,
   }) async {
     try {
-      // 构建Gemini API请求体
       final requestBody = {
         'contents': contents,
         'generationConfig': {
@@ -567,21 +533,15 @@ class AIService {
         }
       };
 
-      // 构建URL
-      // Gemini API端点格式: https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}
       String url = apiEndpoint;
 
-      // 确保端点包含模型路径
       if (!url.contains('/models/')) {
-        // 如果端点只是基础URL，添加模型路径
         final modelPath = model.contains('/') ? model : 'models/$model';
         url = url.endsWith('/') ? '$url$modelPath:generateContent' : '$url/$modelPath:generateContent';
       } else if (!url.contains(':generateContent')) {
-        // 如果端点包含模型路径但没有方法，添加generateContent
         url = url.endsWith('/') ? '${url}generateContent' : '$url:generateContent';
       }
 
-      // 添加API密钥参数
       if (!url.contains('?key=')) {
         url = '$url?key=$apiKey';
       }
@@ -597,7 +557,6 @@ class AIService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
-        // 解析Gemini响应
         if (data['candidates'] != null && data['candidates'].isNotEmpty) {
           final candidate = data['candidates'][0];
           if (candidate['finishReason'] == 'SAFETY') {
@@ -630,7 +589,6 @@ class AIService {
     required List<Map<String, dynamic>> contents,
   }) async* {
     try {
-      // 构建Gemini API请求体
       final requestBody = {
         'contents': contents,
         'generationConfig': {
@@ -639,15 +597,12 @@ class AIService {
         }
       };
 
-      // 构建流式URL
-      // Gemini流式端点格式: https://generativelanguage.googleapis.com/v1beta/models/{model}:streamGenerateContent?key={apiKey}&alt=sse
       String url;
       if (apiEndpoint.contains('streamGenerateContent')) {
         url = apiEndpoint.contains('?key=')
             ? '$apiEndpoint&alt=sse'
             : '$apiEndpoint?key=$apiKey&alt=sse';
       } else {
-        // 替换generateContent为streamGenerateContent
         url = apiEndpoint.replaceFirst('generateContent', 'streamGenerateContent');
         if (!url.contains('?key=')) {
           url = '$url?key=$apiKey';
@@ -684,7 +639,6 @@ class AIService {
             }
             try {
               final jsonData = jsonDecode(data);
-              // 解析Gemini流式响应
               if (jsonData['candidates'] != null && jsonData['candidates'].isNotEmpty) {
                 final candidate = jsonData['candidates'][0];
                 if (candidate['content'] != null &&

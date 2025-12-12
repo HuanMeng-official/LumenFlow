@@ -85,13 +85,11 @@ class FileService {
     }
   }
 
-  // 获取文件的Base64编码（用于API上传）
   Future<String> getFileBase64(File file) async {
     final bytes = await file.readAsBytes();
     return base64Encode(bytes);
   }
 
-  // 获取文件的Base64 Data URL（用于OpenAI Vision API）
   Future<String> getFileDataUrl(File file, String? mimeType) async {
     final bytes = await file.readAsBytes();
     final base64 = base64Encode(bytes);
@@ -99,12 +97,10 @@ class FileService {
     return 'data:$actualMimeType;base64,$base64';
   }
 
-  // 获取文件内容（文本文件）
   Future<String> readTextFile(File file) async {
     return await file.readAsString();
   }
 
-  // 清理旧附件（可选功能）
   Future<void> cleanupOldAttachments({int days = 30}) async {
     final appDir = await getApplicationDocumentsDirectory();
     final attachmentsDir = Directory('${appDir.path}/$_attachmentsDirName');
@@ -124,19 +120,16 @@ class FileService {
     }
   }
 
-  // 获取附件目录路径
   Future<String> getAttachmentsDirPath() async {
     final appDir = await getApplicationDocumentsDirectory();
     return '${appDir.path}/$_attachmentsDirName';
   }
 
-  // 检查文件是否存在
   Future<bool> fileExists(String filePath) async {
     final file = File(filePath);
     return await file.exists();
   }
 
-  // 获取文件大小
   Future<int> getFileSize(String filePath) async {
     final file = File(filePath);
     final stats = await file.stat();

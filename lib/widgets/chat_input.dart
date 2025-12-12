@@ -42,7 +42,7 @@ class _ChatInputState extends State<ChatInput> {
   void didUpdateWidget(ChatInput oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.enabled != widget.enabled) {
-      _onTextChanged(); // 重新计算发送按钮状态
+      _onTextChanged();
     }
   }
 
@@ -105,7 +105,6 @@ class _ChatInputState extends State<ChatInput> {
       );
 
       if (result != null && result.files.isNotEmpty) {
-        // 检查总文件大小
         int totalSize = 0;
         final oversizedFiles = <String>[];
 
@@ -116,7 +115,6 @@ class _ChatInputState extends State<ChatInput> {
               final stat = await file.stat();
               totalSize += stat.size;
 
-              // 检查单个文件大小
               if (stat.size > AIService.maxFileSizeForBase64) {
                 oversizedFiles.add('${platformFile.name} (${_formatFileSize(stat.size)})');
               }
@@ -124,7 +122,6 @@ class _ChatInputState extends State<ChatInput> {
           }
         }
 
-        // 检查总大小限制
         if (totalSize > AIService.maxTotalAttachmentsSize) {
           _showErrorDialog(
             '文件过大',
@@ -133,7 +130,6 @@ class _ChatInputState extends State<ChatInput> {
           return;
         }
 
-        // 显示过大文件警告
         if (oversizedFiles.isNotEmpty) {
           final proceed = await _showWarningDialog(
             '文件过大警告',
@@ -156,7 +152,6 @@ class _ChatInputState extends State<ChatInput> {
               }
             } catch (e) {
               debugPrint('Error processing file ${platformFile.name}: $e');
-              // 继续处理其他文件
             }
           }
         }
@@ -230,7 +225,7 @@ class _ChatInputState extends State<ChatInput> {
                 controller: _controller,
                 placeholder: widget.enabled ? '输入消息...' : '请先配置API设置',
                 enabled: widget.enabled,
-                decoration: null, // 使用null而不是InputBorder.none
+                decoration: null,
                 maxLines: null,
                 textInputAction: TextInputAction.send,
                 onSubmitted: widget.enabled ? (_) => _sendMessage() : null,

@@ -63,7 +63,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _endpointController.text = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
         _modelController.text = 'gemini-2.5-flash';
       } else {
-        // OpenAI 或其它
         _endpointController.text = SettingsService.defaultEndpoint;
         _modelController.text = SettingsService.defaultModel;
       }
@@ -235,7 +234,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: SafeArea(
         child: ListView(
           children: [
-            // 用户信息部分
             _buildSection(
               '用户信息',
               [
@@ -255,7 +253,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
 
-            // API设置部分
             _buildSection(
               '基础设置',
               [
@@ -301,7 +298,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
 
-            // 模型设置部分
             _buildSection(
               '模型设置',
               [
@@ -343,7 +339,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
 
-            // 历史对话设置部分
             _buildSection(
               '历史对话',
               [
@@ -368,7 +363,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
 
-            // 其他操作
             _buildSection(
               '其他',
               [
@@ -381,7 +375,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
 
-            // 说明信息
             Container(
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(16),

@@ -108,16 +108,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       );
 
       if (image != null) {
-        // 删除旧头像
         await _userService.deleteAvatarImage(_userProfile?.avatarPath);
 
-        // 保存新头像
         final savedPath = await _userService.saveAvatarImage(File(image.path));
 
         setState(() {
           _userProfile = _userProfile!.copyWith(
             avatarPath: savedPath,
-            avatarEmoji: null, // 清除emoji头像
+            avatarEmoji: null,
           );
         });
       }
@@ -138,16 +136,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       );
 
       if (image != null) {
-        // 删除旧头像
         await _userService.deleteAvatarImage(_userProfile?.avatarPath);
 
-        // 保存新头像
         final savedPath = await _userService.saveAvatarImage(File(image.path));
 
         setState(() {
           _userProfile = _userProfile!.copyWith(
             avatarPath: savedPath,
-            avatarEmoji: null, // 清除emoji头像
+            avatarEmoji: null,
           );
         });
       }
@@ -190,7 +186,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(width: 60), // 占位符保持居中
+                  const SizedBox(width: 60),
                 ],
               ),
             ),
@@ -222,13 +218,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       ),
                     ),
                     onPressed: () async {
-                      // 删除旧的图片头像
                       await _userService.deleteAvatarImage(_userProfile?.avatarPath);
 
                       setState(() {
                         _userProfile = _userProfile!.copyWith(
                           avatarEmoji: emoji,
-                          avatarPath: null, // 清除图片头像
+                          avatarPath: null,
                         );
                       });
                       if (mounted) {
@@ -344,7 +339,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         child: ListView(
           children: [
             const SizedBox(height: 32),
-            // 头像部分
             Center(
               child: Column(
                 children: [
@@ -394,7 +388,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
             const SizedBox(height: 32),
 
-            // 用户名设置
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
@@ -440,7 +433,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               ),
             ),
 
-            // 说明信息
             Container(
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(16),
