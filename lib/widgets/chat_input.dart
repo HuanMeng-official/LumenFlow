@@ -11,11 +11,11 @@ class ChatInput extends StatefulWidget {
   final bool enabled;
 
   const ChatInput({
-    Key? key,
+    super.key,
     required this.onSendMessage,
     this.onAttachmentsSelected,
     this.enabled = true,
-  }) : super(key: key);
+  });
 
   @override
   State<ChatInput> createState() => _ChatInputState();
@@ -155,7 +155,7 @@ class _ChatInputState extends State<ChatInput> {
                 attachments.add(attachment);
               }
             } catch (e) {
-              print('Error processing file ${platformFile.name}: $e');
+              debugPrint('Error processing file ${platformFile.name}: $e');
               // 继续处理其他文件
             }
           }
@@ -168,7 +168,7 @@ class _ChatInputState extends State<ChatInput> {
         }
       }
     } catch (e) {
-      print('Error picking file: $e');
+      debugPrint('Error picking file: $e');
       _showErrorDialog('选择文件失败', '错误：${e.toString().replaceAll('Exception: ', '')}');
     }
   }

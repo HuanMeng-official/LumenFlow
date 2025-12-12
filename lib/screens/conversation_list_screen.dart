@@ -7,9 +7,9 @@ class ConversationListScreen extends StatefulWidget {
   final Function(Conversation?) onConversationSelected;
 
   const ConversationListScreen({
-    Key? key,
+    super.key,
     required this.onConversationSelected,
-  }) : super(key: key);
+  });
 
   @override
   State<ConversationListScreen> createState() => _ConversationListScreenState();
@@ -120,7 +120,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                 await _loadConversations();
               }
               if (mounted) {
-                Navigator.pop(context);
+                Navigator.pop(context); // ignore: use_build_context_synchronously
               }
             },
           ),
@@ -136,8 +136,8 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
         middle: const Text('对话记录'),
         trailing: CupertinoButton(
           padding: EdgeInsets.zero,
-          child: const Icon(CupertinoIcons.add),
           onPressed: _createNewConversation,
+          child: const Icon(CupertinoIcons.add),
         ),
       ),
       child: SafeArea(
@@ -248,8 +248,8 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
           ),
           const SizedBox(height: 24),
           CupertinoButton.filled(
-            child: const Text('创建新对话'),
             onPressed: _createNewConversation,
+            child: const Text('创建新对话'),
           ),
         ],
       ),

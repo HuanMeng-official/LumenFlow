@@ -18,68 +18,6 @@ class AIService {
   static const int maxFileSizeForTextExtraction = 5 * 1024 * 1024; // 5MB
   static const int maxTotalAttachmentsSize = 50 * 1024 * 1024; // 50MB
 
-  Future<String> _buildMessageWithAttachments(String message, List<Attachment> attachments) async {
-    if (attachments.isEmpty) {
-      return message;
-    }
-
-    // 检查总附件大小
-    final totalSize = attachments.fold<int>(0, (sum, attachment) => sum + (attachment.fileSize ?? 0));
-    if (totalSize > maxTotalAttachmentsSize) {
-      throw Exception('附件总大小超过${maxTotalAttachmentsSize ~/ (1024 * 1024)}MB限制');
-    }
-
-    final buffer = StringBuffer();
-    if (message.isNotEmpty) {
-      buffer.write(message);
-      buffer.write('\n\n');
-    }
-
-    buffer.write('附件（${attachments.length}个）：\n');
-
-    for (final attachment in attachments) {
-      try {
-        if (attachment.filePath == null || !await _fileService.fileExists(attachment.filePath!)) {
-          buffer.write('- ${attachment.fileName}（文件不存在或已删除）\n');
-          continue;
-        }
-
-        final file = File(attachment.filePath!);
-        final fileSize = attachment.fileSize ?? await _fileService.getFileSize(attachment.filePath!);
-
-        // 检查单个文件大小
-        if (fileSize > maxFileSizeForBase64) {
-          buffer.write('- ${attachment.fileName}（${_formatFileSize(fileSize)}，文件过大，无法处理）\n');
-          continue;
-        }
-
-        // 处理文本文件：直接读取内容
-        if (attachment.type == AttachmentType.document && fileSize <= maxFileSizeForTextExtraction) {
-          try {
-            final content = await _fileService.readTextFile(file);
-            buffer.write('--- 文件：${attachment.fileName}（${_formatFileSize(fileSize)}）---\n');
-            buffer.write(content);
-            buffer.write('\n--- 文件结束 ---\n\n');
-          } catch (e) {
-            // 如果文本读取失败，回退到Base64
-            final base64Content = await _fileService.getFileBase64(file);
-            buffer.write('- ${attachment.fileName}（${_formatFileSize(fileSize)}，Base64编码）\n');
-            buffer.write('Base64数据长度：${base64Content.length}字符\n\n');
-          }
-        } else {
-          // 其他文件类型：Base64编码
-          final base64Content = await _fileService.getFileBase64(file);
-          buffer.write('- ${attachment.fileName}（${_formatFileSize(fileSize)}，${attachment.mimeType ?? '未知类型'}）\n');
-          buffer.write('Base64数据长度：${base64Content.length}字符\n\n');
-        }
-      } catch (e) {
-        buffer.write('- ${attachment.fileName}（处理失败：$e）\n');
-      }
-    }
-
-    return buffer.toString();
-  }
-
   String _formatFileSize(int bytes) {
     if (bytes < 1024) {
       return '$bytes B';

@@ -6,7 +6,7 @@ import '../services/user_service.dart';
 import '../widgets/avatar_widget.dart';
 
 class UserProfileScreen extends StatefulWidget {
-  const UserProfileScreen({Key? key}) : super(key: key);
+  const UserProfileScreen({super.key});
 
   @override
   State<UserProfileScreen> createState() => _UserProfileScreenState();
@@ -231,7 +231,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           avatarPath: null, // 清除图片头像
                         );
                       });
-                      Navigator.pop(context);
+                      if (mounted) {
+                        Navigator.pop(context); // ignore: use_build_context_synchronously
+                      }
                     },
                   );
                 },
@@ -334,8 +336,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ? const CupertinoActivityIndicator()
             : CupertinoButton(
           padding: EdgeInsets.zero,
-          child: const Text('保存'),
           onPressed: _saveUserProfile,
+          child: const Text('保存'),
         ),
       ),
       child: SafeArea(

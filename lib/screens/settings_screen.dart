@@ -4,7 +4,7 @@ import '../services/settings_service.dart';
 import 'user_profile_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -228,8 +228,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ? const CupertinoActivityIndicator()
             : CupertinoButton(
           padding: EdgeInsets.zero,
-          child: const Text('保存'),
           onPressed: _saveSettings,
+          child: const Text('保存'),
         ),
       ),
       child: SafeArea(
@@ -529,12 +529,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               if (showHelpButton)
                 CupertinoButton(
                   padding: EdgeInsets.zero,
+                  onPressed: onHelpPressed,
                   child: const Icon(
                     CupertinoIcons.question_circle,
                     size: 20,
                     color: CupertinoColors.systemBlue,
                   ),
-                  onPressed: onHelpPressed,
                 ),
             ],
           ),
@@ -557,12 +557,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             suffix: showVisibilityToggle
                 ? CupertinoButton(
               padding: EdgeInsets.zero,
+              onPressed: onVisibilityToggle,
               child: Icon(
                 obscureText ? CupertinoIcons.eye : CupertinoIcons.eye_slash,
                 size: 20,
                 color: CupertinoColors.systemGrey,
               ),
-              onPressed: onVisibilityToggle,
             )
                 : null,
             decoration: BoxDecoration(

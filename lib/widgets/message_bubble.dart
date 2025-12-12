@@ -10,7 +10,7 @@ import 'avatar_widget.dart';
 class MessageBubble extends StatefulWidget {
   final Message message;
 
-  const MessageBubble({Key? key, required this.message}) : super(key: key);
+  const MessageBubble({super.key, required this.message});
 
   @override
   State<MessageBubble> createState() => _MessageBubbleState();

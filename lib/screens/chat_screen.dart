@@ -11,7 +11,7 @@ import 'settings_screen.dart';
 import 'conversation_list_screen.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({Key? key}) : super(key: key);
+  const ChatScreen({super.key});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -289,8 +289,8 @@ class _ChatScreenState extends State<ChatScreen> {
       navigationBar: CupertinoNavigationBar(
         leading: CupertinoButton(
           padding: EdgeInsets.zero,
-          child: const Icon(CupertinoIcons.chat_bubble_2),
           onPressed: _openConversationList,
+          child: const Icon(CupertinoIcons.chat_bubble_2),
         ),
         middle: Text(_currentTitle),
         trailing: Row(
@@ -298,13 +298,13 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             CupertinoButton(
               padding: EdgeInsets.zero,
-              child: const Icon(CupertinoIcons.add),
               onPressed: _createNewConversation,
+              child: const Icon(CupertinoIcons.add),
             ),
             CupertinoButton(
               padding: EdgeInsets.zero,
-              child: const Icon(CupertinoIcons.ellipsis),
               onPressed: _showMoreOptions,
+              child: const Icon(CupertinoIcons.ellipsis),
             ),
           ],
         ),
@@ -329,8 +329,8 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                     CupertinoButton(
                       padding: EdgeInsets.zero,
-                      child: const Text('设置'),
                       onPressed: _openSettings,
+                      child: const Text('设置'),
                     ),
                   ],
                 ),
@@ -429,7 +429,7 @@ class _ChatScreenState extends State<ChatScreen> {
 }
 
 class TypingIndicator extends StatelessWidget {
-  const TypingIndicator({Key? key}) : super(key: key);
+  const TypingIndicator({super.key});
 
   @override
   Widget build(BuildContext context) {

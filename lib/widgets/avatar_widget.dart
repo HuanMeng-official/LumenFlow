@@ -8,11 +8,11 @@ class AvatarWidget extends StatelessWidget {
   final EdgeInsetsGeometry? margin;
 
   const AvatarWidget({
-    Key? key,
+    super.key,
     required this.userProfile,
     this.size = 32,
     this.margin,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
