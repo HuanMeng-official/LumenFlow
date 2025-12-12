@@ -1,18 +1,32 @@
 import 'dart:convert';
 import 'dart:async';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'settings_service.dart';
 import 'user_service.dart';
+import 'file_service.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
 
 class AIService {
   final SettingsService _settingsService = SettingsService();
   final UserService _userService = UserService();
+  final FileService _fileService = FileService();
 
-  String _buildMessageWithAttachments(String message, List<Attachment> attachments) {
+  // 文件大小限制（字节）
+  static const int maxFileSizeForBase64 = 20 * 1024 * 1024; // 20MB
+  static const int maxFileSizeForTextExtraction = 5 * 1024 * 1024; // 5MB
+  static const int maxTotalAttachmentsSize = 50 * 1024 * 1024; // 50MB
+
+  Future<String> _buildMessageWithAttachments(String message, List<Attachment> attachments) async {
     if (attachments.isEmpty) {
       return message;
+    }
+
+    // 检查总附件大小
+    final totalSize = attachments.fold<int>(0, (sum, attachment) => sum + (attachment.fileSize ?? 0));
+    if (totalSize > maxTotalAttachmentsSize) {
+      throw Exception('附件总大小超过${maxTotalAttachmentsSize ~/ (1024 * 1024)}MB限制');
     }
 
     final buffer = StringBuffer();
@@ -21,13 +35,46 @@ class AIService {
       buffer.write('\n\n');
     }
 
-    buffer.write('附件：\n');
+    buffer.write('附件（${attachments.length}个）：\n');
+
     for (final attachment in attachments) {
-      buffer.write('- ${attachment.fileName}');
-      if (attachment.fileSize != null) {
-        buffer.write(' (${_formatFileSize(attachment.fileSize!)})');
+      try {
+        if (attachment.filePath == null || !await _fileService.fileExists(attachment.filePath!)) {
+          buffer.write('- ${attachment.fileName}（文件不存在或已删除）\n');
+          continue;
+        }
+
+        final file = File(attachment.filePath!);
+        final fileSize = attachment.fileSize ?? await _fileService.getFileSize(attachment.filePath!);
+
+        // 检查单个文件大小
+        if (fileSize > maxFileSizeForBase64) {
+          buffer.write('- ${attachment.fileName}（${_formatFileSize(fileSize)}，文件过大，无法处理）\n');
+          continue;
+        }
+
+        // 处理文本文件：直接读取内容
+        if (attachment.type == AttachmentType.document && fileSize <= maxFileSizeForTextExtraction) {
+          try {
+            final content = await _fileService.readTextFile(file);
+            buffer.write('--- 文件：${attachment.fileName}（${_formatFileSize(fileSize)}）---\n');
+            buffer.write(content);
+            buffer.write('\n--- 文件结束 ---\n\n');
+          } catch (e) {
+            // 如果文本读取失败，回退到Base64
+            final base64Content = await _fileService.getFileBase64(file);
+            buffer.write('- ${attachment.fileName}（${_formatFileSize(fileSize)}，Base64编码）\n');
+            buffer.write('Base64数据长度：${base64Content.length}字符\n\n');
+          }
+        } else {
+          // 其他文件类型：Base64编码
+          final base64Content = await _fileService.getFileBase64(file);
+          buffer.write('- ${attachment.fileName}（${_formatFileSize(fileSize)}，${attachment.mimeType ?? '未知类型'}）\n');
+          buffer.write('Base64数据长度：${base64Content.length}字符\n\n');
+        }
+      } catch (e) {
+        buffer.write('- ${attachment.fileName}（处理失败：$e）\n');
       }
-      buffer.write('\n');
     }
 
     return buffer.toString();
@@ -38,9 +85,120 @@ class AIService {
       return '$bytes B';
     } else if (bytes < 1024 * 1024) {
       return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    } else {
+    } else if (bytes < 1024 * 1024 * 1024) {
       return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    } else {
+      return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
     }
+  }
+
+  // 检查文件类型是否支持Vision API（图片、视频、音频）
+  bool _isVisionSupportedFile(Attachment attachment) {
+    final mimeType = attachment.mimeType?.toLowerCase() ?? '';
+    return mimeType.startsWith('image/') ||
+           mimeType.startsWith('video/') ||
+           mimeType.startsWith('audio/');
+  }
+
+  // 构建OpenAI Vision API格式的消息内容
+  Future<dynamic> _buildOpenAIMessageContent(String message, List<Attachment> attachments) async {
+    if (attachments.isEmpty) {
+      return message;
+    }
+
+    // 检查总附件大小
+    final totalSize = attachments.fold<int>(0, (sum, attachment) => sum + (attachment.fileSize ?? 0));
+    if (totalSize > maxTotalAttachmentsSize) {
+      throw Exception('附件总大小超过${maxTotalAttachmentsSize ~/ (1024 * 1024)}MB限制');
+    }
+
+    final contentParts = <Map<String, dynamic>>[];
+
+    // 添加文本部分（如果有）
+    if (message.isNotEmpty) {
+      contentParts.add({
+        'type': 'text',
+        'text': message
+      });
+    }
+
+    for (final attachment in attachments) {
+      try {
+        if (attachment.filePath == null || !await _fileService.fileExists(attachment.filePath!)) {
+          // 文件不存在，添加错误信息
+          contentParts.add({
+            'type': 'text',
+            'text': '文件 ${attachment.fileName} 不存在或已删除'
+          });
+          continue;
+        }
+
+        final file = File(attachment.filePath!);
+        final fileSize = attachment.fileSize ?? await _fileService.getFileSize(attachment.filePath!);
+
+        // 检查单个文件大小
+        if (fileSize > maxFileSizeForBase64) {
+          contentParts.add({
+            'type': 'text',
+            'text': '文件 ${attachment.fileName} (${_formatFileSize(fileSize)}) 过大，无法处理'
+          });
+          continue;
+        }
+
+        if (_isVisionSupportedFile(attachment)) {
+          // 支持Vision API的文件类型：图片、视频、音频
+          try {
+            final dataUrl = await _fileService.getFileDataUrl(file, attachment.mimeType);
+            contentParts.add({
+              'type': 'image_url',
+              'image_url': {
+                'url': dataUrl
+              }
+            });
+          } catch (e) {
+            contentParts.add({
+              'type': 'text',
+              'text': '处理文件 ${attachment.fileName} 时出错: $e'
+            });
+          }
+        } else {
+          // 不支持Vision API的文件类型：尝试读取文本内容
+          if (fileSize <= maxFileSizeForTextExtraction) {
+            try {
+              final content = await _fileService.readTextFile(file);
+              contentParts.add({
+                'type': 'text',
+                'text': '文件: ${attachment.fileName} (${_formatFileSize(fileSize)})\n内容:\n$content'
+              });
+            } catch (e) {
+              // 读取失败，只发送文件名信息
+              contentParts.add({
+                'type': 'text',
+                'text': '附件: ${attachment.fileName} (${_formatFileSize(fileSize)}, ${attachment.mimeType ?? '未知类型'}) - 无法读取内容'
+              });
+            }
+          } else {
+            // 文件太大，只发送文件名信息
+            contentParts.add({
+              'type': 'text',
+              'text': '附件: ${attachment.fileName} (${_formatFileSize(fileSize)}, ${attachment.mimeType ?? '未知类型'})'
+            });
+          }
+        }
+      } catch (e) {
+        contentParts.add({
+          'type': 'text',
+          'text': '处理文件 ${attachment.fileName} 时出错: $e'
+        });
+      }
+    }
+
+    // 如果只有一个文本部分，返回字符串（兼容性）
+    if (contentParts.length == 1 && contentParts[0]['type'] == 'text') {
+      return contentParts[0]['text'] as String;
+    }
+
+    return contentParts;
   }
 
   Future<String> sendMessage(String message, List<Message> chatHistory, {List<Attachment> attachments = const []}) async {
@@ -59,7 +217,7 @@ class AIService {
     }
 
     try {
-      List<Map<String, String>> messages = [];
+      List<Map<String, dynamic>> messages = [];
 
       String baseSystemPrompt = '用户的名字是"${userProfile.username}",请在对话中适当地使用这个名字来称呼用户。';
       String fullSystemPrompt = baseSystemPrompt;
@@ -90,9 +248,10 @@ class AIService {
         }
       }
 
+      final userMessageContent = await _buildOpenAIMessageContent(message, attachments);
       messages.add({
         'role': 'user',
-        'content': _buildMessageWithAttachments(message, attachments),
+        'content': userMessageContent,
       });
 
       final response = await http.post(
@@ -140,7 +299,7 @@ class AIService {
     }
 
     try {
-      List<Map<String, String>> messages = [];
+      List<Map<String, dynamic>> messages = [];
 
       String baseSystemPrompt = '用户的名字是"${userProfile.username}",请在对话中适当地使用这个名字来称呼用户。';
       String fullSystemPrompt = baseSystemPrompt;
@@ -171,9 +330,10 @@ class AIService {
         }
       }
 
+      final userMessageContent = await _buildOpenAIMessageContent(message, attachments);
       messages.add({
         'role': 'user',
-        'content': _buildMessageWithAttachments(message, attachments),
+        'content': userMessageContent,
       });
 
       final request = http.Request(

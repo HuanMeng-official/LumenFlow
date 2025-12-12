@@ -90,6 +90,14 @@ class FileService {
     return base64Encode(bytes);
   }
 
+  // 获取文件的Base64 Data URL（用于OpenAI Vision API）
+  Future<String> getFileDataUrl(File file, String? mimeType) async {
+    final bytes = await file.readAsBytes();
+    final base64 = base64Encode(bytes);
+    final actualMimeType = mimeType ?? 'application/octet-stream';
+    return 'data:$actualMimeType;base64,$base64';
+  }
+
   // 获取文件内容（文本文件）
   Future<String> readTextFile(File file) async {
     return await file.readAsString();

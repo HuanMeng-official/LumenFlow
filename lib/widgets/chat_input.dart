@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:file_picker/file_picker.dart';
 import '../services/file_service.dart';
+import '../services/ai_service.dart';
 import '../models/attachment.dart';
 
 class ChatInput extends StatefulWidget {
@@ -45,6 +46,55 @@ class _ChatInputState extends State<ChatInput> {
     }
   }
 
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) {
+      return '$bytes B';
+    } else if (bytes < 1024 * 1024) {
+      return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    } else if (bytes < 1024 * 1024 * 1024) {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    } else {
+      return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
+    }
+  }
+
+  void _showErrorDialog(String title, String message) {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text('确定'),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<bool> _showWarningDialog(String title, String message) async {
+    final result = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text('取消'),
+            onPressed: () => Navigator.pop(context, false),
+          ),
+          CupertinoDialogAction(
+            child: const Text('继续'),
+            onPressed: () => Navigator.pop(context, true),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
   Future<void> _pickFile() async {
     if (!widget.enabled) return;
 
@@ -55,25 +105,71 @@ class _ChatInputState extends State<ChatInput> {
       );
 
       if (result != null && result.files.isNotEmpty) {
+        // 检查总文件大小
+        int totalSize = 0;
+        final oversizedFiles = <String>[];
+
+        for (final platformFile in result.files) {
+          if (platformFile.path != null) {
+            final file = File(platformFile.path!);
+            if (await file.exists()) {
+              final stat = await file.stat();
+              totalSize += stat.size;
+
+              // 检查单个文件大小
+              if (stat.size > AIService.maxFileSizeForBase64) {
+                oversizedFiles.add('${platformFile.name} (${_formatFileSize(stat.size)})');
+              }
+            }
+          }
+        }
+
+        // 检查总大小限制
+        if (totalSize > AIService.maxTotalAttachmentsSize) {
+          _showErrorDialog(
+            '文件过大',
+            '选择的文件总大小${_formatFileSize(totalSize)}超过${_formatFileSize(AIService.maxTotalAttachmentsSize)}限制。请选择较小的文件。'
+          );
+          return;
+        }
+
+        // 显示过大文件警告
+        if (oversizedFiles.isNotEmpty) {
+          final proceed = await _showWarningDialog(
+            '文件过大警告',
+            '以下文件超过${_formatFileSize(AIService.maxFileSizeForBase64)}限制，可能无法正确处理：\n\n${oversizedFiles.join('\n')}\n\n是否继续上传？'
+          );
+          if (!proceed) {
+            return;
+          }
+        }
+
         final attachments = <Attachment>[];
 
         for (final platformFile in result.files) {
           if (platformFile.path != null) {
             final file = File(platformFile.path!);
-            final attachment = await _fileService.saveFileAndCreateAttachment(file);
-            if (attachment != null) {
-              attachments.add(attachment);
+            try {
+              final attachment = await _fileService.saveFileAndCreateAttachment(file);
+              if (attachment != null) {
+                attachments.add(attachment);
+              }
+            } catch (e) {
+              print('Error processing file ${platformFile.name}: $e');
+              // 继续处理其他文件
             }
           }
         }
 
         if (attachments.isNotEmpty && widget.onAttachmentsSelected != null) {
           widget.onAttachmentsSelected!(attachments);
+        } else if (attachments.isEmpty) {
+          _showErrorDialog('无有效文件', '没有成功处理任何文件，请重试。');
         }
       }
     } catch (e) {
       print('Error picking file: $e');
-      // 可以在这里显示错误提示
+      _showErrorDialog('选择文件失败', '错误：${e.toString().replaceAll('Exception: ', '')}');
     }
   }
 
