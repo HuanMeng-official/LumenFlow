@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import '../models/message.dart';
+import '../models/attachment.dart';
 import '../models/conversation.dart';
 import '../services/ai_service.dart';
 import '../services/conversation_service.dart';
@@ -96,8 +97,15 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  Future<void> _sendMessage(String content) async {
-    if (content.trim().isEmpty) return;
+  Future<void> _handleAttachmentsSelected(List<Attachment> attachments) async {
+    if (attachments.isEmpty) return;
+
+    // 创建一个只有附件的消息（没有文本内容）
+    await _sendMessage('', attachments: attachments);
+  }
+
+  Future<void> _sendMessage(String content, {List<Attachment> attachments = const []}) async {
+    if (content.trim().isEmpty && attachments.isEmpty) return;
 
     if (!_isConfigured) {
       _showConfigurationDialog();
@@ -109,6 +117,7 @@ class _ChatScreenState extends State<ChatScreen> {
       content: content,
       isUser: true,
       timestamp: DateTime.now(),
+      attachments: attachments,
     );
 
     setState(() {
@@ -146,7 +155,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
 
     try {
-      final stream = _aiService.sendMessageStreaming(content, _messages);
+      final stream = _aiService.sendMessageStreaming(content, _messages, attachments: attachments);
       final buffer = StringBuffer();
 
       await for (final chunk in stream) {
@@ -342,7 +351,8 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
             ChatInput(
-              onSendMessage: _sendMessage,
+              onSendMessage: (content) => _sendMessage(content),
+              onAttachmentsSelected: _handleAttachmentsSelected,
               enabled: _isConfigured,
             ),
           ],

@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import '../models/message.dart';
+import '../models/attachment.dart';
 import '../models/user_profile.dart';
 import '../services/user_service.dart';
 import 'avatar_widget.dart';
@@ -33,6 +34,91 @@ class _MessageBubbleState extends State<MessageBubble> {
       setState(() {
         _userProfile = profile;
       });
+    }
+  }
+
+  Widget _buildAttachment(Attachment attachment) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: widget.message.isUser
+            ? CupertinoColors.systemBlue.withOpacity(0.2)
+            : CupertinoColors.systemGrey5,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: widget.message.isUser
+              ? CupertinoColors.systemBlue.withOpacity(0.3)
+              : CupertinoColors.systemGrey4,
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            _getAttachmentIcon(attachment.type),
+            size: 20,
+            color: widget.message.isUser
+                ? CupertinoColors.systemBlue
+                : CupertinoColors.systemGrey,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  attachment.fileName,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: widget.message.isUser
+                        ? CupertinoColors.white
+                        : CupertinoColors.black,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (attachment.fileSize != null)
+                  Text(
+                    _formatFileSize(attachment.fileSize!),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: widget.message.isUser
+                          ? CupertinoColors.systemGrey4
+                          : CupertinoColors.systemGrey,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _getAttachmentIcon(AttachmentType type) {
+    switch (type) {
+      case AttachmentType.image:
+        return CupertinoIcons.photo;
+      case AttachmentType.document:
+        return CupertinoIcons.doc;
+      case AttachmentType.audio:
+        return CupertinoIcons.music_note;
+      case AttachmentType.video:
+        return CupertinoIcons.videocam;
+      case AttachmentType.other:
+        return CupertinoIcons.paperclip;
+    }
+  }
+
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) {
+      return '$bytes B';
+    } else if (bytes < 1024 * 1024) {
+      return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    } else {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
     }
   }
 
@@ -220,6 +306,10 @@ class _MessageBubbleState extends State<MessageBubble> {
                     ),
                   ),
                 ),
+                if (widget.message.attachments.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  ...widget.message.attachments.map(_buildAttachment),
+                ],
                   const SizedBox(height: 4),
                   Row(
                     mainAxisSize: MainAxisSize.min,

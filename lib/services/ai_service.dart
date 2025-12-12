@@ -4,12 +4,46 @@ import 'package:http/http.dart' as http;
 import 'settings_service.dart';
 import 'user_service.dart';
 import '../models/message.dart';
+import '../models/attachment.dart';
 
 class AIService {
   final SettingsService _settingsService = SettingsService();
   final UserService _userService = UserService();
 
-  Future<String> sendMessage(String message, List<Message> chatHistory) async {
+  String _buildMessageWithAttachments(String message, List<Attachment> attachments) {
+    if (attachments.isEmpty) {
+      return message;
+    }
+
+    final buffer = StringBuffer();
+    if (message.isNotEmpty) {
+      buffer.write(message);
+      buffer.write('\n\n');
+    }
+
+    buffer.write('附件：\n');
+    for (final attachment in attachments) {
+      buffer.write('- ${attachment.fileName}');
+      if (attachment.fileSize != null) {
+        buffer.write(' (${_formatFileSize(attachment.fileSize!)})');
+      }
+      buffer.write('\n');
+    }
+
+    return buffer.toString();
+  }
+
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) {
+      return '$bytes B';
+    } else if (bytes < 1024 * 1024) {
+      return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    } else {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
+  }
+
+  Future<String> sendMessage(String message, List<Message> chatHistory, {List<Attachment> attachments = const []}) async {
     final apiEndpoint = await _settingsService.getApiEndpoint();
     final apiKey = await _settingsService.getApiKey();
     final model = await _settingsService.getModel();
@@ -58,7 +92,7 @@ class AIService {
 
       messages.add({
         'role': 'user',
-        'content': message,
+        'content': _buildMessageWithAttachments(message, attachments),
       });
 
       final response = await http.post(
@@ -90,7 +124,7 @@ class AIService {
     }
   }
 
-  Stream<String> sendMessageStreaming(String message, List<Message> chatHistory) async* {
+  Stream<String> sendMessageStreaming(String message, List<Message> chatHistory, {List<Attachment> attachments = const []}) async* {
     final apiEndpoint = await _settingsService.getApiEndpoint();
     final apiKey = await _settingsService.getApiKey();
     final model = await _settingsService.getModel();
@@ -139,7 +173,7 @@ class AIService {
 
       messages.add({
         'role': 'user',
-        'content': message,
+        'content': _buildMessageWithAttachments(message, attachments),
       });
 
       final request = http.Request(

@@ -1,12 +1,18 @@
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
+import 'package:image_picker/image_picker.dart';
+import '../services/file_service.dart';
+import '../models/attachment.dart';
 
 class ChatInput extends StatefulWidget {
   final Function(String) onSendMessage;
+  final Function(List<Attachment>)? onAttachmentsSelected;
   final bool enabled;
 
   const ChatInput({
     Key? key,
     required this.onSendMessage,
+    this.onAttachmentsSelected,
     this.enabled = true,
   }) : super(key: key);
 
@@ -16,6 +22,8 @@ class ChatInput extends StatefulWidget {
 
 class _ChatInputState extends State<ChatInput> {
   final TextEditingController _controller = TextEditingController();
+  final ImagePicker _imagePicker = ImagePicker();
+  final FileService _fileService = FileService();
   bool _canSend = false;
 
   @override
@@ -35,6 +43,31 @@ class _ChatInputState extends State<ChatInput> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.enabled != widget.enabled) {
       _onTextChanged(); // 重新计算发送按钮状态
+    }
+  }
+
+  Future<void> _pickFile() async {
+    if (!widget.enabled) return;
+
+    try {
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        final file = File(pickedFile.path);
+        final attachment = await _fileService.saveFileAndCreateAttachment(file);
+
+        if (attachment != null && widget.onAttachmentsSelected != null) {
+          widget.onAttachmentsSelected!([attachment]);
+        }
+      }
+    } catch (e) {
+      print('Error picking file: $e');
+      // 可以在这里显示错误提示
     }
   }
 
@@ -60,6 +93,28 @@ class _ChatInputState extends State<ChatInput> {
       ),
       child: Row(
         children: [
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: widget.enabled ? _pickFile : null,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: widget.enabled
+                    ? CupertinoColors.systemGrey6
+                    : CupertinoColors.systemGrey5,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Icon(
+                CupertinoIcons.paperclip,
+                color: widget.enabled
+                    ? CupertinoColors.systemGrey
+                    : CupertinoColors.systemGrey4,
+                size: 20,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
