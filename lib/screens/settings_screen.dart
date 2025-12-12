@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../services/settings_service.dart';
+import '../utils/app_theme.dart';
 import 'user_profile_screen.dart';
 
 /// 应用设置界面，配置AI API参数和用户偏好
@@ -44,6 +45,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _obscureApiKey = true;
   bool _isSaving = false;
   String _apiType = SettingsService.defaultApiType;
+  bool _darkMode = SettingsService.defaultDarkMode;
 
   @override
   void initState() {
@@ -66,6 +68,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final historyContextLength = await _settingsService.getHistoryContextLength();
     final customPrompt = await _settingsService.getCustomSystemPrompt();
     final apiType = await _settingsService.getApiType();
+    final darkMode = await _settingsService.getDarkMode();
 
     setState(() {
       _endpointController.text = endpoint;
@@ -77,6 +80,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _historyContextLengthController.text = historyContextLength.toString();
       _customSystemPromptController.text = customPrompt;
       _apiType = apiType;
+      _darkMode = darkMode;
       _isLoading = false;
     });
   }
@@ -112,6 +116,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
       await _settingsService.setCustomSystemPrompt(_customSystemPromptController.text.trim());
       await _settingsService.setApiType(_apiType);
+      await _settingsService.setDarkMode(_darkMode);
 
       if (mounted) {
         showCupertinoDialog(
@@ -177,6 +182,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _historyContextLengthController.text = SettingsService.defaultHistoryContextLength.toString();
                 _customSystemPromptController.text = SettingsService.defaultCustomSystemPrompt.toString();
                 _apiType = SettingsService.defaultApiType;
+                _darkMode = SettingsService.defaultDarkMode;
               });
             },
           ),
@@ -388,6 +394,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
 
             _buildSection(
+              '外观',
+              [
+                _buildSwitchTile(
+                  '暗色模式',
+                  value: _darkMode,
+                  subtitle: '启用暗色主题',
+                  onChanged: (value) async {
+                    setState(() {
+                      _darkMode = value;
+                    });
+                    // 立即更新主题
+                    await _settingsService.setDarkMode(value);
+                    // 更新全局主题亮度
+                    appBrightness.value = value ? Brightness.dark : Brightness.light;
+                  },
+                ),
+              ],
+            ),
+
+            _buildSection(
               '其他',
               [
                 _buildActionTile(
@@ -403,7 +429,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: CupertinoColors.systemGrey6,
+                color: CupertinoTheme.of(context).brightness == Brightness.dark
+                    ? CupertinoColors.systemGrey6.darkColor
+                    : CupertinoColors.systemGrey6.color,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
@@ -440,6 +468,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildSection(String title, List<Widget> children) {
+    final brightness = CupertinoTheme.of(context).brightness;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -457,7 +486,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            color: CupertinoColors.systemBackground,
+            color: brightness == Brightness.dark
+                ? CupertinoColors.systemBackground.darkColor
+                : CupertinoColors.systemBackground.color,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: CupertinoColors.systemGrey4,
@@ -527,6 +558,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         VoidCallback? onVisibilityToggle,
         VoidCallback? onHelpPressed,
       }) {
+    final brightness = CupertinoTheme.of(context).brightness;
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -583,7 +615,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             )
                 : null,
             decoration: BoxDecoration(
-              color: CupertinoColors.systemGrey6,
+              color: brightness == Brightness.dark
+                  ? CupertinoColors.systemGrey6.darkColor
+                  : CupertinoColors.systemGrey6.color,
               borderRadius: BorderRadius.circular(8),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -711,6 +745,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         required ValueChanged<String?> onChanged,
       }) {
     final currentLabel = options[value] ?? value;
+    final brightness = CupertinoTheme.of(context).brightness;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -728,9 +763,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 4),
             Text(
               subtitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: CupertinoColors.systemGrey,
+                color: brightness == Brightness.dark
+                    ? CupertinoColors.systemGrey.darkColor
+                    : CupertinoColors.systemGrey,
               ),
             ),
           ],
@@ -742,6 +779,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               showCupertinoModalPopup<void>(
                 context: context,
                 builder: (BuildContext context) {
+                  final popupBrightness = CupertinoTheme.of(context).brightness;
                   return CupertinoActionSheet(
                     title: Text(title),
                     message: subtitle != null ? Text(subtitle) : null,
@@ -756,8 +794,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             entry.value,
                             style: TextStyle(
                               color: value == entry.key
-                                  ? CupertinoColors.activeBlue
-                                  : CupertinoColors.label,
+                                  ? (popupBrightness == Brightness.dark
+                                      ? CupertinoColors.activeBlue.darkColor
+                                      : CupertinoColors.activeBlue.color)
+                                  : (popupBrightness == Brightness.dark
+                                      ? CupertinoColors.label.darkColor
+                                      : CupertinoColors.label.color),
                             ),
                           ),
                         ),
@@ -766,10 +808,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      child: const Text(
+                      child: Text(
                         '取消',
                         style: TextStyle(
-                          color: CupertinoColors.systemRed,
+                          color: popupBrightness == Brightness.dark
+                              ? CupertinoColors.systemRed.darkColor
+                              : CupertinoColors.systemRed.color,
                         ),
                       ),
                     ),
@@ -781,7 +825,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: CupertinoColors.secondarySystemFill,
+                color: CupertinoTheme.of(context).brightness == Brightness.dark
+                    ? CupertinoColors.systemGrey6.darkColor
+                    : CupertinoColors.systemGrey6.color,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -789,15 +835,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   Text(
                     currentLabel,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
-                      color: CupertinoColors.label,
+                      color: brightness == Brightness.dark
+                          ? CupertinoColors.label.darkColor
+                          : CupertinoColors.label.color,
                     ),
                   ),
-                  const Icon(
+                  Icon(
                     CupertinoIcons.chevron_down,
                     size: 18,
-                    color: CupertinoColors.systemGrey,
+                    color: brightness == Brightness.dark
+                        ? CupertinoColors.systemGrey.darkColor
+                        : CupertinoColors.systemGrey,
                   ),
                 ],
               ),

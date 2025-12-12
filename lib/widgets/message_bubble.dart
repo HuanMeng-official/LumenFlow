@@ -37,19 +37,23 @@ class _MessageBubbleState extends State<MessageBubble> {
     }
   }
 
-  Widget _buildAttachment(Attachment attachment) {
+  Widget _buildAttachment(Attachment attachment, Brightness brightness) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: widget.message.isUser
             ? CupertinoColors.systemBlue.withOpacity(0.2)
-            : CupertinoColors.systemGrey5,
+            : (brightness == Brightness.dark
+                ? CupertinoColors.systemGrey5.darkColor
+                : CupertinoColors.systemGrey5.color),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: widget.message.isUser
               ? CupertinoColors.systemBlue.withOpacity(0.3)
-              : CupertinoColors.systemGrey4,
+              : (brightness == Brightness.dark
+                  ? CupertinoColors.systemGrey4.darkColor
+                  : CupertinoColors.systemGrey4.color),
           width: 1,
         ),
       ),
@@ -60,7 +64,9 @@ class _MessageBubbleState extends State<MessageBubble> {
             size: 20,
             color: widget.message.isUser
                 ? CupertinoColors.systemBlue
-                : CupertinoColors.systemGrey,
+                : (brightness == Brightness.dark
+                    ? CupertinoColors.systemGrey.darkColor
+                    : CupertinoColors.systemGrey.color),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -74,7 +80,9 @@ class _MessageBubbleState extends State<MessageBubble> {
                     fontWeight: FontWeight.w500,
                     color: widget.message.isUser
                         ? CupertinoColors.white
-                        : CupertinoColors.black,
+                        : (brightness == Brightness.dark
+                            ? CupertinoColors.label.darkColor
+                            : CupertinoColors.label.color),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -86,7 +94,9 @@ class _MessageBubbleState extends State<MessageBubble> {
                       fontSize: 12,
                       color: widget.message.isUser
                           ? CupertinoColors.systemGrey4
-                          : CupertinoColors.systemGrey,
+                          : (brightness == Brightness.dark
+                              ? CupertinoColors.systemGrey.darkColor
+                              : CupertinoColors.systemGrey.color),
                     ),
                   ),
               ],
@@ -124,6 +134,7 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   @override
   Widget build(BuildContext context) {
+    final Brightness brightness = CupertinoTheme.of(context).brightness!;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -162,7 +173,9 @@ class _MessageBubbleState extends State<MessageBubble> {
                     ? CupertinoColors.systemBlue
                     : (widget.message.status == MessageStatus.error
                     ? CupertinoColors.systemRed.withOpacity(0.1)
-                    : CupertinoColors.systemGrey6),
+                    : (brightness == Brightness.dark
+                        ? CupertinoColors.systemGrey6.darkColor
+                        : CupertinoColors.systemGrey6.color)),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Column(
@@ -177,8 +190,12 @@ class _MessageBubbleState extends State<MessageBubble> {
                         color: widget.message.isUser
                             ? CupertinoColors.white
                             : (widget.message.status == MessageStatus.error
-                            ? CupertinoColors.systemRed
-                            : CupertinoColors.black),
+                            ? (brightness == Brightness.dark
+                                ? CupertinoColors.systemRed.darkColor
+                                : CupertinoColors.systemRed.color)
+                            : (brightness == Brightness.dark
+                                ? CupertinoColors.label.darkColor
+                                : CupertinoColors.label.color)),
                         fontSize: 16,
                         height: 1.5,
                       ),
@@ -186,27 +203,43 @@ class _MessageBubbleState extends State<MessageBubble> {
                         color: widget.message.isUser
                             ? CupertinoColors.white
                             : (widget.message.status == MessageStatus.error
-                            ? CupertinoColors.systemRed
-                            : CupertinoColors.black),
+                            ? (brightness == Brightness.dark
+                                ? CupertinoColors.systemRed.darkColor
+                                : CupertinoColors.systemRed.color)
+                            : (brightness == Brightness.dark
+                                ? CupertinoColors.label.darkColor
+                                : CupertinoColors.label.color)),
                         fontSize: 16,
                         fontFamily: 'Courier',
                         backgroundColor: widget.message.isUser
-                            ? CupertinoColors.systemGrey6
-                            : CupertinoColors.systemGrey5,
+                            ? (brightness == Brightness.dark
+                                ? CupertinoColors.systemGrey6.darkColor
+                                : CupertinoColors.systemGrey6.color)
+                            : (brightness == Brightness.dark
+                                ? CupertinoColors.systemGrey5.darkColor
+                                : CupertinoColors.systemGrey5.color),
                       ),
                       codeblockPadding: const EdgeInsets.all(12),
                       codeblockDecoration: BoxDecoration(
                         color: widget.message.isUser
-                            ? CupertinoColors.systemGrey6
-                            : CupertinoColors.systemGrey5,
+                            ? (brightness == Brightness.dark
+                                ? CupertinoColors.systemGrey6.darkColor
+                                : CupertinoColors.systemGrey6.color)
+                            : (brightness == Brightness.dark
+                                ? CupertinoColors.systemGrey5.darkColor
+                                : CupertinoColors.systemGrey5.color),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       h1: TextStyle(
                         color: widget.message.isUser
                             ? CupertinoColors.white
                             : (widget.message.status == MessageStatus.error
-                            ? CupertinoColors.systemRed
-                            : CupertinoColors.black),
+                            ? (brightness == Brightness.dark
+                                ? CupertinoColors.systemRed.darkColor
+                                : CupertinoColors.systemRed.color)
+                            : (brightness == Brightness.dark
+                                ? CupertinoColors.label.darkColor
+                                : CupertinoColors.label.color)),
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                         height: 1.5,
@@ -215,8 +248,12 @@ class _MessageBubbleState extends State<MessageBubble> {
                         color: widget.message.isUser
                             ? CupertinoColors.white
                             : (widget.message.status == MessageStatus.error
-                            ? CupertinoColors.systemRed
-                            : CupertinoColors.black),
+                            ? (brightness == Brightness.dark
+                                ? CupertinoColors.systemRed.darkColor
+                                : CupertinoColors.systemRed.color)
+                            : (brightness == Brightness.dark
+                                ? CupertinoColors.label.darkColor
+                                : CupertinoColors.label.color)),
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                         height: 1.5,
@@ -225,8 +262,12 @@ class _MessageBubbleState extends State<MessageBubble> {
                         color: widget.message.isUser
                             ? CupertinoColors.white
                             : (widget.message.status == MessageStatus.error
-                            ? CupertinoColors.systemRed
-                            : CupertinoColors.black),
+                            ? (brightness == Brightness.dark
+                                ? CupertinoColors.systemRed.darkColor
+                                : CupertinoColors.systemRed.color)
+                            : (brightness == Brightness.dark
+                                ? CupertinoColors.label.darkColor
+                                : CupertinoColors.label.color)),
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         height: 1.5,
@@ -235,8 +276,12 @@ class _MessageBubbleState extends State<MessageBubble> {
                         color: widget.message.isUser
                             ? CupertinoColors.white
                             : (widget.message.status == MessageStatus.error
-                            ? CupertinoColors.systemRed
-                            : CupertinoColors.black),
+                            ? (brightness == Brightness.dark
+                                ? CupertinoColors.systemRed.darkColor
+                                : CupertinoColors.systemRed.color)
+                            : (brightness == Brightness.dark
+                                ? CupertinoColors.label.darkColor
+                                : CupertinoColors.label.color)),
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         height: 1.5,
@@ -245,8 +290,12 @@ class _MessageBubbleState extends State<MessageBubble> {
                         color: widget.message.isUser
                             ? CupertinoColors.white
                             : (widget.message.status == MessageStatus.error
-                            ? CupertinoColors.systemRed
-                            : CupertinoColors.black),
+                            ? (brightness == Brightness.dark
+                                ? CupertinoColors.systemRed.darkColor
+                                : CupertinoColors.systemRed.color)
+                            : (brightness == Brightness.dark
+                                ? CupertinoColors.label.darkColor
+                                : CupertinoColors.label.color)),
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         height: 1.5,
@@ -255,15 +304,19 @@ class _MessageBubbleState extends State<MessageBubble> {
                         color: widget.message.isUser
                             ? CupertinoColors.white
                             : (widget.message.status == MessageStatus.error
-                            ? CupertinoColors.systemRed
-                            : CupertinoColors.black),
+                            ? (brightness == Brightness.dark
+                                ? CupertinoColors.systemRed.darkColor
+                                : CupertinoColors.systemRed.color)
+                            : (brightness == Brightness.dark
+                                ? CupertinoColors.label.darkColor
+                                : CupertinoColors.label.color)),
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         height: 1.5,
                       ),
                       a: TextStyle(
                         color: widget.message.isUser
-                            ? CupertinoColors.white
+                            ? CupertinoColors.label
                             : CupertinoColors.systemBlue,
                         fontSize: 16,
                         decoration: TextDecoration.underline,
@@ -271,7 +324,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                       ),
                       blockquote: TextStyle(
                         color: widget.message.isUser
-                            ? CupertinoColors.white
+                            ? CupertinoColors.label
                             : (widget.message.status == MessageStatus.error
                             ? CupertinoColors.systemRed
                             : CupertinoColors.systemGrey),
@@ -281,8 +334,12 @@ class _MessageBubbleState extends State<MessageBubble> {
                       ),
                       blockquoteDecoration: BoxDecoration(
                         color: widget.message.isUser
-                            ? CupertinoColors.systemGrey6
-                            : CupertinoColors.systemGrey5,
+                            ? (brightness == Brightness.dark
+                                ? CupertinoColors.systemGrey6.darkColor
+                                : CupertinoColors.systemGrey6.color)
+                            : (brightness == Brightness.dark
+                                ? CupertinoColors.systemGrey5.darkColor
+                                : CupertinoColors.systemGrey5.color),
                         borderRadius: BorderRadius.circular(4),
                         border: Border(
                           left: BorderSide(
@@ -298,8 +355,12 @@ class _MessageBubbleState extends State<MessageBubble> {
                         color: widget.message.isUser
                             ? CupertinoColors.white
                             : (widget.message.status == MessageStatus.error
-                            ? CupertinoColors.systemRed
-                            : CupertinoColors.black),
+                            ? (brightness == Brightness.dark
+                                ? CupertinoColors.systemRed.darkColor
+                                : CupertinoColors.systemRed.color)
+                            : (brightness == Brightness.dark
+                                ? CupertinoColors.label.darkColor
+                                : CupertinoColors.label.color)),
                         fontSize: 16,
                         height: 1.5,
                       ),
@@ -308,7 +369,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                 ),
                 if (widget.message.attachments.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  ...widget.message.attachments.map(_buildAttachment),
+                  ...widget.message.attachments.map((attachment) => _buildAttachment(attachment, brightness)),
                 ],
                   const SizedBox(height: 4),
                   Row(
@@ -319,7 +380,9 @@ class _MessageBubbleState extends State<MessageBubble> {
                         style: TextStyle(
                           color: widget.message.isUser
                               ? CupertinoColors.systemGrey4
-                              : CupertinoColors.systemGrey,
+                              : (brightness == Brightness.dark
+                                  ? CupertinoColors.systemGrey.darkColor
+                                  : CupertinoColors.systemGrey.color),
                           fontSize: 12,
                         ),
                       ),
@@ -361,7 +424,7 @@ class _MessageBubbleState extends State<MessageBubble> {
               ),
               child: const Icon(
                 CupertinoIcons.person_fill,
-                color: CupertinoColors.white,
+                color: CupertinoColors.label,
                 size: 16,
               ),
             ),

@@ -177,10 +177,13 @@ class _ChatInputState extends State<ChatInput> {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = CupertinoTheme.of(context).brightness;
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
-        color: CupertinoColors.systemBackground,
+      decoration: BoxDecoration(
+        color: brightness == Brightness.dark
+            ? CupertinoColors.systemBackground.darkColor
+            : CupertinoColors.systemBackground.color,
         border: Border(
           top: BorderSide(
             color: CupertinoColors.systemGrey4,
@@ -198,15 +201,23 @@ class _ChatInputState extends State<ChatInput> {
               height: 36,
               decoration: BoxDecoration(
                 color: widget.enabled
-                    ? CupertinoColors.systemGrey6
-                    : CupertinoColors.systemGrey5,
+                    ? (brightness == Brightness.dark
+                        ? CupertinoColors.systemGrey6.darkColor
+                        : CupertinoColors.systemGrey6.color)
+                    : (brightness == Brightness.dark
+                        ? CupertinoColors.systemGrey5.darkColor
+                        : CupertinoColors.systemGrey5.color),
                 borderRadius: BorderRadius.circular(18),
               ),
               child: Icon(
                 CupertinoIcons.paperclip,
                 color: widget.enabled
-                    ? CupertinoColors.systemGrey
-                    : CupertinoColors.systemGrey4,
+                    ? (brightness == Brightness.dark
+                        ? CupertinoColors.systemGrey.darkColor
+                        : CupertinoColors.systemGrey)
+                    : (brightness == Brightness.dark
+                        ? CupertinoColors.systemGrey4.darkColor
+                        : CupertinoColors.systemGrey4),
                 size: 20,
               ),
             ),
@@ -217,8 +228,12 @@ class _ChatInputState extends State<ChatInput> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: widget.enabled
-                    ? CupertinoColors.systemGrey6
-                    : CupertinoColors.systemGrey5,
+                    ? (brightness == Brightness.dark
+                        ? CupertinoColors.systemGrey6.darkColor
+                        : CupertinoColors.systemGrey6.color)
+                    : (brightness == Brightness.dark
+                        ? CupertinoColors.systemGrey5.darkColor
+                        : CupertinoColors.systemGrey5.color),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: CupertinoTextField(
@@ -242,12 +257,18 @@ class _ChatInputState extends State<ChatInput> {
               decoration: BoxDecoration(
                 color: _canSend
                     ? CupertinoColors.systemBlue
-                    : CupertinoColors.systemGrey4,
+                    : (brightness == Brightness.dark
+                        ? CupertinoColors.systemGrey5.darkColor
+                        : CupertinoColors.systemGrey4),
                 borderRadius: BorderRadius.circular(18),
               ),
-              child: const Icon(
+              child: Icon(
                 CupertinoIcons.arrow_up,
-                color: CupertinoColors.white,
+                color: _canSend
+                    ? CupertinoColors.white
+                    : (brightness == Brightness.dark
+                        ? CupertinoColors.systemGrey.darkColor
+                        : CupertinoColors.systemGrey),
                 size: 20,
               ),
             ),

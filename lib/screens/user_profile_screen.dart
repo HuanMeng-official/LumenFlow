@@ -22,10 +22,38 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   bool _isSaving = false;
 
   final List<String> _emojiAvatars = [
-    '😊', '😎', '🤗', '😇', '🥰', '😋', '🤓', '😴',
-    '🤔', '😏', '😌', '😊', '🙂', '😉', '😁', '😄',
-    '🥳', '🤩', '😍', '🤨', '🧐', '🤗', '🤭', '😶',
-    '🦸‍♂️', '🦸‍♀️', '🧙‍♂️', '🧙‍♀️', '👨‍💻', '👩‍💻', '👨‍🎨', '👩‍🎨',
+    '😊',
+    '😎',
+    '🤗',
+    '😇',
+    '🥰',
+    '😋',
+    '🤓',
+    '😴',
+    '🤔',
+    '😏',
+    '😌',
+    '😊',
+    '🙂',
+    '😉',
+    '😁',
+    '😄',
+    '🥳',
+    '🤩',
+    '😍',
+    '🤨',
+    '🧐',
+    '🤗',
+    '🤭',
+    '😶',
+    '🦸‍♂️',
+    '🦸‍♀️',
+    '🧙‍♂️',
+    '🧙‍♀️',
+    '👨‍💻',
+    '👩‍💻',
+    '👨‍🎨',
+    '👩‍🎨',
   ];
 
   @override
@@ -157,86 +185,97 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   void _selectEmojiAvatar() {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => Container(
-        height: 300,
-        color: CupertinoColors.systemBackground,
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: CupertinoColors.systemGrey4,
-                    width: 0.5,
-                  ),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  CupertinoButton(
-                    child: const Text('取消'),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const Text(
-                    '选择表情头像',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
+      builder: (context) {
+        final brightness = CupertinoTheme.of(context).brightness;
+        return Container(
+          height: 300,
+          color: brightness == Brightness.dark
+              ? CupertinoColors.systemBackground.darkColor
+              : CupertinoColors.systemBackground.color,
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: brightness == Brightness.dark
+                          ? CupertinoColors.systemGrey4.darkColor
+                          : CupertinoColors.systemGrey4.color,
+                      width: 0.5,
                     ),
                   ),
-                  const SizedBox(width: 60),
-                ],
-              ),
-            ),
-            Expanded(
-              child: GridView.builder(
-                padding: const EdgeInsets.all(16),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 8,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
                 ),
-                itemCount: _emojiAvatars.length,
-                itemBuilder: (context, index) {
-                  final emoji = _emojiAvatars[index];
-                  return CupertinoButton(
-                    padding: EdgeInsets.zero,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: _userProfile?.avatarEmoji == emoji
-                            ? CupertinoColors.systemBlue.withOpacity(0.2)
-                            : CupertinoColors.systemGrey6,
-                        borderRadius: BorderRadius.circular(8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CupertinoButton(
+                      child: const Text('取消'),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const Text(
+                      '选择表情头像',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
                       ),
-                      child: Center(
-                        child: Text(
-                          emoji,
-                          style: const TextStyle(fontSize: 24),
+                    ),
+                    const SizedBox(width: 60),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: GridView.builder(
+                  padding: const EdgeInsets.all(16),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 8,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                  ),
+                  itemCount: _emojiAvatars.length,
+                  itemBuilder: (context, index) {
+                    final emoji = _emojiAvatars[index];
+                    return CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: _userProfile?.avatarEmoji == emoji
+                              ? CupertinoColors.systemBlue.withOpacity(0.2)
+                              : (brightness == Brightness.dark
+                                  ? CupertinoColors.systemGrey6.darkColor
+                                  : CupertinoColors.systemGrey6.color),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Center(
+                          child: Text(
+                            emoji,
+                            style: const TextStyle(fontSize: 24),
+                          ),
                         ),
                       ),
-                    ),
-                    onPressed: () async {
-                      await _userService.deleteAvatarImage(_userProfile?.avatarPath);
+                      onPressed: () async {
+                        await _userService
+                            .deleteAvatarImage(_userProfile?.avatarPath);
 
-                      setState(() {
-                        _userProfile = _userProfile!.copyWith(
-                          avatarEmoji: emoji,
-                          avatarPath: null,
-                        );
-                      });
-                      if (mounted) {
-                        Navigator.pop(context); // ignore: use_build_context_synchronously
-                      }
-                    },
-                  );
-                },
+                        setState(() {
+                          _userProfile = _userProfile!.copyWith(
+                            avatarEmoji: emoji,
+                            avatarPath: null,
+                          );
+                        });
+                        if (mounted) {
+                          Navigator.pop(
+                              context); // ignore: use_build_context_synchronously
+                        }
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -315,6 +354,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = CupertinoTheme.of(context).brightness;
     if (_isLoading) {
       return const CupertinoPageScaffold(
         navigationBar: CupertinoNavigationBar(
@@ -330,10 +370,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         trailing: _isSaving
             ? const CupertinoActivityIndicator()
             : CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: _saveUserProfile,
-          child: const Text('保存'),
-        ),
+                padding: EdgeInsets.zero,
+                onPressed: _saveUserProfile,
+                child: const Text('保存'),
+              ),
       ),
       child: SafeArea(
         child: ListView(
@@ -360,7 +400,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                               color: CupertinoColors.systemBlue,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: CupertinoColors.systemBackground,
+                                color: brightness == Brightness.dark
+                                    ? CupertinoColors.systemBackground.darkColor
+                                    : CupertinoColors.systemBackground.color,
                                 width: 2,
                               ),
                             ),
@@ -375,26 +417,30 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     '点击更换头像',
                     style: TextStyle(
                       fontSize: 14,
-                      color: CupertinoColors.systemGrey,
+                      color: brightness == Brightness.dark
+                          ? CupertinoColors.systemGrey.darkColor
+                          : CupertinoColors.systemGrey.color,
                     ),
                   ),
                 ],
               ),
             ),
-
             const SizedBox(height: 32),
-
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                color: CupertinoColors.systemBackground,
+                color: brightness == Brightness.dark
+                    ? CupertinoColors.systemBackground.darkColor
+                    : CupertinoColors.systemBackground.color,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: CupertinoColors.systemGrey4,
+                  color: brightness == Brightness.dark
+                      ? CupertinoColors.systemGrey4.darkColor
+                      : CupertinoColors.systemGrey4.color,
                   width: 0.5,
                 ),
               ),
@@ -411,11 +457,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
+                    Text(
                       'AI会使用这个名字来称呼你',
                       style: TextStyle(
                         fontSize: 13,
-                        color: CupertinoColors.systemGrey,
+                        color: brightness == Brightness.dark
+                            ? CupertinoColors.systemGrey.darkColor
+                            : CupertinoColors.systemGrey.color,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -423,26 +471,30 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       controller: _usernameController,
                       placeholder: '输入你的用户名',
                       decoration: BoxDecoration(
-                        color: CupertinoColors.systemGrey6,
+                        color: brightness == Brightness.dark
+                            ? CupertinoColors.systemGrey6.darkColor
+                            : CupertinoColors.systemGrey6.color,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                     ),
                   ],
                 ),
               ),
             ),
-
             Container(
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: CupertinoColors.systemGrey6,
+                color: brightness == Brightness.dark
+                    ? CupertinoColors.systemGrey6.darkColor
+                    : CupertinoColors.systemGrey6.color,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text(
                     '关于用户信息',
                     style: TextStyle(
@@ -453,11 +505,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   SizedBox(height: 8),
                   Text(
                     '• 头像：可以选择照片或表情作为头像，会在聊天界面显示\n'
-                        '• 用户名：AI会在对话中使用这个名字称呼你\n'
-                        '• 所有信息仅存储在本地，不会上传到服务器',
+                    '• 用户名：AI会在对话中使用这个名字称呼你\n'
+                    '• 所有信息仅存储在本地，不会上传到服务器',
                     style: TextStyle(
                       fontSize: 14,
-                      color: CupertinoColors.systemGrey,
+                      color: brightness == Brightness.dark
+                          ? CupertinoColors.systemGrey.darkColor
+                          : CupertinoColors.systemGrey.color,
                     ),
                   ),
                 ],
