@@ -24,6 +24,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isLoading = true;
   bool _obscureApiKey = true;
   bool _isSaving = false;
+  String _apiType = SettingsService.defaultApiType;
 
   @override
   void initState() {
@@ -40,6 +41,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final enableHistory = await _settingsService.getEnableHistory();
     final historyContextLength = await _settingsService.getHistoryContextLength();
     final customPrompt = await _settingsService.getCustomSystemPrompt();
+    final apiType = await _settingsService.getApiType();
 
     setState(() {
       _endpointController.text = endpoint;
@@ -50,7 +52,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _enableHistory = enableHistory;
       _historyContextLengthController.text = historyContextLength.toString();
       _customSystemPromptController.text = customPrompt;
+      _apiType = apiType;
       _isLoading = false;
+    });
+  }
+
+  void _updateApiDefaults(String apiType) {
+    setState(() {
+      if (apiType == 'gemini') {
+        _endpointController.text = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+        _modelController.text = 'gemini-2.5-flash';
+      } else {
+        // OpenAI 或其它
+        _endpointController.text = SettingsService.defaultEndpoint;
+        _modelController.text = SettingsService.defaultModel;
+      }
     });
   }
 
@@ -72,6 +88,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           int.tryParse(_historyContextLengthController.text) ?? SettingsService.defaultHistoryContextLength
       );
       await _settingsService.setCustomSystemPrompt(_customSystemPromptController.text.trim());
+      await _settingsService.setApiType(_apiType);
 
       if (mounted) {
         showCupertinoDialog(
@@ -136,6 +153,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _enableHistory = SettingsService.defaultEnableHistory;
                 _historyContextLengthController.text = SettingsService.defaultHistoryContextLength.toString();
                 _customSystemPromptController.text = SettingsService.defaultCustomSystemPrompt.toString();
+                _apiType = SettingsService.defaultApiType;
               });
             },
           ),
@@ -241,6 +259,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSection(
               '基础设置',
               [
+                _buildDropdownTile(
+                  'API格式',
+                  value: _apiType,
+                  options: {
+                    'openai': 'OpenAI API',
+                    'gemini': 'Gemini API',
+                  },
+                  subtitle: '选择AI服务提供商',
+                  onChanged: (newValue) {
+                    if (newValue != null) {
+                      setState(() {
+                        _apiType = newValue;
+                      });
+                      _updateApiDefaults(newValue);
+                    }
+                  },
+                ),
                 _buildInputTile(
                   'API端点',
                   controller: _endpointController,
@@ -366,7 +401,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    '• API端点：AI服务提供商的API地址，点击帮助按钮查看常用端点\n'
+                    '• API格式：选择AI服务提供商（OpenAI或Gemini），选择后将自动填充端点和模型\n'
+                        '• API端点：AI服务提供商的API地址，点击帮助按钮查看常用端点\n'
                         '• API密钥：从服务提供商获取的认证密钥，请妥善保管\n'
                         '• 模型：要使用的AI模型名称，不同端点支持不同模型\n'
                         '• Token数：限制单次回复的长度，过小可能导致回复不完整\n'
@@ -647,6 +683,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       trailing: const Icon(CupertinoIcons.chevron_right),
       onTap: onTap,
+    );
+  }
+
+  Widget _buildDropdownTile(
+      String title, {
+        required String value,
+        required Map<String, String> options,
+        String? subtitle,
+        required ValueChanged<String?> onChanged,
+      }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          if (subtitle != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 13,
+                color: CupertinoColors.systemGrey,
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
+          CupertinoSlidingSegmentedControl<String>(
+            groupValue: value,
+            children: {
+              for (final entry in options.entries)
+                entry.key: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  child: Text(entry.value),
+                ),
+            },
+            onValueChanged: onChanged,
+          ),
+        ],
+      ),
     );
   }
 

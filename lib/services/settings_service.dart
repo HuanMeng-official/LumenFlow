@@ -9,7 +9,9 @@ class SettingsService {
   static const String _enableHistoryKey = 'enable_history';
   static const String _historyContextLengthKey = 'history_context_length';
   static const String _customSystemPromptKey = 'custom_system_prompt';
+  static const String _apiTypeKey = 'api_type';
   static const String defaultCustomSystemPrompt = '';
+  static const String defaultApiType = 'openai';
 
   static const String defaultEndpoint = 'https://api.openai.com/v1';
   static const String defaultModel = 'gpt-5';
@@ -101,5 +103,15 @@ class SettingsService {
   Future<void> setCustomSystemPrompt(String prompt) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_customSystemPromptKey, prompt);
+  }
+
+  Future<String> getApiType() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_apiTypeKey) ?? defaultApiType;
+  }
+
+  Future<void> setApiType(String apiType) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_apiTypeKey, apiType);
   }
 }
