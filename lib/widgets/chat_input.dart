@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import '../services/file_service.dart';
 import '../models/attachment.dart';
 
@@ -22,7 +22,6 @@ class ChatInput extends StatefulWidget {
 
 class _ChatInputState extends State<ChatInput> {
   final TextEditingController _controller = TextEditingController();
-  final ImagePicker _imagePicker = ImagePicker();
   final FileService _fileService = FileService();
   bool _canSend = false;
 
@@ -50,19 +49,26 @@ class _ChatInputState extends State<ChatInput> {
     if (!widget.enabled) return;
 
     try {
-      final XFile? pickedFile = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 1920,
-        maxHeight: 1080,
-        imageQuality: 85,
+      final FilePickerResult? result = await FilePicker.platform.pickFiles(
+        allowMultiple: true,
+        type: FileType.any,
       );
 
-      if (pickedFile != null) {
-        final file = File(pickedFile.path);
-        final attachment = await _fileService.saveFileAndCreateAttachment(file);
+      if (result != null && result.files.isNotEmpty) {
+        final attachments = <Attachment>[];
 
-        if (attachment != null && widget.onAttachmentsSelected != null) {
-          widget.onAttachmentsSelected!([attachment]);
+        for (final platformFile in result.files) {
+          if (platformFile.path != null) {
+            final file = File(platformFile.path!);
+            final attachment = await _fileService.saveFileAndCreateAttachment(file);
+            if (attachment != null) {
+              attachments.add(attachment);
+            }
+          }
+        }
+
+        if (attachments.isNotEmpty && widget.onAttachmentsSelected != null) {
+          widget.onAttachmentsSelected!(attachments);
         }
       }
     } catch (e) {
