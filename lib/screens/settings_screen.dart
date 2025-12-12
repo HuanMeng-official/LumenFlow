@@ -710,6 +710,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         String? subtitle,
         required ValueChanged<String?> onChanged,
       }) {
+    final currentLabel = options[value] ?? value;
+
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -733,16 +735,73 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ],
           const SizedBox(height: 12),
-          CupertinoSlidingSegmentedControl<String>(
-            groupValue: value,
-            children: {
-              for (final entry in options.entries)
-                entry.key: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                  child: Text(entry.value),
-                ),
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: () {
+              // 显示下拉选择框
+              showCupertinoModalPopup<void>(
+                context: context,
+                builder: (BuildContext context) {
+                  return CupertinoActionSheet(
+                    title: Text(title),
+                    message: subtitle != null ? Text(subtitle) : null,
+                    actions: [
+                      for (final entry in options.entries)
+                        CupertinoActionSheetAction(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            onChanged(entry.key);
+                          },
+                          child: Text(
+                            entry.value,
+                            style: TextStyle(
+                              color: value == entry.key
+                                  ? CupertinoColors.activeBlue
+                                  : CupertinoColors.label,
+                            ),
+                          ),
+                        ),
+                    ],
+                    cancelButton: CupertinoActionSheetAction(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text(
+                        '取消',
+                        style: TextStyle(
+                          color: CupertinoColors.systemRed,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
             },
-            onValueChanged: onChanged,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: CupertinoColors.secondarySystemFill,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    currentLabel,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: CupertinoColors.label,
+                    ),
+                  ),
+                  const Icon(
+                    CupertinoIcons.chevron_down,
+                    size: 18,
+                    color: CupertinoColors.systemGrey,
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
