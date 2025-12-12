@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import '../models/message.dart';
 import '../models/user_profile.dart';
 import '../services/user_service.dart';
@@ -81,15 +82,140 @@ class _MessageBubbleState extends State<MessageBubble> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    widget.message.content,
-                    style: TextStyle(
-                      color: widget.message.isUser
-                          ? CupertinoColors.white
-                          : (widget.message.status == MessageStatus.error
-                          ? CupertinoColors.systemRed
-                          : CupertinoColors.black),
-                      fontSize: 16,
+                  MarkdownBody(
+                    data: widget.message.content,
+                    selectable: true,
+                    styleSheet: MarkdownStyleSheet(
+                      p: TextStyle(
+                        color: widget.message.isUser
+                            ? CupertinoColors.white
+                            : (widget.message.status == MessageStatus.error
+                            ? CupertinoColors.systemRed
+                            : CupertinoColors.black),
+                        fontSize: 16,
+                        height: 1.5,
+                      ),
+                      code: TextStyle(
+                        color: widget.message.isUser
+                            ? CupertinoColors.white
+                            : (widget.message.status == MessageStatus.error
+                            ? CupertinoColors.systemRed
+                            : CupertinoColors.black),
+                        fontSize: 16,
+                        fontFamily: 'Courier',
+                        backgroundColor: widget.message.isUser
+                            ? CupertinoColors.systemGrey6
+                            : CupertinoColors.systemGrey5,
+                      ),
+                      codeblockPadding: const EdgeInsets.all(12),
+                      codeblockDecoration: BoxDecoration(
+                        color: widget.message.isUser
+                            ? CupertinoColors.systemGrey6
+                            : CupertinoColors.systemGrey5,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      h1: TextStyle(
+                        color: widget.message.isUser
+                            ? CupertinoColors.white
+                            : (widget.message.status == MessageStatus.error
+                            ? CupertinoColors.systemRed
+                            : CupertinoColors.black),
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        height: 1.5,
+                      ),
+                      h2: TextStyle(
+                        color: widget.message.isUser
+                            ? CupertinoColors.white
+                            : (widget.message.status == MessageStatus.error
+                            ? CupertinoColors.systemRed
+                            : CupertinoColors.black),
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        height: 1.5,
+                      ),
+                      h3: TextStyle(
+                        color: widget.message.isUser
+                            ? CupertinoColors.white
+                            : (widget.message.status == MessageStatus.error
+                            ? CupertinoColors.systemRed
+                            : CupertinoColors.black),
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        height: 1.5,
+                      ),
+                      h4: TextStyle(
+                        color: widget.message.isUser
+                            ? CupertinoColors.white
+                            : (widget.message.status == MessageStatus.error
+                            ? CupertinoColors.systemRed
+                            : CupertinoColors.black),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        height: 1.5,
+                      ),
+                      h5: TextStyle(
+                        color: widget.message.isUser
+                            ? CupertinoColors.white
+                            : (widget.message.status == MessageStatus.error
+                            ? CupertinoColors.systemRed
+                            : CupertinoColors.black),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        height: 1.5,
+                      ),
+                      h6: TextStyle(
+                        color: widget.message.isUser
+                            ? CupertinoColors.white
+                            : (widget.message.status == MessageStatus.error
+                            ? CupertinoColors.systemRed
+                            : CupertinoColors.black),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        height: 1.5,
+                      ),
+                      a: TextStyle(
+                        color: widget.message.isUser
+                            ? CupertinoColors.white
+                            : CupertinoColors.systemBlue,
+                        fontSize: 16,
+                        decoration: TextDecoration.underline,
+                        height: 1.5,
+                      ),
+                      blockquote: TextStyle(
+                        color: widget.message.isUser
+                            ? CupertinoColors.white
+                            : (widget.message.status == MessageStatus.error
+                            ? CupertinoColors.systemRed
+                            : CupertinoColors.systemGrey),
+                        fontSize: 16,
+                        fontStyle: FontStyle.italic,
+                        height: 1.5,
+                      ),
+                      blockquoteDecoration: BoxDecoration(
+                        color: widget.message.isUser
+                            ? CupertinoColors.systemGrey6
+                            : CupertinoColors.systemGrey5,
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border(
+                          left: BorderSide(
+                            color: widget.message.isUser
+                                ? CupertinoColors.systemBlue
+                                : CupertinoColors.systemGrey,
+                            width: 4,
+                          ),
+                        ),
+                      ),
+                      blockquotePadding: const EdgeInsets.only(left: 16, top: 8, bottom: 8, right: 8),
+                      listBullet: TextStyle(
+                        color: widget.message.isUser
+                            ? CupertinoColors.white
+                            : (widget.message.status == MessageStatus.error
+                            ? CupertinoColors.systemRed
+                            : CupertinoColors.black),
+                        fontSize: 16,
+                        height: 1.5,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -100,7 +226,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                         DateFormat('HH:mm').format(widget.message.timestamp),
                         style: TextStyle(
                           color: widget.message.isUser
-                              ? CupertinoColors.white.withOpacity(0.7)
+                              ? CupertinoColors.systemGrey4
                               : CupertinoColors.systemGrey,
                           fontSize: 12,
                         ),
