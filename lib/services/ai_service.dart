@@ -387,6 +387,8 @@ class AIService {
 
     if (thinkingMode && message.isNotEmpty) {
       message = '/think \n\n 请分步思考并解决以下问题：$message';
+    } else if (!thinkingMode && message.isNotEmpty) {
+      message = '/no_think \n\n 不要进行推理：$message';
     }
 
     try {
@@ -551,6 +553,8 @@ class AIService {
 
     if (thinkingMode && message.isNotEmpty) {
       message = '/think \n\n 请分步思考并解决以下问题：$message';
+    } else if (!thinkingMode && message.isNotEmpty) {
+      message = '/no_think \n\n 不要进行推理：$message';
     }
 
     try {
