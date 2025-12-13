@@ -367,7 +367,8 @@ class AIService {
   ///   6. 统一错误处理，将API错误转换为用户友好的异常消息
   Future<Map<String, dynamic>> sendMessage(
       String message, List<Message> chatHistory,
-      {List<Attachment> attachments = const []}) async {
+      {List<Attachment> attachments = const [],
+      bool thinkingMode = false}) async {
     final apiEndpoint = await _settingsService.getApiEndpoint();
     final apiKey = await _settingsService.getApiKey();
     final model = await _settingsService.getModel();
@@ -461,6 +462,7 @@ class AIService {
             'messages': messages,
             'max_tokens': maxTokens,
             'temperature': temperature,
+            if (thinkingMode) 'thinking': {'type': 'enabled'},
           }),
         );
 
@@ -478,6 +480,7 @@ class AIService {
           }
           final message = firstChoice['message'];
           final reasoningContent =
+              message['reasoning']?.toString().trim() ??
               message['reasoning_content']?.toString().trim() ?? '';
           final content = message['content']?.toString().trim() ?? '';
 
@@ -524,7 +527,8 @@ class AIService {
   ///   6. 实时解析和yield响应片段
   Stream<Map<String, dynamic>> sendMessageStreaming(
       String message, List<Message> chatHistory,
-      {List<Attachment> attachments = const []}) async* {
+      {List<Attachment> attachments = const [],
+      bool thinkingMode = false}) async* {
     final apiEndpoint = await _settingsService.getApiEndpoint();
     final apiKey = await _settingsService.getApiKey();
     final model = await _settingsService.getModel();
@@ -616,6 +620,7 @@ class AIService {
         'max_tokens': maxTokens,
         'temperature': temperature,
         'stream': true,
+        if (thinkingMode) 'thinking': {'type': 'enabled'},
       });
 
       final client = http.Client();
@@ -667,11 +672,10 @@ class AIService {
               }
 
               // 处理思考模型的推理过程
-              if (delta.containsKey('reasoning_content')) {
-                final reasoningContent = delta['reasoning_content'] as String?;
-                if (reasoningContent != null && reasoningContent.isNotEmpty) {
-                  yield {'type': 'reasoning', 'content': reasoningContent};
-                }
+              final reasoningContent = delta['reasoning'] as String? ??
+                  delta['reasoning_content'] as String?;
+              if (reasoningContent != null && reasoningContent.isNotEmpty) {
+                yield {'type': 'reasoning', 'content': reasoningContent};
               }
 
               // 处理最终回答

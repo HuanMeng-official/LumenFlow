@@ -51,6 +51,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   bool _darkMode = SettingsService.defaultDarkMode;
   bool _followSystemTheme = SettingsService.defaultFollowSystemTheme;
   String _appTheme = SettingsService.defaultAppTheme;
+  bool _thinkingMode = SettingsService.defaultThinkingMode;
 
   @override
   void initState() {
@@ -101,6 +102,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     final darkMode = await _settingsService.getDarkMode();
     final followSystemTheme = await _settingsService.getFollowSystemTheme();
     final appTheme = await _settingsService.getAppTheme();
+    final thinkingMode = await _settingsService.getThinkingMode();
 
     setState(() {
       _endpointController.text = endpoint;
@@ -115,6 +117,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       _darkMode = darkMode;
       _followSystemTheme = followSystemTheme;
       _appTheme = appTheme;
+      _thinkingMode = thinkingMode;
       _isLoading = false;
     });
   }
@@ -155,6 +158,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       await _settingsService.setDarkMode(_darkMode);
       await _settingsService.setFollowSystemTheme(_followSystemTheme);
       await _settingsService.setAppTheme(_appTheme);
+      await _settingsService.setThinkingMode(_thinkingMode);
 
       if (mounted) {
         showCupertinoDialog(

@@ -9,12 +9,16 @@ class ChatInput extends StatefulWidget {
   final Function(String) onSendMessage;
   final Function(List<Attachment>)? onAttachmentsSelected;
   final bool enabled;
+  final bool thinkingMode;
+  final Function(bool)? onThinkingModeChanged;
 
   const ChatInput({
     super.key,
     required this.onSendMessage,
     this.onAttachmentsSelected,
     this.enabled = true,
+    this.thinkingMode = false,
+    this.onThinkingModeChanged,
   });
 
   @override
@@ -190,87 +194,168 @@ class _ChatInputState extends State<ChatInput> {
           ),
         ),
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: widget.enabled ? _pickFile : null,
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: widget.enabled
-                    ? (brightness == Brightness.dark
-                        ? CupertinoColors.systemGrey6.darkColor
-                        : CupertinoColors.systemGrey6.color)
-                    : (brightness == Brightness.dark
-                        ? CupertinoColors.systemGrey5.darkColor
-                        : CupertinoColors.systemGrey5.color),
-                borderRadius: BorderRadius.circular(18),
+          // 第一行：输入区域
+          Row(
+            children: [
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: widget.enabled ? _pickFile : null,
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: widget.enabled
+                        ? (brightness == Brightness.dark
+                            ? CupertinoColors.systemGrey6.darkColor
+                            : CupertinoColors.systemGrey6.color)
+                        : (brightness == Brightness.dark
+                            ? CupertinoColors.systemGrey5.darkColor
+                            : CupertinoColors.systemGrey5.color),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Icon(
+                    CupertinoIcons.paperclip,
+                    color: widget.enabled
+                        ? (brightness == Brightness.dark
+                            ? CupertinoColors.systemGrey.darkColor
+                            : CupertinoColors.systemGrey)
+                        : (brightness == Brightness.dark
+                            ? CupertinoColors.systemGrey4.darkColor
+                            : CupertinoColors.systemGrey4),
+                    size: 20,
+                  ),
+                ),
               ),
-              child: Icon(
-                CupertinoIcons.paperclip,
-                color: widget.enabled
-                    ? (brightness == Brightness.dark
-                        ? CupertinoColors.systemGrey.darkColor
-                        : CupertinoColors.systemGrey)
-                    : (brightness == Brightness.dark
-                        ? CupertinoColors.systemGrey4.darkColor
-                        : CupertinoColors.systemGrey4),
-                size: 20,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: widget.enabled
+                        ? (brightness == Brightness.dark
+                            ? CupertinoColors.systemGrey6.darkColor
+                            : CupertinoColors.systemGrey6.color)
+                        : (brightness == Brightness.dark
+                            ? CupertinoColors.systemGrey5.darkColor
+                            : CupertinoColors.systemGrey5.color),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: CupertinoTextField(
+                    controller: _controller,
+                    placeholder: widget.enabled ? '输入消息...' : '请先配置API设置',
+                    enabled: widget.enabled,
+                    decoration: null,
+                    maxLines: null,
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: widget.enabled ? (_) => _sendMessage() : null,
+                  ),
+                ),
               ),
-            ),
+              const SizedBox(width: 8),
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: _canSend ? _sendMessage : null,
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: _canSend
+                        ? CupertinoColors.systemBlue
+                        : (brightness == Brightness.dark
+                            ? CupertinoColors.systemGrey5.darkColor
+                            : CupertinoColors.systemGrey4),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Icon(
+                    CupertinoIcons.arrow_up,
+                    color: _canSend
+                        ? CupertinoColors.white
+                        : (brightness == Brightness.dark
+                            ? CupertinoColors.systemGrey.darkColor
+                            : CupertinoColors.systemGrey),
+                    size: 20,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: widget.enabled
-                    ? (brightness == Brightness.dark
-                        ? CupertinoColors.systemGrey6.darkColor
-                        : CupertinoColors.systemGrey6.color)
-                    : (brightness == Brightness.dark
-                        ? CupertinoColors.systemGrey5.darkColor
-                        : CupertinoColors.systemGrey5.color),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: CupertinoTextField(
-                controller: _controller,
-                placeholder: widget.enabled ? '输入消息...' : '请先配置API设置',
-                enabled: widget.enabled,
-                decoration: null,
-                maxLines: null,
-                textInputAction: TextInputAction.send,
-                onSubmitted: widget.enabled ? (_) => _sendMessage() : null,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: _canSend ? _sendMessage : null,
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: _canSend
-                    ? CupertinoColors.systemBlue
-                    : (brightness == Brightness.dark
-                        ? CupertinoColors.systemGrey5.darkColor
-                        : CupertinoColors.systemGrey4),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Icon(
-                CupertinoIcons.arrow_up,
-                color: _canSend
-                    ? CupertinoColors.white
-                    : (brightness == Brightness.dark
-                        ? CupertinoColors.systemGrey.darkColor
-                        : CupertinoColors.systemGrey),
-                size: 20,
-              ),
-            ),
+          // 第二行：功能开关区域
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              // 思考模式按钮
+              if (widget.onThinkingModeChanged != null) ...[
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: widget.enabled
+                      ? () => widget.onThinkingModeChanged!(!widget.thinkingMode)
+                      : null,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: widget.enabled
+                          ? (widget.thinkingMode
+                              ? (brightness == Brightness.dark
+                                  ? CupertinoColors.systemBlue.darkColor.withOpacity(0.2)
+                                  : CupertinoColors.systemBlue.color.withOpacity(0.15))
+                              : (brightness == Brightness.dark
+                                  ? CupertinoColors.systemGrey6.darkColor
+                                  : CupertinoColors.systemGrey6.color))
+                          : (brightness == Brightness.dark
+                              ? CupertinoColors.systemGrey5.darkColor
+                              : CupertinoColors.systemGrey5.color),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          CupertinoIcons.lightbulb,
+                          size: 16,
+                          color: widget.enabled
+                              ? (widget.thinkingMode
+                                  ? (brightness == Brightness.dark
+                                      ? CupertinoColors.systemBlue.darkColor
+                                      : CupertinoColors.systemBlue.color)
+                                  : (brightness == Brightness.dark
+                                      ? CupertinoColors.systemGrey.darkColor
+                                      : CupertinoColors.systemGrey))
+                              : (brightness == Brightness.dark
+                                  ? CupertinoColors.systemGrey4.darkColor
+                                  : CupertinoColors.systemGrey4),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '深度思考',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: widget.enabled
+                                ? (widget.thinkingMode
+                                    ? (brightness == Brightness.dark
+                                        ? CupertinoColors.systemBlue.darkColor
+                                        : CupertinoColors.systemBlue.color)
+                                    : (brightness == Brightness.dark
+                                        ? CupertinoColors.systemGrey.darkColor
+                                        : CupertinoColors.systemGrey))
+                                : (brightness == Brightness.dark
+                                    ? CupertinoColors.systemGrey4.darkColor
+                                    : CupertinoColors.systemGrey4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              // 预留位置给未来其他功能
+              // 可以在这里添加更多开关或按钮
+            ],
           ),
         ],
       ),

@@ -51,6 +51,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   bool _isLoading = false;
   bool _isConfigured = false;
+  bool _thinkingMode = false;
   Conversation? _currentConversation;
   String _currentTitle = 'AI 助手';
 
@@ -71,8 +72,10 @@ class _ChatScreenState extends State<ChatScreen> {
   /// 更新_isConfigured状态变量，控制界面显示和交互
   Future<void> _checkConfiguration() async {
     final configured = await _settingsService.isConfigured();
+    final thinkingMode = await _settingsService.getThinkingMode();
     setState(() {
       _isConfigured = configured;
+      _thinkingMode = thinkingMode;
     });
   }
 
@@ -161,6 +164,20 @@ class _ChatScreenState extends State<ChatScreen> {
     await _sendMessage('', attachments: attachments);
   }
 
+  /// 处理思考模式开关变化
+  ///
+  /// 参数:
+  ///   enabled - 思考模式是否启用
+  /// 说明:
+  ///   更新思考模式状态变量，未来可以保存到设置中
+  void _handleThinkingModeChanged(bool enabled) {
+    setState(() {
+      _thinkingMode = enabled;
+    });
+    // 保存到设置服务
+    _settingsService.setThinkingMode(enabled);
+  }
+
   /// 发送消息到AI模型并处理响应
   ///
   /// 参数:
@@ -229,7 +246,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     try {
       final stream = _aiService.sendMessageStreaming(content, _messages,
-          attachments: attachments);
+          attachments: attachments, thinkingMode: _thinkingMode);
       final reasoningBuffer = StringBuffer();
       final answerBuffer = StringBuffer();
       int receivedChunks = 0;
@@ -466,6 +483,8 @@ class _ChatScreenState extends State<ChatScreen> {
               onSendMessage: (content) => _sendMessage(content),
               onAttachmentsSelected: _handleAttachmentsSelected,
               enabled: _isConfigured,
+              thinkingMode: _thinkingMode,
+              onThinkingModeChanged: _handleThinkingModeChanged,
             ),
           ],
         ),
