@@ -91,7 +91,8 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
   }
 
   Future<void> _editConversationTitle(Conversation conversation) async {
-    final TextEditingController controller = TextEditingController(text: conversation.title);
+    final TextEditingController controller =
+        TextEditingController(text: conversation.title);
 
     showCupertinoDialog(
       context: context,
@@ -120,7 +121,8 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                 await _loadConversations();
               }
               if (mounted) {
-                Navigator.pop(context); // ignore: use_build_context_synchronously
+                Navigator.pop(
+                    context); // ignore: use_build_context_synchronously
               }
             },
           ),
@@ -144,78 +146,80 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
         child: _isLoading
             ? const Center(child: CupertinoActivityIndicator())
             : _conversations.isEmpty
-            ? _buildEmptyState()
-            : ListView.builder(
-          itemCount: _conversations.length,
-          itemBuilder: (context, index) {
-            final conversation = _conversations[index];
-            final isCurrentConversation = conversation.id == _currentConversationId;
+                ? _buildEmptyState()
+                : ListView.builder(
+                    itemCount: _conversations.length,
+                    itemBuilder: (context, index) {
+                      final conversation = _conversations[index];
+                      final isCurrentConversation =
+                          conversation.id == _currentConversationId;
 
-            return Container(
-              color: isCurrentConversation
-                  ? CupertinoColors.systemBlue.withOpacity(0.1)
-                  : null,
-              child: CupertinoListTile(
-                title: Text(
-                  conversation.title,
-                  style: TextStyle(
-                    fontWeight: isCurrentConversation
-                        ? FontWeight.w600
-                        : FontWeight.normal,
-                  ),
-                ),
-                subtitle: Text(
-                  _formatDate(conversation.updatedAt),
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: CupertinoColors.systemGrey,
-                  ),
-                ),
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: isCurrentConversation
-                        ? CupertinoColors.systemBlue
-                        : CupertinoColors.systemGrey5,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Icon(
-                    CupertinoIcons.chat_bubble_2,
-                    color: isCurrentConversation
-                        ? CupertinoColors.white
-                        : CupertinoColors.systemGrey,
-                    size: 20,
-                  ),
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (conversation.messages.isNotEmpty)
-                      Text(
-                        '${conversation.messages.length}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: CupertinoColors.systemGrey,
+                      return Container(
+                        color: isCurrentConversation
+                            ? CupertinoColors.systemBlue.withOpacity(0.1)
+                            : null,
+                        child: CupertinoListTile(
+                          title: Text(
+                            conversation.title,
+                            style: TextStyle(
+                              fontWeight: isCurrentConversation
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                          subtitle: Text(
+                            _formatDate(conversation.updatedAt),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: CupertinoColors.systemGrey,
+                            ),
+                          ),
+                          leading: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: isCurrentConversation
+                                  ? CupertinoColors.systemBlue
+                                  : CupertinoColors.systemGrey5,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Icon(
+                              CupertinoIcons.chat_bubble_2,
+                              color: isCurrentConversation
+                                  ? CupertinoColors.white
+                                  : CupertinoColors.systemGrey,
+                              size: 20,
+                            ),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (conversation.messages.isNotEmpty)
+                                Text(
+                                  '${conversation.messages.length}',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: CupertinoColors.systemGrey,
+                                  ),
+                                ),
+                              const SizedBox(width: 8),
+                              CupertinoButton(
+                                padding: EdgeInsets.zero,
+                                child: const Icon(
+                                  CupertinoIcons.ellipsis,
+                                  size: 20,
+                                  color: CupertinoColors.systemGrey,
+                                ),
+                                onPressed: () =>
+                                    _showConversationOptions(conversation),
+                              ),
+                            ],
+                          ),
+                          onTap: () => _selectConversation(conversation),
                         ),
-                      ),
-                    const SizedBox(width: 8),
-                    CupertinoButton(
-                      padding: EdgeInsets.zero,
-                      child: const Icon(
-                        CupertinoIcons.ellipsis,
-                        size: 20,
-                        color: CupertinoColors.systemGrey,
-                      ),
-                      onPressed: () => _showConversationOptions(conversation),
-                    ),
-                  ],
-                ),
-                onTap: () => _selectConversation(conversation),
-              ),
-            );
-          },
-        ),
+                      );
+                    },
+                  ),
       ),
     );
   }

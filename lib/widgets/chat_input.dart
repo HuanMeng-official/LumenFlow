@@ -116,25 +116,22 @@ class _ChatInputState extends State<ChatInput> {
               totalSize += stat.size;
 
               if (stat.size > AIService.maxFileSizeForBase64) {
-                oversizedFiles.add('${platformFile.name} (${_formatFileSize(stat.size)})');
+                oversizedFiles.add(
+                    '${platformFile.name} (${_formatFileSize(stat.size)})');
               }
             }
           }
         }
 
         if (totalSize > AIService.maxTotalAttachmentsSize) {
-          _showErrorDialog(
-            '文件过大',
-            '选择的文件总大小${_formatFileSize(totalSize)}超过${_formatFileSize(AIService.maxTotalAttachmentsSize)}限制。请选择较小的文件。'
-          );
+          _showErrorDialog('文件过大',
+              '选择的文件总大小${_formatFileSize(totalSize)}超过${_formatFileSize(AIService.maxTotalAttachmentsSize)}限制。请选择较小的文件。');
           return;
         }
 
         if (oversizedFiles.isNotEmpty) {
-          final proceed = await _showWarningDialog(
-            '文件过大警告',
-            '以下文件超过${_formatFileSize(AIService.maxFileSizeForBase64)}限制，可能无法正确处理：\n\n${oversizedFiles.join('\n')}\n\n是否继续上传？'
-          );
+          final proceed = await _showWarningDialog('文件过大警告',
+              '以下文件超过${_formatFileSize(AIService.maxFileSizeForBase64)}限制，可能无法正确处理：\n\n${oversizedFiles.join('\n')}\n\n是否继续上传？');
           if (!proceed) {
             return;
           }
@@ -146,7 +143,8 @@ class _ChatInputState extends State<ChatInput> {
           if (platformFile.path != null) {
             final file = File(platformFile.path!);
             try {
-              final attachment = await _fileService.saveFileAndCreateAttachment(file);
+              final attachment =
+                  await _fileService.saveFileAndCreateAttachment(file);
               if (attachment != null) {
                 attachments.add(attachment);
               }
@@ -164,7 +162,8 @@ class _ChatInputState extends State<ChatInput> {
       }
     } catch (e) {
       debugPrint('Error picking file: $e');
-      _showErrorDialog('选择文件失败', '错误：${e.toString().replaceAll('Exception: ', '')}');
+      _showErrorDialog(
+          '选择文件失败', '错误：${e.toString().replaceAll('Exception: ', '')}');
     }
   }
 

@@ -35,7 +35,8 @@ class UserService {
       await avatarDir.create(recursive: true);
     }
 
-    final fileName = 'avatar_${DateTime.now().millisecondsSinceEpoch}${path.extension(imageFile.path)}';
+    final fileName =
+        'avatar_${DateTime.now().millisecondsSinceEpoch}${path.extension(imageFile.path)}';
     final savedFile = File('${avatarDir.path}/$fileName');
 
     await imageFile.copy(savedFile.path);

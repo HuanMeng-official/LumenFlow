@@ -139,8 +139,9 @@ class _MessageBubbleState extends State<MessageBubble> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        mainAxisAlignment:
-        widget.message.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: widget.message.isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!widget.message.isUser) ...[
@@ -173,16 +174,18 @@ class _MessageBubbleState extends State<MessageBubble> {
                 color: widget.message.isUser
                     ? CupertinoColors.systemBlue
                     : (widget.message.status == MessageStatus.error
-                    ? CupertinoColors.systemRed.withOpacity(0.1)
-                    : (brightness == Brightness.dark
-                        ? CupertinoColors.systemGrey6.darkColor
-                        : CupertinoColors.systemGrey6.color)),
+                        ? CupertinoColors.systemRed.withOpacity(0.1)
+                        : (brightness == Brightness.dark
+                            ? CupertinoColors.systemGrey6.darkColor
+                            : CupertinoColors.systemGrey6.color)),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (!widget.message.isUser && widget.message.reasoningContent != null && widget.message.reasoningContent!.isNotEmpty)
+                  if (!widget.message.isUser &&
+                      widget.message.reasoningContent != null &&
+                      widget.message.reasoningContent!.isNotEmpty)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -196,18 +199,23 @@ class _MessageBubbleState extends State<MessageBubble> {
                             duration: const Duration(milliseconds: 200),
                             curve: Curves.easeInOut,
                             width: double.infinity,
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
                               color: brightness == Brightness.dark
-                                  ? CupertinoColors.systemBlue.darkColor.withOpacity(0.12)
-                                  : CupertinoColors.systemBlue.color.withOpacity(0.08),
+                                  ? CupertinoColors.systemBlue.darkColor
+                                      .withOpacity(0.12)
+                                  : CupertinoColors.systemBlue.color
+                                      .withOpacity(0.08),
                               borderRadius: BorderRadius.circular(12),
                               boxShadow: _isReasoningExpanded
                                   ? [
                                       BoxShadow(
                                         color: brightness == Brightness.dark
-                                            ? CupertinoColors.black.withOpacity(0.3)
-                                            : CupertinoColors.systemGrey.withOpacity(0.2),
+                                            ? CupertinoColors.black
+                                                .withOpacity(0.3)
+                                            : CupertinoColors.systemGrey
+                                                .withOpacity(0.2),
                                         blurRadius: 6,
                                         offset: const Offset(0, 1),
                                       ),
@@ -224,21 +232,26 @@ class _MessageBubbleState extends State<MessageBubble> {
                                       height: 24,
                                       decoration: BoxDecoration(
                                         color: brightness == Brightness.dark
-                                            ? CupertinoColors.systemBlue.darkColor.withOpacity(0.2)
-                                            : CupertinoColors.systemBlue.color.withOpacity(0.15),
+                                            ? CupertinoColors
+                                                .systemBlue.darkColor
+                                                .withOpacity(0.2)
+                                            : CupertinoColors.systemBlue.color
+                                                .withOpacity(0.15),
                                         shape: BoxShape.circle,
                                       ),
                                       child: Icon(
                                         CupertinoIcons.lightbulb,
                                         size: 14,
                                         color: brightness == Brightness.dark
-                                            ? CupertinoColors.systemBlue.darkColor
+                                            ? CupertinoColors
+                                                .systemBlue.darkColor
                                             : CupertinoColors.systemBlue.color,
                                       ),
                                     ),
                                     const SizedBox(width: 10),
                                     Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           '思考链',
@@ -246,7 +259,8 @@ class _MessageBubbleState extends State<MessageBubble> {
                                             fontSize: 14,
                                             fontWeight: FontWeight.w600,
                                             color: brightness == Brightness.dark
-                                                ? CupertinoColors.label.darkColor
+                                                ? CupertinoColors
+                                                    .label.darkColor
                                                 : CupertinoColors.label.color,
                                           ),
                                         ),
@@ -257,8 +271,10 @@ class _MessageBubbleState extends State<MessageBubble> {
                                             fontSize: 12,
                                             fontWeight: FontWeight.w400,
                                             color: brightness == Brightness.dark
-                                                ? CupertinoColors.systemGrey.darkColor
-                                                : CupertinoColors.systemGrey.color,
+                                                ? CupertinoColors
+                                                    .systemGrey.darkColor
+                                                : CupertinoColors
+                                                    .systemGrey.color,
                                           ),
                                         ),
                                       ],
@@ -270,8 +286,10 @@ class _MessageBubbleState extends State<MessageBubble> {
                                   height: 24,
                                   decoration: BoxDecoration(
                                     color: brightness == Brightness.dark
-                                        ? CupertinoColors.systemBlue.darkColor.withOpacity(0.2)
-                                        : CupertinoColors.systemBlue.color.withOpacity(0.15),
+                                        ? CupertinoColors.systemBlue.darkColor
+                                            .withOpacity(0.2)
+                                        : CupertinoColors.systemBlue.color
+                                            .withOpacity(0.15),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
@@ -288,7 +306,6 @@ class _MessageBubbleState extends State<MessageBubble> {
                             ),
                           ),
                         ),
-
                         AnimatedCrossFade(
                           duration: const Duration(milliseconds: 200),
                           crossFadeState: _isReasoningExpanded
@@ -308,7 +325,8 @@ class _MessageBubbleState extends State<MessageBubble> {
                                 BoxShadow(
                                   color: brightness == Brightness.dark
                                       ? CupertinoColors.black.withOpacity(0.2)
-                                      : CupertinoColors.systemGrey.withOpacity(0.15),
+                                      : CupertinoColors.systemGrey
+                                          .withOpacity(0.15),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
@@ -332,8 +350,10 @@ class _MessageBubbleState extends State<MessageBubble> {
                                     color: brightness == Brightness.dark
                                         ? CupertinoColors.systemGreen.darkColor
                                         : CupertinoColors.systemGreen.color,
-                                    backgroundColor: brightness == Brightness.dark
-                                        ? CupertinoColors.systemGrey5.darkColor.withOpacity(0.5)
+                                    backgroundColor: brightness ==
+                                            Brightness.dark
+                                        ? CupertinoColors.systemGrey5.darkColor
+                                            .withOpacity(0.5)
                                         : CupertinoColors.systemGrey6.color,
                                   ),
                                   codeblockPadding: const EdgeInsets.all(8),
@@ -352,13 +372,15 @@ class _MessageBubbleState extends State<MessageBubble> {
                                   ),
                                   blockquoteDecoration: BoxDecoration(
                                     color: brightness == Brightness.dark
-                                        ? CupertinoColors.systemGrey5.darkColor.withOpacity(0.5)
+                                        ? CupertinoColors.systemGrey5.darkColor
+                                            .withOpacity(0.5)
                                         : CupertinoColors.systemGrey6.color,
                                     borderRadius: BorderRadius.circular(4),
                                     border: Border(
                                       left: BorderSide(
                                         color: brightness == Brightness.dark
-                                            ? CupertinoColors.systemBlue.darkColor
+                                            ? CupertinoColors
+                                                .systemBlue.darkColor
                                             : CupertinoColors.systemBlue.color,
                                         width: 3,
                                       ),
@@ -378,192 +400,194 @@ class _MessageBubbleState extends State<MessageBubble> {
                     selectionControls: cupertinoTextSelectionControls,
                     child: MarkdownBody(
                       data: widget.message.content,
-                    styleSheet: MarkdownStyleSheet(
-                      p: TextStyle(
-                        color: widget.message.isUser
-                            ? CupertinoColors.white
-                            : (widget.message.status == MessageStatus.error
-                            ? (brightness == Brightness.dark
-                                ? CupertinoColors.systemRed.darkColor
-                                : CupertinoColors.systemRed.color)
-                            : (brightness == Brightness.dark
-                                ? CupertinoColors.label.darkColor
-                                : CupertinoColors.label.color)),
-                        fontSize: 16,
-                        height: 1.5,
-                      ),
-                      code: TextStyle(
-                        color: widget.message.isUser
-                            ? CupertinoColors.white
-                            : (widget.message.status == MessageStatus.error
-                            ? (brightness == Brightness.dark
-                                ? CupertinoColors.systemRed.darkColor
-                                : CupertinoColors.systemRed.color)
-                            : (brightness == Brightness.dark
-                                ? CupertinoColors.label.darkColor
-                                : CupertinoColors.label.color)),
-                        fontSize: 16,
-                        fontFamily: 'Courier',
-                        backgroundColor: widget.message.isUser
-                            ? (brightness == Brightness.dark
-                                ? CupertinoColors.systemGrey6.darkColor
-                                : CupertinoColors.systemGrey6.color)
-                            : (brightness == Brightness.dark
-                                ? CupertinoColors.systemGrey5.darkColor
-                                : CupertinoColors.systemGrey5.color),
-                      ),
-                      codeblockPadding: const EdgeInsets.all(12),
-                      codeblockDecoration: BoxDecoration(
-                        color: widget.message.isUser
-                            ? (brightness == Brightness.dark
-                                ? CupertinoColors.systemGrey6.darkColor
-                                : CupertinoColors.systemGrey6.color)
-                            : (brightness == Brightness.dark
-                                ? CupertinoColors.systemGrey5.darkColor
-                                : CupertinoColors.systemGrey5.color),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      h1: TextStyle(
-                        color: widget.message.isUser
-                            ? CupertinoColors.white
-                            : (widget.message.status == MessageStatus.error
-                            ? (brightness == Brightness.dark
-                                ? CupertinoColors.systemRed.darkColor
-                                : CupertinoColors.systemRed.color)
-                            : (brightness == Brightness.dark
-                                ? CupertinoColors.label.darkColor
-                                : CupertinoColors.label.color)),
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        height: 1.5,
-                      ),
-                      h2: TextStyle(
-                        color: widget.message.isUser
-                            ? CupertinoColors.white
-                            : (widget.message.status == MessageStatus.error
-                            ? (brightness == Brightness.dark
-                                ? CupertinoColors.systemRed.darkColor
-                                : CupertinoColors.systemRed.color)
-                            : (brightness == Brightness.dark
-                                ? CupertinoColors.label.darkColor
-                                : CupertinoColors.label.color)),
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        height: 1.5,
-                      ),
-                      h3: TextStyle(
-                        color: widget.message.isUser
-                            ? CupertinoColors.white
-                            : (widget.message.status == MessageStatus.error
-                            ? (brightness == Brightness.dark
-                                ? CupertinoColors.systemRed.darkColor
-                                : CupertinoColors.systemRed.color)
-                            : (brightness == Brightness.dark
-                                ? CupertinoColors.label.darkColor
-                                : CupertinoColors.label.color)),
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        height: 1.5,
-                      ),
-                      h4: TextStyle(
-                        color: widget.message.isUser
-                            ? CupertinoColors.white
-                            : (widget.message.status == MessageStatus.error
-                            ? (brightness == Brightness.dark
-                                ? CupertinoColors.systemRed.darkColor
-                                : CupertinoColors.systemRed.color)
-                            : (brightness == Brightness.dark
-                                ? CupertinoColors.label.darkColor
-                                : CupertinoColors.label.color)),
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        height: 1.5,
-                      ),
-                      h5: TextStyle(
-                        color: widget.message.isUser
-                            ? CupertinoColors.white
-                            : (widget.message.status == MessageStatus.error
-                            ? (brightness == Brightness.dark
-                                ? CupertinoColors.systemRed.darkColor
-                                : CupertinoColors.systemRed.color)
-                            : (brightness == Brightness.dark
-                                ? CupertinoColors.label.darkColor
-                                : CupertinoColors.label.color)),
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        height: 1.5,
-                      ),
-                      h6: TextStyle(
-                        color: widget.message.isUser
-                            ? CupertinoColors.white
-                            : (widget.message.status == MessageStatus.error
-                            ? (brightness == Brightness.dark
-                                ? CupertinoColors.systemRed.darkColor
-                                : CupertinoColors.systemRed.color)
-                            : (brightness == Brightness.dark
-                                ? CupertinoColors.label.darkColor
-                                : CupertinoColors.label.color)),
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        height: 1.5,
-                      ),
-                      a: TextStyle(
-                        color: widget.message.isUser
-                            ? CupertinoColors.label
-                            : CupertinoColors.systemBlue,
-                        fontSize: 16,
-                        decoration: TextDecoration.underline,
-                        height: 1.5,
-                      ),
-                      blockquote: TextStyle(
-                        color: widget.message.isUser
-                            ? CupertinoColors.label
-                            : (widget.message.status == MessageStatus.error
-                            ? CupertinoColors.systemRed
-                            : CupertinoColors.systemGrey),
-                        fontSize: 16,
-                        fontStyle: FontStyle.italic,
-                        height: 1.5,
-                      ),
-                      blockquoteDecoration: BoxDecoration(
-                        color: widget.message.isUser
-                            ? (brightness == Brightness.dark
-                                ? CupertinoColors.systemGrey6.darkColor
-                                : CupertinoColors.systemGrey6.color)
-                            : (brightness == Brightness.dark
-                                ? CupertinoColors.systemGrey5.darkColor
-                                : CupertinoColors.systemGrey5.color),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border(
-                          left: BorderSide(
-                            color: widget.message.isUser
-                                ? CupertinoColors.systemBlue
-                                : CupertinoColors.systemGrey,
-                            width: 4,
+                      styleSheet: MarkdownStyleSheet(
+                        p: TextStyle(
+                          color: widget.message.isUser
+                              ? CupertinoColors.white
+                              : (widget.message.status == MessageStatus.error
+                                  ? (brightness == Brightness.dark
+                                      ? CupertinoColors.systemRed.darkColor
+                                      : CupertinoColors.systemRed.color)
+                                  : (brightness == Brightness.dark
+                                      ? CupertinoColors.label.darkColor
+                                      : CupertinoColors.label.color)),
+                          fontSize: 16,
+                          height: 1.5,
+                        ),
+                        code: TextStyle(
+                          color: widget.message.isUser
+                              ? CupertinoColors.white
+                              : (widget.message.status == MessageStatus.error
+                                  ? (brightness == Brightness.dark
+                                      ? CupertinoColors.systemRed.darkColor
+                                      : CupertinoColors.systemRed.color)
+                                  : (brightness == Brightness.dark
+                                      ? CupertinoColors.label.darkColor
+                                      : CupertinoColors.label.color)),
+                          fontSize: 16,
+                          fontFamily: 'Courier',
+                          backgroundColor: widget.message.isUser
+                              ? (brightness == Brightness.dark
+                                  ? CupertinoColors.systemGrey6.darkColor
+                                  : CupertinoColors.systemGrey6.color)
+                              : (brightness == Brightness.dark
+                                  ? CupertinoColors.systemGrey5.darkColor
+                                  : CupertinoColors.systemGrey5.color),
+                        ),
+                        codeblockPadding: const EdgeInsets.all(12),
+                        codeblockDecoration: BoxDecoration(
+                          color: widget.message.isUser
+                              ? (brightness == Brightness.dark
+                                  ? CupertinoColors.systemGrey6.darkColor
+                                  : CupertinoColors.systemGrey6.color)
+                              : (brightness == Brightness.dark
+                                  ? CupertinoColors.systemGrey5.darkColor
+                                  : CupertinoColors.systemGrey5.color),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        h1: TextStyle(
+                          color: widget.message.isUser
+                              ? CupertinoColors.white
+                              : (widget.message.status == MessageStatus.error
+                                  ? (brightness == Brightness.dark
+                                      ? CupertinoColors.systemRed.darkColor
+                                      : CupertinoColors.systemRed.color)
+                                  : (brightness == Brightness.dark
+                                      ? CupertinoColors.label.darkColor
+                                      : CupertinoColors.label.color)),
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          height: 1.5,
+                        ),
+                        h2: TextStyle(
+                          color: widget.message.isUser
+                              ? CupertinoColors.white
+                              : (widget.message.status == MessageStatus.error
+                                  ? (brightness == Brightness.dark
+                                      ? CupertinoColors.systemRed.darkColor
+                                      : CupertinoColors.systemRed.color)
+                                  : (brightness == Brightness.dark
+                                      ? CupertinoColors.label.darkColor
+                                      : CupertinoColors.label.color)),
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          height: 1.5,
+                        ),
+                        h3: TextStyle(
+                          color: widget.message.isUser
+                              ? CupertinoColors.white
+                              : (widget.message.status == MessageStatus.error
+                                  ? (brightness == Brightness.dark
+                                      ? CupertinoColors.systemRed.darkColor
+                                      : CupertinoColors.systemRed.color)
+                                  : (brightness == Brightness.dark
+                                      ? CupertinoColors.label.darkColor
+                                      : CupertinoColors.label.color)),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          height: 1.5,
+                        ),
+                        h4: TextStyle(
+                          color: widget.message.isUser
+                              ? CupertinoColors.white
+                              : (widget.message.status == MessageStatus.error
+                                  ? (brightness == Brightness.dark
+                                      ? CupertinoColors.systemRed.darkColor
+                                      : CupertinoColors.systemRed.color)
+                                  : (brightness == Brightness.dark
+                                      ? CupertinoColors.label.darkColor
+                                      : CupertinoColors.label.color)),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          height: 1.5,
+                        ),
+                        h5: TextStyle(
+                          color: widget.message.isUser
+                              ? CupertinoColors.white
+                              : (widget.message.status == MessageStatus.error
+                                  ? (brightness == Brightness.dark
+                                      ? CupertinoColors.systemRed.darkColor
+                                      : CupertinoColors.systemRed.color)
+                                  : (brightness == Brightness.dark
+                                      ? CupertinoColors.label.darkColor
+                                      : CupertinoColors.label.color)),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          height: 1.5,
+                        ),
+                        h6: TextStyle(
+                          color: widget.message.isUser
+                              ? CupertinoColors.white
+                              : (widget.message.status == MessageStatus.error
+                                  ? (brightness == Brightness.dark
+                                      ? CupertinoColors.systemRed.darkColor
+                                      : CupertinoColors.systemRed.color)
+                                  : (brightness == Brightness.dark
+                                      ? CupertinoColors.label.darkColor
+                                      : CupertinoColors.label.color)),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          height: 1.5,
+                        ),
+                        a: TextStyle(
+                          color: widget.message.isUser
+                              ? CupertinoColors.label
+                              : CupertinoColors.systemBlue,
+                          fontSize: 16,
+                          decoration: TextDecoration.underline,
+                          height: 1.5,
+                        ),
+                        blockquote: TextStyle(
+                          color: widget.message.isUser
+                              ? CupertinoColors.label
+                              : (widget.message.status == MessageStatus.error
+                                  ? CupertinoColors.systemRed
+                                  : CupertinoColors.systemGrey),
+                          fontSize: 16,
+                          fontStyle: FontStyle.italic,
+                          height: 1.5,
+                        ),
+                        blockquoteDecoration: BoxDecoration(
+                          color: widget.message.isUser
+                              ? (brightness == Brightness.dark
+                                  ? CupertinoColors.systemGrey6.darkColor
+                                  : CupertinoColors.systemGrey6.color)
+                              : (brightness == Brightness.dark
+                                  ? CupertinoColors.systemGrey5.darkColor
+                                  : CupertinoColors.systemGrey5.color),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border(
+                            left: BorderSide(
+                              color: widget.message.isUser
+                                  ? CupertinoColors.systemBlue
+                                  : CupertinoColors.systemGrey,
+                              width: 4,
+                            ),
                           ),
                         ),
-                      ),
-                      blockquotePadding: const EdgeInsets.only(left: 16, top: 8, bottom: 8, right: 8),
-                      listBullet: TextStyle(
-                        color: widget.message.isUser
-                            ? CupertinoColors.white
-                            : (widget.message.status == MessageStatus.error
-                            ? (brightness == Brightness.dark
-                                ? CupertinoColors.systemRed.darkColor
-                                : CupertinoColors.systemRed.color)
-                            : (brightness == Brightness.dark
-                                ? CupertinoColors.label.darkColor
-                                : CupertinoColors.label.color)),
-                        fontSize: 16,
-                        height: 1.5,
+                        blockquotePadding: const EdgeInsets.only(
+                            left: 16, top: 8, bottom: 8, right: 8),
+                        listBullet: TextStyle(
+                          color: widget.message.isUser
+                              ? CupertinoColors.white
+                              : (widget.message.status == MessageStatus.error
+                                  ? (brightness == Brightness.dark
+                                      ? CupertinoColors.systemRed.darkColor
+                                      : CupertinoColors.systemRed.color)
+                                  : (brightness == Brightness.dark
+                                      ? CupertinoColors.label.darkColor
+                                      : CupertinoColors.label.color)),
+                          fontSize: 16,
+                          height: 1.5,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                if (widget.message.attachments.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  ...widget.message.attachments.map((attachment) => _buildAttachment(attachment, brightness)),
-                ],
+                  if (widget.message.attachments.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    ...widget.message.attachments.map((attachment) =>
+                        _buildAttachment(attachment, brightness)),
+                  ],
                   const SizedBox(height: 4),
                   Row(
                     mainAxisSize: MainAxisSize.min,
@@ -605,22 +629,22 @@ class _MessageBubbleState extends State<MessageBubble> {
             const SizedBox(width: 8),
             _userProfile != null
                 ? AvatarWidget(
-              userProfile: _userProfile!,
-              size: 32,
-            )
+                    userProfile: _userProfile!,
+                    size: 32,
+                  )
                 : Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: CupertinoColors.systemGrey4,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: const Icon(
-                CupertinoIcons.person_fill,
-                color: CupertinoColors.label,
-                size: 16,
-              ),
-            ),
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: CupertinoColors.systemGrey4,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(
+                      CupertinoIcons.person_fill,
+                      color: CupertinoColors.label,
+                      size: 16,
+                    ),
+                  ),
           ],
         ],
       ),

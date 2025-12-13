@@ -10,11 +10,13 @@ void main() async {
   try {
     final bool followSystemTheme = await settingsService.getFollowSystemTheme();
     if (followSystemTheme) {
-      final systemBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+      final systemBrightness =
+          WidgetsBinding.instance.platformDispatcher.platformBrightness;
       appBrightness.value = systemBrightness;
     } else {
       final String appTheme = await settingsService.getAppTheme();
-      appBrightness.value = appTheme == 'dark' ? Brightness.dark : Brightness.light;
+      appBrightness.value =
+          appTheme == 'dark' ? Brightness.dark : Brightness.light;
     }
   } catch (e) {
     // 使用默认亮色模式
@@ -37,7 +39,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // 应用启动时也检查一次系统主题变化
     _updateAppThemeFromSystem();
   }
 
@@ -49,17 +50,17 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   void didChangePlatformBrightness() {
-    // 系统主题变化时调用
     _updateAppThemeFromSystem();
     super.didChangePlatformBrightness();
   }
 
   Future<void> _updateAppThemeFromSystem() async {
     try {
-      final bool followSystemTheme = await _settingsService.getFollowSystemTheme();
+      final bool followSystemTheme =
+          await _settingsService.getFollowSystemTheme();
       if (followSystemTheme) {
-        // 如果开启了跟随系统设置，更新应用主题
-        final systemBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+        final systemBrightness =
+            WidgetsBinding.instance.platformDispatcher.platformBrightness;
         appBrightness.value = systemBrightness;
       }
     } catch (e) {

@@ -63,8 +63,8 @@ class Attachment {
     } else if (mimeType.startsWith('video/')) {
       return AttachmentType.video;
     } else if (mimeType.contains('pdf') ||
-               mimeType.contains('document') ||
-               mimeType.contains('text')) {
+        mimeType.contains('document') ||
+        mimeType.contains('text')) {
       return AttachmentType.document;
     } else {
       return AttachmentType.other;

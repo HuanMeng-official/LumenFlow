@@ -16,7 +16,8 @@ class FileService {
       await attachmentsDir.create(recursive: true);
     }
 
-    final fileName = 'attachment_${DateTime.now().millisecondsSinceEpoch}${path.extension(file.path)}';
+    final fileName =
+        'attachment_${DateTime.now().millisecondsSinceEpoch}${path.extension(file.path)}';
     final savedFile = File('${attachmentsDir.path}/$fileName');
 
     await file.copy(savedFile.path);

@@ -57,8 +57,8 @@ class AIService {
   bool _isVisionSupportedFile(Attachment attachment) {
     final mimeType = attachment.mimeType?.toLowerCase() ?? '';
     return mimeType.startsWith('image/') ||
-           mimeType.startsWith('video/') ||
-           mimeType.startsWith('audio/');
+        mimeType.startsWith('video/') ||
+        mimeType.startsWith('audio/');
   }
 
   /// 构建OpenAI API的消息内容结构
@@ -75,12 +75,14 @@ class AIService {
   ///   3. 支持文本文件的提取和发送
   ///   4. 处理文件不存在或过大的情况
   ///   5. 返回格式符合OpenAI API的消息内容规范
-  Future<dynamic> _buildOpenAIMessageContent(String message, List<Attachment> attachments) async {
+  Future<dynamic> _buildOpenAIMessageContent(
+      String message, List<Attachment> attachments) async {
     if (attachments.isEmpty) {
       return message;
     }
 
-    final totalSize = attachments.fold<int>(0, (sum, attachment) => sum + (attachment.fileSize ?? 0));
+    final totalSize = attachments.fold<int>(
+        0, (sum, attachment) => sum + (attachment.fileSize ?? 0));
     if (totalSize > maxTotalAttachmentsSize) {
       throw Exception('附件总大小超过${maxTotalAttachmentsSize ~/ (1024 * 1024)}MB限制');
     }
@@ -88,41 +90,38 @@ class AIService {
     final contentParts = <Map<String, dynamic>>[];
 
     if (message.isNotEmpty) {
-      contentParts.add({
-        'type': 'text',
-        'text': message
-      });
+      contentParts.add({'type': 'text', 'text': message});
     }
 
     for (final attachment in attachments) {
       try {
-        if (attachment.filePath == null || !await _fileService.fileExists(attachment.filePath!)) {
-          contentParts.add({
-            'type': 'text',
-            'text': '文件 ${attachment.fileName} 不存在或已删除'
-          });
+        if (attachment.filePath == null ||
+            !await _fileService.fileExists(attachment.filePath!)) {
+          contentParts.add(
+              {'type': 'text', 'text': '文件 ${attachment.fileName} 不存在或已删除'});
           continue;
         }
 
         final file = File(attachment.filePath!);
-        final fileSize = attachment.fileSize ?? await _fileService.getFileSize(attachment.filePath!);
+        final fileSize = attachment.fileSize ??
+            await _fileService.getFileSize(attachment.filePath!);
 
         if (fileSize > maxFileSizeForBase64) {
           contentParts.add({
             'type': 'text',
-            'text': '文件 ${attachment.fileName} (${_formatFileSize(fileSize)}) 过大，无法处理'
+            'text':
+                '文件 ${attachment.fileName} (${_formatFileSize(fileSize)}) 过大，无法处理'
           });
           continue;
         }
 
         if (_isVisionSupportedFile(attachment)) {
           try {
-            final dataUrl = await _fileService.getFileDataUrl(file, attachment.mimeType);
+            final dataUrl =
+                await _fileService.getFileDataUrl(file, attachment.mimeType);
             contentParts.add({
               'type': 'image_url',
-              'image_url': {
-                'url': dataUrl
-              }
+              'image_url': {'url': dataUrl}
             });
           } catch (e) {
             contentParts.add({
@@ -136,26 +135,27 @@ class AIService {
               final content = await _fileService.readTextFile(file);
               contentParts.add({
                 'type': 'text',
-                'text': '文件: ${attachment.fileName} (${_formatFileSize(fileSize)})\n内容:\n$content'
+                'text':
+                    '文件: ${attachment.fileName} (${_formatFileSize(fileSize)})\n内容:\n$content'
               });
             } catch (e) {
               contentParts.add({
                 'type': 'text',
-                'text': '附件: ${attachment.fileName} (${_formatFileSize(fileSize)}, ${attachment.mimeType ?? '未知类型'}) - 无法读取内容'
+                'text':
+                    '附件: ${attachment.fileName} (${_formatFileSize(fileSize)}, ${attachment.mimeType ?? '未知类型'}) - 无法读取内容'
               });
             }
           } else {
             contentParts.add({
               'type': 'text',
-              'text': '附件: ${attachment.fileName} (${_formatFileSize(fileSize)}, ${attachment.mimeType ?? '未知类型'})'
+              'text':
+                  '附件: ${attachment.fileName} (${_formatFileSize(fileSize)}, ${attachment.mimeType ?? '未知类型'})'
             });
           }
         }
       } catch (e) {
-        contentParts.add({
-          'type': 'text',
-          'text': '处理文件 ${attachment.fileName} 时出错: $e'
-        });
+        contentParts.add(
+            {'type': 'text', 'text': '处理文件 ${attachment.fileName} 时出错: $e'});
       }
     }
 
@@ -209,7 +209,9 @@ class AIService {
 
     if (enableHistory && chatHistory.isNotEmpty) {
       final recentHistory = chatHistory
-          .where((msg) => msg.status != MessageStatus.error && msg.content.trim().isNotEmpty)
+          .where((msg) =>
+              msg.status != MessageStatus.error &&
+              msg.content.trim().isNotEmpty)
           .toList()
           .reversed
           .take(historyContextLength * 2)
@@ -240,13 +242,11 @@ class AIService {
 
     if (userMessageParts.isNotEmpty) {
       if (contents.isNotEmpty && contents.last['role'] == 'user') {
-        final lastParts = (contents.last['parts'] as List<Map<String, dynamic>>);
+        final lastParts =
+            (contents.last['parts'] as List<Map<String, dynamic>>);
         lastParts.addAll(userMessageParts);
       } else {
-        contents.add({
-          'role': 'user',
-          'parts': userMessageParts
-        });
+        contents.add({'role': 'user', 'parts': userMessageParts});
       }
     }
 
@@ -265,37 +265,40 @@ class AIService {
   ///   3. 处理媒体文件（图片/视频/音频）的Base64编码
   ///   4. 提取文本文件内容（如果文件大小允许）
   ///   5. 处理文件处理过程中的各种异常情况
-  Future<List<Map<String, dynamic>>> _prepareFilesForGemini(List<Attachment> attachments) async {
+  Future<List<Map<String, dynamic>>> _prepareFilesForGemini(
+      List<Attachment> attachments) async {
     final fileParts = <Map<String, dynamic>>[];
 
-    final totalSize = attachments.fold<int>(0, (sum, attachment) => sum + (attachment.fileSize ?? 0));
+    final totalSize = attachments.fold<int>(
+        0, (sum, attachment) => sum + (attachment.fileSize ?? 0));
     if (totalSize > maxTotalAttachmentsSize) {
       throw Exception('附件总大小超过${maxTotalAttachmentsSize ~/ (1024 * 1024)}MB限制');
     }
 
     for (final attachment in attachments) {
       try {
-        if (attachment.filePath == null || !await _fileService.fileExists(attachment.filePath!)) {
-          fileParts.add({
-            'text': '文件 ${attachment.fileName} 不存在或已删除'
-          });
+        if (attachment.filePath == null ||
+            !await _fileService.fileExists(attachment.filePath!)) {
+          fileParts.add({'text': '文件 ${attachment.fileName} 不存在或已删除'});
           continue;
         }
 
         final file = File(attachment.filePath!);
-        final fileSize = attachment.fileSize ?? await _fileService.getFileSize(attachment.filePath!);
+        final fileSize = attachment.fileSize ??
+            await _fileService.getFileSize(attachment.filePath!);
 
         if (fileSize > maxFileSizeForBase64) {
           fileParts.add({
-            'text': '文件 ${attachment.fileName} (${_formatFileSize(fileSize)}) 过大，无法处理'
+            'text':
+                '文件 ${attachment.fileName} (${_formatFileSize(fileSize)}) 过大，无法处理'
           });
           continue;
         }
 
         final mimeType = attachment.mimeType?.toLowerCase() ?? '';
         final isSupportedMedia = mimeType.startsWith('image/') ||
-                                mimeType.startsWith('video/') ||
-                                mimeType.startsWith('audio/');
+            mimeType.startsWith('video/') ||
+            mimeType.startsWith('audio/');
 
         if (isSupportedMedia) {
           try {
@@ -312,32 +315,31 @@ class AIService {
               }
             });
           } catch (e) {
-            fileParts.add({
-              'text': '处理文件 ${attachment.fileName} 时出错: $e'
-            });
+            fileParts.add({'text': '处理文件 ${attachment.fileName} 时出错: $e'});
           }
         } else {
           if (fileSize <= maxFileSizeForTextExtraction) {
             try {
               final content = await _fileService.readTextFile(file);
               fileParts.add({
-                'text': '文件: ${attachment.fileName} (${_formatFileSize(fileSize)})\n内容:\n$content'
+                'text':
+                    '文件: ${attachment.fileName} (${_formatFileSize(fileSize)})\n内容:\n$content'
               });
             } catch (e) {
               fileParts.add({
-                'text': '附件: ${attachment.fileName} (${_formatFileSize(fileSize)}, ${attachment.mimeType ?? '未知类型'}) - 无法读取内容'
+                'text':
+                    '附件: ${attachment.fileName} (${_formatFileSize(fileSize)}, ${attachment.mimeType ?? '未知类型'}) - 无法读取内容'
               });
             }
           } else {
             fileParts.add({
-              'text': '附件: ${attachment.fileName} (${_formatFileSize(fileSize)}, ${attachment.mimeType ?? '未知类型'})'
+              'text':
+                  '附件: ${attachment.fileName} (${_formatFileSize(fileSize)}, ${attachment.mimeType ?? '未知类型'})'
             });
           }
         }
       } catch (e) {
-        fileParts.add({
-          'text': '处理文件 ${attachment.fileName} 时出错: $e'
-        });
+        fileParts.add({'text': '处理文件 ${attachment.fileName} 时出错: $e'});
       }
     }
 
@@ -363,14 +365,17 @@ class AIService {
   ///   4. 处理文件附件（如果存在）
   ///   5. 发送HTTP请求并处理响应
   ///   6. 统一错误处理，将API错误转换为用户友好的异常消息
-  Future<Map<String, dynamic>> sendMessage(String message, List<Message> chatHistory, {List<Attachment> attachments = const []}) async {
+  Future<Map<String, dynamic>> sendMessage(
+      String message, List<Message> chatHistory,
+      {List<Attachment> attachments = const []}) async {
     final apiEndpoint = await _settingsService.getApiEndpoint();
     final apiKey = await _settingsService.getApiKey();
     final model = await _settingsService.getModel();
     final temperature = await _settingsService.getTemperature();
     final maxTokens = await _settingsService.getMaxTokens();
     final enableHistory = await _settingsService.getEnableHistory();
-    final historyContextLength = await _settingsService.getHistoryContextLength();
+    final historyContextLength =
+        await _settingsService.getHistoryContextLength();
     final userProfile = await _userService.getUserProfile();
     final customSystemPrompt = await _settingsService.getCustomSystemPrompt();
     final apiType = await _settingsService.getApiType();
@@ -382,7 +387,8 @@ class AIService {
     try {
       List<Map<String, dynamic>> messages = [];
 
-      String baseSystemPrompt = '用户的名字是"${userProfile.username}",请在对话中适当地使用这个名字来称呼用户。';
+      String baseSystemPrompt =
+          '用户的名字是"${userProfile.username}",请在对话中适当地使用这个名字来称呼用户。';
       String fullSystemPrompt = baseSystemPrompt;
       if (customSystemPrompt.isNotEmpty) {
         fullSystemPrompt += customSystemPrompt;
@@ -395,7 +401,9 @@ class AIService {
 
       if (enableHistory && chatHistory.isNotEmpty) {
         final recentHistory = chatHistory
-            .where((msg) => msg.status != MessageStatus.error && msg.content.trim().isNotEmpty)
+            .where((msg) =>
+                msg.status != MessageStatus.error &&
+                msg.content.trim().isNotEmpty)
             .toList()
             .reversed
             .take(historyContextLength * 2)
@@ -411,7 +419,8 @@ class AIService {
         }
       }
 
-      final userMessageContent = await _buildOpenAIMessageContent(message, attachments);
+      final userMessageContent =
+          await _buildOpenAIMessageContent(message, attachments);
       messages.add({
         'role': 'user',
         'content': userMessageContent,
@@ -457,7 +466,9 @@ class AIService {
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
-          if (data is! Map<String, dynamic> || data['choices'] == null || (data['choices'] as List).isEmpty) {
+          if (data is! Map<String, dynamic> ||
+              data['choices'] == null ||
+              (data['choices'] as List).isEmpty) {
             throw Exception('API返回了无效的响应格式: ${response.body}');
           }
           final choices = data['choices'] as List;
@@ -466,7 +477,8 @@ class AIService {
             throw Exception('API响应中缺少message字段: ${response.body}');
           }
           final message = firstChoice['message'];
-          final reasoningContent = message['reasoning_content']?.toString().trim() ?? '';
+          final reasoningContent =
+              message['reasoning_content']?.toString().trim() ?? '';
           final content = message['content']?.toString().trim() ?? '';
 
           return {
@@ -478,7 +490,9 @@ class AIService {
           if (errorData is! Map<String, dynamic>) {
             throw Exception('API错误: 无效的响应格式 (状态码: ${response.statusCode})');
           }
-          final errorMessage = errorData['error']?['message']?.toString() ?? errorData['message']?.toString() ?? '未知错误';
+          final errorMessage = errorData['error']?['message']?.toString() ??
+              errorData['message']?.toString() ??
+              '未知错误';
           throw Exception('API错误: $errorMessage (状态码: ${response.statusCode})');
         }
       }
@@ -508,14 +522,17 @@ class AIService {
   ///   4. 处理Server-Sent Events (SSE) 数据流
   ///   5. 针对OpenAI和Gemini API提供不同的流式实现
   ///   6. 实时解析和yield响应片段
-  Stream<Map<String, dynamic>> sendMessageStreaming(String message, List<Message> chatHistory, {List<Attachment> attachments = const []}) async* {
+  Stream<Map<String, dynamic>> sendMessageStreaming(
+      String message, List<Message> chatHistory,
+      {List<Attachment> attachments = const []}) async* {
     final apiEndpoint = await _settingsService.getApiEndpoint();
     final apiKey = await _settingsService.getApiKey();
     final model = await _settingsService.getModel();
     final temperature = await _settingsService.getTemperature();
     final maxTokens = await _settingsService.getMaxTokens();
     final enableHistory = await _settingsService.getEnableHistory();
-    final historyContextLength = await _settingsService.getHistoryContextLength();
+    final historyContextLength =
+        await _settingsService.getHistoryContextLength();
     final userProfile = await _userService.getUserProfile();
     final customSystemPrompt = await _settingsService.getCustomSystemPrompt();
     final apiType = await _settingsService.getApiType();
@@ -548,7 +565,8 @@ class AIService {
 
       List<Map<String, dynamic>> messages = [];
 
-      String baseSystemPrompt = '用户的名字是"${userProfile.username}",请在对话中适当地使用这个名字来称呼用户。';
+      String baseSystemPrompt =
+          '用户的名字是"${userProfile.username}",请在对话中适当地使用这个名字来称呼用户。';
       String fullSystemPrompt = baseSystemPrompt;
       if (customSystemPrompt.isNotEmpty) {
         fullSystemPrompt += customSystemPrompt;
@@ -561,7 +579,9 @@ class AIService {
 
       if (enableHistory && chatHistory.isNotEmpty) {
         final recentHistory = chatHistory
-            .where((msg) => msg.status != MessageStatus.error && msg.content.trim().isNotEmpty)
+            .where((msg) =>
+                msg.status != MessageStatus.error &&
+                msg.content.trim().isNotEmpty)
             .toList()
             .reversed
             .take(historyContextLength * 2)
@@ -577,7 +597,8 @@ class AIService {
         }
       }
 
-      final userMessageContent = await _buildOpenAIMessageContent(message, attachments);
+      final userMessageContent =
+          await _buildOpenAIMessageContent(message, attachments);
       messages.add({
         'role': 'user',
         'content': userMessageContent,
@@ -602,13 +623,18 @@ class AIService {
         final streamedResponse = await client.send(request);
 
         if (streamedResponse.statusCode != 200) {
-          final errorBody = await streamedResponse.stream.transform(utf8.decoder).join();
+          final errorBody =
+              await streamedResponse.stream.transform(utf8.decoder).join();
           final errorData = jsonDecode(errorBody);
           if (errorData is! Map<String, dynamic>) {
-            throw Exception('API错误: 无效的响应格式 (状态码: ${streamedResponse.statusCode})');
+            throw Exception(
+                'API错误: 无效的响应格式 (状态码: ${streamedResponse.statusCode})');
           }
-          final errorMessage = errorData['error']?['message']?.toString() ?? errorData['message']?.toString() ?? '未知错误';
-          throw Exception('API错误: $errorMessage (状态码: ${streamedResponse.statusCode})');
+          final errorMessage = errorData['error']?['message']?.toString() ??
+              errorData['message']?.toString() ??
+              '未知错误';
+          throw Exception(
+              'API错误: $errorMessage (状态码: ${streamedResponse.statusCode})');
         }
 
         final stream = streamedResponse.stream
@@ -712,9 +738,13 @@ class AIService {
 
       if (!url.contains('/models/')) {
         final modelPath = model.contains('/') ? model : 'models/$model';
-        url = url.endsWith('/') ? '$url$modelPath:generateContent' : '$url/$modelPath:generateContent';
+        url = url.endsWith('/')
+            ? '$url$modelPath:generateContent'
+            : '$url/$modelPath:generateContent';
       } else if (!url.contains(':generateContent')) {
-        url = url.endsWith('/') ? '${url}generateContent' : '$url:generateContent';
+        url = url.endsWith('/')
+            ? '${url}generateContent'
+            : '$url:generateContent';
       }
 
       if (!url.contains('?key=')) {
@@ -754,10 +784,14 @@ class AIService {
       } else {
         final errorData = jsonDecode(response.body);
         if (errorData is! Map<String, dynamic>) {
-          throw Exception('Gemini API错误: 无效的响应格式 (状态码: ${response.statusCode})');
+          throw Exception(
+              'Gemini API错误: 无效的响应格式 (状态码: ${response.statusCode})');
         }
-        final errorMessage = errorData['error']?['message']?.toString() ?? errorData['message']?.toString() ?? '未知错误';
-        throw Exception('Gemini API错误: $errorMessage (状态码: ${response.statusCode})');
+        final errorMessage = errorData['error']?['message']?.toString() ??
+            errorData['message']?.toString() ??
+            '未知错误';
+        throw Exception(
+            'Gemini API错误: $errorMessage (状态码: ${response.statusCode})');
       }
     } catch (e) {
       if (e is Exception) rethrow;
@@ -808,7 +842,8 @@ class AIService {
             ? '$apiEndpoint&alt=sse'
             : '$apiEndpoint?key=$apiKey&alt=sse';
       } else {
-        url = apiEndpoint.replaceFirst('generateContent', 'streamGenerateContent');
+        url = apiEndpoint.replaceFirst(
+            'generateContent', 'streamGenerateContent');
         if (!url.contains('?key=')) {
           url = '$url?key=$apiKey';
         }
@@ -825,13 +860,18 @@ class AIService {
         final streamedResponse = await client.send(request);
 
         if (streamedResponse.statusCode != 200) {
-          final errorBody = await streamedResponse.stream.transform(utf8.decoder).join();
+          final errorBody =
+              await streamedResponse.stream.transform(utf8.decoder).join();
           final errorData = jsonDecode(errorBody);
           if (errorData is! Map<String, dynamic>) {
-            throw Exception('Gemini API错误: 无效的响应格式 (状态码: ${streamedResponse.statusCode})');
+            throw Exception(
+                'Gemini API错误: 无效的响应格式 (状态码: ${streamedResponse.statusCode})');
           }
-          final errorMessage = errorData['error']?['message']?.toString() ?? errorData['message']?.toString() ?? '未知错误';
-          throw Exception('Gemini API错误: $errorMessage (状态码: ${streamedResponse.statusCode})');
+          final errorMessage = errorData['error']?['message']?.toString() ??
+              errorData['message']?.toString() ??
+              '未知错误';
+          throw Exception(
+              'Gemini API错误: $errorMessage (状态码: ${streamedResponse.statusCode})');
         }
 
         final stream = streamedResponse.stream

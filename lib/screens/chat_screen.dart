@@ -57,6 +57,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+
     /// 初始化状态时检查应用配置并加载当前对话
     /// 1. 检查API配置是否完成
     /// 2. 加载最近使用的对话或创建新对话
@@ -81,10 +82,12 @@ class _ChatScreenState extends State<ChatScreen> {
   /// 如果不存在最近对话，则创建新的对话
   /// 加载完成后，将对话消息添加到状态中并滚动到底部
   Future<void> _loadCurrentConversation() async {
-    final currentConversationId = await _conversationService.getCurrentConversationId();
+    final currentConversationId =
+        await _conversationService.getCurrentConversationId();
 
     if (currentConversationId != null) {
-      final conversation = await _conversationService.getConversationById(currentConversationId);
+      final conversation =
+          await _conversationService.getConversationById(currentConversationId);
       if (conversation != null) {
         setState(() {
           _currentConversation = conversation;
@@ -172,7 +175,8 @@ class _ChatScreenState extends State<ChatScreen> {
   ///   6. 实时更新AI消息内容（流式输出）
   ///   7. 处理完成和错误状态
   ///   8. 保存对话到本地存储
-  Future<void> _sendMessage(String content, {List<Attachment> attachments = const []}) async {
+  Future<void> _sendMessage(String content,
+      {List<Attachment> attachments = const []}) async {
     if (content.trim().isEmpty && attachments.isEmpty) return;
 
     if (!_isConfigured) {
@@ -195,7 +199,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
     if (_messages.length == 1 && _currentConversation != null) {
       final newTitle = Conversation.generateTitle(content);
-      await _conversationService.updateConversationTitle(_currentConversation!.id, newTitle);
+      await _conversationService.updateConversationTitle(
+          _currentConversation!.id, newTitle);
       setState(() {
         _currentTitle = newTitle;
         _currentConversation = _currentConversation!.copyWith(title: newTitle);
@@ -223,7 +228,8 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
 
     try {
-      final stream = _aiService.sendMessageStreaming(content, _messages, attachments: attachments);
+      final stream = _aiService.sendMessageStreaming(content, _messages,
+          attachments: attachments);
       final reasoningBuffer = StringBuffer();
       final answerBuffer = StringBuffer();
       int receivedChunks = 0;
@@ -445,16 +451,16 @@ class _ChatScreenState extends State<ChatScreen> {
               child: _messages.isEmpty
                   ? _buildEmptyState()
                   : ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.all(16),
-                itemCount: _messages.length + (_isLoading ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (index == _messages.length && _isLoading) {
-                    return const TypingIndicator();
-                  }
-                  return MessageBubble(message: _messages[index]);
-                },
-              ),
+                      controller: _scrollController,
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _messages.length + (_isLoading ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index == _messages.length && _isLoading) {
+                          return const TypingIndicator();
+                        }
+                        return MessageBubble(message: _messages[index]);
+                      },
+                    ),
             ),
             ChatInput(
               onSendMessage: (content) => _sendMessage(content),

@@ -94,7 +94,8 @@ class ConversationService {
     }
   }
 
-  Future<void> updateConversationTitle(String conversationId, String title) async {
+  Future<void> updateConversationTitle(
+      String conversationId, String title) async {
     final conversations = await loadConversations();
     final index = conversations.indexWhere((c) => c.id == conversationId);
 

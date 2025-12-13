@@ -88,7 +88,8 @@ class SettingsService {
 
   Future<int> getHistoryContextLength() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(_historyContextLengthKey) ?? defaultHistoryContextLength;
+    return prefs.getInt(_historyContextLengthKey) ??
+        defaultHistoryContextLength;
   }
 
   Future<void> setHistoryContextLength(int length) async {

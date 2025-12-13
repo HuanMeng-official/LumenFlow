@@ -30,14 +30,17 @@ class SettingsScreen extends StatefulWidget {
 /// 生命周期:
 /// - initState: 初始化时加载现有设置
 /// - dispose: 清理TextEditingController资源
-class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObserver {
+class _SettingsScreenState extends State<SettingsScreen>
+    with WidgetsBindingObserver {
   final SettingsService _settingsService = SettingsService();
   final TextEditingController _endpointController = TextEditingController();
   final TextEditingController _apiKeyController = TextEditingController();
   final TextEditingController _modelController = TextEditingController();
   final TextEditingController _maxTokensController = TextEditingController();
-  final TextEditingController _historyContextLengthController = TextEditingController();
-  final TextEditingController _customSystemPromptController = TextEditingController();
+  final TextEditingController _historyContextLengthController =
+      TextEditingController();
+  final TextEditingController _customSystemPromptController =
+      TextEditingController();
 
   double _temperature = SettingsService.defaultTemperature;
   bool _enableHistory = SettingsService.defaultEnableHistory;
@@ -54,6 +57,7 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
     super.initState();
     // 添加观察者监听系统主题变化
     WidgetsBinding.instance.addObserver(this);
+
     /// 初始化时加载现有的设置值到状态变量和控制器中
     _loadSettings();
   }
@@ -73,8 +77,7 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
   @override
   void didChangePlatformBrightness() {
     if (_followSystemTheme) {
-      setState(() {
-      });
+      setState(() {});
       _updateAppBrightness();
     }
     super.didChangePlatformBrightness();
@@ -91,7 +94,8 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
     final temperature = await _settingsService.getTemperature();
     final maxTokens = await _settingsService.getMaxTokens();
     final enableHistory = await _settingsService.getEnableHistory();
-    final historyContextLength = await _settingsService.getHistoryContextLength();
+    final historyContextLength =
+        await _settingsService.getHistoryContextLength();
     final customPrompt = await _settingsService.getCustomSystemPrompt();
     final apiType = await _settingsService.getApiType();
     final darkMode = await _settingsService.getDarkMode();
@@ -118,7 +122,8 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
   void _updateApiDefaults(String apiType) {
     setState(() {
       if (apiType == 'gemini') {
-        _endpointController.text = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+        _endpointController.text =
+            'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
         _modelController.text = 'gemini-2.5-flash';
       } else {
         _endpointController.text = SettingsService.defaultEndpoint;
@@ -138,13 +143,14 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
       await _settingsService.setModel(_modelController.text.trim());
       await _settingsService.setTemperature(_temperature);
       await _settingsService.setMaxTokens(
-          int.tryParse(_maxTokensController.text) ?? SettingsService.defaultMaxTokens
-      );
+          int.tryParse(_maxTokensController.text) ??
+              SettingsService.defaultMaxTokens);
       await _settingsService.setEnableHistory(_enableHistory);
       await _settingsService.setHistoryContextLength(
-          int.tryParse(_historyContextLengthController.text) ?? SettingsService.defaultHistoryContextLength
-      );
-      await _settingsService.setCustomSystemPrompt(_customSystemPromptController.text.trim());
+          int.tryParse(_historyContextLengthController.text) ??
+              SettingsService.defaultHistoryContextLength);
+      await _settingsService
+          .setCustomSystemPrompt(_customSystemPromptController.text.trim());
       await _settingsService.setApiType(_apiType);
       await _settingsService.setDarkMode(_darkMode);
       await _settingsService.setFollowSystemTheme(_followSystemTheme);
@@ -209,10 +215,13 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
                 _apiKeyController.clear();
                 _modelController.text = SettingsService.defaultModel;
                 _temperature = SettingsService.defaultTemperature;
-                _maxTokensController.text = SettingsService.defaultMaxTokens.toString();
+                _maxTokensController.text =
+                    SettingsService.defaultMaxTokens.toString();
                 _enableHistory = SettingsService.defaultEnableHistory;
-                _historyContextLengthController.text = SettingsService.defaultHistoryContextLength.toString();
-                _customSystemPromptController.text = SettingsService.defaultCustomSystemPrompt.toString();
+                _historyContextLengthController.text =
+                    SettingsService.defaultHistoryContextLength.toString();
+                _customSystemPromptController.text =
+                    SettingsService.defaultCustomSystemPrompt.toString();
                 _apiType = SettingsService.defaultApiType;
                 _darkMode = SettingsService.defaultDarkMode;
                 _followSystemTheme = SettingsService.defaultFollowSystemTheme;
@@ -240,12 +249,10 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
       context: context,
       builder: (context) => CupertinoAlertDialog(
         title: const Text('常用API端点'),
-        content: const Text(
-            'OpenAI: https://api.openai.com/v1\n\n'
-                'DeepSeek: https://api.deepseek.com/v1\n\n'
-                '阿里云: https://dashscope.aliyuncs.com/api/v1\n\n'
-                '请根据您使用的AI服务提供商填写相应的端点地址。'
-        ),
+        content: const Text('OpenAI: https://api.openai.com/v1\n\n'
+            'DeepSeek: https://api.deepseek.com/v1\n\n'
+            '阿里云: https://dashscope.aliyuncs.com/api/v1\n\n'
+            '请根据您使用的AI服务提供商填写相应的端点地址。'),
         actions: [
           CupertinoDialogAction(
             child: const Text('确定'),
@@ -261,14 +268,12 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
       context: context,
       builder: (context) => CupertinoAlertDialog(
         title: const Text('常用模型'),
-        content: const Text(
-            'OpenAI:\n'
-                '• gpt-5\n\n'
-                'DeepSeek:\n'
-                '• deepseek-chat\n'
-                '• deepseek-reasoner\n\n'
-                '请根据您的API端点选择对应的模型。'
-        ),
+        content: const Text('OpenAI:\n'
+            '• gpt-5\n\n'
+            'DeepSeek:\n'
+            '• deepseek-chat\n'
+            '• deepseek-reasoner\n\n'
+            '请根据您的API端点选择对应的模型。'),
         actions: [
           CupertinoDialogAction(
             child: const Text('确定'),
@@ -296,10 +301,10 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
         trailing: _isSaving
             ? const CupertinoActivityIndicator()
             : CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: _saveSettings,
-          child: const Text('保存'),
-        ),
+                padding: EdgeInsets.zero,
+                onPressed: _saveSettings,
+                child: const Text('保存'),
+              ),
       ),
       child: SafeArea(
         child: ListView(
@@ -322,7 +327,6 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
                 ),
               ],
             ),
-
             _buildSection(
               '基础设置',
               [
@@ -367,7 +371,6 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
                 ),
               ],
             ),
-
             _buildSection(
               '模型设置',
               [
@@ -387,11 +390,11 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
                   keyboardType: TextInputType.number,
                 ),
                 _buildInputTile(
-                    'System Prompt',
-                    controller: _customSystemPromptController,
-                    placeholder: '输入 System Prompt',
-                    subtitle: '例如：始终使用中文回答',
-                    keyboardType: TextInputType.multiline,
+                  'System Prompt',
+                  controller: _customSystemPromptController,
+                  placeholder: '输入 System Prompt',
+                  subtitle: '例如：始终使用中文回答',
+                  keyboardType: TextInputType.multiline,
                 ),
                 _buildSliderTile(
                   '温度',
@@ -408,7 +411,6 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
                 ),
               ],
             ),
-
             _buildSection(
               '历史对话',
               [
@@ -432,7 +434,6 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
                   ),
               ],
             ),
-
             _buildSection(
               '外观',
               [
@@ -451,7 +452,10 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
                 _buildDropdownTile(
                   '应用颜色',
                   value: _followSystemTheme
-                      ? (MediaQuery.of(context).platformBrightness == Brightness.dark ? 'dark' : 'light')
+                      ? (MediaQuery.of(context).platformBrightness ==
+                              Brightness.dark
+                          ? 'dark'
+                          : 'light')
                       : _appTheme,
                   options: {
                     'light': '浅色模式',
@@ -474,7 +478,6 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
                 ),
               ],
             ),
-
             _buildSection(
               '其他',
               [
@@ -486,7 +489,6 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
                 ),
               ],
             ),
-
             Container(
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(16),
@@ -509,12 +511,12 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
                   SizedBox(height: 8),
                   Text(
                     '• API格式：选择AI服务提供商（OpenAI或Gemini），选择后将自动填充端点和模型\n'
-                        '• API端点：AI服务提供商的API地址，点击帮助按钮查看常用端点\n'
-                        '• API密钥：从服务提供商获取的认证密钥，请妥善保管\n'
-                        '• 模型：要使用的AI模型名称，不同端点支持不同模型\n'
-                        '• Token数：限制单次回复的长度，过小可能导致回复不完整\n'
-                        '• 温度：数值越高回复越有创意，建议0.3-1.0\n'
-                        '• 历史对话：开启后AI能记住对话上下文，提供更连贯的体验',
+                    '• API端点：AI服务提供商的API地址，点击帮助按钮查看常用端点\n'
+                    '• API密钥：从服务提供商获取的认证密钥，请妥善保管\n'
+                    '• 模型：要使用的AI模型名称，不同端点支持不同模型\n'
+                    '• Token数：限制单次回复的长度，过小可能导致回复不完整\n'
+                    '• 温度：数值越高回复越有创意，建议0.3-1.0\n'
+                    '• 历史对话：开启后AI能记住对话上下文，提供更连贯的体验',
                     style: TextStyle(
                       fontSize: 14,
                       color: CupertinoColors.systemGrey,
@@ -585,41 +587,43 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
   }
 
   Widget _buildNavigationTile(
-      String title, {
-        String? subtitle,
-        required IconData icon,
-        required VoidCallback onTap,
-      }) {
+    String title, {
+    String? subtitle,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
     return CupertinoListTile(
       leading: Icon(
         icon,
         color: CupertinoColors.systemBlue,
       ),
       title: Text(title),
-      subtitle: subtitle != null ? Text(
-        subtitle,
-        style: const TextStyle(
-          fontSize: 13,
-          color: CupertinoColors.systemGrey,
-        ),
-      ) : null,
+      subtitle: subtitle != null
+          ? Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 13,
+                color: CupertinoColors.systemGrey,
+              ),
+            )
+          : null,
       trailing: const Icon(CupertinoIcons.chevron_right),
       onTap: onTap,
     );
   }
 
   Widget _buildInputTile(
-      String title, {
-        required TextEditingController controller,
-        required String placeholder,
-        String? subtitle,
-        bool obscureText = false,
-        bool showVisibilityToggle = false,
-        bool showHelpButton = false,
-        TextInputType? keyboardType,
-        VoidCallback? onVisibilityToggle,
-        VoidCallback? onHelpPressed,
-      }) {
+    String title, {
+    required TextEditingController controller,
+    required String placeholder,
+    String? subtitle,
+    bool obscureText = false,
+    bool showVisibilityToggle = false,
+    bool showHelpButton = false,
+    TextInputType? keyboardType,
+    VoidCallback? onVisibilityToggle,
+    VoidCallback? onHelpPressed,
+  }) {
     final brightness = CupertinoTheme.of(context).brightness;
     return Container(
       padding: const EdgeInsets.all(16),
@@ -667,14 +671,16 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
             keyboardType: keyboardType,
             suffix: showVisibilityToggle
                 ? CupertinoButton(
-              padding: EdgeInsets.zero,
-              onPressed: onVisibilityToggle,
-              child: Icon(
-                obscureText ? CupertinoIcons.eye : CupertinoIcons.eye_slash,
-                size: 20,
-                color: CupertinoColors.systemGrey,
-              ),
-            )
+                    padding: EdgeInsets.zero,
+                    onPressed: onVisibilityToggle,
+                    child: Icon(
+                      obscureText
+                          ? CupertinoIcons.eye
+                          : CupertinoIcons.eye_slash,
+                      size: 20,
+                      color: CupertinoColors.systemGrey,
+                    ),
+                  )
                 : null,
             decoration: BoxDecoration(
               color: brightness == Brightness.dark
@@ -690,14 +696,14 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
   }
 
   Widget _buildSliderTile(
-      String title, {
-        required double value,
-        String? subtitle,
-        required double min,
-        required double max,
-        int? divisions,
-        required ValueChanged<double> onChanged,
-      }) {
+    String title, {
+    required double value,
+    String? subtitle,
+    required double min,
+    required double max,
+    int? divisions,
+    required ValueChanged<double> onChanged,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -734,11 +740,11 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
   }
 
   Widget _buildSwitchTile(
-      String title, {
-        required bool value,
-        String? subtitle,
-        required ValueChanged<bool> onChanged,
-      }) {
+    String title, {
+    required bool value,
+    String? subtitle,
+    required ValueChanged<bool> onChanged,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -778,20 +784,23 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
   }
 
   Widget _buildActionTile(
-      String title, {
-        required IconData icon,
-        required VoidCallback onTap,
-        bool isDestructive = false,
-      }) {
+    String title, {
+    required IconData icon,
+    required VoidCallback onTap,
+    bool isDestructive = false,
+  }) {
     return CupertinoListTile(
       leading: Icon(
         icon,
-        color: isDestructive ? CupertinoColors.systemRed : CupertinoColors.systemBlue,
+        color: isDestructive
+            ? CupertinoColors.systemRed
+            : CupertinoColors.systemBlue,
       ),
       title: Text(
         title,
         style: TextStyle(
-          color: isDestructive ? CupertinoColors.systemRed : CupertinoColors.label,
+          color:
+              isDestructive ? CupertinoColors.systemRed : CupertinoColors.label,
         ),
       ),
       trailing: const Icon(CupertinoIcons.chevron_right),
@@ -800,12 +809,12 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
   }
 
   Widget _buildDropdownTile(
-      String title, {
-        required String value,
-        required Map<String, String> options,
-        String? subtitle,
-        ValueChanged<String?>? onChanged,
-      }) {
+    String title, {
+    required String value,
+    required Map<String, String> options,
+    String? subtitle,
+    ValueChanged<String?>? onChanged,
+  }) {
     final currentLabel = options[value] ?? value;
     final brightness = CupertinoTheme.of(context).brightness;
     final isEnabled = onChanged != null;
@@ -837,52 +846,56 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
           const SizedBox(height: 12),
           CupertinoButton(
             padding: EdgeInsets.zero,
-            onPressed: onChanged != null ? () {
-              showCupertinoModalPopup<void>(
-                context: context,
-                builder: (BuildContext context) {
-                  final popupBrightness = CupertinoTheme.of(context).brightness;
-                  return CupertinoActionSheet(
-                    title: Text(title),
-                    message: subtitle != null ? Text(subtitle) : null,
-                    actions: [
-                      for (final entry in options.entries)
-                        CupertinoActionSheetAction(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            onChanged(entry.key);
-                          },
-                          child: Text(
-                            entry.value,
-                            style: TextStyle(
-                              color: value == entry.key
-                                  ? (popupBrightness == Brightness.dark
-                                      ? CupertinoColors.activeBlue.darkColor
-                                      : CupertinoColors.activeBlue.color)
-                                  : (popupBrightness == Brightness.dark
-                                      ? CupertinoColors.label.darkColor
-                                      : CupertinoColors.label.color),
+            onPressed: onChanged != null
+                ? () {
+                    showCupertinoModalPopup<void>(
+                      context: context,
+                      builder: (BuildContext context) {
+                        final popupBrightness =
+                            CupertinoTheme.of(context).brightness;
+                        return CupertinoActionSheet(
+                          title: Text(title),
+                          message: subtitle != null ? Text(subtitle) : null,
+                          actions: [
+                            for (final entry in options.entries)
+                              CupertinoActionSheetAction(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  onChanged(entry.key);
+                                },
+                                child: Text(
+                                  entry.value,
+                                  style: TextStyle(
+                                    color: value == entry.key
+                                        ? (popupBrightness == Brightness.dark
+                                            ? CupertinoColors
+                                                .activeBlue.darkColor
+                                            : CupertinoColors.activeBlue.color)
+                                        : (popupBrightness == Brightness.dark
+                                            ? CupertinoColors.label.darkColor
+                                            : CupertinoColors.label.color),
+                                  ),
+                                ),
+                              ),
+                          ],
+                          cancelButton: CupertinoActionSheetAction(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: Text(
+                              '取消',
+                              style: TextStyle(
+                                color: popupBrightness == Brightness.dark
+                                    ? CupertinoColors.systemRed.darkColor
+                                    : CupertinoColors.systemRed.color,
+                              ),
                             ),
                           ),
-                        ),
-                    ],
-                    cancelButton: CupertinoActionSheetAction(
-                      onPressed: () {
-                        Navigator.pop(context);
+                        );
                       },
-                      child: Text(
-                        '取消',
-                        style: TextStyle(
-                          color: popupBrightness == Brightness.dark
-                              ? CupertinoColors.systemRed.darkColor
-                              : CupertinoColors.systemRed.color,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              );
-            } : null,
+                    );
+                  }
+                : null,
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
