@@ -351,7 +351,9 @@ class AIService {
   ///   chatHistory - 聊天历史记录（用于上下文）
   ///   attachments - 附件列表（可选，默认为空）
   /// 返回值:
-  ///   AI模型的响应文本
+  ///   返回一个Map<String, dynamic>，包含AI模型的响应
+  ///   - 'reasoningContent': 思考过程内容（如果有）
+  ///   - 'content': 最终回答内容
   /// 异常:
   ///   抛出Exception当API密钥未配置或网络请求失败时
   /// 说明:
@@ -361,7 +363,7 @@ class AIService {
   ///   4. 处理文件附件（如果存在）
   ///   5. 发送HTTP请求并处理响应
   ///   6. 统一错误处理，将API错误转换为用户友好的异常消息
-  Future<String> sendMessage(String message, List<Message> chatHistory, {List<Attachment> attachments = const []}) async {
+  Future<Map<String, dynamic>> sendMessage(String message, List<Message> chatHistory, {List<Attachment> attachments = const []}) async {
     final apiEndpoint = await _settingsService.getApiEndpoint();
     final apiKey = await _settingsService.getApiKey();
     final model = await _settingsService.getModel();
@@ -415,7 +417,6 @@ class AIService {
         'content': userMessageContent,
       });
 
-      String responseText;
       if (apiType == 'gemini') {
         final contents = await _buildGeminiContents(
           message,
@@ -426,7 +427,7 @@ class AIService {
           historyContextLength,
         );
 
-        responseText = await _sendGeminiMessage(
+        final responseText = await _sendGeminiMessage(
           apiEndpoint: apiEndpoint,
           apiKey: apiKey,
           model: model,
@@ -434,6 +435,11 @@ class AIService {
           maxTokens: maxTokens,
           contents: contents,
         );
+
+        return {
+          'reasoningContent': '',
+          'content': responseText,
+        };
       } else {
         final response = await http.post(
           Uri.parse('$apiEndpoint/chat/completions'),
@@ -451,14 +457,31 @@ class AIService {
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
-          responseText = data['choices'][0]['message']['content'].trim();
+          if (data is! Map<String, dynamic> || data['choices'] == null || (data['choices'] as List).isEmpty) {
+            throw Exception('API返回了无效的响应格式: ${response.body}');
+          }
+          final choices = data['choices'] as List;
+          final firstChoice = choices[0];
+          if (firstChoice['message'] == null) {
+            throw Exception('API响应中缺少message字段: ${response.body}');
+          }
+          final message = firstChoice['message'];
+          final reasoningContent = message['reasoning_content']?.toString().trim() ?? '';
+          final content = message['content']?.toString().trim() ?? '';
+
+          return {
+            'reasoningContent': reasoningContent,
+            'content': content,
+          };
         } else {
           final errorData = jsonDecode(response.body);
-          throw Exception('API错误: ${errorData['error']['message'] ?? response.statusCode}');
+          if (errorData is! Map<String, dynamic>) {
+            throw Exception('API错误: 无效的响应格式 (状态码: ${response.statusCode})');
+          }
+          final errorMessage = errorData['error']?['message']?.toString() ?? errorData['message']?.toString() ?? '未知错误';
+          throw Exception('API错误: $errorMessage (状态码: ${response.statusCode})');
         }
       }
-
-      return responseText;
     } catch (e) {
       if (e.toString().contains('API错误')) {
         rethrow;
@@ -474,16 +497,18 @@ class AIService {
   ///   chatHistory - 聊天历史记录（用于上下文）
   ///   attachments - 附件列表（可选，默认为空）
   /// 返回值:
-  ///   返回一个Stream<String>，实时输出AI模型的响应片段
+  ///   返回一个Stream<Map<String, dynamic>>，实时输出AI模型的响应片段
+  ///   Map包含 'type' 和 'content' 字段，type可以是 'reasoning' 或 'answer'
   /// 异常:
   ///   抛出Exception当API密钥未配置或网络请求失败时
   /// 说明:
   ///   1. 支持流式输出，实时显示AI响应
-  ///   2. 与sendMessage方法类似，但使用流式API
-  ///   3. 处理Server-Sent Events (SSE) 数据流
-  ///   4. 针对OpenAI和Gemini API提供不同的流式实现
-  ///   5. 实时解析和yield响应片段
-  Stream<String> sendMessageStreaming(String message, List<Message> chatHistory, {List<Attachment> attachments = const []}) async* {
+  ///   2. 支持思考模型的推理过程输出
+  ///   3. 与sendMessage方法类似，但使用流式API
+  ///   4. 处理Server-Sent Events (SSE) 数据流
+  ///   5. 针对OpenAI和Gemini API提供不同的流式实现
+  ///   6. 实时解析和yield响应片段
+  Stream<Map<String, dynamic>> sendMessageStreaming(String message, List<Message> chatHistory, {List<Attachment> attachments = const []}) async* {
     final apiEndpoint = await _settingsService.getApiEndpoint();
     final apiKey = await _settingsService.getApiKey();
     final model = await _settingsService.getModel();
@@ -579,7 +604,11 @@ class AIService {
         if (streamedResponse.statusCode != 200) {
           final errorBody = await streamedResponse.stream.transform(utf8.decoder).join();
           final errorData = jsonDecode(errorBody);
-          throw Exception('API错误: ${errorData['error']['message'] ?? streamedResponse.statusCode}');
+          if (errorData is! Map<String, dynamic>) {
+            throw Exception('API错误: 无效的响应格式 (状态码: ${streamedResponse.statusCode})');
+          }
+          final errorMessage = errorData['error']?['message']?.toString() ?? errorData['message']?.toString() ?? '未知错误';
+          throw Exception('API错误: $errorMessage (状态码: ${streamedResponse.statusCode})');
         }
 
         final stream = streamedResponse.stream
@@ -595,10 +624,36 @@ class AIService {
             }
             try {
               final jsonData = jsonDecode(data);
-              final delta = jsonData['choices'][0]['delta'];
+              if (jsonData is! Map<String, dynamic>) {
+                continue;
+              }
+              final choices = jsonData['choices'];
+              if (choices is! List || choices.isEmpty) {
+                continue;
+              }
+              final firstChoice = choices[0];
+              if (firstChoice is! Map<String, dynamic>) {
+                continue;
+              }
+              final delta = firstChoice['delta'];
+              if (delta is! Map<String, dynamic>) {
+                continue;
+              }
+
+              // 处理思考模型的推理过程
+              if (delta.containsKey('reasoning_content')) {
+                final reasoningContent = delta['reasoning_content'] as String?;
+                if (reasoningContent != null && reasoningContent.isNotEmpty) {
+                  yield {'type': 'reasoning', 'content': reasoningContent};
+                }
+              }
+
+              // 处理最终回答
               if (delta.containsKey('content')) {
-                final content = delta['content'] as String;
-                yield content;
+                final content = delta['content'] as String?;
+                if (content != null && content.isNotEmpty) {
+                  yield {'type': 'answer', 'content': content};
+                }
               }
             } catch (e) {
               // Ignore parsing errors for incomplete JSON
@@ -676,22 +731,32 @@ class AIService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-
-        if (data['candidates'] != null && data['candidates'].isNotEmpty) {
-          final candidate = data['candidates'][0];
-          if (candidate['finishReason'] == 'SAFETY') {
-            throw Exception('响应被安全过滤器阻止');
-          }
-          if (candidate['content'] != null &&
-              candidate['content']['parts'] != null &&
-              candidate['content']['parts'].isNotEmpty) {
-            return candidate['content']['parts'][0]['text'].trim();
-          }
+        if (data is! Map<String, dynamic>) {
+          throw Exception('Gemini API返回了无效的响应格式');
         }
+
+        final candidates = data['candidates'];
+        if (candidates is! List || candidates.isEmpty) {
+          throw Exception('Gemini API响应中缺少candidates字段');
+        }
+
+        final candidate = candidates[0];
+        if (candidate['finishReason'] == 'SAFETY') {
+          throw Exception('响应被安全过滤器阻止');
+        }
+        if (candidate['content'] != null &&
+            candidate['content']['parts'] != null &&
+            candidate['content']['parts'].isNotEmpty) {
+          return candidate['content']['parts'][0]['text'].trim();
+        }
+
         throw Exception('无效的Gemini API响应格式');
       } else {
         final errorData = jsonDecode(response.body);
-        final errorMessage = errorData['error']?['message'] ?? errorData['message'] ?? '未知错误';
+        if (errorData is! Map<String, dynamic>) {
+          throw Exception('Gemini API错误: 无效的响应格式 (状态码: ${response.statusCode})');
+        }
+        final errorMessage = errorData['error']?['message']?.toString() ?? errorData['message']?.toString() ?? '未知错误';
         throw Exception('Gemini API错误: $errorMessage (状态码: ${response.statusCode})');
       }
     } catch (e) {
@@ -710,7 +775,8 @@ class AIService {
   ///   maxTokens - 最大输出token数
   ///   contents - 内容列表，包含对话历史和当前消息
   /// 返回值:
-  ///   返回一个Stream<String>，实时输出Gemini模型的响应片段
+  ///   返回一个Stream<Map<String, dynamic>>，实时输出Gemini模型的响应片段
+  ///   Map包含 'type' 和 'content' 字段，type为 'answer'
   /// 异常:
   ///   抛出Exception当API请求失败或响应格式无效时
   /// 说明:
@@ -719,7 +785,7 @@ class AIService {
   ///   3. 处理Server-Sent Events (SSE) 数据流
   ///   4. 实时解析响应，yield文本片段
   ///   5. 处理连接关闭和错误情况
-  Stream<String> _sendGeminiMessageStreaming({
+  Stream<Map<String, dynamic>> _sendGeminiMessageStreaming({
     required String apiEndpoint,
     required String apiKey,
     required String model,
@@ -761,7 +827,10 @@ class AIService {
         if (streamedResponse.statusCode != 200) {
           final errorBody = await streamedResponse.stream.transform(utf8.decoder).join();
           final errorData = jsonDecode(errorBody);
-          final errorMessage = errorData['error']?['message'] ?? errorData['message'] ?? '未知错误';
+          if (errorData is! Map<String, dynamic>) {
+            throw Exception('Gemini API错误: 无效的响应格式 (状态码: ${streamedResponse.statusCode})');
+          }
+          final errorMessage = errorData['error']?['message']?.toString() ?? errorData['message']?.toString() ?? '未知错误';
           throw Exception('Gemini API错误: $errorMessage (状态码: ${streamedResponse.statusCode})');
         }
 
@@ -778,16 +847,32 @@ class AIService {
             }
             try {
               final jsonData = jsonDecode(data);
-              if (jsonData['candidates'] != null && jsonData['candidates'].isNotEmpty) {
-                final candidate = jsonData['candidates'][0];
-                if (candidate['content'] != null &&
-                    candidate['content']['parts'] != null &&
-                    candidate['content']['parts'].isNotEmpty) {
-                  final text = candidate['content']['parts'][0]['text'] as String?;
-                  if (text != null && text.isNotEmpty) {
-                    yield text;
-                  }
-                }
+              if (jsonData is! Map<String, dynamic>) {
+                continue;
+              }
+              final candidates = jsonData['candidates'];
+              if (candidates is! List || candidates.isEmpty) {
+                continue;
+              }
+              final candidate = candidates[0];
+              if (candidate is! Map<String, dynamic>) {
+                continue;
+              }
+              final content = candidate['content'];
+              if (content is! Map<String, dynamic>) {
+                continue;
+              }
+              final parts = content['parts'];
+              if (parts is! List || parts.isEmpty) {
+                continue;
+              }
+              final firstPart = parts[0];
+              if (firstPart is! Map<String, dynamic>) {
+                continue;
+              }
+              final text = firstPart['text'] as String?;
+              if (text != null && text.isNotEmpty) {
+                yield {'type': 'answer', 'content': text};
               }
             } catch (e) {
               // 忽略解析错误

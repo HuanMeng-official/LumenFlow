@@ -212,6 +212,7 @@ class _ChatScreenState extends State<ChatScreen> {
       _messages.add(Message(
         id: aiMessageId,
         content: '',
+        reasoningContent: null,
         isUser: false,
         timestamp: DateTime.now(),
         status: MessageStatus.sending,
@@ -223,14 +224,29 @@ class _ChatScreenState extends State<ChatScreen> {
 
     try {
       final stream = _aiService.sendMessageStreaming(content, _messages, attachments: attachments);
-      final buffer = StringBuffer();
+      final reasoningBuffer = StringBuffer();
+      final answerBuffer = StringBuffer();
+      int receivedChunks = 0;
 
       await for (final chunk in stream) {
-        buffer.write(chunk);
+        receivedChunks++;
+        final type = chunk['type'] as String;
+        final chunkContent = chunk['content'] as String? ?? '';
+
+        if (type == 'reasoning') {
+          reasoningBuffer.write(chunkContent);
+        } else if (type == 'answer') {
+          answerBuffer.write(chunkContent);
+        } else {
+          // 未知类型，作为答案处理
+          answerBuffer.write(chunkContent);
+        }
+
         setState(() {
           _messages[aiMessageIndex] = Message(
             id: aiMessageId,
-            content: buffer.toString(),
+            content: answerBuffer.toString(),
+            reasoningContent: reasoningBuffer.toString(),
             isUser: false,
             timestamp: _messages[aiMessageIndex].timestamp,
             status: MessageStatus.sending,
@@ -239,20 +255,29 @@ class _ChatScreenState extends State<ChatScreen> {
         _scrollToBottom();
       }
 
+      // 如果没有收到任何chunk，显示错误
+      if (receivedChunks == 0) {
+        throw Exception('API未返回任何响应内容');
+      }
+
       setState(() {
         _messages[aiMessageIndex] = Message(
           id: aiMessageId,
-          content: buffer.toString(),
+          content: answerBuffer.toString(),
+          reasoningContent: reasoningBuffer.toString(),
           isUser: false,
           timestamp: _messages[aiMessageIndex].timestamp,
           status: MessageStatus.sent,
         );
       });
     } catch (e) {
+      print('AI消息发送错误: $e');
+      print(e.toString());
       setState(() {
         _messages[aiMessageIndex] = Message(
           id: aiMessageId,
           content: '错误: ${e.toString().replaceAll('Exception: ', '')}',
+          reasoningContent: null,
           isUser: false,
           timestamp: _messages[aiMessageIndex].timestamp,
           status: MessageStatus.error,

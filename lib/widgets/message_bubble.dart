@@ -19,6 +19,7 @@ class MessageBubble extends StatefulWidget {
 class _MessageBubbleState extends State<MessageBubble> {
   final UserService _userService = UserService();
   UserProfile? _userProfile;
+  bool _isReasoningExpanded = false;
 
   @override
   void initState() {
@@ -181,6 +182,93 @@ class _MessageBubbleState extends State<MessageBubble> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (!widget.message.isUser && widget.message.reasoningContent != null && widget.message.reasoningContent!.isNotEmpty)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _isReasoningExpanded = !_isReasoningExpanded;
+                            });
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: brightness == Brightness.dark
+                                  ? CupertinoColors.systemGrey5.darkColor
+                                  : CupertinoColors.systemGrey5.color,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: brightness == Brightness.dark
+                                    ? CupertinoColors.systemGrey4.darkColor
+                                    : CupertinoColors.systemGrey4.color,
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '思考链',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: brightness == Brightness.dark
+                                        ? CupertinoColors.label.darkColor
+                                        : CupertinoColors.label.color,
+                                  ),
+                                ),
+                                Icon(
+                                  _isReasoningExpanded
+                                      ? CupertinoIcons.chevron_up
+                                      : CupertinoIcons.chevron_down,
+                                  size: 16,
+                                  color: brightness == Brightness.dark
+                                      ? CupertinoColors.systemGrey.darkColor
+                                      : CupertinoColors.systemGrey.color,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (_isReasoningExpanded)
+                          Container(
+                            width: double.infinity,
+                            margin: const EdgeInsets.only(top: 8),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: brightness == Brightness.dark
+                                  ? CupertinoColors.systemGrey6.darkColor
+                                  : CupertinoColors.systemGrey6.color,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: brightness == Brightness.dark
+                                    ? CupertinoColors.systemGrey5.darkColor
+                                    : CupertinoColors.systemGrey5.color,
+                                width: 1,
+                              ),
+                            ),
+                            child: SelectableRegion(
+                              selectionControls: cupertinoTextSelectionControls,
+                              child: MarkdownBody(
+                                data: widget.message.reasoningContent!,
+                                styleSheet: MarkdownStyleSheet(
+                                  p: TextStyle(
+                                    fontSize: 14,
+                                    height: 1.5,
+                                    color: brightness == Brightness.dark
+                                        ? CupertinoColors.systemGrey.darkColor
+                                        : CupertinoColors.systemGrey.color,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        const SizedBox(height: 12),
+                      ],
+                    ),
                   SelectableRegion(
                     selectionControls: cupertinoTextSelectionControls,
                     child: MarkdownBody(
