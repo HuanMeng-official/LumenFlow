@@ -242,7 +242,6 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
         title: const Text('常用API端点'),
         content: const Text(
             'OpenAI: https://api.openai.com/v1\n\n'
-                'Anthropic: https://api.anthropic.com/v1\n\n'
                 'DeepSeek: https://api.deepseek.com/v1\n\n'
                 '阿里云: https://dashscope.aliyuncs.com/api/v1\n\n'
                 '请根据您使用的AI服务提供商填写相应的端点地址。'
@@ -265,11 +264,8 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
         content: const Text(
             'OpenAI:\n'
                 '• gpt-5\n\n'
-                'Anthropic:\n'
-                '• claude-sonnet-4-20250514\n\n'
                 'DeepSeek:\n'
                 '• deepseek-chat\n'
-                '• deepseek-coder\n'
                 '• deepseek-reasoner\n\n'
                 '请根据您的API端点选择对应的模型。'
         ),
@@ -387,7 +383,7 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
                   '最大Token数',
                   controller: _maxTokensController,
                   placeholder: '输入最大Token数',
-                  subtitle: '限制单次回复的长度，建议500-4000',
+                  subtitle: '限制单次回复的长度，建议500-8000',
                   keyboardType: TextInputType.number,
                 ),
                 _buildInputTile(
