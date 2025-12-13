@@ -4,11 +4,18 @@ import 'screens/chat_screen.dart';
 import 'utils/app_theme.dart';
 
 void main() async {
-  // 初始化主题
+  WidgetsFlutterBinding.ensureInitialized();
+
   final settingsService = SettingsService();
   try {
-    final bool darkMode = await settingsService.getDarkMode();
-    appBrightness.value = darkMode ? Brightness.dark : Brightness.light;
+    final bool followSystemTheme = await settingsService.getFollowSystemTheme();
+    if (followSystemTheme) {
+      final systemBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+      appBrightness.value = systemBrightness;
+    } else {
+      final String appTheme = await settingsService.getAppTheme();
+      appBrightness.value = appTheme == 'dark' ? Brightness.dark : Brightness.light;
+    }
   } catch (e) {
     // 使用默认亮色模式
   }
@@ -16,8 +23,49 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  final SettingsService _settingsService = SettingsService();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // 应用启动时也检查一次系统主题变化
+    _updateAppThemeFromSystem();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangePlatformBrightness() {
+    // 系统主题变化时调用
+    _updateAppThemeFromSystem();
+    super.didChangePlatformBrightness();
+  }
+
+  Future<void> _updateAppThemeFromSystem() async {
+    try {
+      final bool followSystemTheme = await _settingsService.getFollowSystemTheme();
+      if (followSystemTheme) {
+        // 如果开启了跟随系统设置，更新应用主题
+        final systemBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+        appBrightness.value = systemBrightness;
+      }
+    } catch (e) {
+      // 忽略错误
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

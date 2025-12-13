@@ -11,9 +11,13 @@ class SettingsService {
   static const String _customSystemPromptKey = 'custom_system_prompt';
   static const String _apiTypeKey = 'api_type';
   static const String _darkModeKey = 'dark_mode';
+  static const String _followSystemThemeKey = 'follow_system_theme';
+  static const String _appThemeKey = 'app_theme';
   static const String defaultCustomSystemPrompt = '';
   static const String defaultApiType = 'openai';
   static const bool defaultDarkMode = false;
+  static const bool defaultFollowSystemTheme = true;
+  static const String defaultAppTheme = 'light';
 
   static const String defaultEndpoint = 'https://api.openai.com/v1';
   static const String defaultModel = 'gpt-5';
@@ -125,5 +129,25 @@ class SettingsService {
   Future<void> setDarkMode(bool darkMode) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_darkModeKey, darkMode);
+  }
+
+  Future<bool> getFollowSystemTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_followSystemThemeKey) ?? defaultFollowSystemTheme;
+  }
+
+  Future<void> setFollowSystemTheme(bool followSystemTheme) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_followSystemThemeKey, followSystemTheme);
+  }
+
+  Future<String> getAppTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_appThemeKey) ?? defaultAppTheme;
+  }
+
+  Future<void> setAppTheme(String appTheme) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_appThemeKey, appTheme);
   }
 }

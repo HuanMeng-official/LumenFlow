@@ -30,7 +30,7 @@ class SettingsScreen extends StatefulWidget {
 /// 生命周期:
 /// - initState: 初始化时加载现有设置
 /// - dispose: 清理TextEditingController资源
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObserver {
   final SettingsService _settingsService = SettingsService();
   final TextEditingController _endpointController = TextEditingController();
   final TextEditingController _apiKeyController = TextEditingController();
@@ -46,12 +46,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isSaving = false;
   String _apiType = SettingsService.defaultApiType;
   bool _darkMode = SettingsService.defaultDarkMode;
+  bool _followSystemTheme = SettingsService.defaultFollowSystemTheme;
+  String _appTheme = SettingsService.defaultAppTheme;
 
   @override
   void initState() {
     super.initState();
+    // 添加观察者监听系统主题变化
+    WidgetsBinding.instance.addObserver(this);
     /// 初始化时加载现有的设置值到状态变量和控制器中
     _loadSettings();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _endpointController.dispose();
+    _apiKeyController.dispose();
+    _modelController.dispose();
+    _maxTokensController.dispose();
+    _historyContextLengthController.dispose();
+    _customSystemPromptController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangePlatformBrightness() {
+    if (_followSystemTheme) {
+      setState(() {
+      });
+      _updateAppBrightness();
+    }
+    super.didChangePlatformBrightness();
   }
 
   /// 从设置服务加载所有配置值
@@ -69,6 +95,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final customPrompt = await _settingsService.getCustomSystemPrompt();
     final apiType = await _settingsService.getApiType();
     final darkMode = await _settingsService.getDarkMode();
+    final followSystemTheme = await _settingsService.getFollowSystemTheme();
+    final appTheme = await _settingsService.getAppTheme();
 
     setState(() {
       _endpointController.text = endpoint;
@@ -81,6 +109,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _customSystemPromptController.text = customPrompt;
       _apiType = apiType;
       _darkMode = darkMode;
+      _followSystemTheme = followSystemTheme;
+      _appTheme = appTheme;
       _isLoading = false;
     });
   }
@@ -117,6 +147,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await _settingsService.setCustomSystemPrompt(_customSystemPromptController.text.trim());
       await _settingsService.setApiType(_apiType);
       await _settingsService.setDarkMode(_darkMode);
+      await _settingsService.setFollowSystemTheme(_followSystemTheme);
+      await _settingsService.setAppTheme(_appTheme);
 
       if (mounted) {
         showCupertinoDialog(
@@ -183,12 +215,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _customSystemPromptController.text = SettingsService.defaultCustomSystemPrompt.toString();
                 _apiType = SettingsService.defaultApiType;
                 _darkMode = SettingsService.defaultDarkMode;
+                _followSystemTheme = SettingsService.defaultFollowSystemTheme;
+                _appTheme = SettingsService.defaultAppTheme;
               });
             },
           ),
         ],
       ),
     );
+  }
+
+  void _updateAppBrightness() {
+    Brightness brightness;
+    if (_followSystemTheme) {
+      brightness = MediaQuery.of(context).platformBrightness;
+    } else {
+      brightness = _appTheme == 'dark' ? Brightness.dark : Brightness.light;
+    }
+    appBrightness.value = brightness;
   }
 
   void _showEndpointHelp() {
@@ -397,18 +441,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
               '外观',
               [
                 _buildSwitchTile(
-                  '暗色模式',
-                  value: _darkMode,
-                  subtitle: '启用暗色主题',
+                  '跟随系统设置',
+                  value: _followSystemTheme,
+                  subtitle: '自动跟随系统颜色模式',
                   onChanged: (value) async {
                     setState(() {
-                      _darkMode = value;
+                      _followSystemTheme = value;
                     });
-                    // 立即更新主题
-                    await _settingsService.setDarkMode(value);
-                    // 更新全局主题亮度
-                    appBrightness.value = value ? Brightness.dark : Brightness.light;
+                    await _settingsService.setFollowSystemTheme(value);
+                    _updateAppBrightness();
                   },
+                ),
+                _buildDropdownTile(
+                  '应用颜色',
+                  value: _followSystemTheme
+                      ? (MediaQuery.of(context).platformBrightness == Brightness.dark ? 'dark' : 'light')
+                      : _appTheme,
+                  options: {
+                    'light': '浅色模式',
+                    'dark': '暗色模式',
+                  },
+                  subtitle: _followSystemTheme
+                      ? '跟随系统设置中（${MediaQuery.of(context).platformBrightness == Brightness.dark ? '暗色模式' : '浅色模式'}）'
+                      : '选择应用颜色模式',
+                  onChanged: _followSystemTheme
+                      ? null
+                      : (newValue) async {
+                          if (newValue != null) {
+                            setState(() {
+                              _appTheme = newValue;
+                            });
+                            await _settingsService.setAppTheme(newValue);
+                            _updateAppBrightness();
+                          }
+                        },
                 ),
               ],
             ),
@@ -742,10 +808,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         required String value,
         required Map<String, String> options,
         String? subtitle,
-        required ValueChanged<String?> onChanged,
+        ValueChanged<String?>? onChanged,
       }) {
     final currentLabel = options[value] ?? value;
     final brightness = CupertinoTheme.of(context).brightness;
+    final isEnabled = onChanged != null;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -774,8 +841,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 12),
           CupertinoButton(
             padding: EdgeInsets.zero,
-            onPressed: () {
-              // 显示下拉选择框
+            onPressed: onChanged != null ? () {
               showCupertinoModalPopup<void>(
                 context: context,
                 builder: (BuildContext context) {
@@ -820,14 +886,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   );
                 },
               );
-            },
+            } : null,
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: CupertinoTheme.of(context).brightness == Brightness.dark
-                    ? CupertinoColors.systemGrey6.darkColor
-                    : CupertinoColors.systemGrey6.color,
+                color: isEnabled
+                    ? (CupertinoTheme.of(context).brightness == Brightness.dark
+                        ? CupertinoColors.systemGrey6.darkColor
+                        : CupertinoColors.systemGrey6.color)
+                    : (CupertinoTheme.of(context).brightness == Brightness.dark
+                        ? CupertinoColors.tertiarySystemFill.darkColor
+                        : CupertinoColors.tertiarySystemFill.color),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -837,17 +907,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     currentLabel,
                     style: TextStyle(
                       fontSize: 16,
-                      color: brightness == Brightness.dark
-                          ? CupertinoColors.label.darkColor
-                          : CupertinoColors.label.color,
+                      color: isEnabled
+                          ? (brightness == Brightness.dark
+                              ? CupertinoColors.label.darkColor
+                              : CupertinoColors.label.color)
+                          : (brightness == Brightness.dark
+                              ? CupertinoColors.tertiaryLabel.darkColor
+                              : CupertinoColors.tertiaryLabel.color),
                     ),
                   ),
                   Icon(
                     CupertinoIcons.chevron_down,
                     size: 18,
-                    color: brightness == Brightness.dark
-                        ? CupertinoColors.systemGrey.darkColor
-                        : CupertinoColors.systemGrey,
+                    color: isEnabled
+                        ? (brightness == Brightness.dark
+                            ? CupertinoColors.systemGrey.darkColor
+                            : CupertinoColors.systemGrey)
+                        : (brightness == Brightness.dark
+                            ? CupertinoColors.tertiaryLabel.darkColor
+                            : CupertinoColors.tertiaryLabel.color),
                   ),
                 ],
               ),
@@ -856,16 +934,5 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _endpointController.dispose();
-    _apiKeyController.dispose();
-    _modelController.dispose();
-    _maxTokensController.dispose();
-    _historyContextLengthController.dispose();
-    _customSystemPromptController.dispose();
-    super.dispose();
   }
 }
