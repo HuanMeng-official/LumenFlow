@@ -182,7 +182,7 @@ class _ChatInputState extends State<ChatInput> {
   Widget build(BuildContext context) {
     final brightness = CupertinoTheme.of(context).brightness;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       decoration: BoxDecoration(
         color: brightness == Brightness.dark
             ? CupertinoColors.systemBackground.darkColor
@@ -232,7 +232,7 @@ class _ChatInputState extends State<ChatInput> {
               const SizedBox(width: 8),
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
                   decoration: BoxDecoration(
                     color: widget.enabled
                         ? (brightness == Brightness.dark
@@ -241,7 +241,7 @@ class _ChatInputState extends State<ChatInput> {
                         : (brightness == Brightness.dark
                             ? CupertinoColors.systemGrey5.darkColor
                             : CupertinoColors.systemGrey5.color),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(18),
                   ),
                   child: CupertinoTextField(
                     controller: _controller,
@@ -283,7 +283,7 @@ class _ChatInputState extends State<ChatInput> {
             ],
           ),
           // 第二行：功能开关区域
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
@@ -295,7 +295,9 @@ class _ChatInputState extends State<ChatInput> {
                       ? () => widget.onThinkingModeChanged!(!widget.thinkingMode)
                       : null,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    height: 34,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: widget.enabled
                           ? (widget.thinkingMode
@@ -308,14 +310,14 @@ class _ChatInputState extends State<ChatInput> {
                           : (brightness == Brightness.dark
                               ? CupertinoColors.systemGrey5.darkColor
                               : CupertinoColors.systemGrey5.color),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
                           CupertinoIcons.lightbulb,
-                          size: 16,
+                          size: 19,
                           color: widget.enabled
                               ? (widget.thinkingMode
                                   ? (brightness == Brightness.dark
@@ -328,11 +330,11 @@ class _ChatInputState extends State<ChatInput> {
                                   ? CupertinoColors.systemGrey4.darkColor
                                   : CupertinoColors.systemGrey4),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 8),
                         Text(
                           '深度思考',
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: 16,
                             fontWeight: FontWeight.w500,
                             color: widget.enabled
                                 ? (widget.thinkingMode
