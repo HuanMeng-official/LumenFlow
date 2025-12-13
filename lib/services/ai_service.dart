@@ -385,6 +385,10 @@ class AIService {
       throw Exception('请先在设置中配置API密钥');
     }
 
+    if (thinkingMode && message.isNotEmpty) {
+      message = '/think \n\n 请分步思考并解决以下问题：$message';
+    }
+
     try {
       List<Map<String, dynamic>> messages = [];
 
@@ -543,6 +547,10 @@ class AIService {
 
     if (apiKey.isEmpty) {
       throw Exception('请先在设置中配置API密钥');
+    }
+
+    if (thinkingMode && message.isNotEmpty) {
+      message = '/think \n\n 请分步思考并解决以下问题：$message';
     }
 
     try {
