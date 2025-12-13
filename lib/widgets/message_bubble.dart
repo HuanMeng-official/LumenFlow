@@ -192,63 +192,127 @@ class _MessageBubbleState extends State<MessageBubble> {
                               _isReasoningExpanded = !_isReasoningExpanded;
                             });
                           },
-                          child: Container(
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            curve: Curves.easeInOut,
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
                               color: brightness == Brightness.dark
-                                  ? CupertinoColors.systemGrey5.darkColor
-                                  : CupertinoColors.systemGrey5.color,
+                                  ? CupertinoColors.systemBlue.darkColor.withOpacity(0.12)
+                                  : CupertinoColors.systemBlue.color.withOpacity(0.08),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: brightness == Brightness.dark
-                                    ? CupertinoColors.systemGrey4.darkColor
-                                    : CupertinoColors.systemGrey4.color,
-                                width: 1,
-                              ),
+                              boxShadow: _isReasoningExpanded
+                                  ? [
+                                      BoxShadow(
+                                        color: brightness == Brightness.dark
+                                            ? CupertinoColors.black.withOpacity(0.3)
+                                            : CupertinoColors.systemGrey.withOpacity(0.2),
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 1),
+                                      ),
+                                    ]
+                                  : null,
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  '思考链',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: brightness == Brightness.dark
-                                        ? CupertinoColors.label.darkColor
-                                        : CupertinoColors.label.color,
-                                  ),
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: 24,
+                                      height: 24,
+                                      decoration: BoxDecoration(
+                                        color: brightness == Brightness.dark
+                                            ? CupertinoColors.systemBlue.darkColor.withOpacity(0.2)
+                                            : CupertinoColors.systemBlue.color.withOpacity(0.15),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(
+                                        CupertinoIcons.lightbulb,
+                                        size: 14,
+                                        color: brightness == Brightness.dark
+                                            ? CupertinoColors.systemBlue.darkColor
+                                            : CupertinoColors.systemBlue.color,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '思考链',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: brightness == Brightness.dark
+                                                ? CupertinoColors.label.darkColor
+                                                : CupertinoColors.label.color,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 1),
+                                        Text(
+                                          '查看推理过程',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w400,
+                                            color: brightness == Brightness.dark
+                                                ? CupertinoColors.systemGrey.darkColor
+                                                : CupertinoColors.systemGrey.color,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
-                                Icon(
-                                  _isReasoningExpanded
-                                      ? CupertinoIcons.chevron_up
-                                      : CupertinoIcons.chevron_down,
-                                  size: 16,
-                                  color: brightness == Brightness.dark
-                                      ? CupertinoColors.systemGrey.darkColor
-                                      : CupertinoColors.systemGrey.color,
+                                Container(
+                                  width: 24,
+                                  height: 24,
+                                  decoration: BoxDecoration(
+                                    color: brightness == Brightness.dark
+                                        ? CupertinoColors.systemBlue.darkColor.withOpacity(0.2)
+                                        : CupertinoColors.systemBlue.color.withOpacity(0.15),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    _isReasoningExpanded
+                                        ? CupertinoIcons.chevron_up
+                                        : CupertinoIcons.chevron_down,
+                                    size: 12,
+                                    color: brightness == Brightness.dark
+                                        ? CupertinoColors.systemBlue.darkColor
+                                        : CupertinoColors.systemBlue.color,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
                         ),
-                        if (_isReasoningExpanded)
-                          Container(
+
+                        AnimatedCrossFade(
+                          duration: const Duration(milliseconds: 200),
+                          crossFadeState: _isReasoningExpanded
+                              ? CrossFadeState.showSecond
+                              : CrossFadeState.showFirst,
+                          firstChild: const SizedBox.shrink(),
+                          secondChild: Container(
                             width: double.infinity,
                             margin: const EdgeInsets.only(top: 8),
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: brightness == Brightness.dark
                                   ? CupertinoColors.systemGrey6.darkColor
-                                  : CupertinoColors.systemGrey6.color,
+                                  : CupertinoColors.white,
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: brightness == Brightness.dark
-                                    ? CupertinoColors.systemGrey5.darkColor
-                                    : CupertinoColors.systemGrey5.color,
-                                width: 1,
-                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: brightness == Brightness.dark
+                                      ? CupertinoColors.black.withOpacity(0.2)
+                                      : CupertinoColors.systemGrey.withOpacity(0.15),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
                             child: SelectableRegion(
                               selectionControls: cupertinoTextSelectionControls,
@@ -256,16 +320,57 @@ class _MessageBubbleState extends State<MessageBubble> {
                                 data: widget.message.reasoningContent!,
                                 styleSheet: MarkdownStyleSheet(
                                   p: TextStyle(
-                                    fontSize: 14,
-                                    height: 1.5,
+                                    fontSize: 13,
+                                    height: 1.6,
                                     color: brightness == Brightness.dark
-                                        ? CupertinoColors.systemGrey.darkColor
+                                        ? CupertinoColors.systemGrey2.darkColor
                                         : CupertinoColors.systemGrey.color,
                                   ),
+                                  code: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: 'SF Mono',
+                                    color: brightness == Brightness.dark
+                                        ? CupertinoColors.systemGreen.darkColor
+                                        : CupertinoColors.systemGreen.color,
+                                    backgroundColor: brightness == Brightness.dark
+                                        ? CupertinoColors.systemGrey5.darkColor.withOpacity(0.5)
+                                        : CupertinoColors.systemGrey6.color,
+                                  ),
+                                  codeblockPadding: const EdgeInsets.all(8),
+                                  codeblockDecoration: BoxDecoration(
+                                    color: brightness == Brightness.dark
+                                        ? CupertinoColors.systemGrey5.darkColor
+                                        : CupertinoColors.systemGrey6.color,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  blockquote: TextStyle(
+                                    fontSize: 13,
+                                    fontStyle: FontStyle.italic,
+                                    color: brightness == Brightness.dark
+                                        ? CupertinoColors.systemGrey2.darkColor
+                                        : CupertinoColors.systemGrey.color,
+                                  ),
+                                  blockquoteDecoration: BoxDecoration(
+                                    color: brightness == Brightness.dark
+                                        ? CupertinoColors.systemGrey5.darkColor.withOpacity(0.5)
+                                        : CupertinoColors.systemGrey6.color,
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border(
+                                      left: BorderSide(
+                                        color: brightness == Brightness.dark
+                                            ? CupertinoColors.systemBlue.darkColor
+                                            : CupertinoColors.systemBlue.color,
+                                        width: 3,
+                                      ),
+                                    ),
+                                  ),
+                                  blockquotePadding: const EdgeInsets.only(
+                                      left: 12, top: 6, bottom: 6, right: 6),
                                 ),
                               ),
                             ),
                           ),
+                        ),
                         const SizedBox(height: 12),
                       ],
                     ),
