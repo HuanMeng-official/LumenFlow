@@ -209,7 +209,7 @@ class AIService {
 
     if (enableHistory && chatHistory.isNotEmpty) {
       final recentHistory = chatHistory
-          .where((msg) => msg.status != MessageStatus.error)
+          .where((msg) => msg.status != MessageStatus.error && msg.content.trim().isNotEmpty)
           .toList()
           .reversed
           .take(historyContextLength * 2)
@@ -393,7 +393,7 @@ class AIService {
 
       if (enableHistory && chatHistory.isNotEmpty) {
         final recentHistory = chatHistory
-            .where((msg) => msg.status != MessageStatus.error)
+            .where((msg) => msg.status != MessageStatus.error && msg.content.trim().isNotEmpty)
             .toList()
             .reversed
             .take(historyContextLength * 2)
@@ -536,7 +536,7 @@ class AIService {
 
       if (enableHistory && chatHistory.isNotEmpty) {
         final recentHistory = chatHistory
-            .where((msg) => msg.status != MessageStatus.error)
+            .where((msg) => msg.status != MessageStatus.error && msg.content.trim().isNotEmpty)
             .toList()
             .reversed
             .take(historyContextLength * 2)
