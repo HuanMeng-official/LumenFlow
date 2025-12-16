@@ -8,7 +8,6 @@
 
 LumenFlow（中文名：流光）是一款使用 Flutter 构建的现代化 AI 聊天应用，在 Android 和 Windows 平台上提供无缝的对话体验。支持 OpenAI 和 Google Gemini API，并具备多模态文件处理能力，提供多功能的 AI 助手体验。
 
-- **版本**: 1.0.3+1
 - **许可证**: MIT
 - **平台**: Android, Windows
 - **语言**: Dart/Flutter

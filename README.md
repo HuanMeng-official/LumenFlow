@@ -8,7 +8,6 @@
 
 LumenFlow (Chinese: 流光) is a modern AI chat application built with Flutter that provides a seamless conversational experience across Android and Windows platforms. With support for both OpenAI and Google Gemini APIs, along with multi-modal file processing capabilities, it offers a versatile AI assistant experience.
 
-- **Version**: 1.0.3+1
 - **License**: MIT
 - **Platforms**: Android, Windows
 - **Languages**: Dart/Flutter
