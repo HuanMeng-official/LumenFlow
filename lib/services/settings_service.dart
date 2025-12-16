@@ -14,12 +14,16 @@ class SettingsService {
   static const String _followSystemThemeKey = 'follow_system_theme';
   static const String _appThemeKey = 'app_theme';
   static const String _thinkingModeKey = 'thinking_mode';
+  static const String _promptPresetEnabledKey = 'prompt_preset_enabled';
+  static const String _promptPresetIdKey = 'prompt_preset_id';
   static const String defaultCustomSystemPrompt = '';
   static const String defaultApiType = 'openai';
   static const bool defaultDarkMode = false;
   static const bool defaultFollowSystemTheme = true;
   static const String defaultAppTheme = 'light';
   static const bool defaultThinkingMode = false;
+  static const bool defaultPromptPresetEnabled = false;
+  static const String defaultPromptPresetId = '';
 
   static const String defaultEndpoint = 'https://api.openai.com/v1';
   static const String defaultModel = 'gpt-5';
@@ -162,5 +166,25 @@ class SettingsService {
   Future<void> setThinkingMode(bool thinkingMode) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_thinkingModeKey, thinkingMode);
+  }
+
+  Future<bool> getPromptPresetEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_promptPresetEnabledKey) ?? defaultPromptPresetEnabled;
+  }
+
+  Future<void> setPromptPresetEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_promptPresetEnabledKey, enabled);
+  }
+
+  Future<String> getPromptPresetId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_promptPresetIdKey) ?? defaultPromptPresetId;
+  }
+
+  Future<void> setPromptPresetId(String presetId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_promptPresetIdKey, presetId);
   }
 }

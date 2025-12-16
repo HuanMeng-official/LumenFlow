@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import '../services/file_service.dart';
 import '../services/ai_service.dart';
 import '../models/attachment.dart';
+import '../models/prompt_preset.dart';
 
 class ChatInput extends StatefulWidget {
   final Function(String) onSendMessage;
@@ -11,6 +12,11 @@ class ChatInput extends StatefulWidget {
   final bool enabled;
   final bool thinkingMode;
   final Function(bool)? onThinkingModeChanged;
+  final bool promptPresetEnabled;
+  final Function(bool)? onPromptPresetEnabledChanged;
+  final String currentPresetId;
+  final Function(String)? onPresetSelected;
+  final List<PromptPreset> presets;
 
   const ChatInput({
     super.key,
@@ -19,6 +25,11 @@ class ChatInput extends StatefulWidget {
     this.enabled = true,
     this.thinkingMode = false,
     this.onThinkingModeChanged,
+    this.promptPresetEnabled = false,
+    this.onPromptPresetEnabledChanged,
+    this.currentPresetId = '',
+    this.onPresetSelected,
+    this.presets = const [],
   });
 
   @override
@@ -60,6 +71,115 @@ class _ChatInputState extends State<ChatInput> {
     } else {
       return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
     }
+  }
+
+  /// 显示预设提示词选择菜单
+  void _showPresetMenu() {
+    if (!widget.enabled || widget.presets.isEmpty) return;
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => CupertinoActionSheet(
+        title: const Text('选择预设角色'),
+        message: const Text('选择一个预设角色来应用相应的系统提示词'),
+        actions: [
+          for (final preset in widget.presets)
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(context);
+                if (widget.onPresetSelected != null) {
+                  widget.onPresetSelected!(preset.id);
+                }
+                // 如果未启用预设模式，自动启用
+                if (!widget.promptPresetEnabled &&
+                    widget.onPromptPresetEnabledChanged != null) {
+                  widget.onPromptPresetEnabledChanged!(true);
+                }
+              },
+              child: Row(
+                children: [
+                  Icon(
+                    _getIconForPreset(preset.icon),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          preset.name,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          preset.description,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: CupertinoColors.systemGrey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (widget.currentPresetId == preset.id)
+                    const Icon(
+                      CupertinoIcons.checkmark_alt,
+                      color: CupertinoColors.systemBlue,
+                    ),
+                ],
+              ),
+            ),
+          CupertinoActionSheetAction(
+            isDestructiveAction: true,
+            onPressed: () {
+              Navigator.pop(context);
+              if (widget.onPromptPresetEnabledChanged != null) {
+                widget.onPromptPresetEnabledChanged!(false);
+              }
+            },
+            child: const Text('关闭预设模式'),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('取消'),
+        ),
+      ),
+    );
+  }
+
+  /// 根据图标名称获取IconData
+  IconData _getIconForPreset(String iconName) {
+    switch (iconName) {
+      case 'globe':
+        return CupertinoIcons.globe;
+      case 'pencil':
+        return CupertinoIcons.pencil;
+      case 'doc.fill':
+        return CupertinoIcons.doc_fill;
+      case 'chevron.left.slash.chevron.right':
+        return CupertinoIcons.chevron_left_slash_chevron_right;
+      default:
+        return CupertinoIcons.person_fill;
+    }
+  }
+
+  /// 根据预设ID获取预设名称
+  String _getPresetName(String presetId) {
+    final preset = widget.presets.firstWhere(
+      (preset) => preset.id == presetId,
+      orElse: () => PromptPreset(
+        id: '',
+        name: '角色扮演',
+        description: '',
+        systemPrompt: '',
+      ),
+    );
+    return preset.name;
   }
 
   void _showErrorDialog(String title, String message) {
@@ -338,6 +458,74 @@ class _ChatInputState extends State<ChatInput> {
                             fontWeight: FontWeight.w500,
                             color: widget.enabled
                                 ? (widget.thinkingMode
+                                    ? (brightness == Brightness.dark
+                                        ? CupertinoColors.systemBlue.darkColor
+                                        : CupertinoColors.systemBlue.color)
+                                    : (brightness == Brightness.dark
+                                        ? CupertinoColors.systemGrey.darkColor
+                                        : CupertinoColors.systemGrey))
+                                : (brightness == Brightness.dark
+                                    ? CupertinoColors.systemGrey4.darkColor
+                                    : CupertinoColors.systemGrey4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              // 预设提示词按钮
+              if (widget.onPromptPresetEnabledChanged != null) ...[
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: widget.enabled ? _showPresetMenu : null,
+                  child: Container(
+                    height: 34,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: widget.enabled
+                          ? (widget.promptPresetEnabled
+                              ? (brightness == Brightness.dark
+                                  ? CupertinoColors.systemBlue.darkColor.withOpacity(0.2)
+                                  : CupertinoColors.systemBlue.color.withOpacity(0.15))
+                              : (brightness == Brightness.dark
+                                  ? CupertinoColors.systemGrey6.darkColor
+                                  : CupertinoColors.systemGrey6.color))
+                          : (brightness == Brightness.dark
+                              ? CupertinoColors.systemGrey5.darkColor
+                              : CupertinoColors.systemGrey5.color),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          CupertinoIcons.person_fill,
+                          size: 19,
+                          color: widget.enabled
+                              ? (widget.promptPresetEnabled
+                                  ? (brightness == Brightness.dark
+                                      ? CupertinoColors.systemBlue.darkColor
+                                      : CupertinoColors.systemBlue.color)
+                                  : (brightness == Brightness.dark
+                                      ? CupertinoColors.systemGrey.darkColor
+                                      : CupertinoColors.systemGrey))
+                              : (brightness == Brightness.dark
+                                  ? CupertinoColors.systemGrey4.darkColor
+                                  : CupertinoColors.systemGrey4),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          widget.promptPresetEnabled && widget.currentPresetId.isNotEmpty
+                              ? _getPresetName(widget.currentPresetId)
+                              : '角色扮演',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: widget.enabled
+                                ? (widget.promptPresetEnabled
                                     ? (brightness == Brightness.dark
                                         ? CupertinoColors.systemBlue.darkColor
                                         : CupertinoColors.systemBlue.color)

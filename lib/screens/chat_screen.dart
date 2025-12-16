@@ -2,9 +2,11 @@ import 'package:flutter/cupertino.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
 import '../models/conversation.dart';
+import '../models/prompt_preset.dart';
 import '../services/ai_service.dart';
 import '../services/conversation_service.dart';
 import '../services/settings_service.dart';
+import '../services/prompt_service.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/chat_input.dart';
 import 'settings_screen.dart';
@@ -48,10 +50,14 @@ class _ChatScreenState extends State<ChatScreen> {
   final AIService _aiService = AIService();
   final ConversationService _conversationService = ConversationService();
   final SettingsService _settingsService = SettingsService();
+  final PromptService _promptService = PromptService();
 
   bool _isLoading = false;
   bool _isConfigured = false;
   bool _thinkingMode = false;
+  bool _promptPresetEnabled = false;
+  String _currentPresetId = '';
+  List<PromptPreset> _presets = [];
   Conversation? _currentConversation;
   String _currentTitle = 'AI 助手';
 
@@ -73,9 +79,16 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _checkConfiguration() async {
     final configured = await _settingsService.isConfigured();
     final thinkingMode = await _settingsService.getThinkingMode();
+    final promptPresetEnabled = await _settingsService.getPromptPresetEnabled();
+    final currentPresetId = await _settingsService.getPromptPresetId();
+    final presets = await _promptService.loadPresets();
+
     setState(() {
       _isConfigured = configured;
       _thinkingMode = thinkingMode;
+      _promptPresetEnabled = promptPresetEnabled;
+      _currentPresetId = currentPresetId;
+      _presets = presets;
     });
   }
 
@@ -178,6 +191,28 @@ class _ChatScreenState extends State<ChatScreen> {
     _settingsService.setThinkingMode(enabled);
   }
 
+  /// 处理预设提示词模式开关变化
+  void _handlePromptPresetEnabledChanged(bool enabled) {
+    setState(() {
+      _promptPresetEnabled = enabled;
+    });
+    // 保存到设置服务
+    _settingsService.setPromptPresetEnabled(enabled);
+  }
+
+  /// 处理预设选择变化
+  void _handlePresetSelected(String presetId) {
+    setState(() {
+      _currentPresetId = presetId;
+    });
+    // 保存到设置服务
+    _settingsService.setPromptPresetId(presetId);
+    // 如果预设模式未启用，自动启用
+    if (!_promptPresetEnabled) {
+      _handlePromptPresetEnabledChanged(true);
+    }
+  }
+
   /// 发送消息到AI模型并处理响应
   ///
   /// 参数:
@@ -199,6 +234,18 @@ class _ChatScreenState extends State<ChatScreen> {
     if (!_isConfigured) {
       _showConfigurationDialog();
       return;
+    }
+
+    // 获取预设提示词内容（如果预设模式启用）
+    String presetSystemPrompt = '';
+    if (_promptPresetEnabled && _currentPresetId.isNotEmpty) {
+      final preset = _presets.firstWhere(
+        (preset) => preset.id == _currentPresetId,
+        orElse: () => PromptPreset(id: '', name: '', description: '', systemPrompt: ''),
+      );
+      if (preset.id.isNotEmpty) {
+        presetSystemPrompt = preset.systemPrompt;
+      }
     }
 
     final userMessage = Message(
@@ -246,7 +293,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
     try {
       final stream = _aiService.sendMessageStreaming(content, _messages,
-          attachments: attachments, thinkingMode: _thinkingMode);
+          attachments: attachments, thinkingMode: _thinkingMode,
+          presetSystemPrompt: presetSystemPrompt);
       final reasoningBuffer = StringBuffer();
       final answerBuffer = StringBuffer();
       int receivedChunks = 0;
@@ -485,6 +533,11 @@ class _ChatScreenState extends State<ChatScreen> {
               enabled: _isConfigured,
               thinkingMode: _thinkingMode,
               onThinkingModeChanged: _handleThinkingModeChanged,
+              promptPresetEnabled: _promptPresetEnabled,
+              onPromptPresetEnabledChanged: _handlePromptPresetEnabledChanged,
+              currentPresetId: _currentPresetId,
+              onPresetSelected: _handlePresetSelected,
+              presets: _presets,
             ),
           ],
         ),

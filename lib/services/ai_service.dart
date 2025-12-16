@@ -368,7 +368,8 @@ class AIService {
   Future<Map<String, dynamic>> sendMessage(
       String message, List<Message> chatHistory,
       {List<Attachment> attachments = const [],
-      bool thinkingMode = false}) async {
+      bool thinkingMode = false,
+      String presetSystemPrompt = ''}) async {
     final apiEndpoint = await _settingsService.getApiEndpoint();
     final apiKey = await _settingsService.getApiKey();
     final model = await _settingsService.getModel();
@@ -380,6 +381,11 @@ class AIService {
     final userProfile = await _userService.getUserProfile();
     final customSystemPrompt = await _settingsService.getCustomSystemPrompt();
     final apiType = await _settingsService.getApiType();
+
+    // 决定使用哪个系统提示词：优先使用预设提示词
+    final String systemPromptToUse = presetSystemPrompt.isNotEmpty
+        ? presetSystemPrompt
+        : customSystemPrompt;
 
     if (apiKey.isEmpty) {
       throw Exception('请先在设置中配置API密钥');
@@ -397,8 +403,8 @@ class AIService {
       String baseSystemPrompt =
           '用户的名字是"${userProfile.username}",请在对话中适当地使用这个名字来称呼用户。';
       String fullSystemPrompt = baseSystemPrompt;
-      if (customSystemPrompt.isNotEmpty) {
-        fullSystemPrompt += customSystemPrompt;
+      if (systemPromptToUse.isNotEmpty) {
+        fullSystemPrompt += systemPromptToUse;
       }
 
       messages.add({
@@ -534,7 +540,8 @@ class AIService {
   Stream<Map<String, dynamic>> sendMessageStreaming(
       String message, List<Message> chatHistory,
       {List<Attachment> attachments = const [],
-      bool thinkingMode = false}) async* {
+      bool thinkingMode = false,
+      String presetSystemPrompt = ''}) async* {
     final apiEndpoint = await _settingsService.getApiEndpoint();
     final apiKey = await _settingsService.getApiKey();
     final model = await _settingsService.getModel();
@@ -546,6 +553,11 @@ class AIService {
     final userProfile = await _userService.getUserProfile();
     final customSystemPrompt = await _settingsService.getCustomSystemPrompt();
     final apiType = await _settingsService.getApiType();
+
+    // 决定使用哪个系统提示词：优先使用预设提示词
+    final String systemPromptToUse = presetSystemPrompt.isNotEmpty
+        ? presetSystemPrompt
+        : customSystemPrompt;
 
     if (apiKey.isEmpty) {
       throw Exception('请先在设置中配置API密钥');
@@ -563,7 +575,7 @@ class AIService {
           message,
           chatHistory,
           attachments,
-          '用户的名字是"${userProfile.username}",请在对话中适当地使用这个名字来称呼用户。${customSystemPrompt.isNotEmpty ? customSystemPrompt : ''}',
+          '用户的名字是"${userProfile.username}",请在对话中适当地使用这个名字来称呼用户。${systemPromptToUse.isNotEmpty ? systemPromptToUse : ''}',
           enableHistory,
           historyContextLength,
         );
@@ -584,8 +596,8 @@ class AIService {
       String baseSystemPrompt =
           '用户的名字是"${userProfile.username}",请在对话中适当地使用这个名字来称呼用户。';
       String fullSystemPrompt = baseSystemPrompt;
-      if (customSystemPrompt.isNotEmpty) {
-        fullSystemPrompt += customSystemPrompt;
+      if (systemPromptToUse.isNotEmpty) {
+        fullSystemPrompt += systemPromptToUse;
       }
 
       messages.add({
