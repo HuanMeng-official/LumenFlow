@@ -7,6 +7,7 @@ import 'user_service.dart';
 import 'file_service.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
+import '../models/user_profile.dart';
 
 /// AI服务类，负责处理与AI模型（OpenAI和Google Gemini）的通信
 /// 支持文本对话、文件附件处理、流式输出等功能
@@ -27,6 +28,20 @@ class AIService {
   /// 所有附件的总大小限制（50MB）
   /// 单次请求中所有附件大小之和不能超过此限制
   static const int maxTotalAttachmentsSize = 50 * 1024 * 1024;
+
+  /// 替换系统提示词中的变量占位符
+  ///
+  /// 参数:
+  ///   systemPrompt - 原始系统提示词
+  ///   userProfile - 用户配置对象
+  /// 返回值:
+  ///   替换变量后的系统提示词
+  /// 说明:
+  ///   目前支持的变量:
+  ///   - ${userProfile.username}: 替换为用户名
+  String _replaceSystemPromptVariables(String systemPrompt, UserProfile userProfile) {
+    return systemPrompt.replaceAll('\${userProfile.username}', userProfile.username);
+  }
 
   /// 格式化文件大小为人类可读的字符串
   ///
@@ -406,6 +421,8 @@ class AIService {
       if (systemPromptToUse.isNotEmpty) {
         fullSystemPrompt += systemPromptToUse;
       }
+      // 替换系统提示词中的变量占位符
+      fullSystemPrompt = _replaceSystemPromptVariables(fullSystemPrompt, userProfile);
 
       messages.add({
         'role': 'system',
@@ -571,11 +588,15 @@ class AIService {
 
     try {
       if (apiType == 'gemini') {
+        // 处理系统提示词变量替换
+        final String processedSystemPrompt = '用户的名字是"${userProfile.username}",请在对话中适当地使用这个名字来称呼用户。${systemPromptToUse.isNotEmpty ? systemPromptToUse : ''}';
+        final String fullSystemPrompt = _replaceSystemPromptVariables(processedSystemPrompt, userProfile);
+
         final contents = await _buildGeminiContents(
           message,
           chatHistory,
           attachments,
-          '用户的名字是"${userProfile.username}",请在对话中适当地使用这个名字来称呼用户。${systemPromptToUse.isNotEmpty ? systemPromptToUse : ''}',
+          fullSystemPrompt,
           enableHistory,
           historyContextLength,
         );
@@ -599,6 +620,8 @@ class AIService {
       if (systemPromptToUse.isNotEmpty) {
         fullSystemPrompt += systemPromptToUse;
       }
+      // 替换系统提示词中的变量占位符
+      fullSystemPrompt = _replaceSystemPromptVariables(fullSystemPrompt, userProfile);
 
       messages.add({
         'role': 'system',
