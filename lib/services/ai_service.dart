@@ -368,7 +368,7 @@ class AIService {
   ///   chatHistory - 聊天历史记录（用于上下文）
   ///   attachments - 附件列表（可选，默认为空）
   /// 返回值:
-  ///   返回一个Map<String, dynamic>，包含AI模型的响应
+  ///   返回一个`Map<String, dynamic>`，包含AI模型的响应
   ///   - 'reasoningContent': 思考过程内容（如果有）
   ///   - 'content': 最终回答内容
   /// 异常:
@@ -543,7 +543,7 @@ class AIService {
   ///   chatHistory - 聊天历史记录（用于上下文）
   ///   attachments - 附件列表（可选，默认为空）
   /// 返回值:
-  ///   返回一个Stream<Map<String, dynamic>>，实时输出AI模型的响应片段
+  ///   返回一个`Stream<Map<String, dynamic>>`，实时输出AI模型的响应片段
   ///   Map包含 'type' 和 'content' 字段，type可以是 'reasoning' 或 'answer'
   /// 异常:
   ///   抛出Exception当API密钥未配置或网络请求失败时
@@ -860,7 +860,7 @@ class AIService {
   ///   maxTokens - 最大输出token数
   ///   contents - 内容列表，包含对话历史和当前消息
   /// 返回值:
-  ///   返回一个Stream<Map<String, dynamic>>，实时输出Gemini模型的响应片段
+  ///   返回一个`Stream<Map<String, dynamic>>`，实时输出Gemini模型的响应片段
   ///   Map包含 'type' 和 'content' 字段，type为 'answer'
   /// 异常:
   ///   抛出Exception当API请求失败或响应格式无效时

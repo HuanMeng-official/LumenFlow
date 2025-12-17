@@ -341,8 +341,8 @@ class _ChatScreenState extends State<ChatScreen> {
         );
       });
     } catch (e) {
-      print('AI消息发送错误: $e');
-      print(e.toString());
+      debugPrint('AI消息发送错误: $e');
+      debugPrint(e.toString());
       setState(() {
         _messages[aiMessageIndex] = Message(
           id: aiMessageId,

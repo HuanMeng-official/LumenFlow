@@ -557,8 +557,8 @@ class _ChatInputState extends State<ChatInput> {
                       color: widget.enabled
                           ? (widget.thinkingMode
                               ? (brightness == Brightness.dark
-                                  ? CupertinoColors.systemBlue.darkColor.withOpacity(0.2)
-                                  : CupertinoColors.systemBlue.color.withOpacity(0.15))
+                                  ? CupertinoColors.systemBlue.darkColor.withAlpha(51)
+                                  : CupertinoColors.systemBlue.color.withAlpha(38))
                               : (brightness == Brightness.dark
                                   ? CupertinoColors.systemGrey6.darkColor
                                   : CupertinoColors.systemGrey6.color))
@@ -623,8 +623,8 @@ class _ChatInputState extends State<ChatInput> {
                       color: widget.enabled
                           ? (widget.promptPresetEnabled
                               ? (brightness == Brightness.dark
-                                  ? CupertinoColors.systemBlue.darkColor.withOpacity(0.2)
-                                  : CupertinoColors.systemBlue.color.withOpacity(0.15))
+                                  ? CupertinoColors.systemBlue.darkColor.withAlpha(51)
+                                  : CupertinoColors.systemBlue.color.withAlpha(38))
                               : (brightness == Brightness.dark
                                   ? CupertinoColors.systemGrey6.darkColor
                                   : CupertinoColors.systemGrey6.color))

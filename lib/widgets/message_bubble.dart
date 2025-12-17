@@ -301,18 +301,18 @@ class _MessageBubbleState extends State<MessageBubble> {
                             decoration: BoxDecoration(
                               color: brightness == Brightness.dark
                                   ? CupertinoColors.systemBlue.darkColor
-                                      .withOpacity(0.12)
+                                      .withAlpha(31)
                                   : CupertinoColors.systemBlue.color
-                                      .withOpacity(0.08),
+                                      .withAlpha(20),
                               borderRadius: BorderRadius.circular(12),
                               boxShadow: _isReasoningExpanded
                                   ? [
                                       BoxShadow(
                                         color: brightness == Brightness.dark
                                             ? CupertinoColors.black
-                                                .withOpacity(0.3)
+                                                .withAlpha(77)
                                             : CupertinoColors.systemGrey
-                                                .withOpacity(0.2),
+                                                .withAlpha(51),
                                         blurRadius: 6,
                                         offset: const Offset(0, 1),
                                       ),
@@ -331,9 +331,9 @@ class _MessageBubbleState extends State<MessageBubble> {
                                         color: brightness == Brightness.dark
                                             ? CupertinoColors
                                                 .systemBlue.darkColor
-                                                .withOpacity(0.2)
+                                                .withAlpha(51)
                                             : CupertinoColors.systemBlue.color
-                                                .withOpacity(0.15),
+                                                .withAlpha(38),
                                         shape: BoxShape.circle,
                                       ),
                                       child: Icon(
@@ -384,9 +384,9 @@ class _MessageBubbleState extends State<MessageBubble> {
                                   decoration: BoxDecoration(
                                     color: brightness == Brightness.dark
                                         ? CupertinoColors.systemBlue.darkColor
-                                            .withOpacity(0.2)
+                                            .withAlpha(51)
                                         : CupertinoColors.systemBlue.color
-                                            .withOpacity(0.15),
+                                            .withAlpha(38),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
@@ -421,9 +421,9 @@ class _MessageBubbleState extends State<MessageBubble> {
                               boxShadow: [
                                 BoxShadow(
                                   color: brightness == Brightness.dark
-                                      ? CupertinoColors.black.withOpacity(0.2)
+                                      ? CupertinoColors.black.withAlpha(51)
                                       : CupertinoColors.systemGrey
-                                          .withOpacity(0.15),
+                                          .withAlpha(38),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
@@ -450,7 +450,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                                     backgroundColor: brightness ==
                                             Brightness.dark
                                         ? CupertinoColors.systemGrey5.darkColor
-                                            .withOpacity(0.5)
+                                            .withAlpha(128)
                                         : CupertinoColors.systemGrey6.color,
                                   ),
                                   codeblockPadding: const EdgeInsets.all(8),
@@ -470,7 +470,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                                   blockquoteDecoration: BoxDecoration(
                                     color: brightness == Brightness.dark
                                         ? CupertinoColors.systemGrey5.darkColor
-                                            .withOpacity(0.5)
+                                            .withAlpha(128)
                                         : CupertinoColors.systemGrey6.color,
                                     borderRadius: BorderRadius.circular(4),
                                     border: Border(
