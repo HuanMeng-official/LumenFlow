@@ -170,11 +170,10 @@ class _ChatScreenState extends State<ChatScreen> {
   /// 参数:
   ///   attachments - 用户选择的附件列表
   /// 说明:
-  ///   当用户选择附件但没有输入文本时，发送一个空消息包含附件
+  ///   附件已由ChatInput组件管理，此处无需处理
   Future<void> _handleAttachmentsSelected(List<Attachment> attachments) async {
-    if (attachments.isEmpty) return;
-
-    await _sendMessage('', attachments: attachments);
+    // 附件已由ChatInput组件管理，此处无需处理
+    // 保留此方法以保持回调兼容性
   }
 
   /// 处理思考模式开关变化
@@ -528,7 +527,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
             ),
             ChatInput(
-              onSendMessage: (content) => _sendMessage(content),
+              onSendMessage: (content, attachments) => _sendMessage(content, attachments: attachments),
               onAttachmentsSelected: _handleAttachmentsSelected,
               enabled: _isConfigured,
               thinkingMode: _thinkingMode,

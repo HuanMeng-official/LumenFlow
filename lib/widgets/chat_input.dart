@@ -7,7 +7,7 @@ import '../models/attachment.dart';
 import '../models/prompt_preset.dart';
 
 class ChatInput extends StatefulWidget {
-  final Function(String) onSendMessage;
+  final Function(String, List<Attachment>) onSendMessage;
   final Function(List<Attachment>)? onAttachmentsSelected;
   final bool enabled;
   final bool thinkingMode;
@@ -40,6 +40,7 @@ class _ChatInputState extends State<ChatInput> {
   final TextEditingController _controller = TextEditingController();
   final FileService _fileService = FileService();
   bool _canSend = false;
+  List<Attachment> _attachments = [];
 
   @override
   void initState() {
@@ -49,8 +50,21 @@ class _ChatInputState extends State<ChatInput> {
 
   void _onTextChanged() {
     setState(() {
-      _canSend = _controller.text.trim().isNotEmpty && widget.enabled;
+      _canSend = (_controller.text.trim().isNotEmpty || _attachments.isNotEmpty) && widget.enabled;
     });
+  }
+
+  void _updateAttachments(List<Attachment> newAttachments) {
+    setState(() {
+      _attachments = newAttachments;
+    });
+    _onTextChanged();
+  }
+
+  void _removeAttachment(Attachment attachment) {
+    final newAttachments = List<Attachment>.from(_attachments);
+    newAttachments.remove(attachment);
+    _updateAttachments(newAttachments);
   }
 
   @override
@@ -278,9 +292,14 @@ class _ChatInputState extends State<ChatInput> {
           }
         }
 
-        if (attachments.isNotEmpty && widget.onAttachmentsSelected != null) {
-          widget.onAttachmentsSelected!(attachments);
-        } else if (attachments.isEmpty) {
+        if (attachments.isNotEmpty) {
+          final newAttachments = List<Attachment>.from(_attachments)..addAll(attachments);
+          _updateAttachments(newAttachments);
+
+          if (widget.onAttachmentsSelected != null) {
+            widget.onAttachmentsSelected!(attachments);
+          }
+        } else {
           _showErrorDialog('无有效文件', '没有成功处理任何文件，请重试。');
         }
       }
@@ -293,8 +312,77 @@ class _ChatInputState extends State<ChatInput> {
 
   void _sendMessage() {
     if (_canSend) {
-      widget.onSendMessage(_controller.text);
+      final attachmentsToSend = List<Attachment>.from(_attachments);
+      widget.onSendMessage(_controller.text, attachmentsToSend);
       _controller.clear();
+      _updateAttachments([]);
+    }
+  }
+
+  Widget _buildAttachmentPreview(Attachment attachment) {
+    return Container(
+      margin: const EdgeInsets.only(right: 8, bottom: 8),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: CupertinoColors.systemGrey6,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            _getAttachmentIcon(attachment.type),
+            size: 16,
+            color: CupertinoColors.systemGrey,
+          ),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 120,
+                child: Text(
+                  attachment.fileName,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ),
+              Text(
+                _formatFileSize(attachment.fileSize ?? 0),
+                style: TextStyle(
+                  fontSize: 10,
+                  color: CupertinoColors.systemGrey,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 8),
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: () => _removeAttachment(attachment),
+            child: const Icon(
+              CupertinoIcons.xmark,
+              size: 14,
+              color: CupertinoColors.systemGrey,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _getAttachmentIcon(AttachmentType type) {
+    switch (type) {
+      case AttachmentType.image:
+        return CupertinoIcons.photo;
+      case AttachmentType.document:
+        return CupertinoIcons.doc;
+      case AttachmentType.audio:
+        return CupertinoIcons.music_note;
+      case AttachmentType.video:
+        return CupertinoIcons.videocam;
+      case AttachmentType.other:
+        return CupertinoIcons.paperclip;
     }
   }
 
@@ -317,6 +405,14 @@ class _ChatInputState extends State<ChatInput> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // 附件预览区域
+          if (_attachments.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Wrap(
+                children: _attachments.map(_buildAttachmentPreview).toList(),
+              ),
+            ),
           // 第一行：输入区域
           Row(
             children: [
