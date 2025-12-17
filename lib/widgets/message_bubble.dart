@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -39,16 +40,94 @@ class _MessageBubbleState extends State<MessageBubble> {
   }
 
   Widget _buildAttachment(Attachment attachment, Brightness brightness) {
+    final isImage = attachment.type == AttachmentType.image;
+    final hasLocalFile = attachment.filePath != null && attachment.filePath!.isNotEmpty;
+
+    return GestureDetector(
+      onTap: () {
+        if (isImage && hasLocalFile) {
+          _showImagePreview(attachment.filePath!);
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: widget.message.isUser
+              ? CupertinoColors.systemBlue.withOpacity(0.2)
+              : (brightness == Brightness.dark
+                  ? CupertinoColors.systemGrey5.darkColor
+                  : CupertinoColors.systemGrey5.color),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: widget.message.isUser
+                ? CupertinoColors.systemBlue.withOpacity(0.3)
+                : (brightness == Brightness.dark
+                    ? CupertinoColors.systemGrey4.darkColor
+                    : CupertinoColors.systemGrey4.color),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            if (isImage && hasLocalFile)
+              _buildImageThumbnail(attachment.filePath!, brightness)
+            else
+              Icon(
+                _getAttachmentIcon(attachment.type),
+                size: 20,
+                color: widget.message.isUser
+                    ? CupertinoColors.systemBlue
+                    : (brightness == Brightness.dark
+                        ? CupertinoColors.systemGrey.darkColor
+                        : CupertinoColors.systemGrey.color),
+              ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    attachment.fileName,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: widget.message.isUser
+                          ? CupertinoColors.white
+                          : (brightness == Brightness.dark
+                              ? CupertinoColors.label.darkColor
+                              : CupertinoColors.label.color),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (attachment.fileSize != null)
+                    Text(
+                      _formatFileSize(attachment.fileSize!),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: widget.message.isUser
+                            ? CupertinoColors.systemGrey4
+                            : (brightness == Brightness.dark
+                                ? CupertinoColors.systemGrey.darkColor
+                                : CupertinoColors.systemGrey.color),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageThumbnail(String filePath, Brightness brightness) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
+      width: 48,
+      height: 48,
       decoration: BoxDecoration(
-        color: widget.message.isUser
-            ? CupertinoColors.systemBlue.withOpacity(0.2)
-            : (brightness == Brightness.dark
-                ? CupertinoColors.systemGrey5.darkColor
-                : CupertinoColors.systemGrey5.color),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: widget.message.isUser
               ? CupertinoColors.systemBlue.withOpacity(0.3)
@@ -58,50 +137,68 @@ class _MessageBubbleState extends State<MessageBubble> {
           width: 1,
         ),
       ),
-      child: Row(
-        children: [
-          Icon(
-            _getAttachmentIcon(attachment.type),
-            size: 20,
-            color: widget.message.isUser
-                ? CupertinoColors.systemBlue
-                : (brightness == Brightness.dark
-                    ? CupertinoColors.systemGrey.darkColor
-                    : CupertinoColors.systemGrey.color),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.file(
+          File(filePath),
+          fit: BoxFit.cover,
+          cacheWidth: 96, // 2x for retina displays
+          cacheHeight: 96,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              alignment: Alignment.center,
+              child: Icon(
+                _getAttachmentIcon(AttachmentType.image),
+                size: 20,
+                color: widget.message.isUser
+                    ? CupertinoColors.systemBlue
+                    : (brightness == Brightness.dark
+                        ? CupertinoColors.systemGrey.darkColor
+                        : CupertinoColors.systemGrey.color),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  void _showImagePreview(String filePath) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        insetAnimationDuration: const Duration(milliseconds: 200),
+        content: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.7,
+            maxWidth: MediaQuery.of(context).size.width * 0.9,
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  attachment.fileName,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: widget.message.isUser
-                        ? CupertinoColors.white
-                        : (brightness == Brightness.dark
-                            ? CupertinoColors.label.darkColor
-                            : CupertinoColors.label.color),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (attachment.fileSize != null)
+          child: Image.file(
+            File(filePath),
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(CupertinoIcons.exclamationmark_triangle, size: 48),
+                  const SizedBox(height: 16),
                   Text(
-                    _formatFileSize(attachment.fileSize!),
+                    '无法加载图片',
                     style: TextStyle(
-                      fontSize: 12,
-                      color: widget.message.isUser
-                          ? CupertinoColors.systemGrey4
-                          : (brightness == Brightness.dark
-                              ? CupertinoColors.systemGrey.darkColor
-                              : CupertinoColors.systemGrey.color),
+                      color: CupertinoTheme.of(context).textTheme.textStyle.color,
                     ),
                   ),
-              ],
-            ),
+                ],
+              );
+            },
+          ),
+        ),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('关闭'),
           ),
         ],
       ),

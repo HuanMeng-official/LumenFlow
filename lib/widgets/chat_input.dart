@@ -320,6 +320,9 @@ class _ChatInputState extends State<ChatInput> {
   }
 
   Widget _buildAttachmentPreview(Attachment attachment) {
+    final isImage = attachment.type == AttachmentType.image;
+    final hasLocalFile = attachment.filePath != null && attachment.filePath!.isNotEmpty;
+
     return Container(
       margin: const EdgeInsets.only(right: 8, bottom: 8),
       padding: const EdgeInsets.all(8),
@@ -330,11 +333,14 @@ class _ChatInputState extends State<ChatInput> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            _getAttachmentIcon(attachment.type),
-            size: 16,
-            color: CupertinoColors.systemGrey,
-          ),
+          if (isImage && hasLocalFile)
+            _buildImageThumbnail(attachment.filePath!)
+          else
+            Icon(
+              _getAttachmentIcon(attachment.type),
+              size: 16,
+              color: CupertinoColors.systemGrey,
+            ),
           const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -367,6 +373,39 @@ class _ChatInputState extends State<ChatInput> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildImageThumbnail(String filePath) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: CupertinoColors.systemGrey4,
+          width: 1,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: Image.file(
+          File(filePath),
+          fit: BoxFit.cover,
+          cacheWidth: 80,
+          cacheHeight: 80,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              alignment: Alignment.center,
+              child: Icon(
+                _getAttachmentIcon(AttachmentType.image),
+                size: 16,
+                color: CupertinoColors.systemGrey,
+              ),
+            );
+          },
+        ),
       ),
     );
   }
