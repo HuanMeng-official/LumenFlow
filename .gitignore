@@ -43,5 +43,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+android/key.jks
+android/key.properties
 
 assets/prompt/presets.json
