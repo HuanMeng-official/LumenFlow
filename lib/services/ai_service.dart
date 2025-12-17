@@ -210,13 +210,13 @@ class AIService {
     if (systemPrompt.isNotEmpty) {
       contents.add({
         'role': 'user',
-        'parts': [
+        'parts': <Map<String, dynamic>>[
           {'text': systemPrompt}
         ]
       });
       contents.add({
         'role': 'model',
-        'parts': [
+        'parts': <Map<String, dynamic>>[
           {'text': 'Understood. I will follow these instructions.'}
         ]
       });
@@ -237,7 +237,7 @@ class AIService {
       for (final historyMsg in recentHistory) {
         contents.add({
           'role': historyMsg.isUser ? 'user' : 'model',
-          'parts': [
+          'parts': <Map<String, dynamic>>[
             {'text': historyMsg.content}
           ]
         });
