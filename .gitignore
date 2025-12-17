@@ -44,4 +44,4 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-assets/prompt/*
+assets/prompt/presets.json
