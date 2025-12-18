@@ -187,4 +187,84 @@ class SettingsService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_promptPresetIdKey, presetId);
   }
+
+  /// 导出所有设置为JSON格式的Map
+  /// 返回包含所有设置键值对的Map
+  Future<Map<String, dynamic>> exportSettingsToJson() async {
+    final prefs = await SharedPreferences.getInstance();
+    final Map<String, dynamic> settings = {};
+
+    // 收集所有设置键值对
+    settings[_apiEndpointKey] = prefs.getString(_apiEndpointKey) ?? defaultEndpoint;
+    settings[_apiKeyKey] = prefs.getString(_apiKeyKey) ?? '';
+    settings[_modelKey] = prefs.getString(_modelKey) ?? defaultModel;
+    settings[_temperatureKey] = prefs.getDouble(_temperatureKey) ?? defaultTemperature;
+    settings[_maxTokensKey] = prefs.getInt(_maxTokensKey) ?? defaultMaxTokens;
+    settings[_enableHistoryKey] = prefs.getBool(_enableHistoryKey) ?? defaultEnableHistory;
+    settings[_historyContextLengthKey] = prefs.getInt(_historyContextLengthKey) ?? defaultHistoryContextLength;
+    settings[_customSystemPromptKey] = prefs.getString(_customSystemPromptKey) ?? defaultCustomSystemPrompt;
+    settings[_apiTypeKey] = prefs.getString(_apiTypeKey) ?? defaultApiType;
+    settings[_darkModeKey] = prefs.getBool(_darkModeKey) ?? defaultDarkMode;
+    settings[_followSystemThemeKey] = prefs.getBool(_followSystemThemeKey) ?? defaultFollowSystemTheme;
+    settings[_appThemeKey] = prefs.getString(_appThemeKey) ?? defaultAppTheme;
+    settings[_thinkingModeKey] = prefs.getBool(_thinkingModeKey) ?? defaultThinkingMode;
+    settings[_promptPresetEnabledKey] = prefs.getBool(_promptPresetEnabledKey) ?? defaultPromptPresetEnabled;
+    settings[_promptPresetIdKey] = prefs.getString(_promptPresetIdKey) ?? defaultPromptPresetId;
+
+    return settings;
+  }
+
+  /// 从JSON Map导入设置
+  /// [settings] 包含设置键值对的Map
+  /// [overwrite] 是否覆盖现有设置，默认为true
+  Future<void> importSettingsFromJson(Map<String, dynamic> settings, {bool overwrite = true}) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // 只导入存在的键值对
+    if (settings.containsKey(_apiEndpointKey)) {
+      await prefs.setString(_apiEndpointKey, settings[_apiEndpointKey] as String);
+    }
+    if (settings.containsKey(_apiKeyKey)) {
+      await prefs.setString(_apiKeyKey, settings[_apiKeyKey] as String);
+    }
+    if (settings.containsKey(_modelKey)) {
+      await prefs.setString(_modelKey, settings[_modelKey] as String);
+    }
+    if (settings.containsKey(_temperatureKey)) {
+      await prefs.setDouble(_temperatureKey, (settings[_temperatureKey] as num).toDouble());
+    }
+    if (settings.containsKey(_maxTokensKey)) {
+      await prefs.setInt(_maxTokensKey, settings[_maxTokensKey] as int);
+    }
+    if (settings.containsKey(_enableHistoryKey)) {
+      await prefs.setBool(_enableHistoryKey, settings[_enableHistoryKey] as bool);
+    }
+    if (settings.containsKey(_historyContextLengthKey)) {
+      await prefs.setInt(_historyContextLengthKey, settings[_historyContextLengthKey] as int);
+    }
+    if (settings.containsKey(_customSystemPromptKey)) {
+      await prefs.setString(_customSystemPromptKey, settings[_customSystemPromptKey] as String);
+    }
+    if (settings.containsKey(_apiTypeKey)) {
+      await prefs.setString(_apiTypeKey, settings[_apiTypeKey] as String);
+    }
+    if (settings.containsKey(_darkModeKey)) {
+      await prefs.setBool(_darkModeKey, settings[_darkModeKey] as bool);
+    }
+    if (settings.containsKey(_followSystemThemeKey)) {
+      await prefs.setBool(_followSystemThemeKey, settings[_followSystemThemeKey] as bool);
+    }
+    if (settings.containsKey(_appThemeKey)) {
+      await prefs.setString(_appThemeKey, settings[_appThemeKey] as String);
+    }
+    if (settings.containsKey(_thinkingModeKey)) {
+      await prefs.setBool(_thinkingModeKey, settings[_thinkingModeKey] as bool);
+    }
+    if (settings.containsKey(_promptPresetEnabledKey)) {
+      await prefs.setBool(_promptPresetEnabledKey, settings[_promptPresetEnabledKey] as bool);
+    }
+    if (settings.containsKey(_promptPresetIdKey)) {
+      await prefs.setString(_promptPresetIdKey, settings[_promptPresetIdKey] as String);
+    }
+  }
 }

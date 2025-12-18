@@ -1,5 +1,8 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import '../services/settings_service.dart';
 import '../utils/app_theme.dart';
 import 'user_profile_screen.dart';
@@ -236,6 +239,134 @@ class _SettingsScreenState extends State<SettingsScreen>
         ],
       ),
     );
+  }
+
+  Future<void> _exportSettings() async {
+    try {
+      final settings = await _settingsService.exportSettingsToJson();
+      final jsonString = jsonEncode(settings);
+
+      // 获取保存文件路径
+      final String? outputPath = await FilePicker.platform.saveFile(
+        dialogTitle: '导出设置',
+        fileName: 'lumenflow_settings_${DateTime.now().toIso8601String().substring(0, 10)}.json',
+        allowedExtensions: ['json'],
+        type: FileType.custom,
+      );
+
+      if (outputPath != null) {
+        final file = File(outputPath);
+        await file.writeAsString(jsonString);
+
+        if (mounted) {
+          showCupertinoDialog(
+            context: context,
+            builder: (context) => CupertinoAlertDialog(
+              title: const Text('导出成功'),
+              content: const Text('设置已成功导出到文件。'),
+              actions: [
+                CupertinoDialogAction(
+                  child: const Text('确定'),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        showCupertinoDialog(
+          context: context,
+          builder: (context) => CupertinoAlertDialog(
+            title: const Text('导出失败'),
+            content: Text('导出设置时出错: $e'),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text('确定'),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _importSettings() async {
+    try {
+      final FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+        dialogTitle: '导入设置',
+        allowMultiple: false,
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        final file = File(result.files.single.path!);
+        final jsonString = await file.readAsString();
+        final settings = jsonDecode(jsonString) as Map<String, dynamic>;
+
+        // 显示确认对话框
+        if (!mounted) return;
+        final bool? confirmed = await showCupertinoDialog<bool>(
+          context: context,
+          builder: (context) => CupertinoAlertDialog(
+            title: const Text('导入设置'),
+            content: const Text('这将覆盖当前设置，确定要导入吗？'),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text('取消'),
+                onPressed: () => Navigator.pop(context, false),
+              ),
+              CupertinoDialogAction(
+                isDestructiveAction: true,
+                child: const Text('导入'),
+                onPressed: () => Navigator.pop(context, true),
+              ),
+            ],
+          ),
+        );
+
+        if (confirmed == true) {
+          await _settingsService.importSettingsFromJson(settings);
+          // 重新加载设置以更新UI
+          await _loadSettings();
+
+          if (mounted) {
+            showCupertinoDialog(
+              context: context,
+              builder: (context) => CupertinoAlertDialog(
+                title: const Text('导入成功'),
+                content: const Text('设置已成功导入。'),
+                actions: [
+                  CupertinoDialogAction(
+                    child: const Text('确定'),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        showCupertinoDialog(
+          context: context,
+          builder: (context) => CupertinoAlertDialog(
+            title: const Text('导入失败'),
+            content: Text('导入设置时出错: $e'),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text('确定'),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+        );
+      }
+    }
   }
 
   void _updateAppBrightness() {
@@ -485,6 +616,18 @@ class _SettingsScreenState extends State<SettingsScreen>
             _buildSection(
               '其他',
               [
+                _buildActionTile(
+                  '导出设置',
+                  icon: CupertinoIcons.arrow_down_doc,
+                  onTap: _exportSettings,
+                  isDestructive: false,
+                ),
+                _buildActionTile(
+                  '导入设置',
+                  icon: CupertinoIcons.arrow_up_doc,
+                  onTap: _importSettings,
+                  isDestructive: false,
+                ),
                 _buildActionTile(
                   '重置为默认设置',
                   icon: CupertinoIcons.refresh,
