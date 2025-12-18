@@ -703,9 +703,11 @@ class _SettingsScreenState extends State<SettingsScreen>
           padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
           child: Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: CupertinoColors.systemGrey,
+              color: brightness == Brightness.dark
+                  ? CupertinoColors.systemGrey.darkColor
+                  : CupertinoColors.systemGrey,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -755,18 +757,28 @@ class _SettingsScreenState extends State<SettingsScreen>
     required IconData icon,
     required VoidCallback onTap,
   }) {
+    final brightness = CupertinoTheme.of(context).brightness;
     return CupertinoListTile(
       leading: Icon(
         icon,
         color: CupertinoColors.systemBlue,
       ),
-      title: Text(title),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: brightness == Brightness.dark
+              ? CupertinoColors.label.darkColor
+              : CupertinoColors.label.color,
+        ),
+      ),
       subtitle: subtitle != null
           ? Text(
               subtitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: CupertinoColors.systemGrey,
+                color: brightness == Brightness.dark
+                    ? CupertinoColors.systemGrey.darkColor
+                    : CupertinoColors.systemGrey,
               ),
             )
           : null,
@@ -798,9 +810,12 @@ class _SettingsScreenState extends State<SettingsScreen>
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
+                    color: brightness == Brightness.dark
+                        ? CupertinoColors.label.darkColor
+                        : CupertinoColors.label.color,
                   ),
                 ),
               ),
@@ -820,9 +835,11 @@ class _SettingsScreenState extends State<SettingsScreen>
             const SizedBox(height: 4),
             Text(
               subtitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: CupertinoColors.systemGrey,
+                color: brightness == Brightness.dark
+                    ? CupertinoColors.systemGrey.darkColor
+                    : CupertinoColors.systemGrey,
               ),
             ),
           ],
@@ -841,7 +858,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                           ? CupertinoIcons.eye
                           : CupertinoIcons.eye_slash,
                       size: 20,
-                      color: CupertinoColors.systemGrey,
+                      color: brightness == Brightness.dark
+                          ? CupertinoColors.systemGrey.darkColor
+                          : CupertinoColors.systemGrey,
                     ),
                   )
                 : null,
@@ -867,6 +886,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     int? divisions,
     required ValueChanged<double> onChanged,
   }) {
+    final brightness = CupertinoTheme.of(context).brightness;
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -874,18 +894,23 @@ class _SettingsScreenState extends State<SettingsScreen>
         children: [
           Text(
             '$title (${value.toStringAsFixed(1)})',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
+              color: brightness == Brightness.dark
+                  ? CupertinoColors.label.darkColor
+                  : CupertinoColors.label.color,
             ),
           ),
           if (subtitle != null) ...[
             const SizedBox(height: 4),
             Text(
               subtitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: CupertinoColors.systemGrey,
+                color: brightness == Brightness.dark
+                    ? CupertinoColors.systemGrey.darkColor
+                    : CupertinoColors.systemGrey,
               ),
             ),
           ],
@@ -908,6 +933,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     String? subtitle,
     required ValueChanged<bool> onChanged,
   }) {
+    final brightness = CupertinoTheme.of(context).brightness;
     return Container(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -918,18 +944,23 @@ class _SettingsScreenState extends State<SettingsScreen>
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
+                    color: brightness == Brightness.dark
+                        ? CupertinoColors.label.darkColor
+                        : CupertinoColors.label.color,
                   ),
                 ),
                 if (subtitle != null) ...[
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: CupertinoColors.systemGrey,
+                      color: brightness == Brightness.dark
+                          ? CupertinoColors.systemGrey.darkColor
+                          : CupertinoColors.systemGrey,
                     ),
                   ),
                 ],
@@ -952,6 +983,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     required VoidCallback onTap,
     bool isDestructive = false,
   }) {
+    final brightness = CupertinoTheme.of(context).brightness;
     return CupertinoListTile(
       leading: Icon(
         icon,
@@ -962,8 +994,11 @@ class _SettingsScreenState extends State<SettingsScreen>
       title: Text(
         title,
         style: TextStyle(
-          color:
-              isDestructive ? CupertinoColors.systemRed : CupertinoColors.label,
+          color: isDestructive
+              ? CupertinoColors.systemRed
+              : (brightness == Brightness.dark
+                  ? CupertinoColors.label.darkColor
+                  : CupertinoColors.label.color),
         ),
       ),
       trailing: const Icon(CupertinoIcons.chevron_right),
