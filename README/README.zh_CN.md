@@ -20,9 +20,12 @@ LumenFlow（中文名：流光）是一款使用 Flutter 构建的现代化 AI �
 - **文件附件**: 上传和提取各种文件类型的内容
 - **对话管理**: 完整的对话历史记录，支持本地持久化
 - **用户配置**: 个性化设置和偏好
+- **预设提示词系统**: 预配置的角色扮演提示词，包含丰富的角色设定
+- **主题管理**: 支持亮色/暗色主题切换
 - **跨平台**: 支持 Android 和 Windows 平台
 - **本地存储**: 使用 SharedPreferences 实现数据持久化
 - **Markdown渲染**: 美观格式化的 AI 响应
+- **PowerShell构建脚本**: 自动构建 Android 和 Windows 应用的脚本
 
 ## 项目结构
 
@@ -33,7 +36,8 @@ lib/
 │   ├── conversation.dart     # 对话模型
 │   ├── message.dart          # 消息模型
 │   ├── user_profile.dart     # 用户配置模型
-│   └── attachment.dart       # 附件模型（文件、图像等）
+│   ├── attachment.dart       # 附件模型（文件、图像等）
+│   └── prompt_preset.dart    # 预设提示词模型
 ├── screens/                  # UI 界面
 │   ├── chat_screen.dart      # 主聊天界面
 │   ├── conversation_list_screen.dart  # 对话历史记录
@@ -44,7 +48,10 @@ lib/
 │   ├── conversation_service.dart  # 对话管理
 │   ├── settings_service.dart # 设置管理
 │   ├── user_service.dart     # 用户配置管理
-│   └── file_service.dart     # 文件处理和操作
+│   ├── file_service.dart     # 文件处理和操作
+│   └── prompt_service.dart   # 预设提示词管理
+├── utils/                    # 工具类
+│   └── app_theme.dart        # 应用主题管理
 └── widgets/                  # 可重用 UI 组件
     ├── avatar_widget.dart    # 用户头像显示
     ├── chat_input.dart       # 带文件附件的聊天输入框
@@ -79,6 +86,7 @@ lib/
 - `Message`: 表示带有内容、发送者信息和状态的单个消息
 - `UserProfile`: 存储用户特定的设置和偏好
 - `Attachment`: 表示文件附件（图像、视频、音频、文档）及其元数据
+- `PromptPreset`: 表示预配置的提示词预设，包含角色扮演角色设置
 
 ### 服务
 
@@ -87,6 +95,7 @@ lib/
 - `SettingsService`: 管理应用程序设置和配置
 - `UserService`: 管理用户配置数据
 - `FileService`: 处理文件操作，包括读取、处理和从附件中提取内容
+- `PromptService`: 管理提示词预设数据和配置
 
 ## 配置
 
@@ -115,6 +124,20 @@ lib/
 - 默认模型：`gpt-5`（OpenAI）或 `gemini-2.5-flash`（Gemini）
 - 温度：`0.7`
 - 最大 Tokens 数：`1000`
+
+### 预设提示词
+
+LumenFlow 包含丰富的预配置提示词预设，适用于角色扮演场景。这些预设存储在 `assets/prompt/presets.json` 文件中，包含以下角色：
+
+- **Mio** (中文：咪呜)：活泼的猫娘角色
+- **Aria** (中文：艾瑞雅)：深空档案馆管理员
+
+要使用预设提示词：
+1. 导航到聊天界面
+2. 从可用选项中选择一个预设
+3. 所选角色的个性和行为将应用于对话
+
+您可以通过编辑 `assets/prompt/` 目录中的 `presets.json` 文件来自定义或添加新的预设。
 
 ## 构建
 

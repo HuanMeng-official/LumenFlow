@@ -20,9 +20,12 @@ LumenFlow (Chinese: 流光) is a modern AI chat application built with Flutter t
 - **File Attachments**: Upload and extract content from various file types
 - **Conversation Management**: Complete conversation history with local persistence
 - **User Profiles**: Personalized settings and preferences
+- **Prompt Preset System**: Pre-configured role-playing prompts with rich character settings
+- **Theme Management**: Support for light/dark theme switching
 - **Cross-Platform**: Supports Android and Windows platforms
 - **Local Storage**: Data persistence using SharedPreferences
 - **Markdown Rendering**: Beautifully formatted AI responses
+- **PowerShell Build Script**: Automated build process for both Android and Windows
 
 ## Project Structure
 
@@ -33,7 +36,8 @@ lib/
 │   ├── conversation.dart     # Conversation model
 │   ├── message.dart          # Message model
 │   ├── user_profile.dart     # User profile model
-│   └── attachment.dart       # Attachment model (files, images, etc.)
+│   ├── attachment.dart       # Attachment model (files, images, etc.)
+│   └── prompt_preset.dart    # Prompt preset model
 ├── screens/                  # UI screens
 │   ├── chat_screen.dart      # Main chat interface
 │   ├── conversation_list_screen.dart  # Conversation history
@@ -44,7 +48,10 @@ lib/
 │   ├── conversation_service.dart  # Conversation management
 │   ├── settings_service.dart # Settings management
 │   ├── user_service.dart     # User profile management
-│   └── file_service.dart     # File handling and processing
+│   ├── file_service.dart     # File handling and processing
+│   └── prompt_service.dart   # Prompt preset management
+├── utils/                    # Utility classes
+│   └── app_theme.dart        # Application theme management
 └── widgets/                  # Reusable UI components
     ├── avatar_widget.dart    # User avatar display
     ├── chat_input.dart       # Chat input with file attachment
@@ -80,6 +87,7 @@ The application follows a layered architecture pattern:
 - `Message`: Represents a single message with content, sender information, and status
 - `UserProfile`: Stores user-specific settings and preferences
 - `Attachment`: Represents file attachments (images, videos, audio, documents) with metadata
+- `PromptPreset`: Represents pre-configured prompt presets with role-playing character settings
 
 ### Services
 
@@ -88,6 +96,7 @@ The application follows a layered architecture pattern:
 - `SettingsService`: Manages application settings and configuration
 - `UserService`: Manages user profile data
 - `FileService`: Handles file operations, including reading, processing, and extracting content from attachments
+- `PromptService`: Manages prompt preset data and configuration
 
 ## Configuration
 
@@ -116,6 +125,20 @@ Before using the application, you need to configure it with your AI API keys:
 - Default Model: `gpt-5` (OpenAI) or `gemini-2.5-flash` (Gemini)
 - Temperature: `0.7`
 - Max Tokens: `1000`
+
+### Prompt Presets
+
+LumenFlow includes a rich collection of pre-configured prompt presets for role-playing scenarios. These presets are stored in `assets/prompt/presets.json` and include characters like:
+
+- **Mio** (Chinese: 咪呜): A playful cat girl character
+- **Aria** (Chinese: 艾瑞雅): A deep-space archive administrator
+
+To use a prompt preset:
+1. Navigate to the chat interface
+2. Select a preset from the available options
+3. The selected character's personality and behavior will be applied to the conversation
+
+You can customize or add new presets by editing the `presets.json` file in the `assets/prompt/` directory.
 
 ## Building
 
