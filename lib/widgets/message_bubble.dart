@@ -6,6 +6,7 @@ import '../models/message.dart';
 import '../models/attachment.dart';
 import '../models/user_profile.dart';
 import '../services/user_service.dart';
+import '../screens/image_preview_screen.dart';
 import 'avatar_widget.dart';
 
 class MessageBubble extends StatefulWidget {
@@ -164,43 +165,9 @@ class _MessageBubbleState extends State<MessageBubble> {
   }
 
   void _showImagePreview(String filePath) {
-    showCupertinoModalPopup(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        insetAnimationDuration: const Duration(milliseconds: 200),
-        content: Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.7,
-            maxWidth: MediaQuery.of(context).size.width * 0.9,
-          ),
-          child: Image.file(
-            File(filePath),
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(CupertinoIcons.exclamationmark_triangle, size: 48),
-                  const SizedBox(height: 16),
-                  Text(
-                    '无法加载图片',
-                    style: TextStyle(
-                      color: CupertinoTheme.of(context).textTheme.textStyle.color,
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-        ),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('关闭'),
-          ),
-        ],
+    Navigator.of(context).push(
+      CupertinoPageRoute(
+        builder: (context) => ImagePreviewScreen(imagePath: filePath),
       ),
     );
   }
