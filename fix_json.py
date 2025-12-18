@@ -63,4 +63,4 @@ def fix_json_file(filename):
         sys.exit(1)
 
 if __name__ == '__main__':
-    fix_json_file('./presets.json')
+    fix_json_file('./assets/prompt/presets.json')
