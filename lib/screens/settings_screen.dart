@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import '../services/settings_service.dart';
 import '../utils/app_theme.dart';
 import 'user_profile_screen.dart';
+import 'about_screen.dart';
 
 /// 应用设置界面，配置AI API参数和用户偏好
 ///
@@ -369,6 +370,15 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
   }
 
+  void _openAbout() {
+    Navigator.push(
+      context,
+      CupertinoPageRoute(
+        builder: (context) => const AboutScreen(),
+      ),
+    );
+  }
+
   void _updateAppBrightness() {
     Brightness brightness;
     if (_followSystemTheme) {
@@ -626,6 +636,12 @@ class _SettingsScreenState extends State<SettingsScreen>
                   '导入设置',
                   icon: CupertinoIcons.arrow_up_doc,
                   onTap: _importSettings,
+                  isDestructive: false,
+                ),
+                _buildActionTile(
+                  '关于',
+                  icon: CupertinoIcons.info_circle,
+                  onTap: _openAbout,
                   isDestructive: false,
                 ),
                 _buildActionTile(
