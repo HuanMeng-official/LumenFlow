@@ -125,19 +125,54 @@ lib/
 - 温度：`0.7`
 - 最大 Tokens 数：`1000`
 
-### 预设提示词
+### 预设提示词（角色扮演系统）
 
-LumenFlow 包含丰富的预配置提示词预设，适用于角色扮演场景。这些预设存储在 `assets/prompt/presets.json` 文件中，包含以下角色：
+LumenFlow 包含一个基于文件的高级角色扮演系统。预设配置在 `assets/prompt/presets.json` 中，其中 `system_prompt` 字段包含指向 XML/TXT 文件的路径，这些文件包含详细的角色定义。
 
-- **Mio** (中文：咪呜)：活泼的猫娘角色
-- **Aria** (中文：艾瑞雅)：深空档案馆管理员
+#### 工作原理
+- **基于文件的预设**：`presets.json` 中的 `system_prompt` 字段指向 XML/TXT 文件（例如：`"characters/NingXi.xml"`）
+- **自动内容加载**：系统自动加载文件内容并将其用作系统提示词
+- **变量替换**：支持 `\${userProfile.username}` 替换为实际用户名
+- **XML 格式**：丰富的 XML 结构，用于详细的角色定义，包含元信息、个性逻辑、称呼协议和示例对话
 
-要使用预设提示词：
+#### 使用预设
 1. 导航到聊天界面
-2. 从可用选项中选择一个预设
-3. 所选角色的个性和行为将应用于对话
+2. 点击"角色扮演"按钮，从预设菜单中选择一个角色
+3. 所选角色的完整个性系统将应用于对话
+4. AI 回复将反映角色的特征、说话模式和行为
 
-您可以通过编辑 `assets/prompt/` 目录中的 `presets.json` 文件来自定义或添加新的预设。
+#### 自定义和添加预设
+1. 在 `assets/prompt/characters/` 目录中创建包含角色定义的 XML/TXT 文件
+2. 在 `presets.json` 中添加条目，`system_prompt` 指向文件路径
+3. 遵循 XML 格式结构以保持角色定义的一致性
+4. 重启应用程序以加载新的预设
+
+##### presets.json 结构示例
+```json
+{
+  "id": "ningxi",
+  "name": "宁汐",
+  "description": "俏皮可爱的猫娘",
+  "system_prompt": "characters/NingXi.xml",
+  "icon": "person.fill"
+}
+```
+##### character.xml 结构示例
+```xml
+<system_instruction>
+   <mate>
+      <role_name>NAME</role_name>
+      <identity>TEXT</identity>
+      <core_philosophy>TEXT</core_philosophy>
+   </mate>
+   <personality_logic>TEXT</personality_logic>
+   <addressing_protocol>TEXT</addressing_protocol>
+   <linguistic_style>TEXT</linguistic_style>
+   <behavior_narrative_rules>TEXT</behavior_narrative_rules>
+   <interaction_strategy>TEXT</interaction_strategy>
+   <example_dialogue>TEXT</example_dialogue>
+</system_instruction>
+```
 
 ## 构建
 

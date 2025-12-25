@@ -128,17 +128,52 @@ Before using the application, you need to configure it with your AI API keys:
 
 ### Prompt Presets
 
-LumenFlow includes a rich collection of pre-configured prompt presets for role-playing scenarios. These presets are stored in `assets/prompt/presets.json` and include characters like:
+LumenFlow includes an advanced role-playing system with file-based prompt presets. These presets are configured in `assets/prompt/presets.json` where the `system_prompt` field contains a file path to XML/TXT files containing detailed character definitions.
 
-- **Mio** (Chinese: 咪呜): A playful cat girl character
-- **Aria** (Chinese: 艾瑞雅): A deep-space archive administrator
+#### How It Works
+- **File-Based Presets**: The `system_prompt` field in `presets.json` points to XML/TXT files (e.g., `"characters/NingXi.xml"`)
+- **Automatic Content Loading**: The system automatically loads the file content and uses it as the system prompt
+- **Variable Substitution**: Supports `\${userProfile.username}` replacement with actual user names
+- **XML Format**: Rich XML structure for detailed character definitions with meta information, personality logic, addressing protocols, and example dialogues
 
-To use a prompt preset:
+#### Using Presets
 1. Navigate to the chat interface
-2. Select a preset from the available options
-3. The selected character's personality and behavior will be applied to the conversation
+2. Click the "Role-Play" button and select a character from the preset menu
+3. The selected character's complete personality system will be applied to the conversation
+4. AI responses will reflect the character's traits, speech patterns, and behaviors
 
-You can customize or add new presets by editing the `presets.json` file in the `assets/prompt/` directory.
+#### Customizing & Adding Presets
+1. Create XML/TXT files in `assets/prompt/characters/` directory with character definitions
+2. Add entries to `presets.json` with `system_prompt` pointing to the file path
+3. Follow the XML format structure for consistent character definitions
+4. Restart the application to load new presets
+
+##### Example presets.json Structure
+```json
+{
+  "id": "ningxi",
+  "name": "宁汐",
+  "description": "俏皮可爱的猫娘",
+  "system_prompt": "characters/NingXi.xml",
+  "icon": "person.fill"
+}
+```
+##### Example character.xml Structure
+```xml
+<system_instruction>
+   <mate>
+      <role_name>NAME</role_name>
+      <identity>TEXT</identity>
+      <core_philosophy>TEXT</core_philosophy>
+   </mate>
+   <personality_logic>TEXT</personality_logic>
+   <addressing_protocol>TEXT</addressing_protocol>
+   <linguistic_style>TEXT</linguistic_style>
+   <behavior_narrative_rules>TEXT</behavior_narrative_rules>
+   <interaction_strategy>TEXT</interaction_strategy>
+   <example_dialogue>TEXT</example_dialogue>
+</system_instruction>
+```
 
 ## Building
 
