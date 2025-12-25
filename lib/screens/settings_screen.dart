@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import '../services/settings_service.dart';
 import '../utils/app_theme.dart';
 import 'user_profile_screen.dart';
@@ -245,35 +246,62 @@ class _SettingsScreenState extends State<SettingsScreen>
   Future<void> _exportSettings() async {
     try {
       final settings = await _settingsService.exportSettingsToJson();
+      if (settings.isEmpty) {
+        throw Exception('设置数据为空，无法导出');
+      }
+
       final jsonString = jsonEncode(settings);
+      if (jsonString.isEmpty) {
+        throw Exception('JSON编码结果为空');
+      }
 
-      // 获取保存文件路径
-      final String? outputPath = await FilePicker.platform.saveFile(
-        dialogTitle: '导出设置',
-        fileName: 'lumenflow_settings_${DateTime.now().toIso8601String().substring(0, 10)}.json',
-        allowedExtensions: ['json'],
-        type: FileType.custom,
-      );
+      final bytes = utf8.encode(jsonString);
+      if (bytes.isEmpty) {
+        throw Exception('字节数据为空，无法保存文件');
+      }
 
-      if (outputPath != null) {
-        final file = File(outputPath);
-        await file.writeAsString(jsonString);
+      // 优先尝试保存到下载目录
+      Directory? targetDir = await getDownloadsDirectory();
+      String locationName = '下载目录';
 
-        if (mounted) {
-          showCupertinoDialog(
-            context: context,
-            builder: (context) => CupertinoAlertDialog(
-              title: const Text('导出成功'),
-              content: const Text('设置已成功导出到文件。'),
-              actions: [
-                CupertinoDialogAction(
-                  child: const Text('确定'),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-          );
-        }
+      // 如果下载目录不可用，尝试外部存储目录
+      if (targetDir == null) {
+        targetDir = await getExternalStorageDirectory();
+        locationName = '外部存储目录';
+      }
+
+      // 如果外部存储目录也不可用，使用应用文档目录
+      if (targetDir == null) {
+        targetDir = await getApplicationDocumentsDirectory();
+        locationName = '应用文档目录';
+      }
+
+      // 确保目录存在
+      if (!await targetDir.exists()) {
+        await targetDir.create(recursive: true);
+      }
+
+      // 生成文件名
+      final fileName = 'lumenflow_settings_${DateTime.now().toIso8601String().substring(0, 10)}.json';
+      final targetFile = File('${targetDir.path}/$fileName');
+
+      // 保存文件
+      await targetFile.writeAsBytes(bytes);
+
+      if (mounted) {
+        showCupertinoDialog(
+          context: context,
+          builder: (context) => CupertinoAlertDialog(
+            title: const Text('导出成功'),
+            content: Text('设置已成功导出到$locationName：\n${targetFile.path}'),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text('确定'),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -281,7 +309,8 @@ class _SettingsScreenState extends State<SettingsScreen>
           context: context,
           builder: (context) => CupertinoAlertDialog(
             title: const Text('导出失败'),
-            content: Text('导出设置时出错: $e'),
+            content: Text('导出设置时出错: $e\n\n'
+                '请确保应用有存储权限，并检查存储空间是否充足。'),
             actions: [
               CupertinoDialogAction(
                 child: const Text('确定'),
