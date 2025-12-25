@@ -1,1 +1,0 @@
-'assets/prompt/prompt.txt'

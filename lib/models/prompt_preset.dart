@@ -19,7 +19,7 @@ class PromptPreset {
       id: json['id'] as String,
       name: json['name'] as String,
       description: json['description'] as String,
-      systemPrompt: json['systemPrompt'] as String,
+      systemPrompt: json['system_prompt'] as String,
       icon: json['icon'] as String? ?? 'person.fill',
     );
   }
@@ -30,7 +30,7 @@ class PromptPreset {
       'id': id,
       'name': name,
       'description': description,
-      'systemPrompt': systemPrompt,
+      'system_prompt': systemPrompt,
       'icon': icon,
     };
   }

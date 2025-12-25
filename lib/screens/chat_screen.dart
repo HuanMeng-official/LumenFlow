@@ -82,6 +82,13 @@ class _ChatScreenState extends State<ChatScreen> {
     final promptPresetEnabled = await _settingsService.getPromptPresetEnabled();
     final currentPresetId = await _settingsService.getPromptPresetId();
     final presets = await _promptService.loadPresets();
+    // 调试日志：检查加载的预设
+    debugPrint('Loaded ${presets.length} preset(s)');
+    for (final preset in presets) {
+      final length = preset.systemPrompt.length;
+      final preview = length > 50 ? '${preset.systemPrompt.substring(0, 50)}...' : preset.systemPrompt;
+      debugPrint('Preset: ${preset.name}, systemPrompt length: $length, starts with: "$preview"');
+    }
 
     setState(() {
       _isConfigured = configured;
@@ -238,14 +245,26 @@ class _ChatScreenState extends State<ChatScreen> {
     // 获取预设提示词内容（如果预设模式启用）
     String presetSystemPrompt = '';
     if (_promptPresetEnabled && _currentPresetId.isNotEmpty) {
+      debugPrint('Preset mode enabled, currentPresetId: $_currentPresetId');
+      debugPrint('Available presets count: ${_presets.length}');
+      for (final p in _presets) {
+        debugPrint('  - ${p.id}: ${p.name}, systemPrompt length: ${p.systemPrompt.length}');
+      }
+
       final preset = _presets.firstWhere(
         (preset) => preset.id == _currentPresetId,
         orElse: () => PromptPreset(id: '', name: '', description: '', systemPrompt: ''),
       );
       if (preset.id.isNotEmpty) {
         presetSystemPrompt = preset.systemPrompt;
+        debugPrint('Found preset: ${preset.name}, systemPrompt: ${preset.systemPrompt.length > 50 ? '${preset.systemPrompt.substring(0, 50)}...' : preset.systemPrompt}');
+      } else {
+        debugPrint('Preset not found for id: $_currentPresetId');
       }
+    } else {
+      debugPrint('Preset mode disabled or no preset selected. enabled: $_promptPresetEnabled, presetId: $_currentPresetId');
     }
+    debugPrint('Final presetSystemPrompt to use: ${presetSystemPrompt.isNotEmpty ? "length: ${presetSystemPrompt.length}" : "empty"}');
 
     final userMessage = Message(
       id: DateTime.now().millisecondsSinceEpoch.toString(),

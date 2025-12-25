@@ -27,6 +27,7 @@ flutter:
   uses-material-design: false
   assets:
     - assets/prompt/
+    - assets/prompt/characters/
     - assets/logo.png
     - pubspec.yaml
 

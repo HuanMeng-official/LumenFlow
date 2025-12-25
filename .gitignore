@@ -46,4 +46,4 @@ app.*.map.json
 android/key.jks
 android/key.properties
 
-assets/prompt/presets.json
+assets/prompt/*
