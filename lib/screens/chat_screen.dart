@@ -60,6 +60,7 @@ class _ChatScreenState extends State<ChatScreen> {
   List<PromptPreset> _presets = [];
   Conversation? _currentConversation;
   String _currentTitle = 'AI 助手';
+  bool _autoTitleGenerated = false; // 是否已经自动生成过标题
 
   @override
   void initState() {
@@ -117,6 +118,7 @@ class _ChatScreenState extends State<ChatScreen> {
           _messages.clear();
           _messages.addAll(conversation.messages);
           _currentTitle = conversation.title;
+          _autoTitleGenerated = false; // 重置标题生成标志
         });
         _scrollToBottom();
         return;
@@ -136,6 +138,7 @@ class _ChatScreenState extends State<ChatScreen> {
       _currentConversation = conversation;
       _messages.clear();
       _currentTitle = conversation.title;
+      _autoTitleGenerated = false; // 重置标题生成标志
     });
   }
 
@@ -216,6 +219,46 @@ class _ChatScreenState extends State<ChatScreen> {
     // 如果预设模式未启用，自动启用
     if (!_promptPresetEnabled) {
       _handlePromptPresetEnabledChanged(true);
+    }
+  }
+
+  /// 自动生成对话标题
+  ///
+  /// 在对话达到指定轮次后，调用AI生成更准确的标题
+  Future<void> _generateAutoTitle() async {
+    // 检查是否启用自动标题生成
+    final autoTitleEnabled = await _settingsService.getAutoTitleEnabled();
+    if (!autoTitleEnabled) return;
+
+    // 如果已经生成过标题，不再生成
+    if (_autoTitleGenerated) return;
+
+    // 获取配置的生成轮次
+    final autoTitleRounds = await _settingsService.getAutoTitleRounds();
+
+    // 计算实际对话轮次（用户消息数量）
+    final userMessageCount = _messages.where((msg) => msg.isUser).length;
+
+    // 检查是否达到生成轮次
+    if (userMessageCount >= autoTitleRounds) {
+      try {
+        // 调用AI服务生成标题
+        final newTitle = await _aiService.generateConversationTitle(_messages);
+
+        // 更新对话标题
+        if (_currentConversation != null && newTitle.isNotEmpty) {
+          await _conversationService.updateConversationTitle(
+              _currentConversation!.id, newTitle);
+          setState(() {
+            _currentTitle = newTitle;
+            _currentConversation = _currentConversation!.copyWith(title: newTitle);
+            _autoTitleGenerated = true; // 标记已生成
+          });
+        }
+      } catch (e) {
+        // 生成标题失败不影响对话继续
+        debugPrint('自动生成标题失败: $e');
+      }
     }
   }
 
@@ -376,6 +419,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
     _scrollToBottom();
     await _saveCurrentConversation();
+
+    // 尝试自动生成标题
+    await _generateAutoTitle();
   }
 
   /// 显示配置提示对话框

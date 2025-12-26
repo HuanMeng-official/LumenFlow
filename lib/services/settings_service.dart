@@ -16,6 +16,8 @@ class SettingsService {
   static const String _thinkingModeKey = 'thinking_mode';
   static const String _promptPresetEnabledKey = 'prompt_preset_enabled';
   static const String _promptPresetIdKey = 'prompt_preset_id';
+  static const String _autoTitleEnabledKey = 'auto_title_enabled';
+  static const String _autoTitleRoundsKey = 'auto_title_rounds';
   static const String defaultCustomSystemPrompt = '';
   static const String defaultApiType = 'openai';
   static const bool defaultDarkMode = false;
@@ -24,6 +26,8 @@ class SettingsService {
   static const bool defaultThinkingMode = false;
   static const bool defaultPromptPresetEnabled = false;
   static const String defaultPromptPresetId = '';
+  static const bool defaultAutoTitleEnabled = true;
+  static const int defaultAutoTitleRounds = 3;
 
   static const String defaultEndpoint = 'https://api.openai.com/v1';
   static const String defaultModel = 'gpt-5';
@@ -188,6 +192,26 @@ class SettingsService {
     await prefs.setString(_promptPresetIdKey, presetId);
   }
 
+  Future<bool> getAutoTitleEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_autoTitleEnabledKey) ?? defaultAutoTitleEnabled;
+  }
+
+  Future<void> setAutoTitleEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_autoTitleEnabledKey, enabled);
+  }
+
+  Future<int> getAutoTitleRounds() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_autoTitleRoundsKey) ?? defaultAutoTitleRounds;
+  }
+
+  Future<void> setAutoTitleRounds(int rounds) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_autoTitleRoundsKey, rounds);
+  }
+
   /// 导出所有设置为JSON格式的Map
   /// 返回包含所有设置键值对的Map
   Future<Map<String, dynamic>> exportSettingsToJson() async {
@@ -210,6 +234,8 @@ class SettingsService {
     settings[_thinkingModeKey] = prefs.getBool(_thinkingModeKey) ?? defaultThinkingMode;
     settings[_promptPresetEnabledKey] = prefs.getBool(_promptPresetEnabledKey) ?? defaultPromptPresetEnabled;
     settings[_promptPresetIdKey] = prefs.getString(_promptPresetIdKey) ?? defaultPromptPresetId;
+    settings[_autoTitleEnabledKey] = prefs.getBool(_autoTitleEnabledKey) ?? defaultAutoTitleEnabled;
+    settings[_autoTitleRoundsKey] = prefs.getInt(_autoTitleRoundsKey) ?? defaultAutoTitleRounds;
 
     return settings;
   }
@@ -265,6 +291,12 @@ class SettingsService {
     }
     if (settings.containsKey(_promptPresetIdKey)) {
       await prefs.setString(_promptPresetIdKey, settings[_promptPresetIdKey] as String);
+    }
+    if (settings.containsKey(_autoTitleEnabledKey)) {
+      await prefs.setBool(_autoTitleEnabledKey, settings[_autoTitleEnabledKey] as bool);
+    }
+    if (settings.containsKey(_autoTitleRoundsKey)) {
+      await prefs.setInt(_autoTitleRoundsKey, settings[_autoTitleRoundsKey] as int);
     }
   }
 }

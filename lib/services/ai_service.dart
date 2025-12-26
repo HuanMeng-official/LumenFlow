@@ -978,4 +978,180 @@ class AIService {
       throw Exception('Gemini API流式请求失败: $e');
     }
   }
+
+  /// 生成对话标题
+  ///
+  /// 参数:
+  ///   messages - 对话消息列表
+  /// 返回值:
+  ///   生成的对话标题（简短摘要）
+  /// 异常:
+  ///   抛出Exception当API密钥未配置或网络请求失败时
+  /// 说明:
+  ///   1. 基于对话内容生成简短标题（不超过20个字符）
+  ///   2. 使用较低的温度参数以获得更稳定的输出
+  ///   3. 支持OpenAI和Gemini API
+  Future<String> generateConversationTitle(List<Message> messages) async {
+    final apiEndpoint = await _settingsService.getApiEndpoint();
+    final apiKey = await _settingsService.getApiKey();
+    final model = await _settingsService.getModel();
+    final apiType = await _settingsService.getApiType();
+
+    if (apiKey.isEmpty) {
+      throw Exception('请先在设置中配置API密钥');
+    }
+
+    // 提取对话摘要（前几轮对话）
+    final summaryMessages = messages.take(6).toList(); // 最多3轮对话
+
+    // 构建对话内容摘要
+    final conversationSummary = summaryMessages.map((msg) {
+      final role = msg.isUser ? '用户' : 'AI';
+      return '$role: ${msg.content.trim()}';
+    }).join('\n');
+
+    try {
+      if (apiType == 'gemini') {
+        // Gemini API 生成标题
+        final contents = [
+          {
+            'role': 'user',
+            'parts': [
+              {
+                'text': '请根据以下对话内容生成一个简短的标题（不超过15个字），标题应该概括对话的主要内容：\n\n$conversationSummary'
+              }
+            ]
+          }
+        ];
+
+        String url = apiEndpoint;
+        if (!url.contains('/models/')) {
+          final modelPath = model.contains('/') ? model : 'models/$model';
+          url = url.endsWith('/')
+              ? '$url$modelPath:generateContent'
+              : '$url/$modelPath:generateContent';
+        } else if (!url.contains(':generateContent')) {
+          url = url.endsWith('/')
+              ? '${url}generateContent'
+              : '$url:generateContent';
+        }
+
+        if (!url.contains('?key=')) {
+          url = '$url?key=$apiKey';
+        }
+
+        final response = await http.post(
+          Uri.parse(url),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({
+            'contents': contents,
+            'generationConfig': {
+              'temperature': 0.3,
+              'maxOutputTokens': 50,
+            }
+          }),
+        );
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          if (data is! Map<String, dynamic>) {
+            throw Exception('Gemini API返回了无效的响应格式');
+          }
+
+          final candidates = data['candidates'];
+          if (candidates is! List || candidates.isEmpty) {
+            throw Exception('Gemini API响应中缺少candidates字段');
+          }
+
+          final candidate = candidates[0];
+          if (candidate['content'] != null &&
+              candidate['content']['parts'] != null &&
+              candidate['content']['parts'].isNotEmpty) {
+            var title = candidate['content']['parts'][0]['text'].toString().trim();
+            // 移除可能的引号
+            if (title.startsWith('"') || title.startsWith('\'') || title.startsWith('|')) {
+              title = title.substring(1);
+            }
+            if (title.endsWith('"') || title.endsWith('\'') || title.endsWith('|')) {
+              title = title.substring(0, title.length - 1);
+            }
+            // 截断过长的标题
+            if (title.length > 20) {
+              title = '${title.substring(0, 20)}...';
+            }
+            return title;
+          }
+
+          throw Exception('无效的Gemini API响应格式');
+        } else {
+          final errorData = jsonDecode(response.body);
+          final errorMessage = errorData['error']?['message']?.toString() ??
+              errorData['message']?.toString() ??
+              '未知错误';
+          throw Exception('Gemini API错误: $errorMessage (状态码: ${response.statusCode})');
+        }
+      } else {
+        // OpenAI API 生成标题
+        final requestMessages = [
+          {
+            'role': 'system',
+            'content': '你是一个专业的对话标题生成助手。请根据对话内容生成一个简短、准确的标题，不超过15个字。只返回标题，不要加引号或其他格式。'
+          },
+          {
+            'role': 'user',
+            'content': '请根据以下对话内容生成一个简短的标题：\n\n$conversationSummary'
+          }
+        ];
+
+        final response = await http.post(
+          Uri.parse('$apiEndpoint/chat/completions'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $apiKey',
+          },
+          body: jsonEncode({
+            'model': model,
+            'messages': requestMessages,
+            'max_tokens': 50,
+            'temperature': 0.3,
+          }),
+        );
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          if (data is! Map<String, dynamic> ||
+              data['choices'] == null ||
+              (data['choices'] as List).isEmpty) {
+            throw Exception('API返回了无效的响应格式');
+          }
+
+          final content = data['choices'][0]['message']['content']?.toString().trim() ?? '';
+          // 移除可能的引号
+          var title = content;
+          if (title.startsWith('"') || title.startsWith('\'') || title.startsWith('|')) {
+            title = title.substring(1);
+          }
+          if (title.endsWith('"') || title.endsWith('\'') || title.endsWith('|')) {
+            title = title.substring(0, title.length - 1);
+          }
+          // 截断过长的标题
+          if (title.length > 20) {
+            title = '${title.substring(0, 20)}...';
+          }
+          return title;
+        } else {
+          final errorData = jsonDecode(response.body);
+          final errorMessage = errorData['error']?['message']?.toString() ??
+              errorData['message']?.toString() ??
+              '未知错误';
+          throw Exception('API错误: $errorMessage (状态码: ${response.statusCode})');
+        }
+      }
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('生成标题时发生错误: $e');
+    }
+  }
 }

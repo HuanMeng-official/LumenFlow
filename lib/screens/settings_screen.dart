@@ -57,6 +57,8 @@ class _SettingsScreenState extends State<SettingsScreen>
   bool _followSystemTheme = SettingsService.defaultFollowSystemTheme;
   String _appTheme = SettingsService.defaultAppTheme;
   bool _thinkingMode = SettingsService.defaultThinkingMode;
+  bool _autoTitleEnabled = SettingsService.defaultAutoTitleEnabled;
+  int _autoTitleRounds = SettingsService.defaultAutoTitleRounds;
 
   @override
   void initState() {
@@ -108,6 +110,8 @@ class _SettingsScreenState extends State<SettingsScreen>
     final followSystemTheme = await _settingsService.getFollowSystemTheme();
     final appTheme = await _settingsService.getAppTheme();
     final thinkingMode = await _settingsService.getThinkingMode();
+    final autoTitleEnabled = await _settingsService.getAutoTitleEnabled();
+    final autoTitleRounds = await _settingsService.getAutoTitleRounds();
 
     setState(() {
       _endpointController.text = endpoint;
@@ -123,6 +127,8 @@ class _SettingsScreenState extends State<SettingsScreen>
       _followSystemTheme = followSystemTheme;
       _appTheme = appTheme;
       _thinkingMode = thinkingMode;
+      _autoTitleEnabled = autoTitleEnabled;
+      _autoTitleRounds = autoTitleRounds;
       _isLoading = false;
     });
   }
@@ -164,6 +170,8 @@ class _SettingsScreenState extends State<SettingsScreen>
       await _settingsService.setFollowSystemTheme(_followSystemTheme);
       await _settingsService.setAppTheme(_appTheme);
       await _settingsService.setThinkingMode(_thinkingMode);
+      await _settingsService.setAutoTitleEnabled(_autoTitleEnabled);
+      await _settingsService.setAutoTitleRounds(_autoTitleRounds);
 
       if (mounted) {
         showCupertinoDialog(
@@ -577,6 +585,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                   min: 0.0,
                   max: 2.0,
                   divisions: 20,
+                  decimalPlaces: 1,
+                  showValueInRow: true,
                   onChanged: (value) {
                     setState(() {
                       _temperature = value;
@@ -605,6 +615,38 @@ class _SettingsScreenState extends State<SettingsScreen>
                     placeholder: '输入历史对话轮数',
                     subtitle: 'AI记住的历史对话轮数，建议5-20轮，过多可能超出Token限制',
                     keyboardType: TextInputType.number,
+                  ),
+              ],
+            ),
+            _buildSection(
+              '对话标题',
+              [
+                _buildSwitchTile(
+                  '自动生成标题',
+                  value: _autoTitleEnabled,
+                  subtitle: '对话进行若干轮后，AI会根据内容自动生成标题',
+                  onChanged: (value) {
+                    setState(() {
+                      _autoTitleEnabled = value;
+                    });
+                  },
+                ),
+                if (_autoTitleEnabled)
+                  _buildSliderTile(
+                    '生成时机',
+                    value: _autoTitleRounds.toDouble(),
+                    subtitle: '设置多少轮对话后自动生成标题',
+                    min: 1,
+                    max: 10,
+                    divisions: 9,
+                    decimalPlaces: 0,
+                    valueSuffix: ' 轮',
+                    showValueInRow: true,
+                    onChanged: (value) {
+                      setState(() {
+                        _autoTitleRounds = value.toInt();
+                      });
+                    },
                   ),
               ],
             ),
@@ -913,6 +955,9 @@ class _SettingsScreenState extends State<SettingsScreen>
     required double min,
     required double max,
     int? divisions,
+    String valueSuffix = '',
+    int decimalPlaces = 1,
+    bool showValueInRow = false,
     required ValueChanged<double> onChanged,
   }) {
     final brightness = CupertinoTheme.of(context).brightness;
@@ -921,16 +966,42 @@ class _SettingsScreenState extends State<SettingsScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '$title (${value.toStringAsFixed(1)})',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: brightness == Brightness.dark
-                  ? CupertinoColors.label.darkColor
-                  : CupertinoColors.label.color,
+          if (showValueInRow)
+            Row(
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: brightness == Brightness.dark
+                        ? CupertinoColors.label.darkColor
+                        : CupertinoColors.label.color,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '(${value.toStringAsFixed(decimalPlaces)}$valueSuffix)',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: brightness == Brightness.dark
+                        ? CupertinoColors.systemGrey.darkColor
+                        : CupertinoColors.systemGrey,
+                  ),
+                ),
+              ],
+            )
+          else
+            Text(
+              '$title (${value.toStringAsFixed(decimalPlaces)}$valueSuffix)',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: brightness == Brightness.dark
+                    ? CupertinoColors.label.darkColor
+                    : CupertinoColors.label.color,
+              ),
             ),
-          ),
           if (subtitle != null) ...[
             const SizedBox(height: 4),
             Text(
