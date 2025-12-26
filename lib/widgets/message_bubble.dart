@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import '../models/message.dart';
@@ -200,6 +201,14 @@ class _MessageBubbleState extends State<MessageBubble> {
   @override
   Widget build(BuildContext context) {
     final Brightness brightness = CupertinoTheme.of(context).brightness!;
+
+    // 根据消息类型和主题确定选择颜色
+    final selectionColor = widget.message.isUser
+        ? CupertinoColors.white.withValues(alpha: 0.4)
+        : (brightness == Brightness.dark
+            ? CupertinoColors.systemBlue.darkColor.withValues(alpha: 0.4)
+            : CupertinoColors.systemBlue.color.withValues(alpha: 0.4));
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -229,24 +238,30 @@ class _MessageBubbleState extends State<MessageBubble> {
             const SizedBox(width: 8),
           ],
           Flexible(
-            child: Container(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.75,
+            child: Theme(
+              data: Theme.of(context).copyWith(
+                textSelectionTheme: TextSelectionThemeData(
+                  selectionColor: selectionColor,
+                ),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: widget.message.isUser
-                    ? CupertinoColors.systemBlue
-                    : (widget.message.status == MessageStatus.error
-                        ? CupertinoColors.systemRed.withOpacity(0.1)
-                        : (brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey6.darkColor
-                            : CupertinoColors.systemGrey6.color)),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+              child: Container(
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.75,
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: widget.message.isUser
+                      ? CupertinoColors.systemBlue
+                      : (widget.message.status == MessageStatus.error
+                          ? CupertinoColors.systemRed.withOpacity(0.1)
+                          : (brightness == Brightness.dark
+                              ? CupertinoColors.systemGrey6.darkColor
+                              : CupertinoColors.systemGrey6.color)),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                   if (!widget.message.isUser &&
                       widget.message.reasoningContent != null &&
                       widget.message.reasoningContent!.isNotEmpty)
@@ -686,6 +701,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                     ],
                   ),
                 ],
+              ),
               ),
             ),
           ),
