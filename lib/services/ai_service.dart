@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'settings_service.dart';
 import 'user_service.dart';
@@ -28,6 +29,24 @@ class AIService {
   /// 所有附件的总大小限制（50MB）
   /// 单次请求中所有附件大小之和不能超过此限制
   static const int maxTotalAttachmentsSize = 50 * 1024 * 1024;
+
+  /// HTTP连接超时时间（30秒）
+  static const Duration connectionTimeout = Duration(seconds: 30);
+
+  /// HTTP读取超时时间（60秒）
+  static const Duration readTimeout = Duration(seconds: 60);
+
+  /// 流式响应超时时间（5分钟）
+  static const Duration streamingTimeout = Duration(minutes: 5);
+
+  /// 最大重试次数
+  static const int maxRetries = 3;
+
+  /// 重试延迟基础时间（毫秒）
+  static const int retryBaseDelayMs = 1000;
+
+  /// 重试延迟最大时间（毫秒）
+  static const int retryMaxDelayMs = 10000;
 
   /// 替换系统提示词中的变量占位符
   ///
@@ -59,6 +78,123 @@ class AIService {
     } else {
       return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
     }
+  }
+
+  /// 创建HTTP客户端
+  ///
+  /// 返回值:
+  ///   http.Client实例
+  /// 说明:
+  ///   超时设置在具体的请求中通过.timeout()方法实现
+  http.Client _createHttpClient() {
+    return http.Client();
+  }
+
+  /// 判断错误是否可重试
+  ///
+  /// 参数:
+  ///   error - 捕获的异常
+  ///   statusCode - HTTP状态码（如果有）
+  /// 返回值:
+  ///   true表示可以安全重试，false表示不应重试
+  /// 说明:
+  ///   可重试的错误包括：网络连接错误、超时、服务器5xx错误
+  ///   不可重试的错误包括：客户端4xx错误、认证错误、业务逻辑错误
+  bool _isRetryableError(dynamic error, int? statusCode) {
+    // 网络相关错误
+    if (error is SocketException ||
+        error is TimeoutException ||
+        error is TlsException ||
+        error is HttpException ||
+        error.toString().contains('Connection') ||
+        error.toString().contains('timeout') ||
+        error.toString().contains('socket') ||
+        error.toString().contains('handshake')) {
+      return true;
+    }
+
+    // 服务器错误（5xx）可重试
+    if (statusCode != null && statusCode >= 500 && statusCode < 600) {
+      return true;
+    }
+
+    // 特定客户端错误（429 请求过多）可重试
+    if (statusCode == 429) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /// 计算重试延迟时间（指数退避）
+  ///
+  /// 参数:
+  ///   retryCount - 当前重试次数（0表示第一次重试）
+  /// 返回值:
+  ///   延迟时间（毫秒）
+  /// 说明:
+  ///   使用指数退避算法，避免请求风暴
+  int _calculateRetryDelay(int retryCount) {
+    final delay = retryBaseDelayMs * (1 << retryCount); // 2^retryCount 倍基础延迟
+    return delay > retryMaxDelayMs ? retryMaxDelayMs : delay;
+  }
+
+  /// 带重试的执行函数
+  ///
+  /// 参数:
+  ///   execute - 执行函数，返回 `Future<T>`
+  ///   onRetry - 重试回调（可选）
+  /// 返回值:
+  ///   执行结果
+  /// 异常:
+  ///   抛出最后一次尝试的异常
+  /// 说明:
+  ///   1. 最大重试次数由maxRetries控制
+  ///   2. 使用指数退避延迟
+  ///   3. 只有可重试的错误才会重试
+  Future<T> _executeWithRetry<T>(
+    Future<T> Function() execute, {
+    void Function(dynamic error, int retryCount, int delayMs)? onRetry,
+  }) async {
+    int attempt = 0;
+    dynamic lastError;
+    int? lastStatusCode;
+
+    while (attempt <= maxRetries) {
+      try {
+        return await execute();
+      } catch (error) {
+        lastError = error;
+
+        // 尝试从错误中提取状态码
+        if (error is http.Response) {
+          lastStatusCode = error.statusCode;
+        } else if (error.toString().contains('statusCode')) {
+          // 尝试从错误信息中提取状态码
+          final match = RegExp(r'statusCode[:\s]*(\d+)').firstMatch(error.toString());
+          if (match != null) {
+            lastStatusCode = int.tryParse(match.group(1)!);
+          }
+        }
+
+        // 检查是否应该重试
+        if (attempt < maxRetries && _isRetryableError(error, lastStatusCode)) {
+          final delayMs = _calculateRetryDelay(attempt);
+          if (onRetry != null) {
+            onRetry(error, attempt + 1, delayMs);
+          }
+          await Future.delayed(Duration(milliseconds: delayMs));
+          attempt++;
+          continue;
+        }
+
+        // 不可重试或已达到最大重试次数
+        rethrow;
+      }
+    }
+
+    // 理论上不会执行到这里
+    throw lastError ?? Exception('未知错误');
   }
 
   /// 检查附件是否支持视觉API（图片、视频、音频）
@@ -480,59 +616,88 @@ class AIService {
           'content': responseText,
         };
       } else {
-        final response = await http.post(
-          Uri.parse('$apiEndpoint/chat/completions'),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $apiKey',
+        return await _executeWithRetry<Map<String, dynamic>>(
+          () async {
+            final client = _createHttpClient();
+            try {
+              final response = await client.post(
+                Uri.parse('$apiEndpoint/chat/completions'),
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': 'Bearer $apiKey',
+                },
+                body: jsonEncode({
+                  'model': model,
+                  'messages': messages,
+                  'max_tokens': maxTokens,
+                  'temperature': temperature,
+                  if (thinkingMode) 'thinking': {'type': 'enabled'},
+                }),
+              ).timeout(connectionTimeout + readTimeout);
+
+              if (response.statusCode == 200) {
+                final data = jsonDecode(response.body);
+                if (data is! Map<String, dynamic> ||
+                    data['choices'] == null ||
+                    (data['choices'] as List).isEmpty) {
+                  throw Exception('API返回了无效的响应格式: ${response.body}');
+                }
+                final choices = data['choices'] as List;
+                final firstChoice = choices[0];
+                if (firstChoice['message'] == null) {
+                  throw Exception('API响应中缺少message字段: ${response.body}');
+                }
+                final message = firstChoice['message'];
+                final reasoningContent =
+                    message['reasoning']?.toString().trim() ??
+                    message['reasoning_content']?.toString().trim() ?? '';
+                final content = message['content']?.toString().trim() ?? '';
+
+                return {
+                  'reasoningContent': reasoningContent,
+                  'content': content,
+                };
+              } else {
+                final errorData = jsonDecode(response.body);
+                if (errorData is! Map<String, dynamic>) {
+                  throw Exception('API错误: 无效的响应格式 (状态码: ${response.statusCode})');
+                }
+                final errorMessage = errorData['error']?['message']?.toString() ??
+                    errorData['message']?.toString() ??
+                    '未知错误';
+                throw Exception('API错误: $errorMessage (状态码: ${response.statusCode})');
+              }
+            } finally {
+              client.close();
+            }
           },
-          body: jsonEncode({
-            'model': model,
-            'messages': messages,
-            'max_tokens': maxTokens,
-            'temperature': temperature,
-            if (thinkingMode) 'thinking': {'type': 'enabled'},
-          }),
+          onRetry: (error, retryCount, delayMs) {
+            // 可以在这里添加日志记录或用户提示
+            debugPrint('OpenAI API请求失败，第$retryCount次重试，延迟${delayMs}ms: $error');
+          },
         );
-
-        if (response.statusCode == 200) {
-          final data = jsonDecode(response.body);
-          if (data is! Map<String, dynamic> ||
-              data['choices'] == null ||
-              (data['choices'] as List).isEmpty) {
-            throw Exception('API返回了无效的响应格式: ${response.body}');
-          }
-          final choices = data['choices'] as List;
-          final firstChoice = choices[0];
-          if (firstChoice['message'] == null) {
-            throw Exception('API响应中缺少message字段: ${response.body}');
-          }
-          final message = firstChoice['message'];
-          final reasoningContent =
-              message['reasoning']?.toString().trim() ??
-              message['reasoning_content']?.toString().trim() ?? '';
-          final content = message['content']?.toString().trim() ?? '';
-
-          return {
-            'reasoningContent': reasoningContent,
-            'content': content,
-          };
-        } else {
-          final errorData = jsonDecode(response.body);
-          if (errorData is! Map<String, dynamic>) {
-            throw Exception('API错误: 无效的响应格式 (状态码: ${response.statusCode})');
-          }
-          final errorMessage = errorData['error']?['message']?.toString() ??
-              errorData['message']?.toString() ??
-              '未知错误';
-          throw Exception('API错误: $errorMessage (状态码: ${response.statusCode})');
-        }
       }
     } catch (e) {
+      // 如果是API错误，直接重新抛出
       if (e.toString().contains('API错误')) {
         rethrow;
       }
-      throw Exception('网络错误: $e');
+
+      // 根据错误类型提供更详细的错误信息
+      final errorMsg = e.toString();
+      if (errorMsg.contains('timeout') || errorMsg.contains('Timeout')) {
+        throw Exception('请求超时：服务器响应时间过长，请检查网络连接或稍后重试。错误详情: $e');
+      } else if (errorMsg.contains('socket') || errorMsg.contains('Socket')) {
+        throw Exception('网络连接失败：无法连接到服务器，请检查网络连接。错误详情: $e');
+      } else if (errorMsg.contains('handshake') || errorMsg.contains('TLS') || errorMsg.contains('SSL')) {
+        throw Exception('安全连接失败：SSL/TLS握手失败，请检查系统时间或网络设置。错误详情: $e');
+      } else if (errorMsg.contains('Connection') || errorMsg.contains('connection')) {
+        throw Exception('连接错误：网络连接出现问题，请检查网络设置。错误详情: $e');
+      } else if (errorMsg.contains('Http') || errorMsg.contains('http')) {
+        throw Exception('HTTP协议错误：请求处理失败，请稍后重试。错误详情: $e');
+      } else {
+        throw Exception('网络通信失败：$e');
+      }
     }
   }
 
@@ -670,9 +835,9 @@ class AIService {
         if (thinkingMode) 'thinking': {'type': 'enabled'},
       });
 
-      final client = http.Client();
+      final client = _createHttpClient();
       try {
-        final streamedResponse = await client.send(request);
+        final streamedResponse = await client.send(request).timeout(streamingTimeout);
 
         if (streamedResponse.statusCode != 200) {
           final errorBody =
@@ -693,7 +858,11 @@ class AIService {
             .transform(utf8.decoder)
             .transform(const LineSplitter());
 
+        final stopwatch = Stopwatch()..start();
         await for (final line in stream) {
+          // 重置超时计时器
+          stopwatch.reset();
+
           if (line.isEmpty) continue;
           if (line.startsWith('data: ')) {
             final data = line.substring(6);
@@ -736,15 +905,36 @@ class AIService {
               // Ignore parsing errors for incomplete JSON
             }
           }
+
+          // 检查流式超时
+          if (stopwatch.elapsed > streamingTimeout) {
+            throw TimeoutException('流式响应超时：超过${streamingTimeout.inSeconds}秒未收到新数据');
+          }
         }
       } finally {
         client.close();
       }
     } catch (e) {
+      // 如果是API错误，直接重新抛出
       if (e.toString().contains('API错误')) {
         rethrow;
       }
-      throw Exception('网络错误: $e');
+
+      // 根据错误类型提供更详细的错误信息
+      final errorMsg = e.toString();
+      if (errorMsg.contains('timeout') || errorMsg.contains('Timeout')) {
+        throw Exception('OpenAI流式请求超时：服务器响应时间过长，请检查网络连接。错误详情: $e');
+      } else if (errorMsg.contains('socket') || errorMsg.contains('Socket')) {
+        throw Exception('OpenAI流式连接失败：无法连接到服务器，请检查网络连接。错误详情: $e');
+      } else if (errorMsg.contains('handshake') || errorMsg.contains('TLS') || errorMsg.contains('SSL')) {
+        throw Exception('OpenAI安全连接失败：SSL/TLS握手失败，请检查系统时间或网络设置。错误详情: $e');
+      } else if (errorMsg.contains('Connection') || errorMsg.contains('connection')) {
+        throw Exception('OpenAI连接错误：网络连接出现问题，请检查网络设置。错误详情: $e');
+      } else if (errorMsg.contains('Http') || errorMsg.contains('http')) {
+        throw Exception('OpenAI HTTP协议错误：请求处理失败，请稍后重试。错误详情: $e');
+      } else {
+        throw Exception('OpenAI流式请求失败：$e');
+      }
     }
   }
 
@@ -776,78 +966,85 @@ class AIService {
     required int maxTokens,
     required List<Map<String, dynamic>> contents,
   }) async {
-    try {
-      final requestBody = {
-        'contents': contents,
-        'generationConfig': {
-          'temperature': temperature,
-          'maxOutputTokens': maxTokens,
+    return await _executeWithRetry<String>(
+      () async {
+        final client = _createHttpClient();
+        try {
+          final requestBody = {
+            'contents': contents,
+            'generationConfig': {
+              'temperature': temperature,
+              'maxOutputTokens': maxTokens,
+            }
+          };
+
+          String url = apiEndpoint;
+
+          if (!url.contains('/models/')) {
+            final modelPath = model.contains('/') ? model : 'models/$model';
+            url = url.endsWith('/')
+                ? '$url$modelPath:generateContent'
+                : '$url/$modelPath:generateContent';
+          } else if (!url.contains(':generateContent')) {
+            url = url.endsWith('/')
+                ? '${url}generateContent'
+                : '$url:generateContent';
+          }
+
+          if (!url.contains('?key=')) {
+            url = '$url?key=$apiKey';
+          }
+
+          final response = await client.post(
+            Uri.parse(url),
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(requestBody),
+          ).timeout(connectionTimeout + readTimeout);
+
+          if (response.statusCode == 200) {
+            final data = jsonDecode(response.body);
+            if (data is! Map<String, dynamic>) {
+              throw Exception('Gemini API返回了无效的响应格式');
+            }
+
+            final candidates = data['candidates'];
+            if (candidates is! List || candidates.isEmpty) {
+              throw Exception('Gemini API响应中缺少candidates字段');
+            }
+
+            final candidate = candidates[0];
+            if (candidate['finishReason'] == 'SAFETY') {
+              throw Exception('响应被安全过滤器阻止');
+            }
+            if (candidate['content'] != null &&
+                candidate['content']['parts'] != null &&
+                candidate['content']['parts'].isNotEmpty) {
+              return candidate['content']['parts'][0]['text'].trim();
+            }
+
+            throw Exception('无效的Gemini API响应格式');
+          } else {
+            final errorData = jsonDecode(response.body);
+            if (errorData is! Map<String, dynamic>) {
+              throw Exception(
+                  'Gemini API错误: 无效的响应格式 (状态码: ${response.statusCode})');
+            }
+            final errorMessage = errorData['error']?['message']?.toString() ??
+                errorData['message']?.toString() ??
+                '未知错误';
+            throw Exception(
+                'Gemini API错误: $errorMessage (状态码: ${response.statusCode})');
+          }
+        } finally {
+          client.close();
         }
-      };
-
-      String url = apiEndpoint;
-
-      if (!url.contains('/models/')) {
-        final modelPath = model.contains('/') ? model : 'models/$model';
-        url = url.endsWith('/')
-            ? '$url$modelPath:generateContent'
-            : '$url/$modelPath:generateContent';
-      } else if (!url.contains(':generateContent')) {
-        url = url.endsWith('/')
-            ? '${url}generateContent'
-            : '$url:generateContent';
-      }
-
-      if (!url.contains('?key=')) {
-        url = '$url?key=$apiKey';
-      }
-
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(requestBody),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data is! Map<String, dynamic>) {
-          throw Exception('Gemini API返回了无效的响应格式');
-        }
-
-        final candidates = data['candidates'];
-        if (candidates is! List || candidates.isEmpty) {
-          throw Exception('Gemini API响应中缺少candidates字段');
-        }
-
-        final candidate = candidates[0];
-        if (candidate['finishReason'] == 'SAFETY') {
-          throw Exception('响应被安全过滤器阻止');
-        }
-        if (candidate['content'] != null &&
-            candidate['content']['parts'] != null &&
-            candidate['content']['parts'].isNotEmpty) {
-          return candidate['content']['parts'][0]['text'].trim();
-        }
-
-        throw Exception('无效的Gemini API响应格式');
-      } else {
-        final errorData = jsonDecode(response.body);
-        if (errorData is! Map<String, dynamic>) {
-          throw Exception(
-              'Gemini API错误: 无效的响应格式 (状态码: ${response.statusCode})');
-        }
-        final errorMessage = errorData['error']?['message']?.toString() ??
-            errorData['message']?.toString() ??
-            '未知错误';
-        throw Exception(
-            'Gemini API错误: $errorMessage (状态码: ${response.statusCode})');
-      }
-    } catch (e) {
-      if (e is Exception) rethrow;
-      throw Exception('Gemini API请求失败: $e');
-    }
+      },
+      onRetry: (error, retryCount, delayMs) {
+        debugPrint('Gemini API请求失败，第$retryCount次重试，延迟${delayMs}ms: $error');
+      },
+    );
   }
 
   /// 发送流式请求到Gemini API
@@ -878,6 +1075,7 @@ class AIService {
     required int maxTokens,
     required List<Map<String, dynamic>> contents,
   }) async* {
+    final client = _createHttpClient();
     try {
       final requestBody = {
         'contents': contents,
@@ -906,76 +1104,97 @@ class AIService {
       request.headers['Accept'] = 'text/event-stream';
       request.body = jsonEncode(requestBody);
 
-      final client = http.Client();
-      try {
-        final streamedResponse = await client.send(request);
+      final streamedResponse = await client.send(request).timeout(streamingTimeout);
 
-        if (streamedResponse.statusCode != 200) {
-          final errorBody =
-              await streamedResponse.stream.transform(utf8.decoder).join();
-          final errorData = jsonDecode(errorBody);
-          if (errorData is! Map<String, dynamic>) {
-            throw Exception(
-                'Gemini API错误: 无效的响应格式 (状态码: ${streamedResponse.statusCode})');
-          }
-          final errorMessage = errorData['error']?['message']?.toString() ??
-              errorData['message']?.toString() ??
-              '未知错误';
+      if (streamedResponse.statusCode != 200) {
+        final errorBody =
+            await streamedResponse.stream.transform(utf8.decoder).join();
+        final errorData = jsonDecode(errorBody);
+        if (errorData is! Map<String, dynamic>) {
           throw Exception(
-              'Gemini API错误: $errorMessage (状态码: ${streamedResponse.statusCode})');
+              'Gemini API错误: 无效的响应格式 (状态码: ${streamedResponse.statusCode})');
         }
+        final errorMessage = errorData['error']?['message']?.toString() ??
+            errorData['message']?.toString() ??
+            '未知错误';
+        throw Exception(
+            'Gemini API错误: $errorMessage (状态码: ${streamedResponse.statusCode})');
+      }
 
-        final stream = streamedResponse.stream
-            .transform(utf8.decoder)
-            .transform(const LineSplitter());
+      final stream = streamedResponse.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter());
 
-        await for (final line in stream) {
-          if (line.isEmpty) continue;
-          if (line.startsWith('data: ')) {
-            final data = line.substring(6);
-            if (data == '[DONE]') {
-              break;
+      final stopwatch = Stopwatch()..start();
+      await for (final line in stream) {
+        // 重置超时计时器
+        stopwatch.reset();
+
+        if (line.isEmpty) continue;
+        if (line.startsWith('data: ')) {
+          final data = line.substring(6);
+          if (data == '[DONE]') {
+            break;
+          }
+          try {
+            final jsonData = jsonDecode(data);
+            if (jsonData is! Map<String, dynamic>) {
+              continue;
             }
-            try {
-              final jsonData = jsonDecode(data);
-              if (jsonData is! Map<String, dynamic>) {
-                continue;
-              }
-              final candidates = jsonData['candidates'];
-              if (candidates is! List || candidates.isEmpty) {
-                continue;
-              }
-              final candidate = candidates[0];
-              if (candidate is! Map<String, dynamic>) {
-                continue;
-              }
-              final content = candidate['content'];
-              if (content is! Map<String, dynamic>) {
-                continue;
-              }
-              final parts = content['parts'];
-              if (parts is! List || parts.isEmpty) {
-                continue;
-              }
-              final firstPart = parts[0];
-              if (firstPart is! Map<String, dynamic>) {
-                continue;
-              }
-              final text = firstPart['text'] as String?;
-              if (text != null && text.isNotEmpty) {
-                yield {'type': 'answer', 'content': text};
-              }
-            } catch (e) {
-              // 忽略解析错误
+            final candidates = jsonData['candidates'];
+            if (candidates is! List || candidates.isEmpty) {
+              continue;
             }
+            final candidate = candidates[0];
+            if (candidate is! Map<String, dynamic>) {
+              continue;
+            }
+            final content = candidate['content'];
+            if (content is! Map<String, dynamic>) {
+              continue;
+            }
+            final parts = content['parts'];
+            if (parts is! List || parts.isEmpty) {
+              continue;
+            }
+            final firstPart = parts[0];
+            if (firstPart is! Map<String, dynamic>) {
+              continue;
+            }
+            final text = firstPart['text'] as String?;
+            if (text != null && text.isNotEmpty) {
+              yield {'type': 'answer', 'content': text};
+            }
+          } catch (e) {
+            // 忽略解析错误
           }
         }
-      } finally {
-        client.close();
+
+        // 检查流式超时
+        if (stopwatch.elapsed > streamingTimeout) {
+          throw TimeoutException('Gemini流式响应超时：超过${streamingTimeout.inSeconds}秒未收到新数据');
+        }
       }
     } catch (e) {
-      if (e is Exception) rethrow;
-      throw Exception('Gemini API流式请求失败: $e');
+      // 改进错误处理
+      final errorMsg = e.toString();
+      if (errorMsg.contains('timeout') || errorMsg.contains('Timeout')) {
+        throw Exception('Gemini流式请求超时：服务器响应时间过长，请检查网络连接。错误详情: $e');
+      } else if (errorMsg.contains('socket') || errorMsg.contains('Socket')) {
+        throw Exception('Gemini流式连接失败：无法连接到服务器，请检查网络连接。错误详情: $e');
+      } else if (errorMsg.contains('handshake') || errorMsg.contains('TLS') || errorMsg.contains('SSL')) {
+        throw Exception('Gemini安全连接失败：SSL/TLS握手失败，请检查系统时间或网络设置。错误详情: $e');
+      } else if (errorMsg.contains('Connection') || errorMsg.contains('connection')) {
+        throw Exception('Gemini连接错误：网络连接出现问题，请检查网络设置。错误详情: $e');
+      } else if (errorMsg.contains('Http') || errorMsg.contains('http')) {
+        throw Exception('Gemini HTTP协议错误：请求处理失败，请稍后重试。错误详情: $e');
+      } else if (e is Exception) {
+        rethrow;
+      } else {
+        throw Exception('Gemini API流式请求失败: $e');
+      }
+    } finally {
+      client.close();
     }
   }
 
