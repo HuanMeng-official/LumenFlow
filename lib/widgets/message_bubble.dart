@@ -251,7 +251,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
                   color: widget.message.isUser
-                      ? CupertinoColors.systemBlue
+                      ? CupertinoColors.systemBlue.withOpacity(0.85)
                       : (widget.message.status == MessageStatus.error
                           ? CupertinoColors.systemRed.withOpacity(0.1)
                           : (brightness == Brightness.dark
