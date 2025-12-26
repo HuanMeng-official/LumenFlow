@@ -25,6 +25,9 @@ LumenFlow（中文名：流光）是一款使用 Flutter 构建的现代化 AI �
 - **跨平台**: 支持 Android 和 Windows 平台
 - **本地存储**: 使用 SharedPreferences 实现数据持久化
 - **Markdown渲染**: 美观格式化的 AI 响应
+- **关于页面**: 显示应用信息、版本和版权详情
+- **设置导出/导入**: 通过 JSON 文件备份和恢复应用设置
+- **角色扮演系统**: 基于文件的预设提示词系统，支持自动内容加载
 - **PowerShell构建脚本**: 自动构建 Android 和 Windows 应用的脚本
 
 ## 项目结构
@@ -42,14 +45,17 @@ lib/
 │   ├── chat_screen.dart      # 主聊天界面
 │   ├── conversation_list_screen.dart  # 对话历史记录
 │   ├── settings_screen.dart  # 应用设置
-│   └── user_profile_screen.dart  # 用户配置管理
+│   ├── user_profile_screen.dart  # 用户配置管理
+│   ├── about_screen.dart     # 关于页面，显示应用信息
+│   └── image_preview_screen.dart  # 图片预览和查看
 ├── services/                 # 业务逻辑和 API 集成
 │   ├── ai_service.dart       # AI 服务（OpenAI 和 Gemini 集成）
 │   ├── conversation_service.dart  # 对话管理
 │   ├── settings_service.dart # 设置管理
 │   ├── user_service.dart     # 用户配置管理
 │   ├── file_service.dart     # 文件处理和操作
-│   └── prompt_service.dart   # 预设提示词管理
+│   ├── prompt_service.dart   # 预设提示词管理
+│   └── version_service.dart  # 版本信息管理
 ├── utils/                    # 工具类
 │   └── app_theme.dart        # 应用主题管理
 └── widgets/                  # 可重用 UI 组件
@@ -173,6 +179,32 @@ LumenFlow 包含一个基于文件的高级角色扮演系统。预设配置在 
    <example_dialogue>TEXT</example_dialogue>
 </system_instruction>
 ```
+
+## 设置管理
+
+LumenFlow 提供设置导出和导入功能，用于备份和恢复应用配置。
+
+### 导出设置
+1. 导航到设置界面
+2. 滚动到"数据管理"部分
+3. 点击"导出设置"
+4. 选择保存 JSON 文件的位置
+5. 您的设置（包括 API 密钥、偏好设置和用户配置）将被保存
+
+### 导入设置
+1. 导航到设置界面
+2. 滚动到"数据管理"部分
+3. 点击"导入设置"
+4. 选择之前导出的 JSON 文件
+5. 确认从文件恢复设置
+
+### 恢复默认设置
+1. 导航到设置界面
+2. 滚动到"数据管理"部分
+3. 点击"恢复默认设置"
+4. 确认将所有设置重置为默认值
+
+**注意**：API 密钥和敏感信息包含在导出的文件中。请妥善保管这些文件。
 
 ## 构建
 

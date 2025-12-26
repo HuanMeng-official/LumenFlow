@@ -25,6 +25,9 @@ LumenFlow (Chinese: 流光) is a modern AI chat application built with Flutter t
 - **Cross-Platform**: Supports Android and Windows platforms
 - **Local Storage**: Data persistence using SharedPreferences
 - **Markdown Rendering**: Beautifully formatted AI responses
+- **About Page**: Displays application information, version, and copyright details
+- **Settings Export/Import**: Backup and restore application settings via JSON files
+- **Role-Play System**: File-based prompt preset system with automatic content loading
 - **PowerShell Build Script**: Automated build process for both Android and Windows
 
 ## Project Structure
@@ -42,14 +45,17 @@ lib/
 │   ├── chat_screen.dart      # Main chat interface
 │   ├── conversation_list_screen.dart  # Conversation history
 │   ├── settings_screen.dart  # Application settings
-│   └── user_profile_screen.dart  # User profile management
+│   ├── user_profile_screen.dart  # User profile management
+│   ├── about_screen.dart     # About page with app information
+│   └── image_preview_screen.dart  # Image preview and viewing
 ├── services/                 # Business logic and API integration
 │   ├── ai_service.dart       # AI service (OpenAI & Gemini integration)
 │   ├── conversation_service.dart  # Conversation management
 │   ├── settings_service.dart # Settings management
 │   ├── user_service.dart     # User profile management
 │   ├── file_service.dart     # File handling and processing
-│   └── prompt_service.dart   # Prompt preset management
+│   ├── prompt_service.dart   # Prompt preset management
+│   └── version_service.dart  # Version information management
 ├── utils/                    # Utility classes
 │   └── app_theme.dart        # Application theme management
 └── widgets/                  # Reusable UI components
@@ -174,6 +180,32 @@ LumenFlow includes an advanced role-playing system with file-based prompt preset
    <example_dialogue>TEXT</example_dialogue>
 </system_instruction>
 ```
+
+## Settings Management
+
+LumenFlow provides settings export and import functionality to backup and restore your application configuration.
+
+### Exporting Settings
+1. Navigate to the Settings screen
+2. Scroll to the "Data Management" section
+3. Tap "Export Settings"
+4. Choose a location to save the JSON file
+5. Your settings (including API keys, preferences, and user profile) will be saved
+
+### Importing Settings
+1. Navigate to the Settings screen
+2. Scroll to the "Data Management" section
+3. Tap "Import Settings"
+4. Select a previously exported JSON file
+5. Confirm to restore settings from the file
+
+### Resetting to Default
+1. Navigate to the Settings screen
+2. Scroll to the "Data Management" section
+3. Tap "Restore Default Settings"
+4. Confirm to reset all settings to default values
+
+**Note**: API keys and sensitive information are included in exported files. Keep these files secure.
 
 ## Building
 
