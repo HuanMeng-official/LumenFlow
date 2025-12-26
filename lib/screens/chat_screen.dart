@@ -113,13 +113,42 @@ class _ChatScreenState extends State<ChatScreen> {
       final conversation =
           await _conversationService.getConversationById(currentConversationId);
       if (conversation != null) {
+        // 清理不完整的消息：将状态为sending的AI消息标记为error
+        final processedMessages = <Message>[];
+        for (final message in conversation.messages) {
+          if (!message.isUser && message.status == MessageStatus.sending) {
+            // 如果AI消息处于sending状态，说明上次会话可能异常中断
+            // 如果消息内容为空，完全删除该消息；否则标记为error并保留已有内容
+            if (message.content.isEmpty) {
+              // 内容为空，完全删除
+              continue;
+            } else {
+              // 有部分内容，标记为error并添加提示
+              processedMessages.add(message.copyWith(
+                status: MessageStatus.error,
+                content: '${message.content}\n\n[响应中断，应用可能意外退出]',
+              ));
+            }
+          } else {
+            processedMessages.add(message);
+          }
+        }
+
         setState(() {
           _currentConversation = conversation;
           _messages.clear();
-          _messages.addAll(conversation.messages);
+          _messages.addAll(processedMessages);
           _currentTitle = conversation.title;
           _autoTitleGenerated = false; // 重置标题生成标志
         });
+
+        // 保存处理后的对话，确保状态更新持久化
+        if (processedMessages.length != conversation.messages.length) {
+          await _conversationService.updateConversation(
+            conversation.copyWith(messages: processedMessages),
+          );
+        }
+
         _scrollToBottom();
         return;
       }
@@ -385,6 +414,10 @@ class _ChatScreenState extends State<ChatScreen> {
           );
         });
         _scrollToBottom();
+        // 流式输出过程中实时保存对话，防止应用崩溃时消息丢失
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _saveCurrentConversation();
+        });
       }
 
       // 如果没有收到任何chunk，显示错误
