@@ -294,6 +294,7 @@ class DeepSeekProvider extends AIProvider {
   }
 
   /// 构建消息内容（处理附件）
+  /// DeepSeek 不支持图片、视频、音频等多媒体文件
   Future<dynamic> _buildMessageContent(
       String message, List<Attachment> attachments) async {
     if (attachments.isEmpty) {
@@ -325,52 +326,38 @@ class DeepSeekProvider extends AIProvider {
         final fileSize = attachment.fileSize ??
             await _fileService.getFileSize(attachment.filePath!);
 
-        if (fileSize > AIProvider.maxFileSizeForBase64) {
+        // 检查是否为多媒体文件（图片、视频、音频）
+        if (isVisionSupportedFile(attachment) ||
+            _isMediaFile(attachment)) {
           contentParts.add({
             'type': 'text',
-            'text':
-                '文件 ${attachment.fileName} (${formatFileSize(fileSize)}) 过大，无法处理'
+            'text': '附件: ${attachment.fileName} (${formatFileSize(fileSize)}, ${attachment.mimeType ?? '未知类型'})\n提示: DeepSeek 不支持处理图片、视频、音频等多媒体文件'
           });
           continue;
         }
 
-        if (isVisionSupportedFile(attachment)) {
+        // 处理文本文件
+        if (fileSize <= AIProvider.maxFileSizeForTextExtraction) {
           try {
-            final dataUrl =
-                await _fileService.getFileDataUrl(file, attachment.mimeType);
+            final content = await _fileService.readTextFile(file);
             contentParts.add({
-              'type': 'image_url',
-              'image_url': {'url': dataUrl}
+              'type': 'text',
+              'text':
+                  '文件: ${attachment.fileName} (${formatFileSize(fileSize)})\n内容:\n$content'
             });
           } catch (e) {
             contentParts.add({
               'type': 'text',
-              'text': '处理文件 ${attachment.fileName} 时出错: $e'
+              'text':
+                  '附件: ${attachment.fileName} (${formatFileSize(fileSize)}, ${attachment.mimeType ?? '未知类型'}) - 无法读取内容'
             });
           }
         } else {
-          if (fileSize <= AIProvider.maxFileSizeForTextExtraction) {
-            try {
-              final content = await _fileService.readTextFile(file);
-              contentParts.add({
-                'type': 'text',
-                'text':
-                    '文件: ${attachment.fileName} (${formatFileSize(fileSize)})\n内容:\n$content'
-              });
-            } catch (e) {
-              contentParts.add({
-                'type': 'text',
-                'text':
-                    '附件: ${attachment.fileName} (${formatFileSize(fileSize)}, ${attachment.mimeType ?? '未知类型'}) - 无法读取内容'
-              });
-            }
-          } else {
-            contentParts.add({
-              'type': 'text',
-              'text':
-                  '附件: ${attachment.fileName} (${formatFileSize(fileSize)}, ${attachment.mimeType ?? '未知类型'})'
-            });
-          }
+          contentParts.add({
+            'type': 'text',
+            'text':
+                '附件: ${attachment.fileName} (${formatFileSize(fileSize)}, ${attachment.mimeType ?? '未知类型'})'
+          });
         }
       } catch (e) {
         contentParts.add(
@@ -383,6 +370,21 @@ class DeepSeekProvider extends AIProvider {
     }
 
     return contentParts;
+  }
+
+  /// 判断是否为多媒体文件（视频、音频）
+  bool _isMediaFile(Attachment attachment) {
+    final mimeType = attachment.mimeType?.toLowerCase() ?? '';
+    final fileName = attachment.fileName.toLowerCase();
+
+    // 视频文件类型
+    const videoTypes = ['video/', 'mp4', 'avi', 'mov', 'mkv', 'wmv', 'flv', 'webm'];
+
+    // 音频文件类型
+    const audioTypes = ['audio/', 'mp3', 'wav', 'flac', 'aac', 'ogg', 'wma', 'm4a'];
+
+    return videoTypes.any((type) => mimeType.startsWith(type) || fileName.endsWith(type)) ||
+           audioTypes.any((type) => mimeType.startsWith(type) || fileName.endsWith(type));
   }
 
   /// 解析响应
