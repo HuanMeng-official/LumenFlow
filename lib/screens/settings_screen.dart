@@ -263,6 +263,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Future<void> _exportSettings() async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final settings = await _settingsService.exportSettingsToJson();
       if (settings.isEmpty) {
@@ -281,18 +282,18 @@ class _SettingsScreenState extends State<SettingsScreen>
 
       // 优先尝试保存到下载目录
       Directory? targetDir = await getDownloadsDirectory();
-      String locationName = '下载目录';
+      String locationName = l10n.downloadDirectory;
 
       // 如果下载目录不可用，尝试外部存储目录
       if (targetDir == null) {
         targetDir = await getExternalStorageDirectory();
-        locationName = '外部存储目录';
+        locationName = l10n.externalStorageDirectory;
       }
 
       // 如果外部存储目录也不可用，使用应用文档目录
       if (targetDir == null) {
         targetDir = await getApplicationDocumentsDirectory();
-        locationName = '应用文档目录';
+        locationName = l10n.appDocumentsDirectory;
       }
 
       // 确保目录存在
@@ -308,7 +309,6 @@ class _SettingsScreenState extends State<SettingsScreen>
       await targetFile.writeAsBytes(bytes);
 
       if (mounted) {
-        final l10n = AppLocalizations.of(context)!;
         showCupertinoDialog(
           context: context,
           builder: (context) => CupertinoAlertDialog(
@@ -325,7 +325,6 @@ class _SettingsScreenState extends State<SettingsScreen>
       }
     } catch (e) {
       if (mounted) {
-        final l10n = AppLocalizations.of(context)!;
         showCupertinoDialog(
           context: context,
           builder: (context) => CupertinoAlertDialog(

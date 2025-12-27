@@ -988,6 +988,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View reasoning process'**
   String get expandChain;
+
+  /// No description provided for @downloadDirectory.
+  ///
+  /// In en, this message translates to:
+  /// **'Download Directory'**
+  String get downloadDirectory;
+
+  /// No description provided for @externalStorageDirectory.
+  ///
+  /// In en, this message translates to:
+  /// **'External Storage Directory'**
+  String get externalStorageDirectory;
+
+  /// No description provided for @appDocumentsDirectory.
+  ///
+  /// In en, this message translates to:
+  /// **'App Documents Directory'**
+  String get appDocumentsDirectory;
+
+  /// No description provided for @imagePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Image Preview'**
+  String get imagePreview;
+
+  /// No description provided for @unableToLoadImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load image'**
+  String get unableToLoadImage;
+
+  /// No description provided for @errorPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get errorPrefix;
+
+  /// No description provided for @fileTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'File Too Large'**
+  String get fileTooLarge;
+
+  /// No description provided for @fileTooLargeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Total size of selected files {size} exceeds {limit} limit. Please select smaller files.'**
+  String fileTooLargeMessage(String size, String limit);
+
+  /// No description provided for @fileTooLargeWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'File Too Large Warning'**
+  String get fileTooLargeWarning;
+
+  /// No description provided for @fileTooLargeWarningMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The following files exceed {limit} limit and may not be processed correctly:\n\n{files}\n\nContinue uploading?'**
+  String fileTooLargeWarningMessage(String limit, String files);
+
+  /// No description provided for @noValidFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'No Valid Files'**
+  String get noValidFiles;
+
+  /// No description provided for @noValidFilesMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No files were successfully processed. Please try again.'**
+  String get noValidFilesMessage;
+
+  /// No description provided for @selectFileFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Select File Failed'**
+  String get selectFileFailed;
+
+  /// No description provided for @selectFileFailedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String selectFileFailedMessage(String error);
+
+  /// No description provided for @user.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get user;
+
+  /// No description provided for @ai.
+  ///
+  /// In en, this message translates to:
+  /// **'AI'**
+  String get ai;
+
+  /// No description provided for @unknownError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown error'**
+  String get unknownError;
+
+  /// No description provided for @attachmentInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachment: {fileName} ({fileSize}, {mimeType})'**
+  String attachmentInfo(String fileName, String fileSize, String mimeType);
+
+  /// No description provided for @attachmentCannotRead.
+  ///
+  /// In en, this message translates to:
+  /// **' - Cannot read content'**
+  String get attachmentCannotRead;
+
+  /// No description provided for @unknownMimeType.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown type'**
+  String get unknownMimeType;
+
+  /// No description provided for @multimediaNotSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'\nNote: DeepSeek does not support processing multimedia files such as images, videos, and audio'**
+  String get multimediaNotSupported;
+
+  /// No description provided for @responseBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Response blocked by safety filter'**
+  String get responseBlocked;
+
+  /// No description provided for @apiError.
+  ///
+  /// In en, this message translates to:
+  /// **'API Error: {message} (Status code: {statusCode})'**
+  String apiError(String message, int statusCode);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

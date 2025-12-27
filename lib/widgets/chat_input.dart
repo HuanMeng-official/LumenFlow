@@ -267,16 +267,22 @@ class _ChatInputState extends State<ChatInput> {
         }
 
         if (totalSize > AIService.maxTotalAttachmentsSize) {
-          _showErrorDialog('文件过大',
-              '选择的文件总大小${_formatFileSize(totalSize)}超过${_formatFileSize(AIService.maxTotalAttachmentsSize)}限制。请选择较小的文件。');
+          final l10n = AppLocalizations.of(context);
+          if (l10n != null) {
+            _showErrorDialog(l10n.fileTooLarge,
+                l10n.fileTooLargeMessage(_formatFileSize(totalSize), _formatFileSize(AIService.maxTotalAttachmentsSize)));
+          }
           return;
         }
 
         if (oversizedFiles.isNotEmpty) {
-          final proceed = await _showWarningDialog('文件过大警告',
-              '以下文件超过${_formatFileSize(AIService.maxFileSizeForBase64)}限制，可能无法正确处理：\n\n${oversizedFiles.join('\n')}\n\n是否继续上传？');
-          if (!proceed) {
-            return;
+          final l10n = AppLocalizations.of(context);
+          if (l10n != null) {
+            final proceed = await _showWarningDialog(l10n.fileTooLargeWarning,
+                l10n.fileTooLargeWarningMessage(_formatFileSize(AIService.maxFileSizeForBase64), oversizedFiles.join('\n')));
+            if (!proceed) {
+              return;
+            }
           }
         }
 
@@ -305,13 +311,19 @@ class _ChatInputState extends State<ChatInput> {
             widget.onAttachmentsSelected!(attachments);
           }
         } else {
-          _showErrorDialog('无有效文件', '没有成功处理任何文件，请重试。');
+          final l10n = AppLocalizations.of(context);
+          if (l10n != null) {
+            _showErrorDialog(l10n.noValidFiles, l10n.noValidFilesMessage);
+          }
         }
       }
     } catch (e) {
       debugPrint('Error picking file: $e');
-      _showErrorDialog(
-          '选择文件失败', '错误：${e.toString().replaceAll('Exception: ', '')}');
+      final l10n = AppLocalizations.of(context);
+      if (l10n != null) {
+        _showErrorDialog(
+            l10n.selectFileFailed, l10n.selectFileFailedMessage(e.toString().replaceAll('Exception: ', '')));
+      }
     }
   }
 

@@ -470,4 +470,83 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get expandChain => 'View reasoning process';
+
+  @override
+  String get downloadDirectory => 'Download Directory';
+
+  @override
+  String get externalStorageDirectory => 'External Storage Directory';
+
+  @override
+  String get appDocumentsDirectory => 'App Documents Directory';
+
+  @override
+  String get imagePreview => 'Image Preview';
+
+  @override
+  String get unableToLoadImage => 'Unable to load image';
+
+  @override
+  String get errorPrefix => 'Error';
+
+  @override
+  String get fileTooLarge => 'File Too Large';
+
+  @override
+  String fileTooLargeMessage(String size, String limit) {
+    return 'Total size of selected files $size exceeds $limit limit. Please select smaller files.';
+  }
+
+  @override
+  String get fileTooLargeWarning => 'File Too Large Warning';
+
+  @override
+  String fileTooLargeWarningMessage(String limit, String files) {
+    return 'The following files exceed $limit limit and may not be processed correctly:\n\n$files\n\nContinue uploading?';
+  }
+
+  @override
+  String get noValidFiles => 'No Valid Files';
+
+  @override
+  String get noValidFilesMessage => 'No files were successfully processed. Please try again.';
+
+  @override
+  String get selectFileFailed => 'Select File Failed';
+
+  @override
+  String selectFileFailedMessage(String error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get user => 'User';
+
+  @override
+  String get ai => 'AI';
+
+  @override
+  String get unknownError => 'Unknown error';
+
+  @override
+  String attachmentInfo(String fileName, String fileSize, String mimeType) {
+    return 'Attachment: $fileName ($fileSize, $mimeType)';
+  }
+
+  @override
+  String get attachmentCannotRead => ' - Cannot read content';
+
+  @override
+  String get unknownMimeType => 'Unknown type';
+
+  @override
+  String get multimediaNotSupported => '\nNote: DeepSeek does not support processing multimedia files such as images, videos, and audio';
+
+  @override
+  String get responseBlocked => 'Response blocked by safety filter';
+
+  @override
+  String apiError(String message, int statusCode) {
+    return 'API Error: $message (Status code: $statusCode)';
+  }
 }

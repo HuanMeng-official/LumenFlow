@@ -318,6 +318,7 @@ class _ChatScreenState extends State<ChatScreen> {
   ///   8. 保存对话到本地存储
   Future<void> _sendMessage(String content,
       {List<Attachment> attachments = const []}) async {
+    final l10n = AppLocalizations.of(context)!;
     if (content.trim().isEmpty && attachments.isEmpty) return;
 
     if (!_isConfigured) {
@@ -452,7 +453,7 @@ class _ChatScreenState extends State<ChatScreen> {
       setState(() {
         _messages[aiMessageIndex] = Message(
           id: aiMessageId,
-          content: '错误: ${e.toString().replaceAll('Exception: ', '')}',
+          content: '${l10n.errorPrefix}: ${e.toString().replaceAll('Exception: ', '')}',
           reasoningContent: null,
           isUser: false,
           timestamp: _messages[aiMessageIndex].timestamp,

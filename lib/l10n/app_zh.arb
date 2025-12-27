@@ -207,5 +207,78 @@
   "interfaceLanguage": "界面语言",
   "selectInterfaceLanguage": "选择应用界面语言",
   "thinkChain": "思考链",
-  "expandChain": "查看推理过程"
+  "expandChain": "查看推理过程",
+  "downloadDirectory": "下载目录",
+  "externalStorageDirectory": "外部存储目录",
+  "appDocumentsDirectory": "应用文档目录",
+  "imagePreview": "图片预览",
+  "unableToLoadImage": "无法加载图片",
+  "errorPrefix": "错误",
+  "fileTooLarge": "文件过大",
+  "fileTooLargeMessage": "选择的文件总大小{size}超过{limit}限制。请选择较小的文件。",
+  "@fileTooLargeMessage": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "fileTooLargeWarning": "文件过大警告",
+  "fileTooLargeWarningMessage": "以下文件超过{limit}限制，可能无法正确处理：\n\n{files}\n\n是否继续上传？",
+  "@fileTooLargeWarningMessage": {
+    "placeholders": {
+      "limit": {
+        "type": "String"
+      },
+      "files": {
+        "type": "String"
+      }
+    }
+  },
+  "noValidFiles": "无有效文件",
+  "noValidFilesMessage": "没有成功处理任何文件，请重试。",
+  "selectFileFailed": "选择文件失败",
+  "selectFileFailedMessage": "错误：{error}",
+  "@selectFileFailedMessage": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "user": "用户",
+  "ai": "AI",
+  "unknownError": "未知错误",
+  "attachmentInfo": "附件: {fileName} ({fileSize}, {mimeType})",
+  "@attachmentInfo": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      },
+      "mimeType": {
+        "type": "String"
+      }
+    }
+  },
+  "attachmentCannotRead": " - 无法读取内容",
+  "unknownMimeType": "未知类型",
+  "multimediaNotSupported": "\n提示: DeepSeek 不支持处理图片、视频、音频等多媒体文件",
+  "responseBlocked": "响应被安全过滤器阻止",
+  "apiError": "API错误: {message} (状态码: {statusCode})",
+  "@apiError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
+import '../l10n/app_localizations.dart';
 
 class ImagePreviewScreen extends StatelessWidget {
   final String imagePath;
@@ -8,6 +9,7 @@ class ImagePreviewScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final brightness = CupertinoTheme.of(context).brightness;
 
     return CupertinoPageScaffold(
@@ -17,7 +19,7 @@ class ImagePreviewScreen extends StatelessWidget {
               : CupertinoColors.systemBackground.color.withAlpha(230),
           border: null,
           middle: Text(
-            '图片预览',
+            l10n.imagePreview,
             style: TextStyle(
               color: CupertinoTheme.of(context).textTheme.textStyle.color,
             ),
@@ -55,7 +57,7 @@ class ImagePreviewScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              '无法加载图片',
+                              l10n.unableToLoadImage,
                               style: TextStyle(
                                 fontSize: 16,
                                 color: CupertinoTheme.of(context)

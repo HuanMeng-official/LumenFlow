@@ -470,4 +470,83 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get expandChain => '查看推理过程';
+
+  @override
+  String get downloadDirectory => '下载目录';
+
+  @override
+  String get externalStorageDirectory => '外部存储目录';
+
+  @override
+  String get appDocumentsDirectory => '应用文档目录';
+
+  @override
+  String get imagePreview => '图片预览';
+
+  @override
+  String get unableToLoadImage => '无法加载图片';
+
+  @override
+  String get errorPrefix => '错误';
+
+  @override
+  String get fileTooLarge => '文件过大';
+
+  @override
+  String fileTooLargeMessage(String size, String limit) {
+    return '选择的文件总大小$size超过$limit限制。请选择较小的文件。';
+  }
+
+  @override
+  String get fileTooLargeWarning => '文件过大警告';
+
+  @override
+  String fileTooLargeWarningMessage(String limit, String files) {
+    return '以下文件超过$limit限制，可能无法正确处理：\n\n$files\n\n是否继续上传？';
+  }
+
+  @override
+  String get noValidFiles => '无有效文件';
+
+  @override
+  String get noValidFilesMessage => '没有成功处理任何文件，请重试。';
+
+  @override
+  String get selectFileFailed => '选择文件失败';
+
+  @override
+  String selectFileFailedMessage(String error) {
+    return '错误：$error';
+  }
+
+  @override
+  String get user => '用户';
+
+  @override
+  String get ai => 'AI';
+
+  @override
+  String get unknownError => '未知错误';
+
+  @override
+  String attachmentInfo(String fileName, String fileSize, String mimeType) {
+    return '附件: $fileName ($fileSize, $mimeType)';
+  }
+
+  @override
+  String get attachmentCannotRead => ' - 无法读取内容';
+
+  @override
+  String get unknownMimeType => '未知类型';
+
+  @override
+  String get multimediaNotSupported => '\n提示: DeepSeek 不支持处理图片、视频、音频等多媒体文件';
+
+  @override
+  String get responseBlocked => '响应被安全过滤器阻止';
+
+  @override
+  String apiError(String message, int statusCode) {
+    return 'API错误: $message (状态码: $statusCode)';
+  }
 }

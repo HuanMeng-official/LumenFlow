@@ -207,5 +207,78 @@
   "interfaceLanguage": "Interface Language",
   "selectInterfaceLanguage": "Select app interface language",
   "thinkChain": "Chain of Thinking",
-  "expandChain": "View reasoning process"
+  "expandChain": "View reasoning process",
+  "downloadDirectory": "Download Directory",
+  "externalStorageDirectory": "External Storage Directory",
+  "appDocumentsDirectory": "App Documents Directory",
+  "imagePreview": "Image Preview",
+  "unableToLoadImage": "Unable to load image",
+  "errorPrefix": "Error",
+  "fileTooLarge": "File Too Large",
+  "fileTooLargeMessage": "Total size of selected files {size} exceeds {limit} limit. Please select smaller files.",
+  "@fileTooLargeMessage": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "fileTooLargeWarning": "File Too Large Warning",
+  "fileTooLargeWarningMessage": "The following files exceed {limit} limit and may not be processed correctly:\n\n{files}\n\nContinue uploading?",
+  "@fileTooLargeWarningMessage": {
+    "placeholders": {
+      "limit": {
+        "type": "String"
+      },
+      "files": {
+        "type": "String"
+      }
+    }
+  },
+  "noValidFiles": "No Valid Files",
+  "noValidFilesMessage": "No files were successfully processed. Please try again.",
+  "selectFileFailed": "Select File Failed",
+  "selectFileFailedMessage": "Error: {error}",
+  "@selectFileFailedMessage": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "user": "User",
+  "ai": "AI",
+  "unknownError": "Unknown error",
+  "attachmentInfo": "Attachment: {fileName} ({fileSize}, {mimeType})",
+  "@attachmentInfo": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      },
+      "mimeType": {
+        "type": "String"
+      }
+    }
+  },
+  "attachmentCannotRead": " - Cannot read content",
+  "unknownMimeType": "Unknown type",
+  "multimediaNotSupported": "\nNote: DeepSeek does not support processing multimedia files such as images, videos, and audio",
+  "responseBlocked": "Response blocked by safety filter",
+  "apiError": "API Error: {message} (Status code: {statusCode})",
+  "@apiError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  }
 }
