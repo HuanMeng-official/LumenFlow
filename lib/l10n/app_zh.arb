@@ -205,5 +205,7 @@
   "rolePlay": "角色扮演",
   "language": "语言",
   "interfaceLanguage": "界面语言",
-  "selectInterfaceLanguage": "选择应用界面语言"
+  "selectInterfaceLanguage": "选择应用界面语言",
+  "thinkChain": "思考链",
+  "expandChain": "查看推理过程"
 }

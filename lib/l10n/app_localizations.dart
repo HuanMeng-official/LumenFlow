@@ -976,6 +976,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select app interface language'**
   String get selectInterfaceLanguage;
+
+  /// No description provided for @thinkChain.
+  ///
+  /// In en, this message translates to:
+  /// **'Chain of Thinking'**
+  String get thinkChain;
+
+  /// No description provided for @expandChain.
+  ///
+  /// In en, this message translates to:
+  /// **'View reasoning process'**
+  String get expandChain;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

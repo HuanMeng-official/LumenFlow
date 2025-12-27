@@ -464,4 +464,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get selectInterfaceLanguage => '选择应用界面语言';
+
+  @override
+  String get thinkChain => '思考链';
+
+  @override
+  String get expandChain => '查看推理过程';
 }

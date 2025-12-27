@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import '../l10n/app_localizations.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
 import '../models/user_profile.dart';
@@ -200,6 +201,7 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final Brightness brightness = CupertinoTheme.of(context).brightness!;
 
     // 根据消息类型和主题确定选择颜色
@@ -333,7 +335,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          '思考链',
+                                          l10n.thinkChain,
                                           style: TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.w600,
@@ -345,7 +347,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                                         ),
                                         const SizedBox(height: 1),
                                         Text(
-                                          '查看推理过程',
+                                          l10n.expandChain,
                                           style: TextStyle(
                                             fontSize: 12,
                                             fontWeight: FontWeight.w400,

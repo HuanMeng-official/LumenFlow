@@ -205,5 +205,7 @@
   "rolePlay": "Role Play",
   "language": "Language",
   "interfaceLanguage": "Interface Language",
-  "selectInterfaceLanguage": "Select app interface language"
+  "selectInterfaceLanguage": "Select app interface language",
+  "thinkChain": "Chain of Thinking",
+  "expandChain": "View reasoning process"
 }
