@@ -16,7 +16,7 @@ import 'about_screen.dart';
 /// - 调整温度、最大token数等生成参数
 /// - 管理对话历史设置
 /// - 设置自定义系统提示词
-/// - 切换API类型（OpenAI/Gemini）
+/// - 切换API类型（OpenAI/Gemini/DeepSeek）
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -30,7 +30,7 @@ class SettingsScreen extends StatefulWidget {
 /// - 多个TextEditingController用于输入框控制
 /// - 温度、启用历史等设置值
 /// - 加载状态、保存状态、API密钥显示状态
-/// - API类型（OpenAI/Gemini）
+/// - API类型（OpenAI/Gemini/DeepSeek）
 ///
 /// 生命周期:
 /// - initState: 初始化时加载现有设置
@@ -139,6 +139,9 @@ class _SettingsScreenState extends State<SettingsScreen>
         _endpointController.text =
             'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
         _modelController.text = 'gemini-2.5-flash';
+      } else if (apiType == 'deepseek') {
+        _endpointController.text = 'https://api.deepseek.com';
+        _modelController.text = 'deepseek-chat';
       } else {
         _endpointController.text = SettingsService.defaultEndpoint;
         _modelController.text = SettingsService.defaultModel;
@@ -432,7 +435,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       builder: (context) => CupertinoAlertDialog(
         title: const Text('常用API端点'),
         content: const Text('OpenAI: https://api.openai.com/v1\n\n'
-            'DeepSeek: https://api.deepseek.com/v1\n\n'
+            'DeepSeek: https://api.deepseek.com\n\n'
             '阿里云: https://dashscope.aliyuncs.com/api/v1\n\n'
             '请根据您使用的AI服务提供商填写相应的端点地址。'),
         actions: [
@@ -518,6 +521,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   options: {
                     'openai': 'OpenAI API',
                     'gemini': 'Gemini API',
+                    'deepseek': 'DeepSeek API',
                   },
                   subtitle: '选择AI服务提供商',
                   onChanged: (newValue) {
@@ -744,7 +748,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   ),
                   SizedBox(height: 8),
                   Text(
-                    '• API格式：选择AI服务提供商（OpenAI或Gemini），选择后将自动填充端点和模型\n'
+                    '• API格式：选择AI服务提供商（OpenAI、Gemini或DeepSeek），选择后将自动填充端点和模型\n'
                     '• API端点：AI服务提供商的API地址，点击帮助按钮查看常用端点\n'
                     '• API密钥：从服务提供商获取的认证密钥，请妥善保管\n'
                     '• 模型：要使用的AI模型名称，不同端点支持不同模型\n'

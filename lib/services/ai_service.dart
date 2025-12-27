@@ -7,8 +7,9 @@ import '../models/user_profile.dart';
 import '../providers/ai_provider.dart';
 import '../providers/openai_provider.dart';
 import '../providers/gemini_provider.dart';
+import '../providers/deepseek_provider.dart';
 
-/// AI服务类，负责处理与AI模型（OpenAI和Google Gemini）的通信
+/// AI服务类，负责处理与AI模型（OpenAI、Google Gemini和DeepSeek）的通信
 /// 支持文本对话、文件附件处理、流式输出等功能
 /// 提供统一的接口供聊天界面调用，隐藏不同API的差异
 ///
@@ -37,13 +38,20 @@ class AIService {
     // 如果缓存的 provider 类型匹配，直接返回
     if (_cachedProvider != null) {
       if ((apiType == 'gemini' && _cachedProvider is GeminiProvider) ||
-          (apiType != 'gemini' && _cachedProvider is OpenAIProvider)) {
+          (apiType == 'deepseek' && _cachedProvider is DeepSeekProvider) ||
+          (apiType != 'gemini' && apiType != 'deepseek' && _cachedProvider is OpenAIProvider)) {
         return _cachedProvider!;
       }
     }
 
     // 创建新的 provider 实例
-    _cachedProvider = apiType == 'gemini' ? GeminiProvider() : OpenAIProvider();
+    if (apiType == 'gemini') {
+      _cachedProvider = GeminiProvider();
+    } else if (apiType == 'deepseek') {
+      _cachedProvider = DeepSeekProvider();
+    } else {
+      _cachedProvider = OpenAIProvider();
+    }
     return _cachedProvider!;
   }
 
