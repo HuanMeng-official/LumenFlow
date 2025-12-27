@@ -198,11 +198,11 @@ class OpenAIProvider extends AIProvider {
     final requestMessages = [
       {
         'role': 'system',
-        'content': '你是一个专业的对话标题生成助手。请根据对话内容生成一个简短、准确的标题，不超过15个字。只返回标题，不要加引号或其他格式。'
+        'content': '你是一个专业的对话标题生成助手。请根据用户的语言（如果用户说中文你就用中文，用户说英文你就用英文）和对话内容生成一个简短、准确的和用户语言一致的标题，不超过15个字。只返回标题，不要加引号或其他格式。'
       },
       {
         'role': 'user',
-        'content': '请根据以下对话内容生成一个简短的标题：\n\n$conversationSummary'
+        'content': '请根据以下对话内容生成一个和用户语言相符的简短标题：\n\n$conversationSummary'
       }
     ];
 

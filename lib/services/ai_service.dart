@@ -79,7 +79,7 @@ class AIService {
         : customSystemPrompt;
 
     String baseSystemPrompt =
-        '用户的名字是"${userProfile.username}",请在对话中适当地使用这个名字来称呼用户。';
+        '用户的名字是"${userProfile.username}",请在对话中适当地使用这个名字来称呼用户并使用和用户相同的语言（如果用户说中文你就用中文，用户说英文你就用英文）。';
     String fullSystemPrompt = baseSystemPrompt;
     if (systemPromptToUse.isNotEmpty) {
       fullSystemPrompt += systemPromptToUse;

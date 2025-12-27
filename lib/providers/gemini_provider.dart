@@ -151,7 +151,7 @@ class GeminiProvider extends AIProvider {
         'role': 'user',
         'parts': [
           {
-            'text': '请根据以下对话内容生成一个简短的标题（不超过15个字），标题应该概括对话的主要内容：\n\n$conversationSummary'
+            'text': '请根据以下对话语言和内容生成一个对应语言（如果用户说中文你就用中文，用户说英文你就用英文）的简短标题（不超过15个字），标题应该概括对话的主要内容：\n\n$conversationSummary'
           }
         ]
       }
