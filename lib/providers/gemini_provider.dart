@@ -25,6 +25,7 @@ class GeminiProvider extends AIProvider {
   static const int retryBaseDelayMs = 1000;
   static const int retryMaxDelayMs = 10000;
 
+
   @override
   Future<Map<String, dynamic>> sendMessage({
     required String message,
@@ -46,23 +47,29 @@ class GeminiProvider extends AIProvider {
           final historyContextLength =
               await _settingsService.getHistoryContextLength();
 
-          final contents = await _buildContents(
+          final requestBody = await _buildRequestBody(
             message: message,
             chatHistory: chatHistory,
             attachments: attachments,
             systemPrompt: systemPrompt,
+            temperature: temperature,
+            maxTokens: maxTokens,
+            thinkingMode: thinkingMode,
             enableHistory: enableHistory,
             historyContextLength: historyContextLength,
           );
 
-          return await _sendMessageRequest(
-            client: client,
+          final url = _buildApiUrl(
             apiEndpoint: apiEndpoint,
             apiKey: apiKey,
             model: model,
-            temperature: temperature,
-            maxTokens: maxTokens,
-            contents: contents,
+            action: 'generateContent',
+          );
+
+          return await _sendNonStreamingRequest(
+            client: client,
+            url: url,
+            requestBody: requestBody,
           );
         } finally {
           client.close();
@@ -96,23 +103,30 @@ class GeminiProvider extends AIProvider {
       final historyContextLength =
           await _settingsService.getHistoryContextLength();
 
-      final contents = await _buildContents(
+      final requestBody = await _buildRequestBody(
         message: message,
         chatHistory: chatHistory,
         attachments: attachments,
         systemPrompt: systemPrompt,
+        temperature: temperature,
+        maxTokens: maxTokens,
+        thinkingMode: thinkingMode,
         enableHistory: enableHistory,
         historyContextLength: historyContextLength,
       );
 
-      yield* _sendMessageStreamingRequest(
-        client: client,
+      final url = _buildApiUrl(
         apiEndpoint: apiEndpoint,
         apiKey: apiKey,
         model: model,
-        temperature: temperature,
-        maxTokens: maxTokens,
-        contents: contents,
+        action: 'streamGenerateContent',
+        isStreaming: true,
+      );
+
+      yield* _sendStreamingRequest(
+        client: client,
+        url: url,
+        requestBody: requestBody,
       );
     } finally {
       client.close();
@@ -143,21 +157,12 @@ class GeminiProvider extends AIProvider {
       }
     ];
 
-    String url = apiEndpoint;
-    if (!url.contains('/models/')) {
-      final modelPath = model.contains('/') ? model : 'models/$model';
-      url = url.endsWith('/')
-          ? '$url$modelPath:generateContent'
-          : '$url/$modelPath:generateContent';
-    } else if (!url.contains(':generateContent')) {
-      url = url.endsWith('/')
-          ? '${url}generateContent'
-          : '$url:generateContent';
-    }
-
-    if (!url.contains('?key=')) {
-      url = '$url?key=$apiKey';
-    }
+    final url = _buildApiUrl(
+      apiEndpoint: apiEndpoint,
+      apiKey: apiKey,
+      model: model,
+      action: 'generateContent',
+    );
 
     final response = await http.post(
       Uri.parse(url),
@@ -215,34 +220,79 @@ class GeminiProvider extends AIProvider {
     }
   }
 
-  /// 构建 Gemini contents 列表
-  Future<List<Map<String, dynamic>>> _buildContents({
+  /// 构建符合 Gemini API 标准的请求体
+  Future<Map<String, dynamic>> _buildRequestBody({
     required String message,
     required List<Message> chatHistory,
     required List<Attachment> attachments,
     required String systemPrompt,
+    required double temperature,
+    required int maxTokens,
+    required bool thinkingMode,
+    required bool enableHistory,
+    required int historyContextLength,
+  }) async {
+    final contents = await _buildContents(
+      message: message,
+      chatHistory: chatHistory,
+      attachments: attachments,
+      enableHistory: enableHistory,
+      historyContextLength: historyContextLength,
+    );
+
+    final requestBody = <String, dynamic>{
+      'contents': contents,
+      'generationConfig': _buildGenerationConfig(
+        temperature: temperature,
+        maxTokens: maxTokens,
+        thinkingMode: thinkingMode,
+      ),
+    };
+
+    // 添加系统指令（如果提供）
+    if (systemPrompt.isNotEmpty) {
+      requestBody['system_instruction'] = {
+        'parts': [
+          {'text': systemPrompt}
+        ]
+      };
+    }
+
+    return requestBody;
+  }
+
+  /// 构建 generationConfig
+  Map<String, dynamic> _buildGenerationConfig({
+    required double temperature,
+    required int maxTokens,
+    required bool thinkingMode,
+  }) {
+    final config = <String, dynamic>{
+      'temperature': temperature,
+      'maxOutputTokens': maxTokens,
+    };
+
+    // 添加思考模式配置
+    if (thinkingMode) {
+      config['thinkingConfig'] = {
+        'thinkingBudget': 0, // 0 表示启用思考模式
+      };
+    }
+
+    return config;
+  }
+
+  /// 构建 contents 列表（符合 Gemini API 标准）
+  Future<List<Map<String, dynamic>>> _buildContents({
+    required String message,
+    required List<Message> chatHistory,
+    required List<Attachment> attachments,
     required bool enableHistory,
     required int historyContextLength,
   }) async {
     final contents = <Map<String, dynamic>>[];
 
-    // 添加系统提示词（转换为用户-模型对话对）
-    if (systemPrompt.isNotEmpty) {
-      contents.add({
-        'role': 'user',
-        'parts': <Map<String, dynamic>>[
-          {'text': systemPrompt}
-        ]
-      });
-      contents.add({
-        'role': 'model',
-        'parts': <Map<String, dynamic>>[
-          {'text': 'Understood. I will follow these instructions.'}
-        ]
-      });
-    }
-
-    // 添加历史消息
+    // 添加历史消息（多轮对话）
     if (enableHistory && chatHistory.isNotEmpty) {
       final recentHistory = chatHistory
           .where((msg) =>
@@ -265,7 +315,7 @@ class GeminiProvider extends AIProvider {
       }
     }
 
-    // 添加当前用户消息
+    // 构建当前用户消息的 parts
     final userMessageParts = <Map<String, dynamic>>[];
 
     if (message.isNotEmpty) {
@@ -278,19 +328,14 @@ class GeminiProvider extends AIProvider {
     }
 
     if (userMessageParts.isNotEmpty) {
-      if (contents.isNotEmpty && contents.last['role'] == 'user') {
-        final lastParts =
-            (contents.last['parts'] as List<Map<String, dynamic>>);
-        lastParts.addAll(userMessageParts);
-      } else {
-        contents.add({'role': 'user', 'parts': userMessageParts});
-      }
+      contents.add({'role': 'user', 'parts': userMessageParts});
     }
 
     return contents;
   }
 
   /// 为 Gemini API 准备文件附件
+  /// 使用 inlineData 格式（兼容性更好）
   Future<List<Map<String, dynamic>>> _prepareFiles(List<Attachment> attachments) async {
     final fileParts = <Map<String, dynamic>>[];
 
@@ -333,6 +378,7 @@ class GeminiProvider extends AIProvider {
               cleanBase64 = base64Data.split(',').last;
             }
 
+            // 使用 inlineData 格式（兼容性更好）
             fileParts.add({
               'inlineData': {
                 'mimeType': attachment.mimeType ?? 'application/octet-stream',
@@ -343,6 +389,7 @@ class GeminiProvider extends AIProvider {
             fileParts.add({'text': '处理文件 ${attachment.fileName} 时出错: $e'});
           }
         } else {
+          // 对于非多媒体文件，提取文本内容
           if (fileSize <= AIProvider.maxFileSizeForTextExtraction) {
             try {
               final content = await _fileService.readTextFile(file);
@@ -371,41 +418,12 @@ class GeminiProvider extends AIProvider {
     return fileParts;
   }
 
-  /// 发送 Gemini 非流式请求
-  Future<String> _sendMessageRequest({
+  /// 发送非流式请求
+  Future<String> _sendNonStreamingRequest({
     required http.Client client,
-    required String apiEndpoint,
-    required String apiKey,
-    required String model,
-    required double temperature,
-    required int maxTokens,
-    required List<Map<String, dynamic>> contents,
+    required String url,
+    required Map<String, dynamic> requestBody,
   }) async {
-    final requestBody = {
-      'contents': contents,
-      'generationConfig': {
-        'temperature': temperature,
-        'maxOutputTokens': maxTokens,
-      }
-    };
-
-    String url = apiEndpoint;
-
-    if (!url.contains('/models/')) {
-      final modelPath = model.contains('/') ? model : 'models/$model';
-      url = url.endsWith('/')
-          ? '$url$modelPath:generateContent'
-          : '$url/$modelPath:generateContent';
-    } else if (!url.contains(':generateContent')) {
-      url = url.endsWith('/')
-          ? '${url}generateContent'
-          : '$url:generateContent';
-    }
-
-    if (!url.contains('?key=')) {
-      url = '$url?key=$apiKey';
-    }
-
     final response = await client.post(
       Uri.parse(url),
       headers: {
@@ -450,38 +468,12 @@ class GeminiProvider extends AIProvider {
     }
   }
 
-  /// 发送 Gemini 流式请求
-  Stream<Map<String, dynamic>> _sendMessageStreamingRequest({
+  /// 发送流式请求
+  Stream<Map<String, dynamic>> _sendStreamingRequest({
     required http.Client client,
-    required String apiEndpoint,
-    required String apiKey,
-    required String model,
-    required double temperature,
-    required int maxTokens,
-    required List<Map<String, dynamic>> contents,
+    required String url,
+    required Map<String, dynamic> requestBody,
   }) async* {
-    final requestBody = {
-      'contents': contents,
-      'generationConfig': {
-        'temperature': temperature,
-        'maxOutputTokens': maxTokens,
-      }
-    };
-
-    String url;
-    if (apiEndpoint.contains('streamGenerateContent')) {
-      url = apiEndpoint.contains('?key=')
-          ? '$apiEndpoint&alt=sse'
-          : '$apiEndpoint?key=$apiKey&alt=sse';
-    } else {
-      url = apiEndpoint.replaceFirst(
-          'generateContent', 'streamGenerateContent');
-      if (!url.contains('?key=')) {
-        url = '$url?key=$apiKey';
-      }
-      url = '$url&alt=sse';
-    }
-
     final request = http.Request('POST', Uri.parse(url));
     request.headers['Content-Type'] = 'application/json';
     request.headers['Accept'] = 'text/event-stream';
@@ -556,6 +548,43 @@ class GeminiProvider extends AIProvider {
         throw TimeoutException('Gemini流式响应超时：超过${streamingTimeout.inSeconds}秒未收到新数据');
       }
     }
+  }
+
+  /// 构建完整的 API URL
+  /// 支持自定义端点和代理
+  String _buildApiUrl({
+    required String apiEndpoint,
+    required String apiKey,
+    required String model,
+    required String action,
+    bool isStreaming = false,
+  }) {
+    String url = apiEndpoint;
+
+    // 如果端点不包含 /models/，则构建完整路径
+    if (!url.contains('/models/')) {
+      final modelPath = model.contains('/') ? model : 'models/$model';
+      url = url.endsWith('/')
+          ? '$url$modelPath:$action'
+          : '$url/$modelPath:$action';
+    } else if (!url.contains(':$action') && !url.contains(':generateContent') && !url.contains(':streamGenerateContent')) {
+      // 如果端点已包含 /models/ 但不包含 action，则添加 action
+      url = url.endsWith('/')
+          ? '$url$action'
+          : '$url:$action';
+    }
+
+    // 添加 API 密钥
+    if (!url.contains('?key=')) {
+      url = '$url?key=$apiKey';
+    }
+
+    // 对于流式请求，添加 alt=sse 参数
+    if (isStreaming && !url.contains('alt=sse')) {
+      url = '$url&alt=sse';
+    }
+
+    return url;
   }
 
   /// 创建HTTP客户端
