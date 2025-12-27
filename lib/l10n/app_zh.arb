@@ -1,0 +1,209 @@
+{
+  "@@locale": "zh",
+  "appTitle": "流光",
+  "appSubtitle": "Chat With Your AI",
+  "chat": "对话",
+  "settings": "设置",
+  "about": "关于",
+  "conversations": "对话记录",
+  "newConversation": "新对话",
+  "noConversations": "暂无对话记录",
+  "createNewConversation": "创建新对话",
+  "aiAssistant": "AI 助手",
+  "startChatting": "开始与AI对话吧！",
+  "pleaseConfigureAPI": "请先配置API设置才能开始对话",
+  "settingsButton": "设置",
+  "needConfiguration": "需要配置",
+  "configureAPIPrompt": "请先在设置中配置API端点和密钥",
+  "cancel": "取消",
+  "confirm": "确定",
+  "save": "保存",
+  "delete": "删除",
+  "edit": "编辑",
+  "ok": "确定",
+  "goToSettings": "去设置",
+  "clearConversation": "清除当前对话",
+  "clearConversationConfirm": "确定要清除当前对话的所有消息吗？",
+  "deleteConversation": "删除对话",
+  "deleteConversationConfirm": "确定要删除对话\"{title}\"吗？此操作无法撤销。",
+  "@deleteConversationConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "editConversationTitle": "编辑对话标题",
+  "enterConversationTitle": "输入对话标题",
+  "saveSuccess": "保存成功",
+  "settingsSaved": "设置已保存",
+  "saveFailed": "保存失败",
+  "saveError": "保存设置时出错: {error}",
+  "@saveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "resetSettings": "重置设置",
+  "resetSettingsConfirm": "确定要恢复默认设置吗？这将清除所有当前配置。",
+  "exportSettings": "导出设置",
+  "exportSuccess": "导出成功",
+  "exportLocation": "设置已成功导出到{location}：\n{path}",
+  "@exportLocation": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      },
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "exportFailed": "导出失败",
+  "exportError": "导出设置时出错: {error}\n\n请确保应用有存储权限，并检查存储空间是否充足。",
+  "@exportError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "importSettings": "导入设置",
+  "importSettingsConfirm": "这将覆盖当前设置，确定要导入吗？",
+  "importSuccess": "导入成功",
+  "settingsImported": "设置已成功导入。",
+  "importFailed": "导入失败",
+  "importError": "导入设置时出错: {error}",
+  "@importError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "error": "错误",
+  "responseInterrupted": "响应中断，应用可能意外退出",
+  "yesterday": "昨天",
+  "daysAgo": "{days}天前",
+  "@daysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "editTitle": "编辑标题",
+  "deleteConversation2": "删除对话",
+  "userInfo": "用户信息",
+  "userProfile": "个人资料",
+  "userProfileDesc": "设置头像和用户名",
+  "basicSettings": "基础设置",
+  "apiType": "API格式",
+  "openaiApi": "OpenAI API",
+  "geminiApi": "Gemini API",
+  "deepseekApi": "DeepSeek API",
+  "apiTypeDesc": "选择AI服务提供商",
+  "apiEndpoint": "API端点",
+  "apiEndpointPlaceholder": "输入API端点URL",
+  "apiEndpointDesc": "例如: https://api.openai.com/v1",
+  "apiKey": "API密钥",
+  "apiKeyPlaceholder": "输入API密钥",
+  "apiKeyDesc": "从AI服务提供商获取的认证密钥",
+  "modelSettings": "模型设置",
+  "model": "模型",
+  "modelPlaceholder": "输入模型名称",
+  "modelDesc": "例如: gpt-5, deepseek-chat",
+  "maxTokens": "最大Token数",
+  "maxTokensPlaceholder": "输入最大Token数",
+  "maxTokensDesc": "限制单次回复的长度，建议500-8000",
+  "systemPrompt": "System Prompt",
+  "systemPromptPlaceholder": "输入 System Prompt",
+  "systemPromptDesc": "例如：始终使用中文回答",
+  "temperature": "温度",
+  "temperatureDesc": "控制回复的随机性，0.0-2.0，数值越高回复越有创意",
+  "historyConversation": "历史对话",
+  "enableHistory": "启用历史对话",
+  "enableHistoryDesc": "开启后AI会记住之前的对话内容，提供更连贯的回复",
+  "historyRounds": "历史对话轮数",
+  "historyRoundsPlaceholder": "输入历史对话轮数",
+  "historyRoundsDesc": "AI记住的历史对话轮数，建议5-20轮，过多可能超出Token限制",
+  "conversationTitle": "对话标题",
+  "autoGenerateTitle": "自动生成标题",
+  "autoGenerateTitleDesc": "对话进行若干轮后，AI会根据内容自动生成标题",
+  "generateTiming": "生成时机",
+  "generateTimingDesc": "设置多少轮对话后自动生成标题",
+  "rounds": "轮",
+  "appearance": "外观",
+  "followSystem": "跟随系统设置",
+  "followSystemDesc": "自动跟随系统颜色模式",
+  "appColor": "应用颜色",
+  "lightMode": "浅色模式",
+  "darkMode": "暗色模式",
+  "followSystemSetting": "跟随系统设置中（{mode}）",
+  "@followSystemSetting": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "selectColorMode": "选择应用颜色模式",
+  "others": "其他",
+  "resetToDefault": "重置为默认设置",
+  "usageInstructions": "使用说明",
+  "usageInstructionsContent": "• API格式：选择AI服务提供商（OpenAI、Gemini或DeepSeek），选择后将自动填充端点和模型\n• API端点：AI服务提供商的API地址，点击帮助按钮查看常用端点\n• API密钥：从服务提供商获取的认证密钥，请妥善保管\n• 模型：要使用的AI模型名称，不同端点支持不同模型\n• Token数：限制单次回复的长度，过小可能导致回复不完整\n• 温度：数值越高回复越有创意，建议0.3-1.0\n• 历史对话：开启后AI能记住对话上下文，提供更连贯的体验",
+  "commonApiEndpoints": "常用API端点",
+  "commonApiEndpointsContent": "OpenAI: https://api.openai.com/v1\n\nDeepSeek: https://api.deepseek.com\n\n阿里云: https://dashscope.aliyuncs.com/api/v1\n\n请根据您使用的AI服务提供商填写相应的端点地址。",
+  "commonModels": "常用模型",
+  "commonModelsContent": "OpenAI:\n• gpt-5\n\nDeepSeek:\n• deepseek-chat\n• deepseek-reasoner\n\n请根据您的API端点选择对应的模型。",
+  "appInfo": "应用信息",
+  "version": "版本",
+  "buildDate": "构建日期",
+  "developer": "开发者",
+  "features": "功能特性",
+  "intelligentConversation": "智能对话",
+  "intelligentConversationDesc": "支持与多种AI模型进行自然语言对话",
+  "fileProcessing": "文件处理",
+  "fileProcessingDesc": "支持上传图片、文档等多种文件格式",
+  "historyRecords": "历史记录",
+  "historyRecordsDesc": "自动保存对话历史，支持上下文记忆",
+  "customSettings": "自定义设置",
+  "customSettingsDesc": "灵活配置API参数、主题和个性化选项",
+  "licenses": "开源许可",
+  "copyright": "© 2025 幻梦official",
+  "copyrightNotice": "本应用仅供学习和研究使用",
+  "copyrightTerms": "使用前请确保遵守相关API服务条款",
+  "profileSaved": "用户信息已保存",
+  "saveProfileError": "保存用户信息时出错: {error}",
+  "@saveProfileError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pickAvatarFailed": "选择头像失败",
+  "takePhotoFailed": "拍照失败",
+  "selectEmojiAvatar": "选择表情头像",
+  "selectAvatar": "选择头像",
+  "selectFromGallery": "从相册选择",
+  "takePhoto": "拍照",
+  "selectEmoji": "选择表情",
+  "tapToChangeAvatar": "点击更换头像",
+  "username": "用户名",
+  "usernameHint": "AI会使用这个名字来称呼你",
+  "enterYourUsername": "输入你的用户名",
+  "aboutUserProfile": "关于用户信息",
+  "aboutUserProfileContent": "• 头像：可以选择照片或表情作为头像，会在聊天界面显示\n• 用户名：AI会在对话中使用这个名字称呼你\n• 所有信息仅存储在本地，不会上传到服务器",
+  "selectPresetRole": "选择预设角色",
+  "selectPresetRoleMessage": "选择一个预设角色来应用相应的系统提示词",
+  "closePresetMode": "关闭预设模式",
+  "continueAction": "继续",
+  "deepThinking": "深度思考",
+  "rolePlay": "角色扮演",
+  "language": "语言",
+  "interfaceLanguage": "界面语言",
+  "selectInterfaceLanguage": "选择应用界面语言"
+}

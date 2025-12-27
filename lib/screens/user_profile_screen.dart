@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:image_picker/image_picker.dart';
+import '../l10n/app_localizations.dart';
 import '../models/user_profile.dart';
 import '../services/user_service.dart';
 import '../widgets/avatar_widget.dart';
@@ -89,14 +90,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       });
 
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         showCupertinoDialog(
           context: context,
           builder: (context) => CupertinoAlertDialog(
-            title: const Text('保存成功'),
-            content: const Text('用户信息已保存'),
+            title: Text(l10n.saveSuccess),
+            content: Text(l10n.profileSaved),
             actions: [
               CupertinoDialogAction(
-                child: const Text('确定'),
+                child: Text(l10n.ok),
                 onPressed: () => Navigator.pop(context),
               ),
             ],
@@ -105,14 +107,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         showCupertinoDialog(
           context: context,
           builder: (context) => CupertinoAlertDialog(
-            title: const Text('保存失败'),
-            content: Text('保存用户信息时出错: $e'),
+            title: Text(l10n.saveFailed),
+            content: Text(l10n.saveProfileError(e.toString())),
             actions: [
               CupertinoDialogAction(
-                child: const Text('确定'),
+                child: Text(l10n.ok),
                 onPressed: () => Navigator.pop(context),
               ),
             ],
@@ -149,7 +152,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
-        _showErrorDialog('选择头像失败', e.toString());
+        final l10n = AppLocalizations.of(context)!;
+        _showErrorDialog(l10n.pickAvatarFailed, e.toString());
       }
     }
   }
@@ -177,12 +181,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
-        _showErrorDialog('拍照失败', e.toString());
+        final l10n = AppLocalizations.of(context)!;
+        _showErrorDialog(l10n.takePhotoFailed, e.toString());
       }
     }
   }
 
   void _selectEmojiAvatar() {
+    final l10n = AppLocalizations.of(context)!;
     showCupertinoModalPopup(
       context: context,
       builder: (context) {
@@ -210,12 +216,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     CupertinoButton(
-                      child: const Text('取消'),
+                      child: Text(l10n.cancel),
                       onPressed: () => Navigator.pop(context),
                     ),
-                    const Text(
-                      '选择表情头像',
-                      style: TextStyle(
+                    Text(
+                      l10n.selectEmojiAvatar,
+                      style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w600,
                       ),
@@ -280,18 +286,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   void _showAvatarOptions() {
+    final l10n = AppLocalizations.of(context)!;
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
-        title: const Text('选择头像'),
+        title: Text(l10n.selectAvatar),
         actions: [
           CupertinoActionSheetAction(
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(CupertinoIcons.photo_on_rectangle, size: 20),
-                SizedBox(width: 8),
-                Text('从相册选择'),
+                const Icon(CupertinoIcons.photo_on_rectangle, size: 20),
+                const SizedBox(width: 8),
+                Text(l10n.selectFromGallery),
               ],
             ),
             onPressed: () {
@@ -300,12 +307,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             },
           ),
           CupertinoActionSheetAction(
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(CupertinoIcons.camera, size: 20),
-                SizedBox(width: 8),
-                Text('拍照'),
+                const Icon(CupertinoIcons.camera, size: 20),
+                const SizedBox(width: 8),
+                Text(l10n.takePhoto),
               ],
             ),
             onPressed: () {
@@ -314,12 +321,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             },
           ),
           CupertinoActionSheetAction(
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(CupertinoIcons.smiley, size: 20),
-                SizedBox(width: 8),
-                Text('选择表情'),
+                const Icon(CupertinoIcons.smiley, size: 20),
+                const SizedBox(width: 8),
+                Text(l10n.selectEmoji),
               ],
             ),
             onPressed: () {
@@ -329,7 +336,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
-          child: const Text('取消'),
+          child: Text(l10n.cancel),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -337,6 +344,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   void _showErrorDialog(String title, String message) {
+    final l10n = AppLocalizations.of(context)!;
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
@@ -344,7 +352,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         content: Text(message),
         actions: [
           CupertinoDialogAction(
-            child: const Text('确定'),
+            child: Text(l10n.ok),
             onPressed: () => Navigator.pop(context),
           ),
         ],
@@ -354,25 +362,26 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final brightness = CupertinoTheme.of(context).brightness;
     if (_isLoading) {
-      return const CupertinoPageScaffold(
+      return CupertinoPageScaffold(
         navigationBar: CupertinoNavigationBar(
-          middle: Text('用户信息'),
+          middle: Text(l10n.userInfo),
         ),
-        child: Center(child: CupertinoActivityIndicator()),
+        child: const Center(child: CupertinoActivityIndicator()),
       );
     }
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        middle: const Text('用户信息'),
+        middle: Text(l10n.userInfo),
         trailing: _isSaving
             ? const CupertinoActivityIndicator()
             : CupertinoButton(
                 padding: EdgeInsets.zero,
                 onPressed: _saveUserProfile,
-                child: const Text('保存'),
+                child: Text(l10n.save),
               ),
       ),
       child: SafeArea(
@@ -418,7 +427,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '点击更换头像',
+                    l10n.tapToChangeAvatar,
                     style: TextStyle(
                       fontSize: 14,
                       color: brightness == Brightness.dark
@@ -449,16 +458,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      '用户名',
-                      style: TextStyle(
+                    Text(
+                      l10n.username,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'AI会使用这个名字来称呼你',
+                      l10n.usernameHint,
                       style: TextStyle(
                         fontSize: 13,
                         color: brightness == Brightness.dark
@@ -469,7 +478,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     const SizedBox(height: 12),
                     CupertinoTextField(
                       controller: _usernameController,
-                      placeholder: '输入你的用户名',
+                      placeholder: l10n.enterYourUsername,
                       decoration: BoxDecoration(
                         color: brightness == Brightness.dark
                             ? CupertinoColors.systemGrey6.darkColor
@@ -496,17 +505,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '关于用户信息',
-                    style: TextStyle(
+                    l10n.aboutUserProfile,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
-                    '• 头像：可以选择照片或表情作为头像，会在聊天界面显示\n'
-                    '• 用户名：AI会在对话中使用这个名字称呼你\n'
-                    '• 所有信息仅存储在本地，不会上传到服务器',
+                    l10n.aboutUserProfileContent,
                     style: TextStyle(
                       fontSize: 14,
                       color: brightness == Brightness.dark

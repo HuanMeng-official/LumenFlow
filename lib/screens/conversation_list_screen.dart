@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
+import '../l10n/app_localizations.dart';
 import '../models/conversation.dart';
 import '../services/conversation_service.dart';
 
@@ -39,7 +40,10 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
   }
 
   Future<void> _createNewConversation() async {
-    final conversation = await _conversationService.createNewConversation();
+    final l10n = AppLocalizations.of(context)!;
+    final conversation = await _conversationService.createNewConversation(
+      title: l10n.newConversation,
+    );
     setState(() {
       _conversations.insert(0, conversation);
       _currentConversationId = conversation.id;
@@ -62,19 +66,20 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
   }
 
   Future<void> _deleteConversation(Conversation conversation) async {
+    final l10n = AppLocalizations.of(context)!;
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('删除对话'),
-        content: Text('确定要删除对话"${conversation.title}"吗？此操作无法撤销。'),
+        title: Text(l10n.deleteConversation),
+        content: Text(l10n.deleteConversationConfirm(conversation.title)),
         actions: [
           CupertinoDialogAction(
-            child: const Text('取消'),
+            child: Text(l10n.cancel),
             onPressed: () => Navigator.pop(context),
           ),
           CupertinoDialogAction(
             isDestructiveAction: true,
-            child: const Text('删除'),
+            child: Text(l10n.delete),
             onPressed: () async {
               Navigator.pop(context);
               await _conversationService.deleteConversation(conversation.id);
@@ -91,27 +96,28 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
   }
 
   Future<void> _editConversationTitle(Conversation conversation) async {
+    final l10n = AppLocalizations.of(context)!;
     final TextEditingController controller =
         TextEditingController(text: conversation.title);
 
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('编辑对话标题'),
+        title: Text(l10n.editConversationTitle),
         content: Padding(
           padding: const EdgeInsets.only(top: 16),
           child: CupertinoTextField(
             controller: controller,
-            placeholder: '输入对话标题',
+            placeholder: l10n.enterConversationTitle,
           ),
         ),
         actions: [
           CupertinoDialogAction(
-            child: const Text('取消'),
+            child: Text(l10n.cancel),
             onPressed: () => Navigator.pop(context),
           ),
           CupertinoDialogAction(
-            child: const Text('保存'),
+            child: Text(l10n.save),
             onPressed: () async {
               if (controller.text.trim().isNotEmpty) {
                 await _conversationService.updateConversationTitle(
@@ -133,9 +139,10 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        middle: const Text('对话记录'),
+        middle: Text(l10n.conversations),
         trailing: CupertinoButton(
           padding: EdgeInsets.zero,
           onPressed: _createNewConversation,
@@ -225,6 +232,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
   }
 
   Widget _buildEmptyState() {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -235,17 +243,17 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
             color: CupertinoColors.systemGrey3,
           ),
           const SizedBox(height: 16),
-          const Text(
-            '暂无对话记录',
-            style: TextStyle(
+          Text(
+            l10n.noConversations,
+            style: const TextStyle(
               fontSize: 18,
               color: CupertinoColors.systemGrey,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            '点击右上角的 + 创建新对话',
-            style: TextStyle(
+          Text(
+            l10n.createNewConversation,
+            style: const TextStyle(
               fontSize: 14,
               color: CupertinoColors.systemGrey2,
             ),
@@ -253,7 +261,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
           const SizedBox(height: 24),
           CupertinoButton.filled(
             onPressed: _createNewConversation,
-            child: const Text('创建新对话'),
+            child: Text(l10n.newConversation),
           ),
         ],
       ),
@@ -261,18 +269,19 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
   }
 
   void _showConversationOptions(Conversation conversation) {
+    final l10n = AppLocalizations.of(context)!;
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
         title: Text(conversation.title),
         actions: [
           CupertinoActionSheetAction(
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(CupertinoIcons.pencil, size: 20),
-                SizedBox(width: 8),
-                Text('编辑标题'),
+                const Icon(CupertinoIcons.pencil, size: 20),
+                const SizedBox(width: 8),
+                Text(l10n.editTitle),
               ],
             ),
             onPressed: () {
@@ -282,12 +291,12 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
           ),
           CupertinoActionSheetAction(
             isDestructiveAction: true,
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(CupertinoIcons.delete, size: 20),
-                SizedBox(width: 8),
-                Text('删除对话'),
+                const Icon(CupertinoIcons.delete, size: 20),
+                const SizedBox(width: 8),
+                Text(l10n.deleteConversation2),
               ],
             ),
             onPressed: () {
@@ -297,7 +306,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
-          child: const Text('取消'),
+          child: Text(l10n.cancel),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -305,15 +314,16 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
   }
 
   String _formatDate(DateTime date) {
+    final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final difference = now.difference(date);
 
     if (difference.inDays == 0) {
       return DateFormat('HH:mm').format(date);
     } else if (difference.inDays == 1) {
-      return '昨天';
+      return l10n.yesterday;
     } else if (difference.inDays < 7) {
-      return '${difference.inDays}天前';
+      return l10n.daysAgo(difference.inDays);
     } else {
       return DateFormat('MM/dd').format(date);
     }

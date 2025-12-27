@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../services/version_service.dart';
 
 /// 关于页面，展示应用信息和版权声明
@@ -29,12 +30,13 @@ class _AboutScreenState extends State<AboutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final brightness = CupertinoTheme.of(context).brightness;
     final isDarkMode = brightness == Brightness.dark;
 
     return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(
-        middle: Text('关于'),
+      navigationBar: CupertinoNavigationBar(
+        middle: Text(l10n.about),
       ),
       child: SafeArea(
         child: FutureBuilder<Map<String, String>>(
@@ -48,36 +50,36 @@ class _AboutScreenState extends State<AboutScreen> {
                 // 应用Logo和名称部分
                 _buildAppHeader(isDarkMode, version),
                 // 应用信息部分
-                _buildSection(context, '应用信息', [
-                  _buildInfoTile('版本', version),
-                  _buildInfoTile('构建日期', buildDate),
-                  _buildInfoTile('开发者', '幻梦official'),
+                _buildSection(context, l10n.appInfo, [
+                  _buildInfoTile(l10n.version, version),
+                  _buildInfoTile(l10n.buildDate, buildDate),
+                  _buildInfoTile(l10n.developer, '幻梦official'),
                 ]),
                 // 功能介绍部分
-                _buildSection(context, '功能特性', [
+                _buildSection(context, l10n.features, [
                   _buildDescriptionTile(
-                    '智能对话',
-                    '支持与多种AI模型进行自然语言对话',
+                    l10n.intelligentConversation,
+                    l10n.intelligentConversationDesc,
                     icon: CupertinoIcons.chat_bubble_2_fill,
                   ),
                   _buildDescriptionTile(
-                    '文件处理',
-                    '支持上传图片、文档等多种文件格式',
+                    l10n.fileProcessing,
+                    l10n.fileProcessingDesc,
                     icon: CupertinoIcons.folder_fill,
                   ),
                   _buildDescriptionTile(
-                    '历史记录',
-                    '自动保存对话历史，支持上下文记忆',
+                    l10n.historyRecords,
+                    l10n.historyRecordsDesc,
                     icon: CupertinoIcons.clock_fill,
                   ),
                   _buildDescriptionTile(
-                    '自定义设置',
-                    '灵活配置API参数、主题和个性化选项',
+                    l10n.customSettings,
+                    l10n.customSettingsDesc,
                     icon: CupertinoIcons.settings_solid,
                   ),
                 ]),
                 // 开源许可部分
-                _buildSection(context, '开源许可', [
+                _buildSection(context, l10n.licenses, [
                   _buildLicenseTile('Flutter', 'BSD 3-Clause License'),
                   _buildLicenseTile('Cupertino Icons', 'MIT License'),
                   _buildLicenseTile('HTTP', 'Apache License 2.0'),
@@ -94,6 +96,7 @@ class _AboutScreenState extends State<AboutScreen> {
   }
 
   Widget _buildAppHeader(bool isDarkMode, String version) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(32),
       child: Column(
@@ -115,17 +118,17 @@ class _AboutScreenState extends State<AboutScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
-            '流光',
-            style: TextStyle(
+          Text(
+            l10n.appTitle,
+            style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Chat With Your AI',
-            style: TextStyle(
+          Text(
+            l10n.appSubtitle,
+            style: const TextStyle(
               fontSize: 14,
               color: CupertinoColors.systemGrey,
             ),
@@ -308,31 +311,32 @@ class _AboutScreenState extends State<AboutScreen> {
   }
 
   Widget _buildCopyrightSection(bool isDarkMode) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          const Text(
-            '© 2025 幻梦official',
-            style: TextStyle(
+          Text(
+            l10n.copyright,
+            style: const TextStyle(
               fontSize: 14,
               color: CupertinoColors.systemGrey,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            '本应用仅供学习和研究使用',
-            style: TextStyle(
+          Text(
+            l10n.copyrightNotice,
+            style: const TextStyle(
               fontSize: 13,
               color: CupertinoColors.systemGrey,
             ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
-          const Text(
-            '使用前请确保遵守相关API服务条款',
-            style: TextStyle(
+          Text(
+            l10n.copyrightTerms,
+            style: const TextStyle(
               fontSize: 13,
               color: CupertinoColors.systemGrey,
             ),

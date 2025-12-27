@@ -1,4 +1,6 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'l10n/app_localizations.dart';
 import 'services/settings_service.dart';
 import 'screens/chat_screen.dart';
 import 'utils/app_theme.dart';
@@ -34,12 +36,14 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   final SettingsService _settingsService = SettingsService();
+  Locale _locale = const Locale('zh');
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _updateAppThemeFromSystem();
+    _loadLocale();
   }
 
   @override
@@ -68,6 +72,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     }
   }
 
+  Future<void> _loadLocale() async {
+    final localeCode = await _settingsService.getLocale();
+    setState(() {
+      _locale = Locale(localeCode);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<Brightness>(
@@ -75,6 +86,17 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       builder: (context, brightness, child) {
         return CupertinoApp(
           title: '流光',
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('zh'),
+          ],
+          locale: _locale,
           theme: CupertinoThemeData(
             primaryColor: CupertinoColors.systemBlue,
             brightness: brightness,

@@ -1,0 +1,209 @@
+{
+  "@@locale": "en",
+  "appTitle": "LumenFlow",
+  "appSubtitle": "Chat With Your AI",
+  "chat": "Chat",
+  "settings": "Settings",
+  "about": "About",
+  "conversations": "Conversations",
+  "newConversation": "New Conversation",
+  "noConversations": "No conversations yet",
+  "createNewConversation": "Create new conversation",
+  "aiAssistant": "AI Assistant",
+  "startChatting": "Start chatting with AI!",
+  "pleaseConfigureAPI": "Please configure API settings to start chatting",
+  "settingsButton": "Settings",
+  "needConfiguration": "Configuration Required",
+  "configureAPIPrompt": "Please configure API endpoint and key in settings",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "save": "Save",
+  "delete": "Delete",
+  "edit": "Edit",
+  "ok": "OK",
+  "goToSettings": "Go to Settings",
+  "clearConversation": "Clear Current Conversation",
+  "clearConversationConfirm": "Are you sure you want to clear all messages in the current conversation?",
+  "deleteConversation": "Delete Conversation",
+  "deleteConversationConfirm": "Are you sure you want to delete conversation \"{title}\"? This action cannot be undone.",
+  "@deleteConversationConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "editConversationTitle": "Edit Conversation Title",
+  "enterConversationTitle": "Enter conversation title",
+  "saveSuccess": "Saved Successfully",
+  "settingsSaved": "Settings have been saved",
+  "saveFailed": "Save Failed",
+  "saveError": "Error saving settings: {error}",
+  "@saveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "resetSettings": "Reset Settings",
+  "resetSettingsConfirm": "Are you sure you want to restore default settings? This will clear all current configurations.",
+  "exportSettings": "Export Settings",
+  "exportSuccess": "Export Successful",
+  "exportLocation": "Settings have been successfully exported to {location}:\n{path}",
+  "@exportLocation": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      },
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "exportFailed": "Export Failed",
+  "exportError": "Error exporting settings: {error}\n\nPlease ensure the app has storage permission and check available storage space.",
+  "@exportError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "importSettings": "Import Settings",
+  "importSettingsConfirm": "This will overwrite current settings. Are you sure you want to import?",
+  "importSuccess": "Import Successful",
+  "settingsImported": "Settings have been successfully imported.",
+  "importFailed": "Import Failed",
+  "importError": "Error importing settings: {error}",
+  "@importError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "error": "Error",
+  "responseInterrupted": "Response interrupted, app may have exited unexpectedly",
+  "yesterday": "Yesterday",
+  "daysAgo": "{days} days ago",
+  "@daysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "editTitle": "Edit Title",
+  "deleteConversation2": "Delete Conversation",
+  "userInfo": "User Information",
+  "userProfile": "User Profile",
+  "userProfileDesc": "Set avatar and username",
+  "basicSettings": "Basic Settings",
+  "apiType": "API Type",
+  "openaiApi": "OpenAI API",
+  "geminiApi": "Gemini API",
+  "deepseekApi": "DeepSeek API",
+  "apiTypeDesc": "Select AI service provider",
+  "apiEndpoint": "API Endpoint",
+  "apiEndpointPlaceholder": "Enter API endpoint URL",
+  "apiEndpointDesc": "e.g.: https://api.openai.com/v1",
+  "apiKey": "API Key",
+  "apiKeyPlaceholder": "Enter API key",
+  "apiKeyDesc": "Authentication key obtained from AI service provider",
+  "modelSettings": "Model Settings",
+  "model": "Model",
+  "modelPlaceholder": "Enter model name",
+  "modelDesc": "e.g.: gpt-5, deepseek-chat",
+  "maxTokens": "Max Tokens",
+  "maxTokensPlaceholder": "Enter max tokens",
+  "maxTokensDesc": "Limit the length of single response, recommended 500-8000",
+  "systemPrompt": "System Prompt",
+  "systemPromptPlaceholder": "Enter System Prompt",
+  "systemPromptDesc": "e.g.: Always answer in Chinese",
+  "temperature": "Temperature",
+  "temperatureDesc": "Control response randomness, 0.0-2.0, higher value means more creative responses",
+  "historyConversation": "History Conversation",
+  "enableHistory": "Enable History",
+  "enableHistoryDesc": "When enabled, AI will remember previous conversation context and provide more coherent responses",
+  "historyRounds": "History Rounds",
+  "historyRoundsPlaceholder": "Enter number of history rounds",
+  "historyRoundsDesc": "Number of conversation rounds AI remembers, recommended 5-20 rounds. Too many may exceed token limit",
+  "conversationTitle": "Conversation Title",
+  "autoGenerateTitle": "Auto Generate Title",
+  "autoGenerateTitleDesc": "After several rounds of conversation, AI will automatically generate title based on content",
+  "generateTiming": "Generate Timing",
+  "generateTimingDesc": "Set how many rounds of conversation before auto-generating title",
+  "rounds": "rounds",
+  "appearance": "Appearance",
+  "followSystem": "Follow System Settings",
+  "followSystemDesc": "Automatically follow system color mode",
+  "appColor": "App Color",
+  "lightMode": "Light Mode",
+  "darkMode": "Dark Mode",
+  "followSystemSetting": "Following system ({mode})",
+  "@followSystemSetting": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "selectColorMode": "Select app color mode",
+  "others": "Others",
+  "resetToDefault": "Reset to Default Settings",
+  "usageInstructions": "Usage Instructions",
+  "usageInstructionsContent": "• API Type: Select AI service provider (OpenAI, Gemini or DeepSeek). Endpoint and model will be auto-filled after selection\n• API Endpoint: API address of AI service provider. Click help button to view common endpoints\n• API Key: Authentication key obtained from service provider. Please keep it safe\n• Model: AI model name to use. Different endpoints support different models\n• Token Count: Limit the length of single response. Too small may result in incomplete responses\n• Temperature: Higher value means more creative responses. Recommended 0.3-1.0\n• History Conversation: When enabled, AI can remember conversation context for more coherent experience",
+  "commonApiEndpoints": "Common API Endpoints",
+  "commonApiEndpointsContent": "OpenAI: https://api.openai.com/v1\n\nDeepSeek: https://api.deepseek.com\n\nAlibaba Cloud: https://dashscope.aliyuncs.com/api/v1\n\nPlease fill in the corresponding endpoint address based on the AI service provider you use.",
+  "commonModels": "Common Models",
+  "commonModelsContent": "OpenAI:\n• gpt-5\n\nDeepSeek:\n• deepseek-chat\n• deepseek-reasoner\n\nPlease select the corresponding model based on your API endpoint.",
+  "appInfo": "App Information",
+  "version": "Version",
+  "buildDate": "Build Date",
+  "developer": "Developer",
+  "features": "Features",
+  "intelligentConversation": "Intelligent Conversation",
+  "intelligentConversationDesc": "Support natural language conversations with various AI models",
+  "fileProcessing": "File Processing",
+  "fileProcessingDesc": "Support uploading multiple file formats such as images and documents",
+  "historyRecords": "History Records",
+  "historyRecordsDesc": "Automatically save conversation history with context memory",
+  "customSettings": "Custom Settings",
+  "customSettingsDesc": "Flexibly configure API parameters, themes and personalized options",
+  "licenses": "Licenses",
+  "copyright": "© 2025 幻梦official",
+  "copyrightNotice": "This application is for learning and research purposes only",
+  "copyrightTerms": "Please ensure compliance with relevant API service terms before use",
+  "profileSaved": "User profile has been saved",
+  "saveProfileError": "Error saving user profile: {error}",
+  "@saveProfileError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pickAvatarFailed": "Failed to pick avatar",
+  "takePhotoFailed": "Failed to take photo",
+  "selectEmojiAvatar": "Select Emoji Avatar",
+  "selectAvatar": "Select Avatar",
+  "selectFromGallery": "Select from Gallery",
+  "takePhoto": "Take Photo",
+  "selectEmoji": "Select Emoji",
+  "tapToChangeAvatar": "Tap to change avatar",
+  "username": "Username",
+  "usernameHint": "AI will use this name to address you",
+  "enterYourUsername": "Enter your username",
+  "aboutUserProfile": "About User Profile",
+  "aboutUserProfileContent": "• Avatar: Choose a photo or emoji as your avatar, displayed in chat interface\n• Username: AI will use this name to address you in conversations\n• All information is stored locally only, never uploaded to server",
+  "selectPresetRole": "Select Preset Role",
+  "selectPresetRoleMessage": "Select a preset role to apply the corresponding system prompt",
+  "closePresetMode": "Close Preset Mode",
+  "continueAction": "Continue",
+  "deepThinking": "Deep Thinking",
+  "rolePlay": "Role Play",
+  "language": "Language",
+  "interfaceLanguage": "Interface Language",
+  "selectInterfaceLanguage": "Select app interface language"
+}

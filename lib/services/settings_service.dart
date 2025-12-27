@@ -18,6 +18,7 @@ class SettingsService {
   static const String _promptPresetIdKey = 'prompt_preset_id';
   static const String _autoTitleEnabledKey = 'auto_title_enabled';
   static const String _autoTitleRoundsKey = 'auto_title_rounds';
+  static const String _localeKey = 'locale';
   static const String defaultCustomSystemPrompt = '';
   static const String defaultApiType = 'openai';
   static const bool defaultDarkMode = false;
@@ -28,6 +29,7 @@ class SettingsService {
   static const String defaultPromptPresetId = '';
   static const bool defaultAutoTitleEnabled = true;
   static const int defaultAutoTitleRounds = 3;
+  static const String defaultLocale = 'zh';
 
   static const String defaultEndpoint = 'https://api.openai.com/v1';
   static const String defaultModel = 'gpt-5';
@@ -212,6 +214,16 @@ class SettingsService {
     await prefs.setInt(_autoTitleRoundsKey, rounds);
   }
 
+  Future<String> getLocale() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_localeKey) ?? defaultLocale;
+  }
+
+  Future<void> setLocale(String locale) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_localeKey, locale);
+  }
+
   /// 导出所有设置为JSON格式的Map
   /// 返回包含所有设置键值对的Map
   Future<Map<String, dynamic>> exportSettingsToJson() async {
@@ -236,6 +248,7 @@ class SettingsService {
     settings[_promptPresetIdKey] = prefs.getString(_promptPresetIdKey) ?? defaultPromptPresetId;
     settings[_autoTitleEnabledKey] = prefs.getBool(_autoTitleEnabledKey) ?? defaultAutoTitleEnabled;
     settings[_autoTitleRoundsKey] = prefs.getInt(_autoTitleRoundsKey) ?? defaultAutoTitleRounds;
+    settings[_localeKey] = prefs.getString(_localeKey) ?? defaultLocale;
 
     return settings;
   }
@@ -297,6 +310,9 @@ class SettingsService {
     }
     if (settings.containsKey(_autoTitleRoundsKey)) {
       await prefs.setInt(_autoTitleRoundsKey, settings[_autoTitleRoundsKey] as int);
+    }
+    if (settings.containsKey(_localeKey)) {
+      await prefs.setString(_localeKey, settings[_localeKey] as String);
     }
   }
 }

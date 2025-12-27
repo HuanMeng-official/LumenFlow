@@ -46,10 +46,10 @@ class ConversationService {
     await prefs.setString(_currentConversationIdKey, conversationId);
   }
 
-  Future<Conversation> createNewConversation() async {
+  Future<Conversation> createNewConversation({String? title}) async {
     final conversation = Conversation(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      title: '新对话',
+      title: title ?? '新对话',
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
       messages: [],

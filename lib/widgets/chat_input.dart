@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:file_picker/file_picker.dart';
+import '../l10n/app_localizations.dart';
 import '../services/file_service.dart';
 import '../services/ai_service.dart';
 import '../models/attachment.dart';
@@ -91,11 +92,12 @@ class _ChatInputState extends State<ChatInput> {
   void _showPresetMenu() {
     if (!widget.enabled || widget.presets.isEmpty) return;
 
+    final l10n = AppLocalizations.of(context)!;
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
-        title: const Text('选择预设角色'),
-        message: const Text('选择一个预设角色来应用相应的系统提示词'),
+        title: Text(l10n.selectPresetRole),
+        message: Text(l10n.selectPresetRoleMessage),
         actions: [
           for (final preset in widget.presets)
             CupertinoActionSheetAction(
@@ -155,12 +157,12 @@ class _ChatInputState extends State<ChatInput> {
                 widget.onPromptPresetEnabledChanged!(false);
               }
             },
-            child: const Text('关闭预设模式'),
+            child: Text(l10n.closePresetMode),
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(context),
-          child: const Text('取消'),
+          child: Text(l10n.cancel),
         ),
       ),
     );
@@ -184,11 +186,12 @@ class _ChatInputState extends State<ChatInput> {
 
   /// 根据预设ID获取预设名称
   String _getPresetName(String presetId) {
+    final l10n = AppLocalizations.of(context)!;
     final preset = widget.presets.firstWhere(
       (preset) => preset.id == presetId,
       orElse: () => PromptPreset(
         id: '',
-        name: '角色扮演',
+        name: l10n.rolePlay,
         description: '',
         systemPrompt: '',
       ),
@@ -197,6 +200,7 @@ class _ChatInputState extends State<ChatInput> {
   }
 
   void _showErrorDialog(String title, String message) {
+    final l10n = AppLocalizations.of(context)!;
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
@@ -204,7 +208,7 @@ class _ChatInputState extends State<ChatInput> {
         content: Text(message),
         actions: [
           CupertinoDialogAction(
-            child: const Text('确定'),
+            child: Text(l10n.ok),
             onPressed: () => Navigator.pop(context),
           ),
         ],
@@ -213,6 +217,7 @@ class _ChatInputState extends State<ChatInput> {
   }
 
   Future<bool> _showWarningDialog(String title, String message) async {
+    final l10n = AppLocalizations.of(context)!;
     final result = await showCupertinoDialog<bool>(
       context: context,
       builder: (context) => CupertinoAlertDialog(
@@ -220,11 +225,11 @@ class _ChatInputState extends State<ChatInput> {
         content: Text(message),
         actions: [
           CupertinoDialogAction(
-            child: const Text('取消'),
+            child: Text(l10n.cancel),
             onPressed: () => Navigator.pop(context, false),
           ),
           CupertinoDialogAction(
-            child: const Text('继续'),
+            child: Text(l10n.continueAction),
             onPressed: () => Navigator.pop(context, true),
           ),
         ],
@@ -427,6 +432,7 @@ class _ChatInputState extends State<ChatInput> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final brightness = CupertinoTheme.of(context).brightness;
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -587,7 +593,7 @@ class _ChatInputState extends State<ChatInput> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          '深度思考',
+                          l10n.deepThinking,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
@@ -655,7 +661,7 @@ class _ChatInputState extends State<ChatInput> {
                         Text(
                           widget.promptPresetEnabled && widget.currentPresetId.isNotEmpty
                               ? _getPresetName(widget.currentPresetId)
-                              : '角色扮演',
+                              : l10n.rolePlay,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,

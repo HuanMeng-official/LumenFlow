@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import '../l10n/app_localizations.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
 import '../models/conversation.dart';
@@ -59,7 +60,7 @@ class _ChatScreenState extends State<ChatScreen> {
   String _currentPresetId = '';
   List<PromptPreset> _presets = [];
   Conversation? _currentConversation;
-  String _currentTitle = 'AI 助手';
+  String _currentTitle = '';
   bool _autoTitleGenerated = false; // 是否已经自动生成过标题
 
   @override
@@ -70,6 +71,12 @@ class _ChatScreenState extends State<ChatScreen> {
     /// 1. 检查API配置是否完成
     /// 2. 加载最近使用的对话或创建新对话
     _checkConfiguration();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // 在这里加载当前对话,确保可以访问 AppLocalizations
     _loadCurrentConversation();
   }
 
@@ -106,6 +113,7 @@ class _ChatScreenState extends State<ChatScreen> {
   /// 如果不存在最近对话，则创建新的对话
   /// 加载完成后，将对话消息添加到状态中并滚动到底部
   Future<void> _loadCurrentConversation() async {
+    final l10n = AppLocalizations.of(context)!;
     final currentConversationId =
         await _conversationService.getCurrentConversationId();
 
@@ -126,7 +134,7 @@ class _ChatScreenState extends State<ChatScreen> {
               // 有部分内容，标记为error并添加提示
               processedMessages.add(message.copyWith(
                 status: MessageStatus.error,
-                content: '${message.content}\n\n[响应中断，应用可能意外退出]',
+                content: '${message.content}\n\n[${l10n.responseInterrupted}]',
               ));
             }
           } else {
@@ -162,7 +170,10 @@ class _ChatScreenState extends State<ChatScreen> {
   /// 调用对话服务创建新的对话对象
   /// 重置消息列表和对话标题，更新状态
   Future<void> _createNewConversation() async {
-    final conversation = await _conversationService.createNewConversation();
+    final l10n = AppLocalizations.of(context)!;
+    final conversation = await _conversationService.createNewConversation(
+      title: l10n.newConversation,
+    );
     setState(() {
       _currentConversation = conversation;
       _messages.clear();
@@ -462,18 +473,19 @@ class _ChatScreenState extends State<ChatScreen> {
   /// 当用户尝试发送消息但应用未配置API密钥时显示
   /// 提供选项：取消或跳转到设置界面
   void _showConfigurationDialog() {
+    final l10n = AppLocalizations.of(context)!;
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('需要配置'),
-        content: const Text('请先在设置中配置API端点和密钥'),
+        title: Text(l10n.needConfiguration),
+        content: Text(l10n.configureAPIPrompt),
         actions: [
           CupertinoDialogAction(
-            child: const Text('取消'),
+            child: Text(l10n.cancel),
             onPressed: () => Navigator.pop(context),
           ),
           CupertinoDialogAction(
-            child: const Text('去设置'),
+            child: Text(l10n.goToSettings),
             onPressed: () {
               Navigator.pop(context);
               _openSettings();
@@ -529,19 +541,20 @@ class _ChatScreenState extends State<ChatScreen> {
   ///
   /// 显示确认对话框，用户确认后清空消息列表并保存对话
   Future<void> _clearCurrentConversation() async {
+    final l10n = AppLocalizations.of(context)!;
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('清除当前对话'),
-        content: const Text('确定要清除当前对话的所有消息吗？'),
+        title: Text(l10n.clearConversation),
+        content: Text(l10n.clearConversationConfirm),
         actions: [
           CupertinoDialogAction(
-            child: const Text('取消'),
+            child: Text(l10n.cancel),
             onPressed: () => Navigator.pop(context),
           ),
           CupertinoDialogAction(
             isDestructiveAction: true,
-            child: const Text('清除'),
+            child: Text(l10n.delete),
             onPressed: () async {
               Navigator.pop(context);
               setState(() {
@@ -557,6 +570,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     /// 构建聊天界面布局
     /// 包含：导航栏、消息列表、输入框、配置提示等组件
     return CupertinoPageScaffold(
@@ -566,7 +580,7 @@ class _ChatScreenState extends State<ChatScreen> {
           onPressed: _openConversationList,
           child: const Icon(CupertinoIcons.chat_bubble_2),
         ),
-        middle: Text(_currentTitle),
+        middle: Text(_currentTitle.isEmpty ? l10n.aiAssistant : _currentTitle),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -598,13 +612,13 @@ class _ChatScreenState extends State<ChatScreen> {
                       color: CupertinoColors.systemOrange,
                     ),
                     const SizedBox(width: 8),
-                    const Expanded(
-                      child: Text('请先配置API设置才能开始对话'),
+                    Expanded(
+                      child: Text(l10n.pleaseConfigureAPI),
                     ),
                     CupertinoButton(
                       padding: EdgeInsets.zero,
                       onPressed: _openSettings,
-                      child: const Text('设置'),
+                      child: Text(l10n.settingsButton),
                     ),
                   ],
                 ),
@@ -646,19 +660,20 @@ class _ChatScreenState extends State<ChatScreen> {
   ///
   /// 当消息列表为空时显示，包含图标和提示文本
   Widget _buildEmptyState() {
-    return const Center(
+    final l10n = AppLocalizations.of(context)!;
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
+          const Icon(
             CupertinoIcons.chat_bubble_2,
             size: 64,
             color: CupertinoColors.systemGrey,
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Text(
-            '开始与AI对话吧！',
-            style: TextStyle(
+            l10n.startChatting,
+            style: const TextStyle(
               fontSize: 18,
               color: CupertinoColors.systemGrey,
             ),
@@ -672,17 +687,18 @@ class _ChatScreenState extends State<ChatScreen> {
   ///
   /// 显示底部操作菜单，包含设置和清除对话等选项
   void _showMoreOptions() {
+    final l10n = AppLocalizations.of(context)!;
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
         actions: [
           CupertinoActionSheetAction(
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(CupertinoIcons.settings, size: 20),
-                SizedBox(width: 8),
-                Text('设置'),
+                const Icon(CupertinoIcons.settings, size: 20),
+                const SizedBox(width: 8),
+                Text(l10n.settings),
               ],
             ),
             onPressed: () {
@@ -692,12 +708,12 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           CupertinoActionSheetAction(
             isDestructiveAction: true,
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(CupertinoIcons.clear, size: 20),
-                SizedBox(width: 8),
-                Text('清除当前对话'),
+                const Icon(CupertinoIcons.clear, size: 20),
+                const SizedBox(width: 8),
+                Text(l10n.clearConversation),
               ],
             ),
             onPressed: () {
@@ -707,7 +723,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
-          child: const Text('取消'),
+          child: Text(l10n.cancel),
           onPressed: () => Navigator.pop(context),
         ),
       ),

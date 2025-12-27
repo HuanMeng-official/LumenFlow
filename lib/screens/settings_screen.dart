@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import '../services/settings_service.dart';
@@ -59,6 +60,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   bool _thinkingMode = SettingsService.defaultThinkingMode;
   bool _autoTitleEnabled = SettingsService.defaultAutoTitleEnabled;
   int _autoTitleRounds = SettingsService.defaultAutoTitleRounds;
+  String _locale = SettingsService.defaultLocale;
 
   @override
   void initState() {
@@ -112,6 +114,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     final thinkingMode = await _settingsService.getThinkingMode();
     final autoTitleEnabled = await _settingsService.getAutoTitleEnabled();
     final autoTitleRounds = await _settingsService.getAutoTitleRounds();
+    final locale = await _settingsService.getLocale();
 
     setState(() {
       _endpointController.text = endpoint;
@@ -129,6 +132,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       _thinkingMode = thinkingMode;
       _autoTitleEnabled = autoTitleEnabled;
       _autoTitleRounds = autoTitleRounds;
+      _locale = locale;
       _isLoading = false;
     });
   }
@@ -175,16 +179,18 @@ class _SettingsScreenState extends State<SettingsScreen>
       await _settingsService.setThinkingMode(_thinkingMode);
       await _settingsService.setAutoTitleEnabled(_autoTitleEnabled);
       await _settingsService.setAutoTitleRounds(_autoTitleRounds);
+      await _settingsService.setLocale(_locale);
 
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         showCupertinoDialog(
           context: context,
           builder: (context) => CupertinoAlertDialog(
-            title: const Text('保存成功'),
-            content: const Text('设置已保存'),
+            title: Text(l10n.saveSuccess),
+            content: Text(l10n.settingsSaved),
             actions: [
               CupertinoDialogAction(
-                child: const Text('确定'),
+                child: Text(l10n.ok),
                 onPressed: () => Navigator.pop(context),
               ),
             ],
@@ -193,14 +199,15 @@ class _SettingsScreenState extends State<SettingsScreen>
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         showCupertinoDialog(
           context: context,
           builder: (context) => CupertinoAlertDialog(
-            title: const Text('保存失败'),
-            content: Text('保存设置时出错: $e'),
+            title: Text(l10n.saveFailed),
+            content: Text(l10n.saveError(e.toString())),
             actions: [
               CupertinoDialogAction(
-                child: const Text('确定'),
+                child: Text(l10n.ok),
                 onPressed: () => Navigator.pop(context),
               ),
             ],
@@ -215,19 +222,20 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   void _resetToDefaults() {
+    final l10n = AppLocalizations.of(context)!;
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('重置设置'),
-        content: const Text('确定要恢复默认设置吗？这将清除所有当前配置。'),
+        title: Text(l10n.resetSettings),
+        content: Text(l10n.resetSettingsConfirm),
         actions: [
           CupertinoDialogAction(
-            child: const Text('取消'),
+            child: Text(l10n.cancel),
             onPressed: () => Navigator.pop(context),
           ),
           CupertinoDialogAction(
             isDestructiveAction: true,
-            child: const Text('重置'),
+            child: Text(l10n.resetToDefault),
             onPressed: () {
               Navigator.pop(context);
               setState(() {
@@ -300,14 +308,15 @@ class _SettingsScreenState extends State<SettingsScreen>
       await targetFile.writeAsBytes(bytes);
 
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         showCupertinoDialog(
           context: context,
           builder: (context) => CupertinoAlertDialog(
-            title: const Text('导出成功'),
-            content: Text('设置已成功导出到$locationName：\n${targetFile.path}'),
+            title: Text(l10n.exportSuccess),
+            content: Text(l10n.exportLocation(locationName, targetFile.path)),
             actions: [
               CupertinoDialogAction(
-                child: const Text('确定'),
+                child: Text(l10n.ok),
                 onPressed: () => Navigator.pop(context),
               ),
             ],
@@ -316,15 +325,15 @@ class _SettingsScreenState extends State<SettingsScreen>
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         showCupertinoDialog(
           context: context,
           builder: (context) => CupertinoAlertDialog(
-            title: const Text('导出失败'),
-            content: Text('导出设置时出错: $e\n\n'
-                '请确保应用有存储权限，并检查存储空间是否充足。'),
+            title: Text(l10n.exportFailed),
+            content: Text(l10n.exportError(e.toString())),
             actions: [
               CupertinoDialogAction(
-                child: const Text('确定'),
+                child: Text(l10n.ok),
                 onPressed: () => Navigator.pop(context),
               ),
             ],
@@ -339,7 +348,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       final FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
-        dialogTitle: '导入设置',
+        dialogTitle: AppLocalizations.of(context)!.importSettings,
         allowMultiple: false,
       );
 
@@ -350,19 +359,20 @@ class _SettingsScreenState extends State<SettingsScreen>
 
         // 显示确认对话框
         if (!mounted) return;
+        final l10n = AppLocalizations.of(context)!;
         final bool? confirmed = await showCupertinoDialog<bool>(
           context: context,
           builder: (context) => CupertinoAlertDialog(
-            title: const Text('导入设置'),
-            content: const Text('这将覆盖当前设置，确定要导入吗？'),
+            title: Text(l10n.importSettings),
+            content: Text(l10n.importSettingsConfirm),
             actions: [
               CupertinoDialogAction(
-                child: const Text('取消'),
+                child: Text(l10n.cancel),
                 onPressed: () => Navigator.pop(context, false),
               ),
               CupertinoDialogAction(
                 isDestructiveAction: true,
-                child: const Text('导入'),
+                child: Text(l10n.importSettings),
                 onPressed: () => Navigator.pop(context, true),
               ),
             ],
@@ -378,11 +388,11 @@ class _SettingsScreenState extends State<SettingsScreen>
             showCupertinoDialog(
               context: context,
               builder: (context) => CupertinoAlertDialog(
-                title: const Text('导入成功'),
-                content: const Text('设置已成功导入。'),
+                title: Text(l10n.importSuccess),
+                content: Text(l10n.settingsImported),
                 actions: [
                   CupertinoDialogAction(
-                    child: const Text('确定'),
+                    child: Text(l10n.ok),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -393,14 +403,15 @@ class _SettingsScreenState extends State<SettingsScreen>
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         showCupertinoDialog(
           context: context,
           builder: (context) => CupertinoAlertDialog(
-            title: const Text('导入失败'),
-            content: Text('导入设置时出错: $e'),
+            title: Text(l10n.importFailed),
+            content: Text(l10n.importError(e.toString())),
             actions: [
               CupertinoDialogAction(
-                child: const Text('确定'),
+                child: Text(l10n.ok),
                 onPressed: () => Navigator.pop(context),
               ),
             ],
@@ -430,17 +441,15 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   void _showEndpointHelp() {
+    final l10n = AppLocalizations.of(context)!;
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('常用API端点'),
-        content: const Text('OpenAI: https://api.openai.com/v1\n\n'
-            'DeepSeek: https://api.deepseek.com\n\n'
-            '阿里云: https://dashscope.aliyuncs.com/api/v1\n\n'
-            '请根据您使用的AI服务提供商填写相应的端点地址。'),
+        title: Text(l10n.commonApiEndpoints),
+        content: Text(l10n.commonApiEndpointsContent),
         actions: [
           CupertinoDialogAction(
-            child: const Text('确定'),
+            child: Text(l10n.ok),
             onPressed: () => Navigator.pop(context),
           ),
         ],
@@ -449,19 +458,15 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   void _showModelHelp() {
+    final l10n = AppLocalizations.of(context)!;
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('常用模型'),
-        content: const Text('OpenAI:\n'
-            '• gpt-5\n\n'
-            'DeepSeek:\n'
-            '• deepseek-chat\n'
-            '• deepseek-reasoner\n\n'
-            '请根据您的API端点选择对应的模型。'),
+        title: Text(l10n.commonModels),
+        content: Text(l10n.commonModelsContent),
         actions: [
           CupertinoDialogAction(
-            child: const Text('确定'),
+            child: Text(l10n.ok),
             onPressed: () => Navigator.pop(context),
           ),
         ],
@@ -471,35 +476,37 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     if (_isLoading) {
-      return const CupertinoPageScaffold(
+      return CupertinoPageScaffold(
         navigationBar: CupertinoNavigationBar(
-          middle: Text('设置'),
+          middle: Text(l10n.settings),
         ),
-        child: Center(child: CupertinoActivityIndicator()),
+        child: const Center(child: CupertinoActivityIndicator()),
       );
     }
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        middle: const Text('设置'),
+        middle: Text(l10n.settings),
         trailing: _isSaving
             ? const CupertinoActivityIndicator()
             : CupertinoButton(
                 padding: EdgeInsets.zero,
                 onPressed: _saveSettings,
-                child: const Text('保存'),
+                child: Text(l10n.save),
               ),
       ),
       child: SafeArea(
         child: ListView(
           children: [
             _buildSection(
-              '用户信息',
+              l10n.userInfo,
               [
                 _buildNavigationTile(
-                  '个人资料',
-                  subtitle: '设置头像和用户名',
+                  l10n.userProfile,
+                  subtitle: l10n.userProfileDesc,
                   icon: CupertinoIcons.person_crop_circle,
                   onTap: () {
                     Navigator.push(
@@ -513,17 +520,17 @@ class _SettingsScreenState extends State<SettingsScreen>
               ],
             ),
             _buildSection(
-              '基础设置',
+              l10n.basicSettings,
               [
                 _buildDropdownTile(
-                  'API格式',
+                  l10n.apiType,
                   value: _apiType,
                   options: {
-                    'openai': 'OpenAI API',
-                    'gemini': 'Gemini API',
-                    'deepseek': 'DeepSeek API',
+                    'openai': l10n.openaiApi,
+                    'gemini': l10n.geminiApi,
+                    'deepseek': l10n.deepseekApi,
                   },
-                  subtitle: '选择AI服务提供商',
+                  subtitle: l10n.apiTypeDesc,
                   onChanged: (newValue) {
                     if (newValue != null) {
                       setState(() {
@@ -534,19 +541,19 @@ class _SettingsScreenState extends State<SettingsScreen>
                   },
                 ),
                 _buildInputTile(
-                  'API端点',
+                  l10n.apiEndpoint,
                   controller: _endpointController,
-                  placeholder: '输入API端点URL',
-                  subtitle: '例如: https://api.openai.com/v1',
+                  placeholder: l10n.apiEndpointPlaceholder,
+                  subtitle: l10n.apiEndpointDesc,
                   showHelpButton: true,
                   onHelpPressed: _showEndpointHelp,
                   keyboardType: TextInputType.url,
                 ),
                 _buildInputTile(
-                  'API密钥',
+                  l10n.apiKey,
                   controller: _apiKeyController,
-                  placeholder: '输入API密钥',
-                  subtitle: '从AI服务提供商获取的认证密钥',
+                  placeholder: l10n.apiKeyPlaceholder,
+                  subtitle: l10n.apiKeyDesc,
                   obscureText: _obscureApiKey,
                   showVisibilityToggle: true,
                   onVisibilityToggle: () {
@@ -558,34 +565,34 @@ class _SettingsScreenState extends State<SettingsScreen>
               ],
             ),
             _buildSection(
-              '模型设置',
+              l10n.modelSettings,
               [
                 _buildInputTile(
-                  '模型',
+                  l10n.model,
                   controller: _modelController,
-                  placeholder: '输入模型名称',
-                  subtitle: '例如: gpt-5, deepseek-chat',
+                  placeholder: l10n.modelPlaceholder,
+                  subtitle: l10n.modelDesc,
                   showHelpButton: true,
                   onHelpPressed: _showModelHelp,
                 ),
                 _buildInputTile(
-                  '最大Token数',
+                  l10n.maxTokens,
                   controller: _maxTokensController,
-                  placeholder: '输入最大Token数',
-                  subtitle: '限制单次回复的长度，建议500-8000',
+                  placeholder: l10n.maxTokensPlaceholder,
+                  subtitle: l10n.maxTokensDesc,
                   keyboardType: TextInputType.number,
                 ),
                 _buildInputTile(
-                  'System Prompt',
+                  l10n.systemPrompt,
                   controller: _customSystemPromptController,
-                  placeholder: '输入 System Prompt',
-                  subtitle: '例如：始终使用中文回答',
+                  placeholder: l10n.systemPromptPlaceholder,
+                  subtitle: l10n.systemPromptDesc,
                   keyboardType: TextInputType.multiline,
                 ),
                 _buildSliderTile(
-                  '温度',
+                  l10n.temperature,
                   value: _temperature,
-                  subtitle: '控制回复的随机性，0.0-2.0，数值越高回复越有创意',
+                  subtitle: l10n.temperatureDesc,
                   min: 0.0,
                   max: 2.0,
                   divisions: 20,
@@ -600,12 +607,12 @@ class _SettingsScreenState extends State<SettingsScreen>
               ],
             ),
             _buildSection(
-              '历史对话',
+              l10n.historyConversation,
               [
                 _buildSwitchTile(
-                  '启用历史对话',
+                  l10n.enableHistory,
                   value: _enableHistory,
-                  subtitle: '开启后AI会记住之前的对话内容，提供更连贯的回复',
+                  subtitle: l10n.enableHistoryDesc,
                   onChanged: (value) {
                     setState(() {
                       _enableHistory = value;
@@ -614,21 +621,21 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ),
                 if (_enableHistory)
                   _buildInputTile(
-                    '历史对话轮数',
+                    l10n.historyRounds,
                     controller: _historyContextLengthController,
-                    placeholder: '输入历史对话轮数',
-                    subtitle: 'AI记住的历史对话轮数，建议5-20轮，过多可能超出Token限制',
+                    placeholder: l10n.historyRoundsPlaceholder,
+                    subtitle: l10n.historyRoundsDesc,
                     keyboardType: TextInputType.number,
                   ),
               ],
             ),
             _buildSection(
-              '对话标题',
+              l10n.conversationTitle,
               [
                 _buildSwitchTile(
-                  '自动生成标题',
+                  l10n.autoGenerateTitle,
                   value: _autoTitleEnabled,
-                  subtitle: '对话进行若干轮后，AI会根据内容自动生成标题',
+                  subtitle: l10n.autoGenerateTitleDesc,
                   onChanged: (value) {
                     setState(() {
                       _autoTitleEnabled = value;
@@ -637,14 +644,14 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ),
                 if (_autoTitleEnabled)
                   _buildSliderTile(
-                    '生成时机',
+                    l10n.generateTiming,
                     value: _autoTitleRounds.toDouble(),
-                    subtitle: '设置多少轮对话后自动生成标题',
+                    subtitle: l10n.generateTimingDesc,
                     min: 1,
                     max: 10,
                     divisions: 9,
                     decimalPlaces: 0,
-                    valueSuffix: ' 轮',
+                    valueSuffix: ' ${l10n.rounds}',
                     showValueInRow: true,
                     onChanged: (value) {
                       setState(() {
@@ -655,12 +662,12 @@ class _SettingsScreenState extends State<SettingsScreen>
               ],
             ),
             _buildSection(
-              '外观',
+              l10n.appearance,
               [
                 _buildSwitchTile(
-                  '跟随系统设置',
+                  l10n.followSystem,
                   value: _followSystemTheme,
-                  subtitle: '自动跟随系统颜色模式',
+                  subtitle: l10n.followSystemDesc,
                   onChanged: (value) async {
                     setState(() {
                       _followSystemTheme = value;
@@ -670,7 +677,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   },
                 ),
                 _buildDropdownTile(
-                  '应用颜色',
+                  l10n.appColor,
                   value: _followSystemTheme
                       ? (MediaQuery.of(context).platformBrightness ==
                               Brightness.dark
@@ -678,12 +685,15 @@ class _SettingsScreenState extends State<SettingsScreen>
                           : 'light')
                       : _appTheme,
                   options: {
-                    'light': '浅色模式',
-                    'dark': '暗色模式',
+                    'light': l10n.lightMode,
+                    'dark': l10n.darkMode,
                   },
                   subtitle: _followSystemTheme
-                      ? '跟随系统设置中（${MediaQuery.of(context).platformBrightness == Brightness.dark ? '暗色模式' : '浅色模式'}）'
-                      : '选择应用颜色模式',
+                      ? l10n.followSystemSetting(
+                          MediaQuery.of(context).platformBrightness == Brightness.dark
+                              ? l10n.darkMode
+                              : l10n.lightMode)
+                      : l10n.selectColorMode,
                   onChanged: _followSystemTheme
                       ? null
                       : (newValue) async {
@@ -699,28 +709,49 @@ class _SettingsScreenState extends State<SettingsScreen>
               ],
             ),
             _buildSection(
-              '其他',
+              l10n.language,
+              [
+                _buildDropdownTile(
+                  l10n.interfaceLanguage,
+                  value: _locale,
+                  options: {
+                    'zh': '简体中文',
+                    'en': 'English',
+                  },
+                  subtitle: l10n.selectInterfaceLanguage,
+                  onChanged: (newValue) {
+                    if (newValue != null) {
+                      setState(() {
+                        _locale = newValue;
+                      });
+                    }
+                  },
+                ),
+              ],
+            ),
+            _buildSection(
+              l10n.others,
               [
                 _buildActionTile(
-                  '导出设置',
+                  l10n.exportSettings,
                   icon: CupertinoIcons.arrow_down_doc,
                   onTap: _exportSettings,
                   isDestructive: false,
                 ),
                 _buildActionTile(
-                  '导入设置',
+                  l10n.importSettings,
                   icon: CupertinoIcons.arrow_up_doc,
                   onTap: _importSettings,
                   isDestructive: false,
                 ),
                 _buildActionTile(
-                  '关于',
+                  l10n.about,
                   icon: CupertinoIcons.info_circle,
                   onTap: _openAbout,
                   isDestructive: false,
                 ),
                 _buildActionTile(
-                  '重置为默认设置',
+                  l10n.resetToDefault,
                   icon: CupertinoIcons.refresh,
                   onTap: _resetToDefaults,
                   isDestructive: true,
@@ -738,24 +769,18 @@ class _SettingsScreenState extends State<SettingsScreen>
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text(
-                    '使用说明',
-                    style: TextStyle(
+                    l10n.usageInstructions,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
-                    '• API格式：选择AI服务提供商（OpenAI、Gemini或DeepSeek），选择后将自动填充端点和模型\n'
-                    '• API端点：AI服务提供商的API地址，点击帮助按钮查看常用端点\n'
-                    '• API密钥：从服务提供商获取的认证密钥，请妥善保管\n'
-                    '• 模型：要使用的AI模型名称，不同端点支持不同模型\n'
-                    '• Token数：限制单次回复的长度，过小可能导致回复不完整\n'
-                    '• 温度：数值越高回复越有创意，建议0.3-1.0\n'
-                    '• 历史对话：开启后AI能记住对话上下文，提供更连贯的体验',
-                    style: TextStyle(
+                    l10n.usageInstructionsContent,
+                    style: const TextStyle(
                       fontSize: 14,
                       color: CupertinoColors.systemGrey,
                     ),
@@ -1185,7 +1210,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                               Navigator.pop(context);
                             },
                             child: Text(
-                              '取消',
+                              AppLocalizations.of(context)!.cancel,
                               style: TextStyle(
                                 color: popupBrightness == Brightness.dark
                                     ? CupertinoColors.systemRed.darkColor
