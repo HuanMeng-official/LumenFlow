@@ -267,6 +267,7 @@ class _ChatInputState extends State<ChatInput> {
         }
 
         if (totalSize > AIService.maxTotalAttachmentsSize) {
+          if (!mounted) return;
           final l10n = AppLocalizations.of(context);
           if (l10n != null) {
             _showErrorDialog(l10n.fileTooLarge,
@@ -276,6 +277,7 @@ class _ChatInputState extends State<ChatInput> {
         }
 
         if (oversizedFiles.isNotEmpty) {
+          if (!mounted) return;
           final l10n = AppLocalizations.of(context);
           if (l10n != null) {
             final proceed = await _showWarningDialog(l10n.fileTooLargeWarning,
@@ -311,6 +313,7 @@ class _ChatInputState extends State<ChatInput> {
             widget.onAttachmentsSelected!(attachments);
           }
         } else {
+          if (!mounted) return;
           final l10n = AppLocalizations.of(context);
           if (l10n != null) {
             _showErrorDialog(l10n.noValidFiles, l10n.noValidFilesMessage);
@@ -319,6 +322,7 @@ class _ChatInputState extends State<ChatInput> {
       }
     } catch (e) {
       debugPrint('Error picking file: $e');
+      if (!mounted) return;
       final l10n = AppLocalizations.of(context);
       if (l10n != null) {
         _showErrorDialog(
