@@ -8,6 +8,7 @@ import '../providers/ai_provider.dart';
 import '../providers/openai_provider.dart';
 import '../providers/gemini_provider.dart';
 import '../providers/deepseek_provider.dart';
+import '../l10n/app_localizations.dart';
 
 /// AI服务类，负责处理与AI模型（OpenAI、Google Gemini和DeepSeek）的通信
 /// 支持文本对话、文件附件处理、流式输出等功能
@@ -69,7 +70,7 @@ class AIService {
   /// 构建完整的系统提示词
   ///
   /// 包含基础提示词和用户自定义提示词
-  Future<String> _buildSystemPrompt(String presetSystemPrompt) async {
+  Future<String> _buildSystemPrompt(String presetSystemPrompt, AppLocalizations l10n) async {
     final userProfile = await _userService.getUserProfile();
     final customSystemPrompt = await _settingsService.getCustomSystemPrompt();
 
@@ -78,8 +79,8 @@ class AIService {
         ? presetSystemPrompt
         : customSystemPrompt;
 
-    String baseSystemPrompt =
-        '用户的名字是"${userProfile.username}",请在对话中适当地使用这个名字来称呼用户并使用和用户相同的语言（如果用户说中文你就用中文，用户说英文你就用英文）。';
+    // 使用本地化的基础系统提示词
+    String baseSystemPrompt = l10n.baseSystemPrompt(userProfile.username);
     String fullSystemPrompt = baseSystemPrompt;
     if (systemPromptToUse.isNotEmpty) {
       fullSystemPrompt += systemPromptToUse;
@@ -97,6 +98,7 @@ class AIService {
   ///   attachments - 附件列表（可选，默认为空）
   ///   thinkingMode - 是否启用思考模式
   ///   presetSystemPrompt - 预设系统提示词
+  ///   l10n - 国际化对象
   /// 返回值:
   ///   返回一个`Map<String, dynamic>`，包含AI模型的响应
   ///   - 'reasoningContent': 思考过程内容（如果有）
@@ -107,16 +109,17 @@ class AIService {
       String message, List<Message> chatHistory,
       {List<Attachment> attachments = const [],
       bool thinkingMode = false,
-      String presetSystemPrompt = ''}) async {
+      String presetSystemPrompt = '',
+      required AppLocalizations l10n}) async {
     final apiKey = await _settingsService.getApiKey();
     if (apiKey.isEmpty) {
-      throw Exception('请先在设置中配置API密钥');
+      throw Exception(l10n.configureApiKeyFirst);
     }
 
     final provider = await _getProvider();
     final temperature = await _settingsService.getTemperature();
     final maxTokens = await _settingsService.getMaxTokens();
-    final systemPrompt = await _buildSystemPrompt(presetSystemPrompt);
+    final systemPrompt = await _buildSystemPrompt(presetSystemPrompt, l10n);
 
     try {
       return await provider.sendMessage(
@@ -129,7 +132,7 @@ class AIService {
         thinkingMode: thinkingMode,
       );
     } catch (e) {
-      throw _handleError(e);
+      throw _handleError(e, l10n);
     }
   }
 
@@ -141,6 +144,7 @@ class AIService {
   ///   attachments - 附件列表（可选，默认为空）
   ///   thinkingMode - 是否启用思考模式
   ///   presetSystemPrompt - 预设系统提示词
+  ///   l10n - 国际化对象
   /// 返回值:
   ///   返回一个`Stream<Map<String, dynamic>>`，实时输出AI模型的响应片段
   ///   Map包含 'type' 和 'content' 字段，type可以是 'reasoning' 或 'answer'
@@ -150,16 +154,17 @@ class AIService {
       String message, List<Message> chatHistory,
       {List<Attachment> attachments = const [],
       bool thinkingMode = false,
-      String presetSystemPrompt = ''}) async* {
+      String presetSystemPrompt = '',
+      required AppLocalizations l10n}) async* {
     final apiKey = await _settingsService.getApiKey();
     if (apiKey.isEmpty) {
-      throw Exception('请先在设置中配置API密钥');
+      throw Exception(l10n.configureApiKeyFirst);
     }
 
     final provider = await _getProvider();
     final temperature = await _settingsService.getTemperature();
     final maxTokens = await _settingsService.getMaxTokens();
-    final systemPrompt = await _buildSystemPrompt(presetSystemPrompt);
+    final systemPrompt = await _buildSystemPrompt(presetSystemPrompt, l10n);
 
     try {
       yield* provider.sendMessageStreaming(
@@ -172,7 +177,7 @@ class AIService {
         thinkingMode: thinkingMode,
       );
     } catch (e) {
-      throw _handleError(e);
+      throw _handleError(e, l10n);
     }
   }
 
@@ -180,14 +185,15 @@ class AIService {
   ///
   /// 参数:
   ///   messages - 对话消息列表
+  ///   l10n - 国际化对象
   /// 返回值:
   ///   生成的对话标题（简短摘要）
   /// 异常:
   ///   抛出Exception当API密钥未配置或网络请求失败时
-  Future<String> generateConversationTitle(List<Message> messages) async {
+  Future<String> generateConversationTitle(List<Message> messages, {required AppLocalizations l10n}) async {
     final apiKey = await _settingsService.getApiKey();
     if (apiKey.isEmpty) {
-      throw Exception('请先在设置中配置API密钥');
+      throw Exception(l10n.configureApiKeyFirst);
     }
 
     final provider = await _getProvider();
@@ -195,35 +201,36 @@ class AIService {
     try {
       return await provider.generateConversationTitle(messages);
     } catch (e) {
-      throw _handleError(e);
+      throw _handleError(e, l10n);
     }
   }
 
   /// 统一错误处理
   ///
   /// 将各种错误转换为用户友好的异常消息
-  Exception _handleError(dynamic e) {
+  Exception _handleError(dynamic e, AppLocalizations l10n) {
     // 如果已经是 API 错误，直接重新抛出
-    if (e.toString().contains('API错误')) {
+    if (e.toString().contains('API错误: ') || e.toString().contains('API Error: ') ||
+        e.toString().contains('Gemini API错误: ') || e.toString().contains('Gemini API Error: ')) {
       return e as Exception;
     }
 
     // 根据错误类型提供更详细的错误信息
     final errorMsg = e.toString();
     if (errorMsg.contains('timeout') || errorMsg.contains('Timeout')) {
-      return Exception('请求超时：服务器响应时间过长，请检查网络连接或稍后重试。错误详情: $e');
+      return Exception(l10n.requestTimeout(e.toString()));
     } else if (errorMsg.contains('socket') || errorMsg.contains('Socket')) {
-      return Exception('网络连接失败：无法连接到服务器，请检查网络连接。错误详情: $e');
+      return Exception(l10n.networkConnectionFailed(e.toString()));
     } else if (errorMsg.contains('handshake') || errorMsg.contains('TLS') || errorMsg.contains('SSL')) {
-      return Exception('安全连接失败：SSL/TLS握手失败，请检查系统时间或网络设置。错误详情: $e');
+      return Exception(l10n.securityConnectionFailed(e.toString()));
     } else if (errorMsg.contains('Connection') || errorMsg.contains('connection')) {
-      return Exception('连接错误：网络连接出现问题，请检查网络设置。错误详情: $e');
+      return Exception(l10n.connectionError(e.toString()));
     } else if (errorMsg.contains('Http') || errorMsg.contains('http')) {
-      return Exception('HTTP协议错误：请求处理失败，请稍后重试。错误详情: $e');
+      return Exception(l10n.httpProtocolError(e.toString()));
     } else if (e is Exception) {
       return e;
     } else {
-      return Exception('网络通信失败：$e');
+      return Exception(l10n.networkCommunicationFailed(e.toString()));
     }
   }
 }

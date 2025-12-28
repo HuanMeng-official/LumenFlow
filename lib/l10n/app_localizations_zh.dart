@@ -549,4 +549,42 @@ class AppLocalizationsZh extends AppLocalizations {
   String apiError(String message, int statusCode) {
     return 'API错误: $message (状态码: $statusCode)';
   }
+
+  @override
+  String get configureApiKeyFirst => '请先在设置中配置API密钥';
+
+  @override
+  String baseSystemPrompt(String username) {
+    return '用户的名字是\"$username\"，请在对话中适当地使用这个名字来称呼用户并使用和用户相同的语言。';
+  }
+
+  @override
+  String requestTimeout(String error) {
+    return '请求超时：服务器响应时间过长，请检查网络连接或稍后重试。错误详情: $error';
+  }
+
+  @override
+  String networkConnectionFailed(String error) {
+    return '网络连接失败：无法连接到服务器，请检查网络连接。错误详情: $error';
+  }
+
+  @override
+  String securityConnectionFailed(String error) {
+    return '安全连接失败：SSL/TLS握手失败，请检查系统时间或网络设置。错误详情: $error';
+  }
+
+  @override
+  String connectionError(String error) {
+    return '连接错误：网络连接出现问题，请检查网络设置。错误详情: $error';
+  }
+
+  @override
+  String httpProtocolError(String error) {
+    return 'HTTP协议错误：请求处理失败，请稍后重试。错误详情: $error';
+  }
+
+  @override
+  String networkCommunicationFailed(String error) {
+    return '网络通信失败: $error';
+  }
 }

@@ -1126,6 +1126,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'API Error: {message} (Status code: {statusCode})'**
   String apiError(String message, int statusCode);
+
+  /// No description provided for @configureApiKeyFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Please configure API key in settings first'**
+  String get configureApiKeyFirst;
+
+  /// No description provided for @baseSystemPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'The user\'s name is \"{username}\", please use this name appropriately in the conversation and use the same language as the user.'**
+  String baseSystemPrompt(String username);
+
+  /// No description provided for @requestTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Request timeout: Server response took too long, please check network connection or try again later. Error details: {error}'**
+  String requestTimeout(String error);
+
+  /// No description provided for @networkConnectionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Network connection failed: Unable to connect to server, please check network connection. Error details: {error}'**
+  String networkConnectionFailed(String error);
+
+  /// No description provided for @securityConnectionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Security connection failed: SSL/TLS handshake failed, please check system time or network settings. Error details: {error}'**
+  String securityConnectionFailed(String error);
+
+  /// No description provided for @connectionError.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection error: Network connection problem occurred, please check network settings. Error details: {error}'**
+  String connectionError(String error);
+
+  /// No description provided for @httpProtocolError.
+  ///
+  /// In en, this message translates to:
+  /// **'HTTP protocol error: Request processing failed, please try again later. Error details: {error}'**
+  String httpProtocolError(String error);
+
+  /// No description provided for @networkCommunicationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Network communication failed: {error}'**
+  String networkCommunicationFailed(String error);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

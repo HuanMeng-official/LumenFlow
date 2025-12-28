@@ -282,8 +282,10 @@ class _ChatScreenState extends State<ChatScreen> {
     // 检查是否达到生成轮次
     if (userMessageCount >= autoTitleRounds) {
       try {
+        if (!mounted) return;
+        final l10n = AppLocalizations.of(context)!;
         // 调用AI服务生成标题
-        final newTitle = await _aiService.generateConversationTitle(_messages);
+        final newTitle = await _aiService.generateConversationTitle(_messages, l10n: l10n);
 
         // 更新对话标题
         if (_currentConversation != null && newTitle.isNotEmpty) {
@@ -396,7 +398,7 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       final stream = _aiService.sendMessageStreaming(content, _messages,
           attachments: attachments, thinkingMode: _thinkingMode,
-          presetSystemPrompt: presetSystemPrompt);
+          presetSystemPrompt: presetSystemPrompt, l10n: l10n);
       final reasoningBuffer = StringBuffer();
       final answerBuffer = StringBuffer();
       int receivedChunks = 0;

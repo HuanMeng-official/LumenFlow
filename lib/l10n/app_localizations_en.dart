@@ -549,4 +549,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String apiError(String message, int statusCode) {
     return 'API Error: $message (Status code: $statusCode)';
   }
+
+  @override
+  String get configureApiKeyFirst => 'Please configure API key in settings first';
+
+  @override
+  String baseSystemPrompt(String username) {
+    return 'The user\'s name is \"$username\", please use this name appropriately in the conversation and use the same language as the user.';
+  }
+
+  @override
+  String requestTimeout(String error) {
+    return 'Request timeout: Server response took too long, please check network connection or try again later. Error details: $error';
+  }
+
+  @override
+  String networkConnectionFailed(String error) {
+    return 'Network connection failed: Unable to connect to server, please check network connection. Error details: $error';
+  }
+
+  @override
+  String securityConnectionFailed(String error) {
+    return 'Security connection failed: SSL/TLS handshake failed, please check system time or network settings. Error details: $error';
+  }
+
+  @override
+  String connectionError(String error) {
+    return 'Connection error: Network connection problem occurred, please check network settings. Error details: $error';
+  }
+
+  @override
+  String httpProtocolError(String error) {
+    return 'HTTP protocol error: Request processing failed, please try again later. Error details: $error';
+  }
+
+  @override
+  String networkCommunicationFailed(String error) {
+    return 'Network communication failed: $error';
+  }
 }

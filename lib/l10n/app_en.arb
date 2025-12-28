@@ -280,5 +280,62 @@
         "type": "int"
       }
     }
+  },
+  "configureApiKeyFirst": "Please configure API key in settings first",
+  "baseSystemPrompt": "The user's name is \"{username}\", please use this name appropriately in the conversation and use the same language as the user.",
+  "@baseSystemPrompt": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "requestTimeout": "Request timeout: Server response took too long, please check network connection or try again later. Error details: {error}",
+  "@requestTimeout": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "networkConnectionFailed": "Network connection failed: Unable to connect to server, please check network connection. Error details: {error}",
+  "@networkConnectionFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "securityConnectionFailed": "Security connection failed: SSL/TLS handshake failed, please check system time or network settings. Error details: {error}",
+  "@securityConnectionFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionError": "Connection error: Network connection problem occurred, please check network settings. Error details: {error}",
+  "@connectionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "httpProtocolError": "HTTP protocol error: Request processing failed, please try again later. Error details: {error}",
+  "@httpProtocolError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "networkCommunicationFailed": "Network communication failed: {error}",
+  "@networkCommunicationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   }
 }
