@@ -522,7 +522,7 @@ class _ChatInputState extends State<ChatInput> {
                   ),
                   child: CupertinoTextField(
                     controller: _controller,
-                    placeholder: widget.enabled ? '输入消息...' : '请先配置API设置',
+                    placeholder: widget.enabled ? l10n.messageInputPlaceholder : l10n.configureApiSettingsFirst,
                     enabled: widget.enabled,
                     decoration: null,
                     maxLines: null,

@@ -1133,10 +1133,22 @@ abstract class AppLocalizations {
   /// **'Please configure API key in settings first'**
   String get configureApiKeyFirst;
 
+  /// No description provided for @messageInputPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a message...'**
+  String get messageInputPlaceholder;
+
+  /// No description provided for @configureApiSettingsFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Please configure API settings first'**
+  String get configureApiSettingsFirst;
+
   /// No description provided for @baseSystemPrompt.
   ///
   /// In en, this message translates to:
-  /// **'The user\'s name is \"{username}\", please use this name appropriately in the conversation and use the same language as the user.'**
+  /// **'\"{username}\" is user\'s name, please use this name appropriately in the conversation and respond in English'**
   String baseSystemPrompt(String username);
 
   /// No description provided for @requestTimeout.

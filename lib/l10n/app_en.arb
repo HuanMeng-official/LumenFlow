@@ -282,7 +282,9 @@
     }
   },
   "configureApiKeyFirst": "Please configure API key in settings first",
-  "baseSystemPrompt": "The user's name is \"{username}\", please use this name appropriately in the conversation and use the same language as the user.",
+  "messageInputPlaceholder": "Type a message...",
+  "configureApiSettingsFirst": "Please configure API settings first",
+  "baseSystemPrompt": "\"{username}\" is user's name, please use this name appropriately in the conversation and respond in English",
   "@baseSystemPrompt": {
     "placeholders": {
       "username": {

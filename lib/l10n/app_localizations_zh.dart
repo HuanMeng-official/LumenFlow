@@ -554,8 +554,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get configureApiKeyFirst => '请先在设置中配置API密钥';
 
   @override
+  String get messageInputPlaceholder => '输入消息...';
+
+  @override
+  String get configureApiSettingsFirst => '请先配置API设置';
+
+  @override
   String baseSystemPrompt(String username) {
-    return '用户的名字是\"$username\"，请在对话中适当地使用这个名字来称呼用户并使用和用户相同的语言。';
+    return '请在对话中适当地使用\"$username\"这个名字来称呼用户，并使用中文回答。';
   }
 
   @override

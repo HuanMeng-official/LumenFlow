@@ -554,8 +554,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get configureApiKeyFirst => 'Please configure API key in settings first';
 
   @override
+  String get messageInputPlaceholder => 'Type a message...';
+
+  @override
+  String get configureApiSettingsFirst => 'Please configure API settings first';
+
+  @override
   String baseSystemPrompt(String username) {
-    return 'The user\'s name is \"$username\", please use this name appropriately in the conversation and use the same language as the user.';
+    return '\"$username\" is user\'s name, please use this name appropriately in the conversation and respond in English';
   }
 
   @override
