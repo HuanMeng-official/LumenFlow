@@ -14,27 +14,35 @@ LumenFlow (Chinese: 流光) is a modern AI chat application built with Flutter t
 
 ## Features
 
-- **Multi-AI Model Support**: Seamlessly switch between OpenAI and Google Gemini APIs
+- **Multi-AI Model Support**: Seamlessly switch between OpenAI, Google Gemini, and DeepSeek APIs
 - **Multi-Modal Support**: Process images, videos, and audio files with vision capabilities
 - **Streaming Responses**: Real-time streaming output for responsive chat experience
 - **File Attachments**: Upload and extract content from various file types
 - **Conversation Management**: Complete conversation history with local persistence
 - **User Profiles**: Personalized settings and preferences
 - **Prompt Preset System**: Pre-configured role-playing prompts with rich character settings
-- **Theme Management**: Support for light/dark theme switching
+- **Theme Management**: Support for light/dark theme switching with system theme following
 - **Cross-Platform**: Supports Android and Windows platforms
 - **Local Storage**: Data persistence using SharedPreferences
 - **Markdown Rendering**: Beautifully formatted AI responses
-- **About Page**: Displays application information, version, and copyright details
+- **About Page**: Displays application information and copyright details
 - **Settings Export/Import**: Backup and restore application settings via JSON files
 - **Role-Play System**: File-based prompt preset system with automatic content loading
 - **PowerShell Build Script**: Automated build process for both Android and Windows
+- **Internationalization**: Full English and Chinese language support
+- **Thinking Mode**: AI thinking process visualization
+- **Auto Title Generation**: Automatic conversation title generation
 
 ## Project Structure
 
 ```
 lib/
 ├── main.dart                 # Application entry point
+├── l10n/                     # Internationalization files
+│   ├── app_en.arb           # English translations
+│   ├── app_zh.arb           # Chinese translations
+│   ├── app_localizations.dart # Localization class
+│   └── app_localizations_*.dart # Language-specific implementations
 ├── models/                   # Data models
 │   ├── conversation.dart     # Conversation model
 │   ├── message.dart          # Message model
@@ -49,13 +57,18 @@ lib/
 │   ├── about_screen.dart     # About page with app information
 │   └── image_preview_screen.dart  # Image preview and viewing
 ├── services/                 # Business logic and API integration
-│   ├── ai_service.dart       # AI service (OpenAI & Gemini integration)
+│   ├── ai_service.dart       # AI service (OpenAI, Gemini & DeepSeek integration)
 │   ├── conversation_service.dart  # Conversation management
 │   ├── settings_service.dart # Settings management
 │   ├── user_service.dart     # User profile management
 │   ├── file_service.dart     # File handling and processing
 │   ├── prompt_service.dart   # Prompt preset management
 │   └── version_service.dart  # Version information management
+├── providers/                # AI provider implementations
+│   ├── ai_provider.dart     # Abstract base class
+│   ├── openai_provider.dart # OpenAI implementation
+│   ├── gemini_provider.dart # Gemini implementation
+│   └── deepseek_provider.dart # DeepSeek implementation
 ├── utils/                    # Utility classes
 │   └── app_theme.dart        # Application theme management
 └── widgets/                  # Reusable UI components
@@ -77,6 +90,7 @@ lib/
 - [file_picker](https://pub.dev/packages/file_picker) - File selection and picking
 - [path_provider](https://pub.dev/packages/path_provider) - Path resolution
 - [path](https://pub.dev/packages/path) - Path manipulation
+- [flutter_localizations](https://api.flutter.dev/flutter/flutter_localizations/flutter_localizations-library.html) - Flutter localization support
 
 ## Architecture
 
@@ -86,6 +100,8 @@ The application follows a layered architecture pattern:
 2. **Services**: Handle business logic, API integrations, and data persistence
 3. **Screens**: High-level UI components that represent entire screens
 4. **Widgets**: Reusable UI components
+5. **Providers**: AI provider implementations with abstract interface
+6. **Localization**: Internationalization support with ARB files
 
 ### Data Models
 
@@ -97,20 +113,31 @@ The application follows a layered architecture pattern:
 
 ### Services
 
-- `AIService`: Handles communication with OpenAI and Google Gemini APIs, including request formatting, response parsing, and multi-modal support
+- `AIService`: Handles communication with OpenAI, Google Gemini, and DeepSeek APIs, including request formatting, response parsing, and multi-modal support
 - `ConversationService`: Manages local conversation storage and retrieval
 - `SettingsService`: Manages application settings and configuration
 - `UserService`: Manages user profile data
 - `FileService`: Handles file operations, including reading, processing, and extracting content from attachments
 - `PromptService`: Manages prompt preset data and configuration
 
+### AI Providers
+
+The application uses a provider-based architecture for AI integration:
+
+- `AIProvider`: Abstract base class defining the interface for all AI providers
+- `OpenAIProvider`: Implementation for OpenAI API with multi-modal support
+- `GeminiProvider`: Implementation for Google Gemini API with multi-modal support
+- `DeepSeekProvider`: Implementation for DeepSeek API with text-only support
+
+This architecture allows for easy addition of new AI providers while maintaining a consistent interface across all providers.
+
 ## Configuration
 
 Before using the application, you need to configure it with your AI API keys:
 
 1. Navigate to the Settings screen
-2. Enter your OpenAI API key and/or Google Gemini API key
-3. Select your preferred AI provider (OpenAI or Gemini)
+2. Enter your API Key
+3. Select your preferred AI provider (OpenAI, Gemini, or DeepSeek)
 4. Optionally adjust model parameters (model, temperature, max tokens)
 
 ### Supported AI Providers
@@ -121,14 +148,19 @@ Before using the application, you need to configure it with your AI API keys:
    - Multi-modal support for images, videos, and audio
 
 2. **Google Gemini**
-   - API Endpoint: `https://generativelanguage.googleapis.com/v1`
-   - Supported models: Gemini Pro, Gemini Ultra
+   - API Endpoint: `https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`
+   - Supported models: Gemini 3 Pro Preview, Gemini 3 Flash Preview
    - Multi-modal capabilities
+
+3. **DeepSeek**
+   - API Endpoint: `https://api.deepseek.com`
+   - Supported models: DeepSeek Chat, DeepSeek Coder
+   - Text-only support with streaming capabilities
 
 ### Default Values
 
 - Default Provider: OpenAI
-- Default Model: `gpt-5` (OpenAI) or `gemini-2.5-flash` (Gemini)
+- Default Model: `gpt-5` (OpenAI), `gemini-2.5-flash` (Gemini), or `deepseek-chat` (DeepSeek)
 - Temperature: `0.7`
 - Max Tokens: `1000`
 
@@ -207,6 +239,18 @@ LumenFlow provides settings export and import functionality to backup and restor
 
 **Note**: API keys and sensitive information are included in exported files. Keep these files secure.
 
+## Internationalization
+
+LumenFlow supports both English and Chinese languages. The application automatically detects the system language or allows manual selection in settings.
+
+### Language Support
+- **English**: Complete English localization for all interface elements
+- **Chinese**: Complete Chinese localization for all interface elements
+
+### Implementation
+- Uses Flutter's built-in localization system with ARB files
+- AI responses are also localized based on selected language
+
 ## Building
 
 To build the application, ensure you have Flutter installed and set up:
@@ -243,12 +287,14 @@ All data is stored locally on the device and is not synchronized across devices.
 
 ## Error Handling
 
-The application includes error handling for:
+The application includes comprehensive error handling for:
 - Network connectivity issues
 - API errors (invalid keys, rate limits, etc.)
 - Data parsing errors
+- File processing errors
+- Localization errors
 
-Errors are displayed to the user through the UI, typically in the chat interface or as alerts.
+Errors are displayed to the user through localized UI messages, typically in the chat interface or as alerts. All error messages are available in both English and Chinese.
 
 ## License
 
@@ -261,5 +307,6 @@ Contributions are welcome! Please feel free to submit issues and pull requests f
 ## Acknowledgments
 
 - Built with [Flutter](https://flutter.dev/)
-- AI capabilities powered by [OpenAI](https://openai.com/) and [Google Gemini](https://gemini.google.com/)
+- AI capabilities powered by [OpenAI](https://openai.com/), [Google Gemini](https://gemini.google.com/), and [DeepSeek](https://www.deepseek.com/)
+- Internationalization support using Flutter's localization system
 - Icons provided by [Cupertino Icons](https://pub.dev/packages/cupertino_icons)
