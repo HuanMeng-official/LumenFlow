@@ -130,6 +130,7 @@ class AIService {
         temperature: temperature,
         maxTokens: maxTokens,
         thinkingMode: thinkingMode,
+        l10n: l10n,
       );
     } catch (e) {
       throw _handleError(e, l10n);
@@ -175,6 +176,7 @@ class AIService {
         temperature: temperature,
         maxTokens: maxTokens,
         thinkingMode: thinkingMode,
+        l10n: l10n,
       );
     } catch (e) {
       throw _handleError(e, l10n);
@@ -199,7 +201,7 @@ class AIService {
     final provider = await _getProvider();
 
     try {
-      return await provider.generateConversationTitle(messages);
+      return await provider.generateConversationTitle(messages, l10n: l10n);
     } catch (e) {
       throw _handleError(e, l10n);
     }

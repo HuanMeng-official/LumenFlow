@@ -587,4 +587,107 @@ class AppLocalizationsEn extends AppLocalizations {
   String networkCommunicationFailed(String error) {
     return 'Network communication failed: $error';
   }
+
+  @override
+  String providerFileNotFound(String fileName) {
+    return 'File $fileName does not exist or has been deleted';
+  }
+
+  @override
+  String providerFileTooLarge(String fileName, String fileSize) {
+    return 'File $fileName ($fileSize) is too large to process';
+  }
+
+  @override
+  String providerFileProcessError(String fileName, String error) {
+    return 'Error processing file $fileName: $error';
+  }
+
+  @override
+  String providerFileContent(String fileName, String fileSize, String content) {
+    return 'File: $fileName ($fileSize)\nContent:\n$content';
+  }
+
+  @override
+  String providerAttachmentCannotRead(String fileName, String fileSize, String mimeType) {
+    return 'Attachment: $fileName ($fileSize, $mimeType) - Cannot read content';
+  }
+
+  @override
+  String providerAttachmentInfo(String fileName, String fileSize, String mimeType) {
+    return 'Attachment: $fileName ($fileSize, $mimeType)';
+  }
+
+  @override
+  String providerTotalSizeExceeded(int limit) {
+    return 'Total attachment size exceeds ${limit}MB limit';
+  }
+
+  @override
+  String get providerInvalidResponseFormat => 'API returned invalid response format';
+
+  @override
+  String get providerMissingMessageField => 'API response is missing message field';
+
+  @override
+  String providerInvalidResponseFormatWithCode(int statusCode) {
+    return 'API Error: Invalid response format (Status code: $statusCode)';
+  }
+
+  @override
+  String providerApiError(String message, int statusCode) {
+    return 'API Error: $message (Status code: $statusCode)';
+  }
+
+  @override
+  String providerStreamingTimeout(int seconds) {
+    return 'Streaming response timeout: No new data received for $seconds seconds';
+  }
+
+  @override
+  String get providerUnknownError => 'Unknown error';
+
+  @override
+  String get providerUser => 'User';
+
+  @override
+  String get providerAi => 'AI';
+
+  @override
+  String get providerTitleGenSystemPrompt => 'Generate a short, accurate English title based on the user’s language and conversation content. No more than 15 words. Only return the title, without quotes or other formatting.';
+
+  @override
+  String providerTitleGenUserPrompt(String conversationSummary) {
+    return 'Please generate a short English title based on the conversation content.:\n\n$conversationSummary';
+  }
+
+  @override
+  String get providerMultimediaNotSupported => '\nNote: DeepSeek does not support processing multimedia files such as images, videos, and audio';
+
+  @override
+  String get providerGeminiInvalidResponse => 'Gemini API returned invalid response format';
+
+  @override
+  String get providerGeminiMissingCandidates => 'Gemini API response is missing candidates field';
+
+  @override
+  String get providerGeminiInvalidFormat => 'Invalid Gemini API response format';
+
+  @override
+  String providerGeminiError(String message, int statusCode) {
+    return 'Gemini API Error: $message (Status code: $statusCode)';
+  }
+
+  @override
+  String providerGeminiStreamingTimeout(int seconds) {
+    return 'Gemini streaming response timeout: No new data received for $seconds seconds';
+  }
+
+  @override
+  String providerGeminiInvalidFormatWithCode(int statusCode) {
+    return 'Gemini API Error: Invalid response format (Status code: $statusCode)';
+  }
+
+  @override
+  String get providerResponseBlocked => 'Response blocked by safety filter';
 }

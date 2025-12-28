@@ -8,6 +8,7 @@ import '../models/message.dart';
 import '../models/attachment.dart';
 import '../services/file_service.dart';
 import '../services/settings_service.dart';
+import '../l10n/app_localizations.dart';
 
 class DeepSeekProvider extends AIProvider {
   final SettingsService _settingsService = SettingsService();
@@ -32,6 +33,7 @@ class DeepSeekProvider extends AIProvider {
     required double temperature,
     required int maxTokens,
     bool thinkingMode = false,
+    required AppLocalizations l10n,
   }) async {
     return await _executeWithRetry<Map<String, dynamic>>(
       () async {
@@ -51,6 +53,7 @@ class DeepSeekProvider extends AIProvider {
             systemPrompt: systemPrompt,
             enableHistory: enableHistory,
             historyContextLength: historyContextLength,
+            l10n: l10n,
           );
 
           final response = await client.post(
@@ -69,9 +72,9 @@ class DeepSeekProvider extends AIProvider {
           ).timeout(connectionTimeout + readTimeout);
 
           if (response.statusCode == 200) {
-            return _parseResponse(response.body);
+            return _parseResponse(response.body, l10n);
           } else {
-            throw _parseError(response.body, response.statusCode);
+            throw _parseError(response.body, response.statusCode, l10n);
           }
         } finally {
           client.close();
@@ -80,6 +83,7 @@ class DeepSeekProvider extends AIProvider {
       onRetry: (error, retryCount, delayMs) {
         debugPrint('DeepSeek API请求失败，第$retryCount次重试，延迟${delayMs}ms: $error');
       },
+      l10n: l10n,
     );
   }
 
@@ -92,6 +96,7 @@ class DeepSeekProvider extends AIProvider {
     required double temperature,
     required int maxTokens,
     bool thinkingMode = false,
+    required AppLocalizations l10n,
   }) async* {
     final client = _createHttpClient();
     try {
@@ -109,6 +114,7 @@ class DeepSeekProvider extends AIProvider {
         systemPrompt: systemPrompt,
         enableHistory: enableHistory,
         historyContextLength: historyContextLength,
+        l10n: l10n,
       );
 
       final request = http.Request(
@@ -131,7 +137,7 @@ class DeepSeekProvider extends AIProvider {
       if (streamedResponse.statusCode != 200) {
         final errorBody =
             await streamedResponse.stream.transform(utf8.decoder).join();
-        throw _parseError(errorBody, streamedResponse.statusCode);
+        throw _parseError(errorBody, streamedResponse.statusCode, l10n);
       }
 
       final stream = streamedResponse.stream
@@ -172,7 +178,7 @@ class DeepSeekProvider extends AIProvider {
         }
 
         if (stopwatch.elapsed > streamingTimeout) {
-          throw TimeoutException('流式响应超时：超过${streamingTimeout.inSeconds}秒未收到新数据');
+          throw TimeoutException(l10n.providerStreamingTimeout(streamingTimeout.inSeconds));
         }
       }
     } finally {
@@ -181,7 +187,7 @@ class DeepSeekProvider extends AIProvider {
   }
 
   @override
-  Future<String> generateConversationTitle(List<Message> messages) async {
+  Future<String> generateConversationTitle(List<Message> messages, {required AppLocalizations l10n}) async {
     final apiEndpoint = await _settingsService.getApiEndpoint();
     final apiKey = await _settingsService.getApiKey();
     final model = await _settingsService.getModel();
@@ -189,18 +195,18 @@ class DeepSeekProvider extends AIProvider {
     // 提取对话摘要（前几轮对话）
     final summaryMessages = messages.take(6).toList();
     final conversationSummary = summaryMessages.map((msg) {
-      final role = msg.isUser ? '用户' : 'AI';
+      final role = msg.isUser ? l10n.providerUser : l10n.providerAi;
       return '$role: ${msg.content.trim()}';
     }).join('\n');
 
     final requestMessages = [
       {
         'role': 'system',
-        'content': '你是一个专业的对话标题生成助手。请根据用户的语言（如果用户说中文你就用中文，用户说英文你就用英文）和对话内容生成一个简短、准确的和用户语言一致的标题，不超过15个字。只返回标题，不要加引号或其他格式。'
+        'content': l10n.providerTitleGenSystemPrompt
       },
       {
         'role': 'user',
-        'content': '请根据以下对话内容生成一个和用户语言相符的简短标题：\n\n$conversationSummary'
+        'content': l10n.providerTitleGenUserPrompt(conversationSummary)
       }
     ];
 
@@ -240,8 +246,8 @@ class DeepSeekProvider extends AIProvider {
       final errorData = jsonDecode(errorBody);
       final errorMessage = errorData['error']?['message']?.toString() ??
           errorData['message']?.toString() ??
-          '未知错误';
-      return Future.error(Exception('API错误: $errorMessage (状态码: ${response.statusCode})'));
+          l10n.providerUnknownError;
+      return Future.error(Exception(l10n.providerApiError(errorMessage, response.statusCode)));
     }
   }
 
@@ -253,6 +259,7 @@ class DeepSeekProvider extends AIProvider {
     required String systemPrompt,
     required bool enableHistory,
     required int historyContextLength,
+    required AppLocalizations l10n,
   }) async {
     final messages = <Map<String, dynamic>>[];
 
@@ -284,7 +291,7 @@ class DeepSeekProvider extends AIProvider {
     }
 
     // 添加当前用户消息
-    final userMessageContent = await _buildMessageContent(message, attachments);
+    final userMessageContent = await _buildMessageContent(message, attachments, l10n);
     messages.add({
       'role': 'user',
       'content': userMessageContent,
@@ -296,7 +303,7 @@ class DeepSeekProvider extends AIProvider {
   /// 构建消息内容（处理附件）
   /// DeepSeek 不支持图片、视频、音频等多媒体文件
   Future<dynamic> _buildMessageContent(
-      String message, List<Attachment> attachments) async {
+      String message, List<Attachment> attachments, AppLocalizations l10n) async {
     if (attachments.isEmpty) {
       return message;
     }
@@ -304,7 +311,7 @@ class DeepSeekProvider extends AIProvider {
     final totalSize = attachments.fold<int>(
         0, (sum, attachment) => sum + (attachment.fileSize ?? 0));
     if (totalSize > AIProvider.maxTotalAttachmentsSize) {
-      throw Exception('附件总大小超过${AIProvider.maxTotalAttachmentsSize ~/ (1024 * 1024)}MB限制');
+      throw Exception(l10n.providerTotalSizeExceeded(AIProvider.maxTotalAttachmentsSize ~/ (1024 * 1024)));
     }
 
     final contentParts = <Map<String, dynamic>>[];
@@ -318,7 +325,7 @@ class DeepSeekProvider extends AIProvider {
         if (attachment.filePath == null ||
             !await _fileService.fileExists(attachment.filePath!)) {
           contentParts.add(
-              {'type': 'text', 'text': '文件 ${attachment.fileName} 不存在或已删除'});
+              {'type': 'text', 'text': l10n.providerFileNotFound(attachment.fileName)});
           continue;
         }
 
@@ -331,7 +338,11 @@ class DeepSeekProvider extends AIProvider {
             _isMediaFile(attachment)) {
           contentParts.add({
             'type': 'text',
-            'text': '附件: ${attachment.fileName} (${formatFileSize(fileSize)}, ${attachment.mimeType ?? '未知类型'})\n提示: DeepSeek 不支持处理图片、视频、音频等多媒体文件'
+            'text': l10n.providerAttachmentInfo(
+              attachment.fileName,
+              formatFileSize(fileSize),
+              attachment.mimeType ?? l10n.unknownMimeType
+            ) + l10n.providerMultimediaNotSupported
           });
           continue;
         }
@@ -342,26 +353,35 @@ class DeepSeekProvider extends AIProvider {
             final content = await _fileService.readTextFile(file);
             contentParts.add({
               'type': 'text',
-              'text':
-                  '文件: ${attachment.fileName} (${formatFileSize(fileSize)})\n内容:\n$content'
+              'text': l10n.providerFileContent(
+                attachment.fileName,
+                formatFileSize(fileSize),
+                content
+              )
             });
           } catch (e) {
             contentParts.add({
               'type': 'text',
-              'text':
-                  '附件: ${attachment.fileName} (${formatFileSize(fileSize)}, ${attachment.mimeType ?? '未知类型'}) - 无法读取内容'
+              'text': l10n.providerAttachmentCannotRead(
+                attachment.fileName,
+                formatFileSize(fileSize),
+                attachment.mimeType ?? l10n.unknownMimeType
+              )
             });
           }
         } else {
           contentParts.add({
             'type': 'text',
-            'text':
-                '附件: ${attachment.fileName} (${formatFileSize(fileSize)}, ${attachment.mimeType ?? '未知类型'})'
+            'text': l10n.providerAttachmentInfo(
+              attachment.fileName,
+              formatFileSize(fileSize),
+              attachment.mimeType ?? l10n.unknownMimeType
+            )
           });
         }
       } catch (e) {
         contentParts.add(
-            {'type': 'text', 'text': '处理文件 ${attachment.fileName} 时出错: $e'});
+            {'type': 'text', 'text': l10n.providerFileProcessError(attachment.fileName, e.toString())});
       }
     }
 
@@ -388,17 +408,17 @@ class DeepSeekProvider extends AIProvider {
   }
 
   /// 解析响应
-  Map<String, dynamic> _parseResponse(String responseBody) {
+  Map<String, dynamic> _parseResponse(String responseBody, AppLocalizations l10n) {
     final data = jsonDecode(responseBody);
     if (data is! Map<String, dynamic> ||
         data['choices'] == null ||
         (data['choices'] as List).isEmpty) {
-      throw Exception('API返回了无效的响应格式: $responseBody');
+      throw Exception(l10n.providerInvalidResponseFormat);
     }
 
     final firstChoice = data['choices'][0];
     if (firstChoice['message'] == null) {
-      throw Exception('API响应中缺少message字段: $responseBody');
+      throw Exception(l10n.providerMissingMessageField);
     }
 
     final message = firstChoice['message'];
@@ -414,16 +434,16 @@ class DeepSeekProvider extends AIProvider {
   }
 
   /// 解析错误
-  Exception _parseError(String responseBody, int statusCode) {
+  Exception _parseError(String responseBody, int statusCode, AppLocalizations l10n) {
     final errorData = jsonDecode(responseBody);
     if (errorData is! Map<String, dynamic>) {
-      return Exception('API错误: 无效的响应格式 (状态码: $statusCode)');
+      return Exception(l10n.providerInvalidResponseFormatWithCode(statusCode));
     }
 
     final errorMessage = errorData['error']?['message']?.toString() ??
         errorData['message']?.toString() ??
-        '未知错误';
-    return Exception('API错误: $errorMessage (状态码: $statusCode)');
+        l10n.providerUnknownError;
+    return Exception(l10n.providerApiError(errorMessage, statusCode));
   }
 
   /// 创建HTTP客户端
@@ -465,6 +485,7 @@ class DeepSeekProvider extends AIProvider {
   Future<T> _executeWithRetry<T>(
     Future<T> Function() execute, {
     void Function(dynamic error, int retryCount, int delayMs)? onRetry,
+    required AppLocalizations l10n,
   }) async {
     int attempt = 0;
     dynamic lastError;
@@ -499,6 +520,6 @@ class DeepSeekProvider extends AIProvider {
       }
     }
 
-    throw lastError ?? Exception('未知错误');
+    throw lastError ?? Exception(l10n.providerUnknownError);
   }
 }

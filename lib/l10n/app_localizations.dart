@@ -1174,6 +1174,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Network communication failed: {error}'**
   String networkCommunicationFailed(String error);
+
+  /// No description provided for @providerFileNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'File {fileName} does not exist or has been deleted'**
+  String providerFileNotFound(String fileName);
+
+  /// No description provided for @providerFileTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'File {fileName} ({fileSize}) is too large to process'**
+  String providerFileTooLarge(String fileName, String fileSize);
+
+  /// No description provided for @providerFileProcessError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error processing file {fileName}: {error}'**
+  String providerFileProcessError(String fileName, String error);
+
+  /// No description provided for @providerFileContent.
+  ///
+  /// In en, this message translates to:
+  /// **'File: {fileName} ({fileSize})\nContent:\n{content}'**
+  String providerFileContent(String fileName, String fileSize, String content);
+
+  /// No description provided for @providerAttachmentCannotRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachment: {fileName} ({fileSize}, {mimeType}) - Cannot read content'**
+  String providerAttachmentCannotRead(String fileName, String fileSize, String mimeType);
+
+  /// No description provided for @providerAttachmentInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachment: {fileName} ({fileSize}, {mimeType})'**
+  String providerAttachmentInfo(String fileName, String fileSize, String mimeType);
+
+  /// No description provided for @providerTotalSizeExceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Total attachment size exceeds {limit}MB limit'**
+  String providerTotalSizeExceeded(int limit);
+
+  /// No description provided for @providerInvalidResponseFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'API returned invalid response format'**
+  String get providerInvalidResponseFormat;
+
+  /// No description provided for @providerMissingMessageField.
+  ///
+  /// In en, this message translates to:
+  /// **'API response is missing message field'**
+  String get providerMissingMessageField;
+
+  /// No description provided for @providerInvalidResponseFormatWithCode.
+  ///
+  /// In en, this message translates to:
+  /// **'API Error: Invalid response format (Status code: {statusCode})'**
+  String providerInvalidResponseFormatWithCode(int statusCode);
+
+  /// No description provided for @providerApiError.
+  ///
+  /// In en, this message translates to:
+  /// **'API Error: {message} (Status code: {statusCode})'**
+  String providerApiError(String message, int statusCode);
+
+  /// No description provided for @providerStreamingTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Streaming response timeout: No new data received for {seconds} seconds'**
+  String providerStreamingTimeout(int seconds);
+
+  /// No description provided for @providerUnknownError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown error'**
+  String get providerUnknownError;
+
+  /// No description provided for @providerUser.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get providerUser;
+
+  /// No description provided for @providerAi.
+  ///
+  /// In en, this message translates to:
+  /// **'AI'**
+  String get providerAi;
+
+  /// No description provided for @providerTitleGenSystemPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate a short, accurate English title based on the user’s language and conversation content. No more than 15 words. Only return the title, without quotes or other formatting.'**
+  String get providerTitleGenSystemPrompt;
+
+  /// No description provided for @providerTitleGenUserPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Please generate a short English title based on the conversation content.:\n\n{conversationSummary}'**
+  String providerTitleGenUserPrompt(String conversationSummary);
+
+  /// No description provided for @providerMultimediaNotSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'\nNote: DeepSeek does not support processing multimedia files such as images, videos, and audio'**
+  String get providerMultimediaNotSupported;
+
+  /// No description provided for @providerGeminiInvalidResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Gemini API returned invalid response format'**
+  String get providerGeminiInvalidResponse;
+
+  /// No description provided for @providerGeminiMissingCandidates.
+  ///
+  /// In en, this message translates to:
+  /// **'Gemini API response is missing candidates field'**
+  String get providerGeminiMissingCandidates;
+
+  /// No description provided for @providerGeminiInvalidFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid Gemini API response format'**
+  String get providerGeminiInvalidFormat;
+
+  /// No description provided for @providerGeminiError.
+  ///
+  /// In en, this message translates to:
+  /// **'Gemini API Error: {message} (Status code: {statusCode})'**
+  String providerGeminiError(String message, int statusCode);
+
+  /// No description provided for @providerGeminiStreamingTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Gemini streaming response timeout: No new data received for {seconds} seconds'**
+  String providerGeminiStreamingTimeout(int seconds);
+
+  /// No description provided for @providerGeminiInvalidFormatWithCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Gemini API Error: Invalid response format (Status code: {statusCode})'**
+  String providerGeminiInvalidFormatWithCode(int statusCode);
+
+  /// No description provided for @providerResponseBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Response blocked by safety filter'**
+  String get providerResponseBlocked;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

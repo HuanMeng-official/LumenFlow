@@ -337,5 +337,158 @@
         "type": "String"
       }
     }
-  }
+  },
+  "providerFileNotFound": "文件 {fileName} 不存在或已删除",
+  "@providerFileNotFound": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "providerFileTooLarge": "文件 {fileName} ({fileSize}) 过大，无法处理",
+  "@providerFileTooLarge": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      }
+    }
+  },
+  "providerFileProcessError": "处理文件 {fileName} 时出错: {error}",
+  "@providerFileProcessError": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "providerFileContent": "文件: {fileName} ({fileSize})\n内容:\n{content}",
+  "@providerFileContent": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      },
+      "content": {
+        "type": "String"
+      }
+    }
+  },
+  "providerAttachmentCannotRead": "附件: {fileName} ({fileSize}, {mimeType}) - 无法读取内容",
+  "@providerAttachmentCannotRead": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      },
+      "mimeType": {
+        "type": "String"
+      }
+    }
+  },
+  "providerAttachmentInfo": "附件: {fileName} ({fileSize}, {mimeType})",
+  "@providerAttachmentInfo": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      },
+      "mimeType": {
+        "type": "String"
+      }
+    }
+  },
+  "providerTotalSizeExceeded": "附件总大小超过{limit}MB限制",
+  "@providerTotalSizeExceeded": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "providerInvalidResponseFormat": "API返回了无效的响应格式",
+  "providerMissingMessageField": "API响应中缺少message字段",
+  "providerInvalidResponseFormatWithCode": "API错误: 无效的响应格式 (状态码: {statusCode})",
+  "@providerInvalidResponseFormatWithCode": {
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "providerApiError": "API错误: {message} (状态码: {statusCode})",
+  "@providerApiError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "providerStreamingTimeout": "流式响应超时：超过{seconds}秒未收到新数据",
+  "@providerStreamingTimeout": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "providerUnknownError": "未知错误",
+  "providerUser": "用户",
+  "providerAi": "AI",
+  "providerTitleGenSystemPrompt": "根据用户的语言和对话内容生成一个简短、准确的中文标题，不超过15个字。只返回标题，不要加引号或其他格式。",
+  "providerTitleGenUserPrompt": "请根据对话内容生成一个中文的简短标题：\n\n{conversationSummary}",
+  "@providerTitleGenUserPrompt": {
+    "placeholders": {
+      "conversationSummary": {
+        "type": "String"
+      }
+    }
+  },
+  "providerMultimediaNotSupported": "\n提示: DeepSeek 不支持处理图片、视频、音频等多媒体文件",
+  "providerGeminiInvalidResponse": "Gemini API返回了无效的响应格式",
+  "providerGeminiMissingCandidates": "Gemini API响应中缺少candidates字段",
+  "providerGeminiInvalidFormat": "无效的Gemini API响应格式",
+  "providerGeminiError": "Gemini API错误: {message} (状态码: {statusCode})",
+  "@providerGeminiError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "providerGeminiStreamingTimeout": "Gemini流式响应超时：超过{seconds}秒未收到新数据",
+  "@providerGeminiStreamingTimeout": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "providerGeminiInvalidFormatWithCode": "Gemini API错误: 无效的响应格式 (状态码: {statusCode})",
+  "@providerGeminiInvalidFormatWithCode": {
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "providerResponseBlocked": "响应被安全过滤器阻止"
 }

@@ -587,4 +587,107 @@ class AppLocalizationsZh extends AppLocalizations {
   String networkCommunicationFailed(String error) {
     return '网络通信失败: $error';
   }
+
+  @override
+  String providerFileNotFound(String fileName) {
+    return '文件 $fileName 不存在或已删除';
+  }
+
+  @override
+  String providerFileTooLarge(String fileName, String fileSize) {
+    return '文件 $fileName ($fileSize) 过大，无法处理';
+  }
+
+  @override
+  String providerFileProcessError(String fileName, String error) {
+    return '处理文件 $fileName 时出错: $error';
+  }
+
+  @override
+  String providerFileContent(String fileName, String fileSize, String content) {
+    return '文件: $fileName ($fileSize)\n内容:\n$content';
+  }
+
+  @override
+  String providerAttachmentCannotRead(String fileName, String fileSize, String mimeType) {
+    return '附件: $fileName ($fileSize, $mimeType) - 无法读取内容';
+  }
+
+  @override
+  String providerAttachmentInfo(String fileName, String fileSize, String mimeType) {
+    return '附件: $fileName ($fileSize, $mimeType)';
+  }
+
+  @override
+  String providerTotalSizeExceeded(int limit) {
+    return '附件总大小超过${limit}MB限制';
+  }
+
+  @override
+  String get providerInvalidResponseFormat => 'API返回了无效的响应格式';
+
+  @override
+  String get providerMissingMessageField => 'API响应中缺少message字段';
+
+  @override
+  String providerInvalidResponseFormatWithCode(int statusCode) {
+    return 'API错误: 无效的响应格式 (状态码: $statusCode)';
+  }
+
+  @override
+  String providerApiError(String message, int statusCode) {
+    return 'API错误: $message (状态码: $statusCode)';
+  }
+
+  @override
+  String providerStreamingTimeout(int seconds) {
+    return '流式响应超时：超过$seconds秒未收到新数据';
+  }
+
+  @override
+  String get providerUnknownError => '未知错误';
+
+  @override
+  String get providerUser => '用户';
+
+  @override
+  String get providerAi => 'AI';
+
+  @override
+  String get providerTitleGenSystemPrompt => '根据用户的语言和对话内容生成一个简短、准确的中文标题，不超过15个字。只返回标题，不要加引号或其他格式。';
+
+  @override
+  String providerTitleGenUserPrompt(String conversationSummary) {
+    return '请根据对话内容生成一个中文的简短标题：\n\n$conversationSummary';
+  }
+
+  @override
+  String get providerMultimediaNotSupported => '\n提示: DeepSeek 不支持处理图片、视频、音频等多媒体文件';
+
+  @override
+  String get providerGeminiInvalidResponse => 'Gemini API返回了无效的响应格式';
+
+  @override
+  String get providerGeminiMissingCandidates => 'Gemini API响应中缺少candidates字段';
+
+  @override
+  String get providerGeminiInvalidFormat => '无效的Gemini API响应格式';
+
+  @override
+  String providerGeminiError(String message, int statusCode) {
+    return 'Gemini API错误: $message (状态码: $statusCode)';
+  }
+
+  @override
+  String providerGeminiStreamingTimeout(int seconds) {
+    return 'Gemini流式响应超时：超过$seconds秒未收到新数据';
+  }
+
+  @override
+  String providerGeminiInvalidFormatWithCode(int statusCode) {
+    return 'Gemini API错误: 无效的响应格式 (状态码: $statusCode)';
+  }
+
+  @override
+  String get providerResponseBlocked => '响应被安全过滤器阻止';
 }

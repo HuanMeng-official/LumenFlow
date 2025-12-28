@@ -337,5 +337,158 @@
         "type": "String"
       }
     }
-  }
+  },
+  "providerFileNotFound": "File {fileName} does not exist or has been deleted",
+  "@providerFileNotFound": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "providerFileTooLarge": "File {fileName} ({fileSize}) is too large to process",
+  "@providerFileTooLarge": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      }
+    }
+  },
+  "providerFileProcessError": "Error processing file {fileName}: {error}",
+  "@providerFileProcessError": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "providerFileContent": "File: {fileName} ({fileSize})\nContent:\n{content}",
+  "@providerFileContent": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      },
+      "content": {
+        "type": "String"
+      }
+    }
+  },
+  "providerAttachmentCannotRead": "Attachment: {fileName} ({fileSize}, {mimeType}) - Cannot read content",
+  "@providerAttachmentCannotRead": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      },
+      "mimeType": {
+        "type": "String"
+      }
+    }
+  },
+  "providerAttachmentInfo": "Attachment: {fileName} ({fileSize}, {mimeType})",
+  "@providerAttachmentInfo": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      },
+      "mimeType": {
+        "type": "String"
+      }
+    }
+  },
+  "providerTotalSizeExceeded": "Total attachment size exceeds {limit}MB limit",
+  "@providerTotalSizeExceeded": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "providerInvalidResponseFormat": "API returned invalid response format",
+  "providerMissingMessageField": "API response is missing message field",
+  "providerInvalidResponseFormatWithCode": "API Error: Invalid response format (Status code: {statusCode})",
+  "@providerInvalidResponseFormatWithCode": {
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "providerApiError": "API Error: {message} (Status code: {statusCode})",
+  "@providerApiError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "providerStreamingTimeout": "Streaming response timeout: No new data received for {seconds} seconds",
+  "@providerStreamingTimeout": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "providerUnknownError": "Unknown error",
+  "providerUser": "User",
+  "providerAi": "AI",
+  "providerTitleGenSystemPrompt": "Generate a short, accurate English title based on the user’s language and conversation content. No more than 15 words. Only return the title, without quotes or other formatting.",
+  "providerTitleGenUserPrompt": "Please generate a short English title based on the conversation content.:\n\n{conversationSummary}",
+  "@providerTitleGenUserPrompt": {
+    "placeholders": {
+      "conversationSummary": {
+        "type": "String"
+      }
+    }
+  },
+  "providerMultimediaNotSupported": "\nNote: DeepSeek does not support processing multimedia files such as images, videos, and audio",
+  "providerGeminiInvalidResponse": "Gemini API returned invalid response format",
+  "providerGeminiMissingCandidates": "Gemini API response is missing candidates field",
+  "providerGeminiInvalidFormat": "Invalid Gemini API response format",
+  "providerGeminiError": "Gemini API Error: {message} (Status code: {statusCode})",
+  "@providerGeminiError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "providerGeminiStreamingTimeout": "Gemini streaming response timeout: No new data received for {seconds} seconds",
+  "@providerGeminiStreamingTimeout": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "providerGeminiInvalidFormatWithCode": "Gemini API Error: Invalid response format (Status code: {statusCode})",
+  "@providerGeminiInvalidFormatWithCode": {
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "providerResponseBlocked": "Response blocked by safety filter"
 }

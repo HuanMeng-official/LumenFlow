@@ -8,6 +8,7 @@ import '../models/message.dart';
 import '../models/attachment.dart';
 import '../services/file_service.dart';
 import '../services/settings_service.dart';
+import '../l10n/app_localizations.dart';
 
 /// Google Gemini API Provider 实现
 /// 负责处理与 Google Gemini API 的通信
@@ -35,6 +36,7 @@ class GeminiProvider extends AIProvider {
     required double temperature,
     required int maxTokens,
     bool thinkingMode = false,
+    required AppLocalizations l10n,
   }) async {
     return await _executeWithRetry<String>(
       () async {
@@ -57,6 +59,7 @@ class GeminiProvider extends AIProvider {
             thinkingMode: thinkingMode,
             enableHistory: enableHistory,
             historyContextLength: historyContextLength,
+            l10n: l10n,
           );
 
           final url = _buildApiUrl(
@@ -70,6 +73,7 @@ class GeminiProvider extends AIProvider {
             client: client,
             url: url,
             requestBody: requestBody,
+            l10n: l10n,
           );
         } finally {
           client.close();
@@ -78,6 +82,7 @@ class GeminiProvider extends AIProvider {
       onRetry: (error, retryCount, delayMs) {
         debugPrint('Gemini API请求失败，第$retryCount次重试，延迟${delayMs}ms: $error');
       },
+      l10n: l10n,
     ).then((responseText) => {
       'reasoningContent': '',
       'content': responseText,
@@ -93,6 +98,7 @@ class GeminiProvider extends AIProvider {
     required double temperature,
     required int maxTokens,
     bool thinkingMode = false,
+    required AppLocalizations l10n,
   }) async* {
     final client = _createHttpClient();
     try {
@@ -113,6 +119,7 @@ class GeminiProvider extends AIProvider {
         thinkingMode: thinkingMode,
         enableHistory: enableHistory,
         historyContextLength: historyContextLength,
+        l10n: l10n,
       );
 
       final url = _buildApiUrl(
@@ -127,6 +134,7 @@ class GeminiProvider extends AIProvider {
         client: client,
         url: url,
         requestBody: requestBody,
+        l10n: l10n,
       );
     } finally {
       client.close();
@@ -134,7 +142,7 @@ class GeminiProvider extends AIProvider {
   }
 
   @override
-  Future<String> generateConversationTitle(List<Message> messages) async {
+  Future<String> generateConversationTitle(List<Message> messages, {required AppLocalizations l10n}) async {
     final apiEndpoint = await _settingsService.getApiEndpoint();
     final apiKey = await _settingsService.getApiKey();
     final model = await _settingsService.getModel();
@@ -142,7 +150,7 @@ class GeminiProvider extends AIProvider {
     // 提取对话摘要（前几轮对话）
     final summaryMessages = messages.take(6).toList();
     final conversationSummary = summaryMessages.map((msg) {
-      final role = msg.isUser ? '用户' : 'AI';
+      final role = msg.isUser ? l10n.providerUser : l10n.providerAi;
       return '$role: ${msg.content.trim()}';
     }).join('\n');
 
@@ -151,7 +159,7 @@ class GeminiProvider extends AIProvider {
         'role': 'user',
         'parts': [
           {
-            'text': '请根据以下对话语言和内容生成一个对应语言（如果用户说中文你就用中文，用户说英文你就用英文）的简短标题（不超过15个字），标题应该概括对话的主要内容：\n\n$conversationSummary'
+            'text': l10n.providerTitleGenUserPrompt(conversationSummary)
           }
         ]
       }
@@ -181,12 +189,12 @@ class GeminiProvider extends AIProvider {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data is! Map<String, dynamic>) {
-        throw Exception('Gemini API返回了无效的响应格式');
+        throw Exception(l10n.providerGeminiInvalidResponse);
       }
 
       final candidates = data['candidates'];
       if (candidates is! List || candidates.isEmpty) {
-        throw Exception('Gemini API响应中缺少candidates字段');
+        throw Exception(l10n.providerGeminiMissingCandidates);
       }
 
       final candidate = candidates[0];
@@ -210,13 +218,13 @@ class GeminiProvider extends AIProvider {
         return title;
       }
 
-      throw Exception('无效的Gemini API响应格式');
+      throw Exception(l10n.providerGeminiInvalidFormat);
     } else {
       final errorData = jsonDecode(response.body);
       final errorMessage = errorData['error']?['message']?.toString() ??
           errorData['message']?.toString() ??
-          '未知错误';
-      throw Exception('Gemini API错误: $errorMessage (状态码: ${response.statusCode})');
+          l10n.providerUnknownError;
+      throw Exception(l10n.providerGeminiError(errorMessage, response.statusCode));
     }
   }
 
@@ -231,6 +239,7 @@ class GeminiProvider extends AIProvider {
     required bool thinkingMode,
     required bool enableHistory,
     required int historyContextLength,
+    required AppLocalizations l10n,
   }) async {
     final contents = await _buildContents(
       message: message,
@@ -238,6 +247,7 @@ class GeminiProvider extends AIProvider {
       attachments: attachments,
       enableHistory: enableHistory,
       historyContextLength: historyContextLength,
+      l10n: l10n,
     );
 
     final requestBody = <String, dynamic>{
@@ -289,6 +299,7 @@ class GeminiProvider extends AIProvider {
     required List<Attachment> attachments,
     required bool enableHistory,
     required int historyContextLength,
+    required AppLocalizations l10n,
   }) async {
     final contents = <Map<String, dynamic>>[];
 
@@ -323,7 +334,7 @@ class GeminiProvider extends AIProvider {
     }
 
     if (attachments.isNotEmpty) {
-      final fileParts = await _prepareFiles(attachments);
+      final fileParts = await _prepareFiles(attachments, l10n);
       userMessageParts.addAll(fileParts);
     }
 
@@ -336,20 +347,20 @@ class GeminiProvider extends AIProvider {
 
   /// 为 Gemini API 准备文件附件
   /// 使用 inlineData 格式（兼容性更好）
-  Future<List<Map<String, dynamic>>> _prepareFiles(List<Attachment> attachments) async {
+  Future<List<Map<String, dynamic>>> _prepareFiles(List<Attachment> attachments, AppLocalizations l10n) async {
     final fileParts = <Map<String, dynamic>>[];
 
     final totalSize = attachments.fold<int>(
         0, (sum, attachment) => sum + (attachment.fileSize ?? 0));
     if (totalSize > AIProvider.maxTotalAttachmentsSize) {
-      throw Exception('附件总大小超过${AIProvider.maxTotalAttachmentsSize ~/ (1024 * 1024)}MB限制');
+      throw Exception(l10n.providerTotalSizeExceeded(AIProvider.maxTotalAttachmentsSize ~/ (1024 * 1024)));
     }
 
     for (final attachment in attachments) {
       try {
         if (attachment.filePath == null ||
             !await _fileService.fileExists(attachment.filePath!)) {
-          fileParts.add({'text': '文件 ${attachment.fileName} 不存在或已删除'});
+          fileParts.add({'text': l10n.providerFileNotFound(attachment.fileName)});
           continue;
         }
 
@@ -359,8 +370,7 @@ class GeminiProvider extends AIProvider {
 
         if (fileSize > AIProvider.maxFileSizeForBase64) {
           fileParts.add({
-            'text':
-                '文件 ${attachment.fileName} (${formatFileSize(fileSize)}) 过大，无法处理'
+            'text': l10n.providerFileTooLarge(attachment.fileName, formatFileSize(fileSize))
           });
           continue;
         }
@@ -386,7 +396,7 @@ class GeminiProvider extends AIProvider {
               }
             });
           } catch (e) {
-            fileParts.add({'text': '处理文件 ${attachment.fileName} 时出错: $e'});
+            fileParts.add({'text': l10n.providerFileProcessError(attachment.fileName, e.toString())});
           }
         } else {
           // 对于非多媒体文件，提取文本内容
@@ -394,24 +404,33 @@ class GeminiProvider extends AIProvider {
             try {
               final content = await _fileService.readTextFile(file);
               fileParts.add({
-                'text':
-                    '文件: ${attachment.fileName} (${formatFileSize(fileSize)})\n内容:\n$content'
+                'text': l10n.providerFileContent(
+                  attachment.fileName,
+                  formatFileSize(fileSize),
+                  content
+                )
               });
             } catch (e) {
               fileParts.add({
-                'text':
-                    '附件: ${attachment.fileName} (${formatFileSize(fileSize)}, ${attachment.mimeType ?? '未知类型'}) - 无法读取内容'
+                'text': l10n.providerAttachmentCannotRead(
+                  attachment.fileName,
+                  formatFileSize(fileSize),
+                  attachment.mimeType ?? l10n.unknownMimeType
+                )
               });
             }
           } else {
             fileParts.add({
-              'text':
-                  '附件: ${attachment.fileName} (${formatFileSize(fileSize)}, ${attachment.mimeType ?? '未知类型'})'
+              'text': l10n.providerAttachmentInfo(
+                attachment.fileName,
+                formatFileSize(fileSize),
+                attachment.mimeType ?? l10n.unknownMimeType
+              )
             });
           }
         }
       } catch (e) {
-        fileParts.add({'text': '处理文件 ${attachment.fileName} 时出错: $e'});
+        fileParts.add({'text': l10n.providerFileProcessError(attachment.fileName, e.toString())});
       }
     }
 
@@ -423,6 +442,7 @@ class GeminiProvider extends AIProvider {
     required http.Client client,
     required String url,
     required Map<String, dynamic> requestBody,
+    required AppLocalizations l10n,
   }) async {
     final response = await client.post(
       Uri.parse(url),
@@ -435,17 +455,17 @@ class GeminiProvider extends AIProvider {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data is! Map<String, dynamic>) {
-        throw Exception('Gemini API返回了无效的响应格式');
+        throw Exception(l10n.providerGeminiInvalidResponse);
       }
 
       final candidates = data['candidates'];
       if (candidates is! List || candidates.isEmpty) {
-        throw Exception('Gemini API响应中缺少candidates字段');
+        throw Exception(l10n.providerGeminiMissingCandidates);
       }
 
       final candidate = candidates[0];
       if (candidate['finishReason'] == 'SAFETY') {
-        throw Exception('响应被安全过滤器阻止');
+        throw Exception(l10n.providerResponseBlocked);
       }
       if (candidate['content'] != null &&
           candidate['content']['parts'] != null &&
@@ -453,18 +473,16 @@ class GeminiProvider extends AIProvider {
         return candidate['content']['parts'][0]['text'].trim();
       }
 
-      throw Exception('无效的Gemini API响应格式');
+      throw Exception(l10n.providerGeminiInvalidFormat);
     } else {
       final errorData = jsonDecode(response.body);
       if (errorData is! Map<String, dynamic>) {
-        throw Exception(
-            'Gemini API错误: 无效的响应格式 (状态码: ${response.statusCode})');
+        throw Exception(l10n.providerGeminiInvalidFormatWithCode(response.statusCode));
       }
       final errorMessage = errorData['error']?['message']?.toString() ??
           errorData['message']?.toString() ??
-          '未知错误';
-      throw Exception(
-          'Gemini API错误: $errorMessage (状态码: ${response.statusCode})');
+          l10n.providerUnknownError;
+      throw Exception(l10n.providerGeminiError(errorMessage, response.statusCode));
     }
   }
 
@@ -473,6 +491,7 @@ class GeminiProvider extends AIProvider {
     required http.Client client,
     required String url,
     required Map<String, dynamic> requestBody,
+    required AppLocalizations l10n,
   }) async* {
     final request = http.Request('POST', Uri.parse(url));
     request.headers['Content-Type'] = 'application/json';
@@ -487,13 +506,13 @@ class GeminiProvider extends AIProvider {
       final errorData = jsonDecode(errorBody);
       if (errorData is! Map<String, dynamic>) {
         throw Exception(
-            'Gemini API错误: 无效的响应格式 (状态码: ${streamedResponse.statusCode})');
+            l10n.providerGeminiInvalidFormatWithCode(streamedResponse.statusCode));
       }
       final errorMessage = errorData['error']?['message']?.toString() ??
           errorData['message']?.toString() ??
-          '未知错误';
+          l10n.providerUnknownError;
       throw Exception(
-          'Gemini API错误: $errorMessage (状态码: ${streamedResponse.statusCode})');
+          l10n.providerGeminiError(errorMessage, streamedResponse.statusCode));
     }
 
     final stream = streamedResponse.stream
@@ -545,7 +564,7 @@ class GeminiProvider extends AIProvider {
       }
 
       if (stopwatch.elapsed > streamingTimeout) {
-        throw TimeoutException('Gemini流式响应超时：超过${streamingTimeout.inSeconds}秒未收到新数据');
+        throw TimeoutException(l10n.providerGeminiStreamingTimeout(streamingTimeout.inSeconds));
       }
     }
   }
@@ -626,6 +645,7 @@ class GeminiProvider extends AIProvider {
   Future<T> _executeWithRetry<T>(
     Future<T> Function() execute, {
     void Function(dynamic error, int retryCount, int delayMs)? onRetry,
+    required AppLocalizations l10n,
   }) async {
     int attempt = 0;
     dynamic lastError;
@@ -660,6 +680,6 @@ class GeminiProvider extends AIProvider {
       }
     }
 
-    throw lastError ?? Exception('未知错误');
+    throw lastError ?? Exception(l10n.providerUnknownError);
   }
 }
