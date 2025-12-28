@@ -21,7 +21,8 @@ LumenFlow（中文名：流光）是一款使用 Flutter 构建的现代化 AI �
 - **对话管理**: 完整的对话历史记录，支持本地持久化
 - **用户配置**: 个性化设置和偏好
 - **预设提示词系统**: 预配置的角色扮演提示词，包含丰富的角色设定
-- **主题管理**: 支持亮色/暗色主题切换
+- **多语言预设**: 基于界面语言自动加载特定语言的预设
+- **主题管理**: 支持亮色/暗色主题切换，支持跟随系统主题
 - **跨平台**: 支持 Android 和 Windows 平台
 - **本地存储**: 使用 SharedPreferences 实现数据持久化
 - **Markdown渲染**: 美观格式化的 AI 响应
@@ -165,10 +166,12 @@ lib/
 
 ### 预设提示词（角色扮演系统）
 
-LumenFlow 包含一个基于文件的高级角色扮演系统。预设配置在 `assets/prompt/presets.json` 中，其中 `system_prompt` 字段包含指向 XML/TXT 文件的路径，这些文件包含详细的角色定义。
+LumenFlow 包含一个先进的角色扮演系统，具有基于文件的提示预设，支持多种语言。系统会根据用户选择的界面语言自动加载相应的语言版本。
 
 #### 工作原理
-- **基于文件的预设**：`presets.json` 中的 `system_prompt` 字段指向 XML/TXT 文件（例如：`"characters/NingXi.xml"`）
+- **多语言支持**：预设提供中文（`presets-zh.json`）和英文（`presets-en.json`）版本
+- **自动语言检测**：系统根据当前界面语言设置自动加载相应的预设版本
+- **基于文件的预设**：`system_prompt` 字段指向 XML/TXT 文件（例如：`"characters/zh/NingXi.xml"` 对应中文，`"characters/en/NingXi.xml"` 对应英文）
 - **自动内容加载**：系统自动加载文件内容并将其用作系统提示词
 - **变量替换**：支持 `\${userProfile.username}` 替换为实际用户名
 - **XML 格式**：丰富的 XML 结构，用于详细的角色定义，包含元信息、个性逻辑、称呼协议和示例对话
@@ -177,21 +180,21 @@ LumenFlow 包含一个基于文件的高级角色扮演系统。预设配置在 
 1. 导航到聊天界面
 2. 点击"角色扮演"按钮，从预设菜单中选择一个角色
 3. 所选角色的完整个性系统将应用于对话
-4. AI 回复将反映角色的特征、说话模式和行为
+4. AI 回复将反映角色的特征、说话模式和行为，并使用所选语言进行响应
 
 #### 自定义和添加预设
-1. 在 `assets/prompt/characters/` 目录中创建包含角色定义的 XML/TXT 文件
-2. 在 `presets.json` 中添加条目，`system_prompt` 指向文件路径
+1. 在相应的语言目录中创建 XML/TXT 文件（`assets/prompt/characters/zh/` 对应中文，`assets/prompt/characters/en/` 对应英文）
+2. 在 `presets-zh.json` 和 `presets-en.json` 中添加条目，`system_prompt` 指向正确的文件路径
 3. 遵循 XML 格式结构以保持角色定义的一致性
 4. 重启应用程序以加载新的预设
 
-##### presets.json 结构示例
+##### presets-*.json 结构示例
 ```json
 {
   "id": "ningxi",
   "name": "宁汐",
   "description": "俏皮可爱的猫娘",
-  "system_prompt": "characters/NingXi.xml",
+  "system_prompt": "characters/zh(or en)/NingXi.xml",
   "icon": "person.fill"
 }
 ```
@@ -240,15 +243,16 @@ LumenFlow 提供设置导出和导入功能，用于备份和恢复应用配置�
 
 ## 国际化
 
-LumenFlow 支持英文和中文两种语言。应用程序会自动检测系统语言，也可以在设置中手动选择。
+LumenFlow 支持英文和中文两种语言。应用程序会自动检测系统语言，也可以在设置中手动选择。所有界面元素、AI 响应和提示词预设都完全本地化。
 
 ### 语言支持
-- **英文**: 所有界面元素的完整英文本地化
-- **中文**: 所有界面元素的完整中文本地化
+- **英文**: 所有界面元素和 AI 响应的完整英文本地化
+- **中文**: 所有界面元素和 AI 响应的完整中文本地化
 
 ### 实现方式
 - 使用 Flutter 内置的本地化系统，配合 ARB 文件
-- AI 响应也会根据所选语言进行本地化
+- AI 响应根据所选语言进行本地化
+- 提示词预设自动加载适当的语言版本
 
 ## 构建
 

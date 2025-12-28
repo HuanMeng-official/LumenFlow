@@ -21,6 +21,7 @@ LumenFlow (Chinese: 流光) is a modern AI chat application built with Flutter t
 - **Conversation Management**: Complete conversation history with local persistence
 - **User Profiles**: Personalized settings and preferences
 - **Prompt Preset System**: Pre-configured role-playing prompts with rich character settings
+- **Multi-Language Presets**: Automatic language-specific preset loading based on interface language
 - **Theme Management**: Support for light/dark theme switching with system theme following
 - **Cross-Platform**: Supports Android and Windows platforms
 - **Local Storage**: Data persistence using SharedPreferences
@@ -166,10 +167,12 @@ Before using the application, you need to configure it with your AI API keys:
 
 ### Prompt Presets
 
-LumenFlow includes an advanced role-playing system with file-based prompt presets. These presets are configured in `assets/prompt/presets.json` where the `system_prompt` field contains a file path to XML/TXT files containing detailed character definitions.
+LumenFlow includes an advanced role-playing system with file-based prompt presets that support multiple languages. The system automatically loads the appropriate language version based on the user's selected interface language.
 
 #### How It Works
-- **File-Based Presets**: The `system_prompt` field in `presets.json` points to XML/TXT files (e.g., `"characters/NingXi.xml"`)
+- **Multi-Language Support**: Presets are available in both Chinese (`presets-zh.json`) and English (`presets-en.json`) versions
+- **Automatic Language Detection**: The system automatically loads presets based on the current interface language setting
+- **File-Based Presets**: The `system_prompt` field in preset files points to XML/TXT files (e.g., `"characters/zh/NingXi.xml"` for Chinese, `"characters/en/NingXi.xml"` for English)
 - **Automatic Content Loading**: The system automatically loads the file content and uses it as the system prompt
 - **Variable Substitution**: Supports `\${userProfile.username}` replacement with actual user names
 - **XML Format**: Rich XML structure for detailed character definitions with meta information, personality logic, addressing protocols, and example dialogues
@@ -178,21 +181,21 @@ LumenFlow includes an advanced role-playing system with file-based prompt preset
 1. Navigate to the chat interface
 2. Click the "Role-Play" button and select a character from the preset menu
 3. The selected character's complete personality system will be applied to the conversation
-4. AI responses will reflect the character's traits, speech patterns, and behaviors
+4. AI responses will reflect the character's traits, speech patterns, and behaviors in the selected language
 
 #### Customizing & Adding Presets
-1. Create XML/TXT files in `assets/prompt/characters/` directory with character definitions
-2. Add entries to `presets.json` with `system_prompt` pointing to the file path
+1. Create XML/TXT files in the appropriate language directory (`assets/prompt/characters/zh/` for Chinese, `assets/prompt/characters/en/` for English)
+2. Add entries to both `presets-zh.json` and `presets-en.json` with `system_prompt` pointing to the correct file path
 3. Follow the XML format structure for consistent character definitions
 4. Restart the application to load new presets
 
-##### Example presets.json Structure
+##### Example presets-*.json Structure
 ```json
 {
   "id": "ningxi",
   "name": "宁汐",
   "description": "俏皮可爱的猫娘",
-  "system_prompt": "characters/NingXi.xml",
+  "system_prompt": "characters/zh(or en)/NingXi.xml",
   "icon": "person.fill"
 }
 ```
@@ -241,15 +244,17 @@ LumenFlow provides settings export and import functionality to backup and restor
 
 ## Internationalization
 
-LumenFlow supports both English and Chinese languages. The application automatically detects the system language or allows manual selection in settings.
+LumenFlow supports both English and Chinese languages. The application automatically detects the system language or allows manual selection in settings. All interface elements, AI responses, and prompt presets are fully localized.
 
 ### Language Support
-- **English**: Complete English localization for all interface elements
-- **Chinese**: Complete Chinese localization for all interface elements
+- **English**: Complete English localization for all interface elements and AI responses
+- **Chinese**: Complete Chinese localization for all interface elements and AI responses
 
 ### Implementation
 - Uses Flutter's built-in localization system with ARB files
-- AI responses are also localized based on selected language
+- AI responses are localized based on selected language
+- Prompt presets automatically load the appropriate language version
+- Character definitions are available in both languages with separate XML files
 
 ## Building
 
