@@ -4,10 +4,17 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import '../models/prompt_preset.dart';
+import 'settings_service.dart';
 
 /// 预设提示词服务，负责加载和管理预设提示词
 class PromptService {
-  static const String _presetsPath = 'assets/prompt/presets.json';
+  final SettingsService _settingsService = SettingsService();
+
+  /// 获取当前语言对应的预设文件路径
+  Future<String> _getPresetsPath() async {
+    final locale = await _settingsService.getLocale();
+    return 'assets/prompt/presets-$locale.json';
+  }
 
   /// 加载文件内容（支持XML、TXT等文本文件）
   Future<String> _loadFileContent(String filePath) async {
@@ -50,8 +57,9 @@ class PromptService {
   /// 从JSON文件加载预设提示词列表
   Future<List<PromptPreset>> loadPresets() async {
     try {
-      debugPrint('Loading presets from: $_presetsPath');
-      final String jsonString = await rootBundle.loadString(_presetsPath);
+      final presetsPath = await _getPresetsPath();
+      debugPrint('Loading presets from: $presetsPath');
+      final String jsonString = await rootBundle.loadString(presetsPath);
       debugPrint('JSON loaded, length: ${jsonString.length}');
       final List<dynamic> jsonList = jsonDecode(jsonString) as List<dynamic>;
       debugPrint('JSON parsed, ${jsonList.length} preset(s) found');
