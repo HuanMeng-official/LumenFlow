@@ -198,6 +198,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get deepseekApi => 'DeepSeek API';
 
   @override
+  String get claudeApi => 'Claude API';
+
+  @override
   String get apiTypeDesc => '选择AI服务提供商';
 
   @override

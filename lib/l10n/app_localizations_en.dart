@@ -198,6 +198,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deepseekApi => 'DeepSeek API';
 
   @override
+  String get claudeApi => 'Claude API';
+
+  @override
   String get apiTypeDesc => 'Select AI service provider';
 
   @override

@@ -104,6 +104,7 @@
   "openaiApi": "OpenAI API",
   "geminiApi": "Gemini API",
   "deepseekApi": "DeepSeek API",
+  "claudeApi": "Claude API",
   "apiTypeDesc": "Select AI service provider",
   "apiEndpoint": "API Endpoint",
   "apiEndpointPlaceholder": "Enter API endpoint URL",

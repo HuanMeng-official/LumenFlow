@@ -104,6 +104,7 @@
   "openaiApi": "OpenAI API",
   "geminiApi": "Gemini API",
   "deepseekApi": "DeepSeek API",
+  "claudeApi": "Claude API",
   "apiTypeDesc": "选择AI服务提供商",
   "apiEndpoint": "API端点",
   "apiEndpointPlaceholder": "输入API端点URL",

@@ -146,6 +146,9 @@ class _SettingsScreenState extends State<SettingsScreen>
       } else if (apiType == 'deepseek') {
         _endpointController.text = 'https://api.deepseek.com';
         _modelController.text = 'deepseek-chat';
+      } else if (apiType == 'claude') {
+        _endpointController.text = 'https://api.anthropic.com';
+        _modelController.text = 'claude-sonnet-4-5';
       } else {
         _endpointController.text = SettingsService.defaultEndpoint;
         _modelController.text = SettingsService.defaultModel;
@@ -527,6 +530,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   options: {
                     'openai': l10n.openaiApi,
                     'gemini': l10n.geminiApi,
+                    'claude': l10n.claudeApi,
                     'deepseek': l10n.deepseekApi,
                   },
                   subtitle: l10n.apiTypeDesc,

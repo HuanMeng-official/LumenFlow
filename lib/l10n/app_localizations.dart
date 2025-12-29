@@ -449,6 +449,12 @@ abstract class AppLocalizations {
   /// **'DeepSeek API'**
   String get deepseekApi;
 
+  /// No description provided for @claudeApi.
+  ///
+  /// In en, this message translates to:
+  /// **'Claude API'**
+  String get claudeApi;
+
   /// No description provided for @apiTypeDesc.
   ///
   /// In en, this message translates to:
