@@ -59,7 +59,7 @@ class OpenAIProvider extends AIProvider {
           );
 
           final response = await client.post(
-            Uri.parse('$apiEndpoint/chat/completions'),
+            Uri.parse(thinkingMode ? '$apiEndpoint/responses' : '$apiEndpoint/chat/completions'),
             headers: {
               'Content-Type': 'application/json',
               'Authorization': 'Bearer $apiKey',
@@ -69,7 +69,7 @@ class OpenAIProvider extends AIProvider {
               'messages': messages,
               'max_tokens': maxTokens,
               'temperature': temperature,
-              if (thinkingMode) 'thinking': {'type': 'enabled'},
+              if (thinkingMode) 'reasoning': {'effort': 'medium', 'summary': 'auto'},
             }),
           ).timeout(connectionTimeout + readTimeout);
 
@@ -121,7 +121,7 @@ class OpenAIProvider extends AIProvider {
 
       final request = http.Request(
         'POST',
-        Uri.parse('$apiEndpoint/chat/completions'),
+        Uri.parse(thinkingMode ? '$apiEndpoint/responses' : '$apiEndpoint/chat/completions'),
       );
       request.headers['Content-Type'] = 'application/json';
       request.headers['Authorization'] = 'Bearer $apiKey';
@@ -131,7 +131,7 @@ class OpenAIProvider extends AIProvider {
         'max_tokens': maxTokens,
         'temperature': temperature,
         'stream': true,
-        if (thinkingMode) 'thinking': {'type': 'enabled'},
+        if (thinkingMode) 'reasoning': {'effort': 'medium', 'summary': 'auto'},
       });
 
       final streamedResponse = await client.send(request).timeout(streamingTimeout);
@@ -158,20 +158,50 @@ class OpenAIProvider extends AIProvider {
           }
           try {
             final jsonData = jsonDecode(data);
-            final delta = jsonData['choices']?[0]?['delta'];
 
-            if (delta != null) {
-              // 处理思考模型的推理过程
-              final reasoningContent = delta['reasoning'] as String? ??
-                  delta['reasoning_content'] as String?;
-              if (reasoningContent != null && reasoningContent.isNotEmpty) {
-                yield {'type': 'reasoning', 'content': reasoningContent};
+            // 处理新的 /responses 流式格式
+            final type = jsonData['type'] as String?;
+            if (type == 'reasoning') {
+              final summaryList = jsonData['summary'] as List?;
+              if (summaryList != null) {
+                for (final summaryItem in summaryList) {
+                  if (summaryItem is Map<String, dynamic> &&
+                      summaryItem['type'] == 'summary_text') {
+                    final text = summaryItem['text'] as String?;
+                    if (text != null && text.isNotEmpty) {
+                      yield {'type': 'reasoning', 'content': text};
+                    }
+                  }
+                }
               }
+            } else if (type == 'message') {
+              final contentList = jsonData['content'] as List?;
+              if (contentList != null) {
+                for (final contentItem in contentList) {
+                  if (contentItem is Map<String, dynamic> &&
+                      contentItem['type'] == 'output_text') {
+                    final text = contentItem['text'] as String?;
+                    if (text != null && text.isNotEmpty) {
+                      yield {'type': 'answer', 'content': text};
+                    }
+                  }
+                }
+              }
+            } else {
+              // 处理传统的 /chat/completions 流式格式
+              final delta = jsonData['choices']?[0]?['delta'];
+              if (delta != null) {
+                // 处理思考模型的推理过程
+                final reasoningContent = delta['reasoning'] as String?;
+                if (reasoningContent != null && reasoningContent.isNotEmpty) {
+                  yield {'type': 'reasoning', 'content': reasoningContent};
+                }
 
-              // 处理最终回答
-              final content = delta['content'] as String?;
-              if (content != null && content.isNotEmpty) {
-                yield {'type': 'answer', 'content': content};
+                // 处理最终回答
+                final content = delta['content'] as String?;
+                if (content != null && content.isNotEmpty) {
+                  yield {'type': 'answer', 'content': content};
+                }
               }
             }
           } catch (e) {
@@ -405,6 +435,52 @@ class OpenAIProvider extends AIProvider {
   /// 解析响应
   Map<String, dynamic> _parseResponse(String responseBody, AppLocalizations l10n) {
     final data = jsonDecode(responseBody);
+
+    // 处理新的 /responses 端点格式（数组）
+    if (data is List) {
+      String reasoningContent = '';
+      String content = '';
+
+      for (final item in data) {
+        if (item is! Map<String, dynamic>) continue;
+
+        final type = item['type'] as String?;
+        if (type == 'reasoning') {
+          final summaryList = item['summary'] as List?;
+          if (summaryList != null) {
+            for (final summaryItem in summaryList) {
+              if (summaryItem is Map<String, dynamic> &&
+                  summaryItem['type'] == 'summary_text') {
+                final text = summaryItem['text'] as String?;
+                if (text != null && text.isNotEmpty) {
+                  reasoningContent += (reasoningContent.isNotEmpty ? '\n' : '') + text;
+                }
+              }
+            }
+          }
+        } else if (type == 'message') {
+          final contentList = item['content'] as List?;
+          if (contentList != null) {
+            for (final contentItem in contentList) {
+              if (contentItem is Map<String, dynamic> &&
+                  contentItem['type'] == 'output_text') {
+                final text = contentItem['text'] as String?;
+                if (text != null && text.isNotEmpty) {
+                  content += (content.isNotEmpty ? '\n' : '') + text;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      return {
+        'reasoningContent': reasoningContent.trim(),
+        'content': content.trim(),
+      };
+    }
+
+    // 处理传统的 /chat/completions 端点格式（对象）
     if (data is! Map<String, dynamic> ||
         data['choices'] == null ||
         (data['choices'] as List).isEmpty) {
@@ -417,9 +493,7 @@ class OpenAIProvider extends AIProvider {
     }
 
     final message = firstChoice['message'];
-    final reasoningContent =
-        message['reasoning']?.toString().trim() ??
-        message['reasoning_content']?.toString().trim() ?? '';
+    final reasoningContent = message['reasoning']?.toString().trim() ?? '';
     final content = message['content']?.toString().trim() ?? '';
 
     return {
