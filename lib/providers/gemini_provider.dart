@@ -38,7 +38,7 @@ class GeminiProvider extends AIProvider {
     bool thinkingMode = false,
     required AppLocalizations l10n,
   }) async {
-    return await _executeWithRetry<String>(
+    return await _executeWithRetry<Map<String, dynamic>>(
       () async {
         final client = _createHttpClient();
         try {
@@ -83,10 +83,7 @@ class GeminiProvider extends AIProvider {
         debugPrint('Gemini API请求失败，第$retryCount次重试，延迟${delayMs}ms: $error');
       },
       l10n: l10n,
-    ).then((responseText) => {
-      'reasoningContent': '',
-      'content': responseText,
-    });
+    );
   }
 
   @override
@@ -285,7 +282,8 @@ class GeminiProvider extends AIProvider {
     // 添加思考模式配置
     if (thinkingMode) {
       config['thinkingConfig'] = {
-        'thinkingBudget': 0, // 0 表示启用思考模式
+        'thinkingBudget': -1,
+        'includeThoughts': true,
       };
     }
 
@@ -438,7 +436,7 @@ class GeminiProvider extends AIProvider {
   }
 
   /// 发送非流式请求
-  Future<String> _sendNonStreamingRequest({
+  Future<Map<String, dynamic>> _sendNonStreamingRequest({
     required http.Client client,
     required String url,
     required Map<String, dynamic> requestBody,
@@ -470,7 +468,27 @@ class GeminiProvider extends AIProvider {
       if (candidate['content'] != null &&
           candidate['content']['parts'] != null &&
           candidate['content']['parts'].isNotEmpty) {
-        return candidate['content']['parts'][0]['text'].trim();
+        final parts = candidate['content']['parts'];
+        String reasoningContent = '';
+        String content = '';
+
+        for (final part in parts) {
+          if (part is! Map<String, dynamic>) continue;
+          final text = part['text']?.toString().trim();
+          if (text == null || text.isEmpty) continue;
+
+          final isThought = part['thought'] == true;
+          if (isThought) {
+            reasoningContent += (reasoningContent.isNotEmpty ? '\n' : '') + text;
+          } else {
+            content += (content.isNotEmpty ? '\n' : '') + text;
+          }
+        }
+
+        return {
+          'reasoningContent': reasoningContent.trim(),
+          'content': content.trim(),
+        };
       }
 
       throw Exception(l10n.providerGeminiInvalidFormat);
@@ -550,13 +568,17 @@ class GeminiProvider extends AIProvider {
           if (parts is! List || parts.isEmpty) {
             continue;
           }
-          final firstPart = parts[0];
-          if (firstPart is! Map<String, dynamic>) {
-            continue;
-          }
-          final text = firstPart['text'] as String?;
-          if (text != null && text.isNotEmpty) {
-            yield {'type': 'answer', 'content': text};
+          for (final part in parts) {
+            if (part is! Map<String, dynamic>) continue;
+            final text = part['text'] as String?;
+            if (text == null || text.isEmpty) continue;
+
+            final isThought = part['thought'] == true;
+            if (isThought) {
+              yield {'type': 'reasoning', 'content': text};
+            } else {
+              yield {'type': 'answer', 'content': text};
+            }
           }
         } catch (e) {
           // 忽略解析错误
