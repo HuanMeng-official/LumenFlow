@@ -396,7 +396,11 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
 
     try {
-      final stream = _aiService.sendMessageStreaming(content, _messages,
+      // 排除最后两条消息（当前用户消息和空的AI消息）作为历史消息
+      final historyMessages = _messages.length >= 2
+          ? _messages.sublist(0, _messages.length - 2)
+          : <Message>[];
+      final stream = _aiService.sendMessageStreaming(content, historyMessages,
           attachments: attachments, thinkingMode: _thinkingMode,
           presetSystemPrompt: presetSystemPrompt, l10n: l10n);
       final reasoningBuffer = StringBuffer();
