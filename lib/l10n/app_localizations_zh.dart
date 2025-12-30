@@ -216,7 +216,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get apiKey => 'API密钥';
 
   @override
-  String get apiKeyPlaceholder => '输入API密钥';
+  String get apiKeyPlaceholder => 'API密钥';
 
   @override
   String get apiKeyDesc => '从AI服务提供商获取的认证密钥';
@@ -557,6 +557,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get configureApiKeyFirst => '请先在设置中配置API密钥';
 
   @override
+  String get selectModelFirst => '请先选择一个模型';
+
+  @override
   String get messageInputPlaceholder => '输入消息...';
 
   @override
@@ -699,4 +702,114 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get providerResponseBlocked => '响应被安全过滤器阻止';
+
+  @override
+  String get platformAndModel => '模型与平台';
+
+  @override
+  String get platformAndModelDesc => '管理多个AI平台和模型配置';
+
+  @override
+  String get addPlatform => '添加平台';
+
+  @override
+  String get editPlatform => '编辑平台';
+
+  @override
+  String get platformType => '平台类型';
+
+  @override
+  String get platformNamePlaceholder => '平台名称';
+
+  @override
+  String get endpointPlaceholder => 'API端点URL';
+
+  @override
+  String get configured => '已配置';
+
+  @override
+  String get notConfigured => '未配置';
+
+  @override
+  String get models => '个模型';
+
+  @override
+  String get current => '当前';
+
+  @override
+  String get currentModel => '当前模型';
+
+  @override
+  String get manageModels => '管理模型';
+
+  @override
+  String get refreshModels => '刷新模型';
+
+  @override
+  String get noModelsAvailable => '暂无可用模型';
+
+  @override
+  String get noModelSelected => '未选择模型';
+
+  @override
+  String get modelsRefreshed => '模型列表已刷新';
+
+  @override
+  String refreshModelsError(String error) {
+    return '刷新模型失败: $error';
+  }
+
+  @override
+  String get deletePlatform => '删除平台';
+
+  @override
+  String deletePlatformConfirm(String name) {
+    return '确定要删除平台 \"$name\" 吗？';
+  }
+
+  @override
+  String get switchToPlatform => '切换到此平台';
+
+  @override
+  String switchedToPlatform(String name) {
+    return '已切换到 $name';
+  }
+
+  @override
+  String get addModelTitle => '添加模型';
+
+  @override
+  String get modelNamePh => '模型名称';
+
+  @override
+  String get addModelBtn => '添加';
+
+  @override
+  String get deleteModelTitle => '删除模型';
+
+  @override
+  String deleteModelConfirm(String model) {
+    return '确定要删除模型 \"$model\" 吗？';
+  }
+
+  @override
+  String get deleteModelBtn => '删除选中';
+
+  @override
+  String get selectModelToDelete => '请先选择要删除的模型';
+
+  @override
+  String get add => '添加';
+
+  @override
+  String get addNewModel => '添加新模型';
+
+  @override
+  String get clickAddToCreate => '点击上方 + 按钮添加模型';
+
+  @override
+  String get noPlatformsConfigured => '暂无平台配置';
+
+  @override
+  String get addPlatformHint => '点击右上角 + 添加您的第一个AI平台';
 }

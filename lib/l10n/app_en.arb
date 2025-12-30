@@ -283,6 +283,7 @@
     }
   },
   "configureApiKeyFirst": "Please configure API key in settings first",
+  "selectModelFirst": "Please select a model first",
   "messageInputPlaceholder": "Type a message...",
   "configureApiSettingsFirst": "Please configure API settings first",
   "baseSystemPrompt": "\"{username}\" is user's name, please use this name appropriately in the conversation and respond in English",
@@ -493,5 +494,69 @@
       }
     }
   },
-  "providerResponseBlocked": "Response blocked by safety filter"
+  "providerResponseBlocked": "Response blocked by safety filter",
+  "platformAndModel": "Platforms & Models",
+  "platformAndModelDesc": "Manage multiple AI platforms and model configurations",
+  "addPlatform": "Add Platform",
+  "editPlatform": "Edit Platform",
+  "platformType": "Platform Type",
+  "platformNamePlaceholder": "Platform name",
+  "endpointPlaceholder": "API endpoint URL",
+  "apiKeyPlaceholder": "API key",
+  "configured": "Configured",
+  "notConfigured": "Not Configured",
+  "models": "models",
+  "current": "Current",
+  "currentModel": "Current Model",
+  "manageModels": "Manage Models",
+  "refreshModels": "Refresh Models",
+  "noModelsAvailable": "No available models",
+  "noModelSelected": "No model selected",
+  "modelsRefreshed": "Model list refreshed",
+  "refreshModelsError": "Failed to refresh models: {error}",
+  "@refreshModelsError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletePlatform": "Delete Platform",
+  "deletePlatformConfirm": "Are you sure you want to delete platform \"{name}\"?",
+  "@deletePlatformConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "switchToPlatform": "Switch to this platform",
+  "switchedToPlatform": "Switched to {name}",
+  "@switchedToPlatform": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addModelTitle": "Add Model",
+  "modelNamePh": "Model name",
+  "addModelBtn": "Add",
+  "deleteModelTitle": "Delete Model",
+  "deleteModelConfirm": "Are you sure you want to delete model \"{model}\"?",
+  "@deleteModelConfirm": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteModelBtn": "Delete Selected",
+  "selectModelToDelete": "Please select a model to delete first",
+  "add": "Add",
+  "delete": "Delete",
+  "addNewModel": "Add new model",
+  "clickAddToCreate": "Tap the + button above to add a model",
+  "noPlatformsConfigured": "No platforms configured",
+  "addPlatformHint": "Tap the + button in the top right to add your first AI platform"
 }

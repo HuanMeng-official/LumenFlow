@@ -9,6 +9,7 @@ import '../services/settings_service.dart';
 import '../utils/app_theme.dart';
 import 'user_profile_screen.dart';
 import 'about_screen.dart';
+import 'platform_settings_screen.dart';
 
 /// 应用设置界面，配置AI API参数和用户偏好
 ///
@@ -423,6 +424,17 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
   }
 
+  void _openPlatformSettings() async {
+    await Navigator.push(
+      context,
+      CupertinoPageRoute(
+        builder: (context) => const PlatformSettingsScreen(),
+      ),
+    );
+    // 返回后重新加载设置，以反映平台切换带来的变化
+    _loadSettings();
+  }
+
   void _openAbout() {
     Navigator.push(
       context,
@@ -518,6 +530,12 @@ class _SettingsScreenState extends State<SettingsScreen>
                       ),
                     );
                   },
+                ),
+                _buildNavigationTile(
+                  l10n.platformAndModel,
+                  subtitle: l10n.platformAndModelDesc,
+                  icon: CupertinoIcons.cube_box,
+                  onTap: _openPlatformSettings,
                 ),
               ],
             ),

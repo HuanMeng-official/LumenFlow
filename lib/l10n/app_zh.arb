@@ -283,6 +283,7 @@
     }
   },
   "configureApiKeyFirst": "请先在设置中配置API密钥",
+  "selectModelFirst": "请先选择一个模型",
   "messageInputPlaceholder": "输入消息...",
   "configureApiSettingsFirst": "请先配置API设置",
   "baseSystemPrompt": "请在对话中适当地使用\"{username}\"这个名字来称呼用户，并使用中文回答。",
@@ -493,5 +494,69 @@
       }
     }
   },
-  "providerResponseBlocked": "响应被安全过滤器阻止"
+  "providerResponseBlocked": "响应被安全过滤器阻止",
+  "platformAndModel": "模型与平台",
+  "platformAndModelDesc": "管理多个AI平台和模型配置",
+  "addPlatform": "添加平台",
+  "editPlatform": "编辑平台",
+  "platformType": "平台类型",
+  "platformNamePlaceholder": "平台名称",
+  "endpointPlaceholder": "API端点URL",
+  "apiKeyPlaceholder": "API密钥",
+  "configured": "已配置",
+  "notConfigured": "未配置",
+  "models": "个模型",
+  "current": "当前",
+  "currentModel": "当前模型",
+  "manageModels": "管理模型",
+  "refreshModels": "刷新模型",
+  "noModelsAvailable": "暂无可用模型",
+  "noModelSelected": "未选择模型",
+  "modelsRefreshed": "模型列表已刷新",
+  "refreshModelsError": "刷新模型失败: {error}",
+  "@refreshModelsError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletePlatform": "删除平台",
+  "deletePlatformConfirm": "确定要删除平台 \"{name}\" 吗？",
+  "@deletePlatformConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "switchToPlatform": "切换到此平台",
+  "switchedToPlatform": "已切换到 {name}",
+  "@switchedToPlatform": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addModelTitle": "添加模型",
+  "modelNamePh": "模型名称",
+  "addModelBtn": "添加",
+  "deleteModelTitle": "删除模型",
+  "deleteModelConfirm": "确定要删除模型 \"{model}\" 吗？",
+  "@deleteModelConfirm": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteModelBtn": "删除选中",
+  "selectModelToDelete": "请先选择要删除的模型",
+  "add": "添加",
+  "delete": "删除",
+  "addNewModel": "添加新模型",
+  "clickAddToCreate": "点击上方 + 按钮添加模型",
+  "noPlatformsConfigured": "暂无平台配置",
+  "addPlatformHint": "点击右上角 + 添加您的第一个AI平台"
 }

@@ -216,7 +216,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get apiKey => 'API Key';
 
   @override
-  String get apiKeyPlaceholder => 'Enter API key';
+  String get apiKeyPlaceholder => 'API key';
 
   @override
   String get apiKeyDesc => 'Authentication key obtained from AI service provider';
@@ -557,6 +557,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get configureApiKeyFirst => 'Please configure API key in settings first';
 
   @override
+  String get selectModelFirst => 'Please select a model first';
+
+  @override
   String get messageInputPlaceholder => 'Type a message...';
 
   @override
@@ -699,4 +702,114 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get providerResponseBlocked => 'Response blocked by safety filter';
+
+  @override
+  String get platformAndModel => 'Platforms & Models';
+
+  @override
+  String get platformAndModelDesc => 'Manage multiple AI platforms and model configurations';
+
+  @override
+  String get addPlatform => 'Add Platform';
+
+  @override
+  String get editPlatform => 'Edit Platform';
+
+  @override
+  String get platformType => 'Platform Type';
+
+  @override
+  String get platformNamePlaceholder => 'Platform name';
+
+  @override
+  String get endpointPlaceholder => 'API endpoint URL';
+
+  @override
+  String get configured => 'Configured';
+
+  @override
+  String get notConfigured => 'Not Configured';
+
+  @override
+  String get models => 'models';
+
+  @override
+  String get current => 'Current';
+
+  @override
+  String get currentModel => 'Current Model';
+
+  @override
+  String get manageModels => 'Manage Models';
+
+  @override
+  String get refreshModels => 'Refresh Models';
+
+  @override
+  String get noModelsAvailable => 'No available models';
+
+  @override
+  String get noModelSelected => 'No model selected';
+
+  @override
+  String get modelsRefreshed => 'Model list refreshed';
+
+  @override
+  String refreshModelsError(String error) {
+    return 'Failed to refresh models: $error';
+  }
+
+  @override
+  String get deletePlatform => 'Delete Platform';
+
+  @override
+  String deletePlatformConfirm(String name) {
+    return 'Are you sure you want to delete platform \"$name\"?';
+  }
+
+  @override
+  String get switchToPlatform => 'Switch to this platform';
+
+  @override
+  String switchedToPlatform(String name) {
+    return 'Switched to $name';
+  }
+
+  @override
+  String get addModelTitle => 'Add Model';
+
+  @override
+  String get modelNamePh => 'Model name';
+
+  @override
+  String get addModelBtn => 'Add';
+
+  @override
+  String get deleteModelTitle => 'Delete Model';
+
+  @override
+  String deleteModelConfirm(String model) {
+    return 'Are you sure you want to delete model \"$model\"?';
+  }
+
+  @override
+  String get deleteModelBtn => 'Delete Selected';
+
+  @override
+  String get selectModelToDelete => 'Please select a model to delete first';
+
+  @override
+  String get add => 'Add';
+
+  @override
+  String get addNewModel => 'Add new model';
+
+  @override
+  String get clickAddToCreate => 'Tap the + button above to add a model';
+
+  @override
+  String get noPlatformsConfigured => 'No platforms configured';
+
+  @override
+  String get addPlatformHint => 'Tap the + button in the top right to add your first AI platform';
 }

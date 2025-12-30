@@ -488,7 +488,7 @@ abstract class AppLocalizations {
   /// No description provided for @apiKeyPlaceholder.
   ///
   /// In en, this message translates to:
-  /// **'Enter API key'**
+  /// **'API key'**
   String get apiKeyPlaceholder;
 
   /// No description provided for @apiKeyDesc.
@@ -1139,6 +1139,12 @@ abstract class AppLocalizations {
   /// **'Please configure API key in settings first'**
   String get configureApiKeyFirst;
 
+  /// No description provided for @selectModelFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a model first'**
+  String get selectModelFirst;
+
   /// No description provided for @messageInputPlaceholder.
   ///
   /// In en, this message translates to:
@@ -1342,6 +1348,210 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Response blocked by safety filter'**
   String get providerResponseBlocked;
+
+  /// No description provided for @platformAndModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Platforms & Models'**
+  String get platformAndModel;
+
+  /// No description provided for @platformAndModelDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage multiple AI platforms and model configurations'**
+  String get platformAndModelDesc;
+
+  /// No description provided for @addPlatform.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Platform'**
+  String get addPlatform;
+
+  /// No description provided for @editPlatform.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Platform'**
+  String get editPlatform;
+
+  /// No description provided for @platformType.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform Type'**
+  String get platformType;
+
+  /// No description provided for @platformNamePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform name'**
+  String get platformNamePlaceholder;
+
+  /// No description provided for @endpointPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'API endpoint URL'**
+  String get endpointPlaceholder;
+
+  /// No description provided for @configured.
+  ///
+  /// In en, this message translates to:
+  /// **'Configured'**
+  String get configured;
+
+  /// No description provided for @notConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Configured'**
+  String get notConfigured;
+
+  /// No description provided for @models.
+  ///
+  /// In en, this message translates to:
+  /// **'models'**
+  String get models;
+
+  /// No description provided for @current.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get current;
+
+  /// No description provided for @currentModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Model'**
+  String get currentModel;
+
+  /// No description provided for @manageModels.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Models'**
+  String get manageModels;
+
+  /// No description provided for @refreshModels.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh Models'**
+  String get refreshModels;
+
+  /// No description provided for @noModelsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No available models'**
+  String get noModelsAvailable;
+
+  /// No description provided for @noModelSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'No model selected'**
+  String get noModelSelected;
+
+  /// No description provided for @modelsRefreshed.
+  ///
+  /// In en, this message translates to:
+  /// **'Model list refreshed'**
+  String get modelsRefreshed;
+
+  /// No description provided for @refreshModelsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to refresh models: {error}'**
+  String refreshModelsError(String error);
+
+  /// No description provided for @deletePlatform.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Platform'**
+  String get deletePlatform;
+
+  /// No description provided for @deletePlatformConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete platform \"{name}\"?'**
+  String deletePlatformConfirm(String name);
+
+  /// No description provided for @switchToPlatform.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to this platform'**
+  String get switchToPlatform;
+
+  /// No description provided for @switchedToPlatform.
+  ///
+  /// In en, this message translates to:
+  /// **'Switched to {name}'**
+  String switchedToPlatform(String name);
+
+  /// No description provided for @addModelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Model'**
+  String get addModelTitle;
+
+  /// No description provided for @modelNamePh.
+  ///
+  /// In en, this message translates to:
+  /// **'Model name'**
+  String get modelNamePh;
+
+  /// No description provided for @addModelBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get addModelBtn;
+
+  /// No description provided for @deleteModelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Model'**
+  String get deleteModelTitle;
+
+  /// No description provided for @deleteModelConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete model \"{model}\"?'**
+  String deleteModelConfirm(String model);
+
+  /// No description provided for @deleteModelBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Selected'**
+  String get deleteModelBtn;
+
+  /// No description provided for @selectModelToDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a model to delete first'**
+  String get selectModelToDelete;
+
+  /// No description provided for @add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get add;
+
+  /// No description provided for @addNewModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Add new model'**
+  String get addNewModel;
+
+  /// No description provided for @clickAddToCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the + button above to add a model'**
+  String get clickAddToCreate;
+
+  /// No description provided for @noPlatformsConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'No platforms configured'**
+  String get noPlatformsConfigured;
+
+  /// No description provided for @addPlatformHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the + button in the top right to add your first AI platform'**
+  String get addPlatformHint;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

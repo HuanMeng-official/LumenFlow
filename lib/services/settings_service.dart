@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/ai_platform.dart';
 
 class SettingsService {
   static const String _apiEndpointKey = 'api_endpoint';
@@ -19,6 +21,9 @@ class SettingsService {
   static const String _autoTitleEnabledKey = 'auto_title_enabled';
   static const String _autoTitleRoundsKey = 'auto_title_rounds';
   static const String _localeKey = 'locale';
+  // 多平台配置相关的key
+  static const String _platformsKey = 'ai_platforms';
+  static const String _currentPlatformIdKey = 'current_platform_id';
   static const String defaultCustomSystemPrompt = '';
   static const String defaultApiType = 'openai';
   static const bool defaultDarkMode = false;
@@ -107,11 +112,6 @@ class SettingsService {
   Future<void> setHistoryContextLength(int length) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_historyContextLengthKey, length);
-  }
-
-  Future<bool> isConfigured() async {
-    final apiKey = await getApiKey();
-    return apiKey.isNotEmpty;
   }
 
   Future<String> getCustomSystemPrompt() async {
@@ -314,5 +314,188 @@ class SettingsService {
     if (settings.containsKey(_localeKey)) {
       await prefs.setString(_localeKey, settings[_localeKey] as String);
     }
+  }
+
+  // ========== 多平台管理相关方法 ==========
+
+  /// 获取所有AI平台配置
+  Future<List<AIPlatform>> getPlatforms() async {
+    final prefs = await SharedPreferences.getInstance();
+    final platformsJson = prefs.getString(_platformsKey);
+
+    if (platformsJson == null || platformsJson.isEmpty) {
+      // 如果没有保存的配置，返回默认平台列表
+      return _getDefaultPlatforms();
+    }
+
+    try {
+      final List<dynamic> decoded = jsonDecode(platformsJson);
+      return decoded.map((e) => AIPlatform.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (e) {
+      // 解析失败，返回默认列表
+      return _getDefaultPlatforms();
+    }
+  }
+
+  /// 保存所有AI平台配置
+  Future<void> savePlatforms(List<AIPlatform> platforms) async {
+    final prefs = await SharedPreferences.getInstance();
+    final platformsJson = jsonEncode(platforms.map((p) => p.toJson()).toList());
+    await prefs.setString(_platformsKey, platformsJson);
+  }
+
+  /// 添加或更新一个AI平台配置
+  Future<void> savePlatform(AIPlatform platform) async {
+    final platforms = await getPlatforms();
+    final index = platforms.indexWhere((p) => p.id == platform.id);
+
+    if (index >= 0) {
+      // 更新现有平台
+      platforms[index] = platform;
+    } else {
+      // 添加新平台
+      platforms.add(platform);
+    }
+
+    await savePlatforms(platforms);
+  }
+
+  /// 删除一个AI平台配置
+  Future<void> deletePlatform(String platformId) async {
+    final platforms = await getPlatforms();
+    platforms.removeWhere((p) => p.id == platformId);
+    await savePlatforms(platforms);
+
+    // 如果删除的是当前平台，切换到第一个可用平台
+    final currentPlatformId = await getCurrentPlatformId();
+    if (currentPlatformId == platformId) {
+      final remainingPlatforms = await getPlatforms();
+      if (remainingPlatforms.isNotEmpty) {
+        await setCurrentPlatformId(remainingPlatforms.first.id);
+      }
+    }
+  }
+
+  /// 获取当前选中的平台ID
+  Future<String> getCurrentPlatformId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_currentPlatformIdKey) ?? 'openai';
+  }
+
+  /// 设置当前选中的平台ID
+  Future<void> setCurrentPlatformId(String platformId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_currentPlatformIdKey, platformId);
+  }
+
+  /// 获取当前选中的平台配置
+  Future<AIPlatform?> getCurrentPlatform() async {
+    final platforms = await getPlatforms();
+    final currentId = await getCurrentPlatformId();
+    try {
+      return platforms.firstWhere((p) => p.id == currentId);
+    } catch (e) {
+      // 如果找不到当前平台，返回第一个配置的平台
+      if (platforms.isNotEmpty) {
+        return platforms.first;
+      }
+      return null;
+    }
+  }
+
+  /// 根据ID获取平台配置
+  Future<AIPlatform?> getPlatformById(String platformId) async {
+    final platforms = await getPlatforms();
+    try {
+      return platforms.firstWhere((p) => p.id == platformId);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// 更新平台的模型列表
+  Future<void> updatePlatformModels(
+    String platformId,
+    List<String> models, {
+    String? newDefaultModel,
+  }) async {
+    final platforms = await getPlatforms();
+    final index = platforms.indexWhere((p) => p.id == platformId);
+
+    if (index >= 0) {
+      final platform = platforms[index];
+      final updatedPlatform = platform.copyWith(
+        availableModels: models,
+        defaultModel: newDefaultModel ?? platform.defaultModel,
+        lastModelUpdate: DateTime.now(),
+      );
+      platforms[index] = updatedPlatform;
+      await savePlatforms(platforms);
+    }
+  }
+
+  /// 检查是否有任何平台已配置
+  Future<bool> hasConfiguredPlatform() async {
+    final platforms = await getPlatforms();
+    return platforms.any((p) => p.isConfigured);
+  }
+
+  /// 检查应用是否已配置（向后兼容版本）
+  /// 优先检查新版本的多平台配置，如果没有则检查旧的单一配置
+  Future<bool> isConfigured() async {
+    final hasPlatform = await hasConfiguredPlatform();
+    if (hasPlatform) return true;
+
+    // 向后兼容：检查旧版本配置
+    final apiKey = await getApiKey();
+    return apiKey.isNotEmpty;
+  }
+
+  /// 迁移旧版本配置到新版本的多平台配置
+  Future<void> migrateLegacySettings() async {
+    final platforms = await getPlatforms();
+    // 如果已经有自定义配置，不进行迁移
+    if (platforms.length > 4 && platforms.any((p) => p.isConfigured)) {
+      return;
+    }
+
+    final oldApiType = await getApiType();
+    final oldEndpoint = await getApiEndpoint();
+    final oldApiKey = await getApiKey();
+    final oldModel = await getModel();
+
+    // 如果旧配置有API密钥，迁移到对应平台
+    if (oldApiKey.isNotEmpty) {
+      final index = platforms.indexWhere((p) => p.type == oldApiType);
+      if (index >= 0) {
+        final updatedPlatform = platforms[index].copyWith(
+          endpoint: oldEndpoint,
+          apiKey: oldApiKey,
+          defaultModel: oldModel,
+        );
+        platforms[index] = updatedPlatform;
+
+        // 如果有多个模型，添加到列表
+        if (!updatedPlatform.availableModels.contains(oldModel)) {
+          final updatedModels = [...updatedPlatform.availableModels, oldModel];
+          platforms[index] = updatedPlatform.copyWith(
+            availableModels: updatedModels,
+          );
+        }
+
+        await savePlatforms(platforms);
+        await setCurrentPlatformId(updatedPlatform.id);
+      }
+    }
+  }
+
+  /// 获取默认平台列表
+  List<AIPlatform> _getDefaultPlatforms() {
+    return [
+      AIPlatform.createDefaultPlatform('openai'),
+      AIPlatform.createDefaultPlatform('claude'),
+      AIPlatform.createDefaultPlatform('deepseek'),
+      AIPlatform.createDefaultPlatform('gemini'),
+    ];
   }
 }
