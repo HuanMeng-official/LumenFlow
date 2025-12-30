@@ -1,0 +1,53 @@
+name: Feature
+description: 提出一个新的功能建议或改进
+title: "[Feature] "
+labels: ["enhancement", "needs-triage"]
+assignees: ["HuanMeng-official"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        💡 感谢你的建议！在提交之前，请先确保你的想法符合我们的项目。
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 你的想法
+      description: 清晰简洁地描述你遇到的问题或痛点。比如：“我很难做到...” 或 “目前缺少...导致我无法...”
+      placeholder: 我在使用项目时，总是很难...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: 解决方案
+      description: 描述你希望如何实现这个功能。
+      placeholder: 应该添加一个按钮，用于...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 替代方案
+      description: 描述你考虑过的其他解决方案或变通方法。
+      placeholder: 我目前尝试使用...但是效果不好。
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 附加信息
+      description: 这里可以放截图、设计图、参考链接或其他有助于理解需求的背景。
+      render: markdown
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: 确认
+      options:
+        - label: 我已经搜索过现有的 Issues 和 PRs
+          required: true
+        - label: 我愿意参与实现这个功能（可选）
+          required: false

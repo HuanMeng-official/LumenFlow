@@ -1,0 +1,85 @@
+name: Bug
+description: 发现了一个问题？告诉我们！
+title: "[Bug] "
+labels: ["bug", "needs-triage"]
+projects: ["internal-projects"]
+assignees: ["HuanMeng-official"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        👋 感谢花时间提交 Issue！在提交之前，请先检查 [Issues列表](../issues) 是否已经有人提交过相同问题。
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 问题描述
+      description: 清晰简洁地描述这个 Bug。
+      placeholder: 例如：我在使用 OpenAI API时深度思考出错。
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 复现步骤
+      description: 复现该 Bug 的详细步骤。
+      value: |
+        1. 打开页面 '...'
+        2. 点击 '...'
+        3. 输入 '...'
+        4. 看到错误
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: 预期行为
+      description: 描述你期望应该发生什么。
+      placeholder: 能够进行深度思考。
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: 截图或录屏
+      description: 如果适用，请添加截图或录屏来解释问题。
+
+  - type: input
+    id: environment
+    attributes:
+      label: 环境
+      description: 运行环境信息
+      placeholder: e.g. Windows11 25H2 x86_64
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: 版本
+      description: 你使用的软件版本是多少？
+      placeholder: e.g. v1.8.1
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 报错信息
+      description: 如果应用内有报错请粘贴到这里。
+      render: shell
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: 确认
+      description: 请在提交前确认
+      options:
+        - label: 我已经搜索过现有的 Issues
+          required: true
+        - label: 我已经尝试在最新版本上复现
+          required: true
