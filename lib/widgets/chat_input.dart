@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../l10n/app_localizations.dart';
 import '../services/file_service.dart';
@@ -39,6 +40,7 @@ class ChatInput extends StatefulWidget {
 
 class _ChatInputState extends State<ChatInput> {
   final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   final FileService _fileService = FileService();
   bool _canSend = false;
   List<Attachment> _attachments = [];
@@ -474,7 +476,7 @@ class _ChatInputState extends State<ChatInput> {
                 children: _attachments.map(_buildAttachmentPreview).toList(),
               ),
             ),
-          // 第一行：输入区域
+          // 输入区域
           Row(
             children: [
               CupertinoButton(
@@ -520,14 +522,40 @@ class _ChatInputState extends State<ChatInput> {
                             : CupertinoColors.systemGrey5.color),
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  child: CupertinoTextField(
-                    controller: _controller,
-                    placeholder: widget.enabled ? l10n.messageInputPlaceholder : l10n.configureApiSettingsFirst,
-                    enabled: widget.enabled,
-                    decoration: null,
-                    maxLines: null,
-                    textInputAction: TextInputAction.newline,
-                    onSubmitted: null,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: TextField(
+                      controller: _controller,
+                      scrollController: _scrollController,
+                      enabled: widget.enabled,
+                      minLines: 1,
+                      maxLines: 10,
+                      keyboardType: TextInputType.multiline,
+                      textInputAction: TextInputAction.newline,
+                      scrollPhysics: const AlwaysScrollableScrollPhysics(),
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 8), 
+                        isDense: true, 
+                        hintStyle: TextStyle(
+                          color: brightness == Brightness.dark
+                              ? CupertinoColors.systemGrey.darkColor
+                              : CupertinoColors.systemGrey,
+                          fontSize: 17,
+                          height: 1.2,
+                        ),
+                        hintText: widget.enabled ? l10n.messageInputPlaceholder : l10n.configureApiSettingsFirst,
+                      ),
+                      style: const TextStyle(
+                        fontSize: 17,
+                        color: CupertinoColors.label,
+                        height: 1.5,
+                        textBaseline: TextBaseline.alphabetic,
+                      ),
+                      cursorColor: CupertinoColors.activeBlue,
+                      scrollPadding: const EdgeInsets.all(20),
+                    ),
                   ),
                 ),
               ),
@@ -559,7 +587,7 @@ class _ChatInputState extends State<ChatInput> {
               ),
             ],
           ),
-          // 第二行：功能开关区域
+          // 功能开关区域
           const SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -641,6 +669,7 @@ class _ChatInputState extends State<ChatInput> {
                     height: 34,
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     alignment: Alignment.center,
+                    // 【修正】将 decoration 移到 child 之前，解决 lint 错误
                     decoration: BoxDecoration(
                       color: widget.enabled
                           ? (widget.promptPresetEnabled
@@ -712,6 +741,7 @@ class _ChatInputState extends State<ChatInput> {
   @override
   void dispose() {
     _controller.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 }
