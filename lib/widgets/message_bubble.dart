@@ -429,19 +429,17 @@ class _MessageBubbleState extends State<MessageBubble> {
                                     fontSize: 12,
                                     fontFamily: 'SF Mono',
                                     color: brightness == Brightness.dark
-                                        ? CupertinoColors.systemGreen.darkColor
-                                        : CupertinoColors.systemGreen.color,
-                                    backgroundColor: brightness ==
-                                            Brightness.dark
-                                        ? CupertinoColors.systemGrey5.darkColor
-                                            .withAlpha(128)
-                                        : CupertinoColors.systemGrey6.color,
+                                        ? CupertinoColors.white
+                                        : CupertinoColors.black,
+                                    backgroundColor: brightness == Brightness.dark
+                                        ? CupertinoColors.systemGrey.darkColor
+                                        : CupertinoColors.systemGrey5.color,
                                   ),
                                   codeblockPadding: const EdgeInsets.all(8),
                                   codeblockDecoration: BoxDecoration(
                                     color: brightness == Brightness.dark
-                                        ? CupertinoColors.systemGrey5.darkColor
-                                        : CupertinoColors.systemGrey6.color,
+                                        ? CupertinoColors.systemGrey.darkColor
+                                        : CupertinoColors.systemGrey5.color,
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   blockquote: TextStyle(
@@ -496,34 +494,20 @@ class _MessageBubbleState extends State<MessageBubble> {
                           height: 1.5,
                         ),
                         code: TextStyle(
-                          color: widget.message.isUser
+                          color: brightness == Brightness.dark
                               ? CupertinoColors.white
-                              : (widget.message.status == MessageStatus.error
-                                  ? (brightness == Brightness.dark
-                                      ? CupertinoColors.systemRed.darkColor
-                                      : CupertinoColors.systemRed.color)
-                                  : (brightness == Brightness.dark
-                                      ? CupertinoColors.label.darkColor
-                                      : CupertinoColors.label.color)),
+                              : CupertinoColors.black,
                           fontSize: 16,
                           fontFamily: 'Courier',
-                          backgroundColor: widget.message.isUser
-                              ? (brightness == Brightness.dark
-                                  ? CupertinoColors.systemGrey6.darkColor
-                                  : CupertinoColors.systemGrey6.color)
-                              : (brightness == Brightness.dark
-                                  ? CupertinoColors.systemGrey5.darkColor
-                                  : CupertinoColors.systemGrey5.color),
+                          backgroundColor: brightness == Brightness.dark
+                              ? CupertinoColors.systemGrey.darkColor
+                              : CupertinoColors.systemGrey5.color,
                         ),
                         codeblockPadding: const EdgeInsets.all(12),
                         codeblockDecoration: BoxDecoration(
-                          color: widget.message.isUser
-                              ? (brightness == Brightness.dark
-                                  ? CupertinoColors.systemGrey6.darkColor
-                                  : CupertinoColors.systemGrey6.color)
-                              : (brightness == Brightness.dark
-                                  ? CupertinoColors.systemGrey5.darkColor
-                                  : CupertinoColors.systemGrey5.color),
+                          color: brightness == Brightness.dark
+                              ? CupertinoColors.systemGrey.darkColor
+                              : CupertinoColors.systemGrey5.color,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         h1: TextStyle(
