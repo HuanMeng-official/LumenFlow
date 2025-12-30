@@ -9,7 +9,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        👋 感谢花时间提交 Issue！在提交之前，请先检查 [Issues列表](../issues) 是否已经有人提交过相同问题。
+        👋 感谢花时间提交 Issue！在提交之前，请先检查 [Issues列表](https://github.com/HuanMeng-official/LumenFlow/issues) 是否已经有人提交过相同问题。
 
   - type: textarea
     id: what-happened
