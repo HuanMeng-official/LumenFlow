@@ -633,47 +633,9 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
                       final platform = _platforms[index];
                       final isCurrent = platform.id == _currentPlatformId;
                       final isLoading = _loadingPlatforms.contains(platform.id);
-
                       return _buildPlatformCard(platform, isCurrent, isLoading);
                     },
                   ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    final l10n = AppLocalizations.of(context)!;
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            CupertinoIcons.cube_box,
-            size: 64,
-            color: CupertinoColors.systemGrey,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            l10n.noPlatformsConfigured,
-            style: const TextStyle(
-              fontSize: 18,
-              color: CupertinoColors.systemGrey,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            l10n.addPlatformHint,
-            style: const TextStyle(
-              fontSize: 14,
-              color: CupertinoColors.systemGrey,
-            ),
-          ),
-          const SizedBox(height: 16),
-          CupertinoButton.filled(
-            onPressed: _showPlatformDialog,
-            child: Text(l10n.addPlatform),
-          ),
-        ],
       ),
     );
   }
@@ -688,239 +650,175 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
           : null,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isCurrent
-              ? (brightness == Brightness.dark
-                  ? CupertinoColors.activeBlue.darkColor.withValues(alpha: 0.15)
-                  : CupertinoColors.activeBlue.color.withValues(alpha: 0.15))
-              : (brightness == Brightness.dark
-                  ? CupertinoColors.systemBackground.darkColor
-                  : CupertinoColors.systemBackground.color),
+          color: brightness == Brightness.dark
+              ? CupertinoColors.systemBackground.darkColor
+              : CupertinoColors.systemBackground.color,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isCurrent
                 ? CupertinoColors.activeBlue
-                : (platform.isConfigured && platform.defaultModel.isNotEmpty && !isCurrent
-                    ? CupertinoColors.systemGrey3
-                    : CupertinoColors.systemGrey4),
+                : CupertinoColors.systemGrey4,
             width: isCurrent ? 2 : 1,
           ),
-          boxShadow: isCurrent
-              ? [
-                  BoxShadow(
-                    color: CupertinoColors.activeBlue.withValues(alpha: 0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
         ),
-        child: Column(
+        child: Row(
           children: [
-            // 平台头部
-            Container(
-              padding: const EdgeInsets.all(16),
-              child: Row(
+            _buildPlatformIcon(platform.type),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 平台图标
-                  Container(
-                    width: 48,
-                    height: 48,
-                    padding: const EdgeInsets.all(8),
-                    child: _buildPlatformIcon(platform.type),
-                  ),
-                  const SizedBox(width: 12),
-                  // 平台信息
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              platform.name,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            if (isCurrent) ...[
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: CupertinoColors.activeBlue,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  l10n.current,
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    color: CupertinoColors.white,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
+                  Row(
+                    children: [
+                      Text(
+                        platform.name,
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: isCurrent ? FontWeight.w600 : FontWeight.normal,
                         ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              platform.apiKey.isNotEmpty
-                                  ? CupertinoIcons.checkmark_circle
-                                  : CupertinoIcons.circle,
-                              size: 14,
-                              color: platform.apiKey.isNotEmpty
-                                  ? CupertinoColors.systemGreen
-                                  : CupertinoColors.systemGrey,
+                      ),
+                      if (isCurrent) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: CupertinoColors.activeBlue,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            l10n.current,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: CupertinoColors.white,
+                              fontWeight: FontWeight.w600,
                             ),
-                            const SizedBox(width: 4),
-                            Text(
-                              platform.apiKey.isNotEmpty ? l10n.configured : l10n.notConfigured,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: brightness == Brightness.dark
-                                    ? CupertinoColors.systemGrey.darkColor
-                                    : CupertinoColors.systemGrey,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Icon(
-                              CupertinoIcons.number,
-                              size: 14,
-                              color: brightness == Brightness.dark
-                                  ? CupertinoColors.systemGrey.darkColor
-                                  : CupertinoColors.systemGrey,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${platform.availableModels.length} ${l10n.models}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: brightness == Brightness.dark
-                                    ? CupertinoColors.systemGrey.darkColor
-                                    : CupertinoColors.systemGrey,
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                       ],
-                    ),
+                    ],
                   ),
-                  // 更多操作按钮
-                  CupertinoButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: () => _showPlatformOptions(platform),
-                    child: const Icon(CupertinoIcons.ellipsis),
-                  ),
-                ],
-              ),
-            ),
-            // 当前模型显示
-            if (platform.availableModels.isNotEmpty) ...[
-              if (platform.defaultModel.isNotEmpty)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: brightness == Brightness.dark
-                        ? CupertinoColors.systemGrey6.darkColor
-                        : CupertinoColors.systemGrey6.color,
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(12),
-                      bottomRight: Radius.circular(12),
-                    ),
-                  ),
-                  child: Row(
+                  const SizedBox(height: 4),
+                  Row(
                     children: [
                       Icon(
-                        CupertinoIcons.bolt,
-                        size: 16,
-                        color: CupertinoColors.systemOrange,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        l10n.currentModel,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        platform.apiKey.isNotEmpty
+                            ? CupertinoIcons.checkmark_circle_fill
+                            : CupertinoIcons.circle_fill,
+                        size: 14,
+                        color: platform.apiKey.isNotEmpty
+                            ? CupertinoColors.systemGreen
+                            : CupertinoColors.systemGrey,
                       ),
                       const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
+                      Text(
+                        platform.apiKey.isNotEmpty ? l10n.configured : l10n.notConfigured,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: brightness == Brightness.dark
+                              ? CupertinoColors.systemGrey.darkColor
+                              : CupertinoColors.systemGrey,
+                        ),
+                      ),
+                      if (platform.defaultModel.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        const Icon(
+                          CupertinoIcons.bolt_fill,
+                          size: 14,
+                          color: CupertinoColors.systemOrange,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
                           platform.defaultModel,
                           style: const TextStyle(
                             fontSize: 13,
                             color: CupertinoColors.activeBlue,
                           ),
-                          textAlign: TextAlign.right,
-                        ),
-                      ),
-                      if (platform.apiKey.isNotEmpty)
-                        CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          minimumSize: const Size(0, 24),
-                          onPressed: isLoading
-                              ? null
-                              : () => _refreshPlatformModels(platform),
-                          child: isLoading
-                              ? const CupertinoActivityIndicator(radius: 8)
-                              : const Icon(
-                                  CupertinoIcons.refresh,
-                                  size: 16,
-                                  color: CupertinoColors.systemBlue,
-                                ),
-                        ),
-                    ],
-                  ),
-                ),
-            ] else if (platform.apiKey.isNotEmpty)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: brightness == Brightness.dark
-                      ? CupertinoColors.systemGrey6.darkColor
-                      : CupertinoColors.systemGrey6.color,
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(12),
-                    bottomRight: Radius.circular(12),
-                  ),
-                ),
-                child: CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: isLoading
-                      ? null
-                      : () => _refreshPlatformModels(platform),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (isLoading)
-                        const CupertinoActivityIndicator(radius: 10)
-                      else ...[
-                        Icon(
-                          CupertinoIcons.cloud_download,
-                          size: 16,
-                          color: CupertinoColors.systemBlue,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '点击获取模型列表',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: CupertinoColors.systemBlue,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ],
                   ),
-                ),
+                ],
               ),
+            ),
+            if (platform.apiKey.isNotEmpty && isCurrent)
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                minSize: 32,
+                onPressed: isLoading ? null : () => _refreshPlatformModels(platform),
+                child: isLoading
+                    ? const CupertinoActivityIndicator(radius: 8)
+                    : const Icon(
+                        CupertinoIcons.refresh,
+                        size: 20,
+                        color: CupertinoColors.systemBlue,
+                      ),
+              ),
+            const SizedBox(width: 8),
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              minSize: 32,
+              onPressed: () => _showPlatformOptions(platform),
+              child: const Icon(
+                CupertinoIcons.ellipsis,
+                color: CupertinoColors.systemGrey,
+              ),
+            ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    final l10n = AppLocalizations.of(context)!;
+    final brightness = CupertinoTheme.of(context).brightness;
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const SizedBox(height: 60),
+        Icon(
+          CupertinoIcons.cube_box,
+          size: 80,
+          color: brightness == Brightness.dark
+              ? CupertinoColors.systemGrey.darkColor
+              : CupertinoColors.systemGrey3,
+        ),
+        const SizedBox(height: 24),
+        Text(
+          l10n.noPlatformsConfigured,
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
+            color: brightness == Brightness.dark
+                ? CupertinoColors.label.darkColor
+                : CupertinoColors.label.color,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          l10n.addPlatformHint,
+          style: TextStyle(
+            fontSize: 15,
+            color: brightness == Brightness.dark
+                ? CupertinoColors.secondaryLabel.darkColor
+                : CupertinoColors.secondaryLabel.color,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 32),
+        CupertinoButton.filled(
+          onPressed: _showPlatformDialog,
+          borderRadius: BorderRadius.circular(12),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+          child: Text(l10n.addPlatform),
+        ),
+        const SizedBox(height: 20),
+      ],
     );
   }
 
@@ -963,18 +861,23 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
 
   /// 构建平台图标
   Widget _buildPlatformIcon(String type) {
-    return SvgPicture.asset(
-      'assets/platform/$type.svg',
-      fit: BoxFit.contain,
-      placeholderBuilder: (context) => Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: _getPlatformColor(type).withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(
-          _getFallbackIcon(type),
-          color: _getPlatformColor(type),
+    return SizedBox(
+      width: 32,
+      height: 32,
+      child: SvgPicture.asset(
+        'assets/platform/$type.svg',
+        fit: BoxFit.contain,
+        placeholderBuilder: (context) => Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: _getPlatformColor(type).withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            _getFallbackIcon(type),
+            color: _getPlatformColor(type),
+            size: 20,
+          ),
         ),
       ),
     );

@@ -734,6 +734,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get models => '个模型';
 
   @override
+  String get available => '可用';
+
+  @override
   String get current => '当前';
 
   @override

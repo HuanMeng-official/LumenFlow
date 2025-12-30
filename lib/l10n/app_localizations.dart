@@ -1409,6 +1409,12 @@ abstract class AppLocalizations {
   /// **'models'**
   String get models;
 
+  /// No description provided for @available.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get available;
+
   /// No description provided for @current.
   ///
   /// In en, this message translates to:

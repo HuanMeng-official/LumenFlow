@@ -506,6 +506,7 @@
   "configured": "已配置",
   "notConfigured": "未配置",
   "models": "个模型",
+  "available": "可用",
   "current": "当前",
   "currentModel": "当前模型",
   "manageModels": "管理模型",

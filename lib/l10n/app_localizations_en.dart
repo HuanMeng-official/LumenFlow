@@ -734,6 +734,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get models => 'models';
 
   @override
+  String get available => 'Available';
+
+  @override
   String get current => 'Current';
 
   @override

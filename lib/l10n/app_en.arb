@@ -506,6 +506,7 @@
   "configured": "Configured",
   "notConfigured": "Not Configured",
   "models": "models",
+  "available": "Available",
   "current": "Current",
   "currentModel": "Current Model",
   "manageModels": "Manage Models",
