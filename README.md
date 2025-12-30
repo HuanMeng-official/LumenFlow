@@ -212,6 +212,7 @@ LumenFlow includes an advanced role-playing system with file-based prompt preset
    <linguistic_style>TEXT</linguistic_style>
    <behavior_narrative_rules>TEXT</behavior_narrative_rules>
    <interaction_strategy>TEXT</interaction_strategy>
+   <user_info>TEXT<user_info>
    <example_dialogue>TEXT</example_dialogue>
 </system_instruction>
 ```

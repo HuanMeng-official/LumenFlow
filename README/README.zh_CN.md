@@ -211,6 +211,7 @@ LumenFlow 包含一个先进的角色扮演系统，具有基于文件的提示�
    <linguistic_style>TEXT</linguistic_style>
    <behavior_narrative_rules>TEXT</behavior_narrative_rules>
    <interaction_strategy>TEXT</interaction_strategy>
+   <user_info>TEXT</user_info>
    <example_dialogue>TEXT</example_dialogue>
 </system_instruction>
 ```
