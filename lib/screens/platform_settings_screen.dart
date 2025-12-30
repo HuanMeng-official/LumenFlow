@@ -747,7 +747,7 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
             if (platform.apiKey.isNotEmpty && isCurrent)
               CupertinoButton(
                 padding: EdgeInsets.zero,
-                minSize: 32,
+                minimumSize: const Size(32, 32),
                 onPressed: isLoading ? null : () => _refreshPlatformModels(platform),
                 child: isLoading
                     ? const CupertinoActivityIndicator(radius: 8)
@@ -760,7 +760,7 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
             const SizedBox(width: 8),
             CupertinoButton(
               padding: EdgeInsets.zero,
-              minSize: 32,
+              minimumSize: const Size(32, 32),
               onPressed: () => _showPlatformOptions(platform),
               child: const Icon(
                 CupertinoIcons.ellipsis,
