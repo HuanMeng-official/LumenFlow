@@ -19,6 +19,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   final ImagePicker _imagePicker = ImagePicker();
 
   UserProfile? _userProfile;
+  String? _gender;
   bool _isLoading = true;
   bool _isSaving = false;
 
@@ -68,6 +69,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     setState(() {
       _userProfile = profile;
       _usernameController.text = profile.username;
+      _gender = profile.gender;
       _isLoading = false;
     });
   }
@@ -82,6 +84,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     try {
       final updatedProfile = _userProfile!.copyWith(
         username: _usernameController.text.trim(),
+        gender: _gender,
       );
 
       await _userService.saveUserProfile(updatedProfile);
@@ -127,6 +130,151 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         _isSaving = false;
       });
     }
+  }
+
+  void _onGenderChanged(String? newValue) {
+    if (newValue != null) {
+      setState(() {
+        _gender = newValue;
+      });
+    }
+  }
+
+  Widget _buildDropdownTile(
+    String title, {
+    required String? value,
+    required Map<String, String> options,
+    String? subtitle,
+    ValueChanged<String?>? onChanged,
+  }) {
+    final currentLabel = value != null ? (options[value] ?? value) : '';
+    final brightness = CupertinoTheme.of(context).brightness;
+    final isEnabled = onChanged != null;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          if (subtitle != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 13,
+                color: brightness == Brightness.dark
+                    ? CupertinoColors.systemGrey.darkColor
+                    : CupertinoColors.systemGrey,
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: onChanged != null
+                ? () {
+                    showCupertinoModalPopup<void>(
+                      context: context,
+                      builder: (BuildContext context) {
+                        final popupBrightness =
+                            CupertinoTheme.of(context).brightness;
+                        return CupertinoActionSheet(
+                          title: Text(title),
+                          message: subtitle != null ? Text(subtitle) : null,
+                          actions: [
+                            for (final entry in options.entries)
+                              CupertinoActionSheetAction(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  onChanged(entry.key);
+                                },
+                                child: Text(
+                                  entry.value,
+                                  style: TextStyle(
+                                    color: value == entry.key
+                                        ? (popupBrightness == Brightness.dark
+                                            ? CupertinoColors
+                                                .activeBlue.darkColor
+                                            : CupertinoColors.activeBlue.color)
+                                        : (popupBrightness == Brightness.dark
+                                            ? CupertinoColors.label.darkColor
+                                            : CupertinoColors.label.color),
+                                  ),
+                                ),
+                              ),
+                          ],
+                          cancelButton: CupertinoActionSheetAction(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: Text(
+                              AppLocalizations.of(context)!.cancel,
+                              style: TextStyle(
+                                color: popupBrightness == Brightness.dark
+                                    ? CupertinoColors.systemRed.darkColor
+                                    : CupertinoColors.systemRed.color,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  }
+                : null,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isEnabled
+                    ? (CupertinoTheme.of(context).brightness == Brightness.dark
+                        ? CupertinoColors.systemGrey6.darkColor
+                        : CupertinoColors.systemGrey6.color)
+                    : (CupertinoTheme.of(context).brightness == Brightness.dark
+                        ? CupertinoColors.tertiarySystemFill.darkColor
+                        : CupertinoColors.tertiarySystemFill.color),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    currentLabel.isNotEmpty ? currentLabel : AppLocalizations.of(context)!.selectGender,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: isEnabled
+                          ? (brightness == Brightness.dark
+                              ? CupertinoColors.label.darkColor
+                              : CupertinoColors.label.color)
+                          : (brightness == Brightness.dark
+                              ? CupertinoColors.tertiaryLabel.darkColor
+                              : CupertinoColors.tertiaryLabel.color),
+                    ),
+                  ),
+                  Icon(
+                    CupertinoIcons.chevron_down,
+                    size: 18,
+                    color: isEnabled
+                        ? (brightness == Brightness.dark
+                            ? CupertinoColors.systemGrey.darkColor
+                            : CupertinoColors.systemGrey)
+                        : (brightness == Brightness.dark
+                            ? CupertinoColors.tertiaryLabel.darkColor
+                            : CupertinoColors.tertiaryLabel.color),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _pickImageFromGallery() async {
@@ -490,6 +638,32 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     ),
                   ],
                 ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: brightness == Brightness.dark
+                    ? CupertinoColors.systemBackground.darkColor
+                    : CupertinoColors.systemBackground.color,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: brightness == Brightness.dark
+                      ? CupertinoColors.systemGrey4.darkColor
+                      : CupertinoColors.systemGrey4.color,
+                  width: 0.5,
+                ),
+              ),
+              child: _buildDropdownTile(
+                l10n.gender,
+                value: _gender,
+                options: {
+                  'male': l10n.male,
+                  'female': l10n.female,
+                },
+                subtitle: l10n.genderHint,
+                onChanged: _onGenderChanged,
               ),
             ),
             Container(

@@ -436,6 +436,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enterYourUsername => '输入你的用户名';
 
   @override
+  String get gender => '性别';
+
+  @override
+  String get genderHint => '选择您的性别';
+
+  @override
+  String get male => '男';
+
+  @override
+  String get female => '女';
+
+  @override
+  String get selectGender => '选择性别';
+
+  @override
   String get aboutUserProfile => '关于用户信息';
 
   @override

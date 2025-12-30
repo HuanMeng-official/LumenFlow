@@ -68,7 +68,14 @@ class AIService {
   /// 返回值:
   ///   替换变量后的系统提示词
   String _replaceSystemPromptVariables(String systemPrompt, UserProfile userProfile) {
-    return systemPrompt.replaceAll('\${userProfile.username}', userProfile.username);
+    String result = systemPrompt.replaceAll('\${userProfile.username}', userProfile.username);
+    if (userProfile.gender != null) {
+      result = result.replaceAll('\${userProfile.gender}', userProfile.gender!);
+    } else {
+      // 如果性别为空，替换为空字符串
+      result = result.replaceAll('\${userProfile.gender}', '');
+    }
+    return result;
   }
 
   /// 构建完整的系统提示词

@@ -917,6 +917,36 @@ abstract class AppLocalizations {
   /// **'Enter your username'**
   String get enterYourUsername;
 
+  /// No description provided for @gender.
+  ///
+  /// In en, this message translates to:
+  /// **'Gender'**
+  String get gender;
+
+  /// No description provided for @genderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select your gender'**
+  String get genderHint;
+
+  /// No description provided for @male.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get male;
+
+  /// No description provided for @female.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get female;
+
+  /// No description provided for @selectGender.
+  ///
+  /// In en, this message translates to:
+  /// **'Select gender'**
+  String get selectGender;
+
   /// No description provided for @aboutUserProfile.
   ///
   /// In en, this message translates to:

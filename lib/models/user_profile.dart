@@ -3,6 +3,7 @@ class UserProfile {
   final String username;
   final String? avatarPath;
   final String? avatarEmoji;
+  final String? gender;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -11,6 +12,7 @@ class UserProfile {
     required this.username,
     this.avatarPath,
     this.avatarEmoji,
+    this.gender,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -20,6 +22,7 @@ class UserProfile {
     String? username,
     String? avatarPath,
     String? avatarEmoji,
+    String? gender,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -28,6 +31,7 @@ class UserProfile {
       username: username ?? this.username,
       avatarPath: avatarPath ?? this.avatarPath,
       avatarEmoji: avatarEmoji ?? this.avatarEmoji,
+      gender: gender ?? this.gender,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -39,6 +43,7 @@ class UserProfile {
       'username': username,
       'avatarPath': avatarPath,
       'avatarEmoji': avatarEmoji,
+      'gender': gender,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
@@ -50,6 +55,7 @@ class UserProfile {
       username: json['username'] as String,
       avatarPath: json['avatarPath'] as String?,
       avatarEmoji: json['avatarEmoji'] as String?,
+      gender: json['gender'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
     );
@@ -60,6 +66,7 @@ class UserProfile {
       id: 'default_user',
       username: '用户',
       avatarEmoji: '😊',
+      gender: null,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );

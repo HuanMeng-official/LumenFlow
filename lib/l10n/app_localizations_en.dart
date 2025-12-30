@@ -436,6 +436,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enterYourUsername => 'Enter your username';
 
   @override
+  String get gender => 'Gender';
+
+  @override
+  String get genderHint => 'Select your gender';
+
+  @override
+  String get male => 'Male';
+
+  @override
+  String get female => 'Female';
+
+  @override
+  String get selectGender => 'Select gender';
+
+  @override
   String get aboutUserProfile => 'About User Profile';
 
   @override
