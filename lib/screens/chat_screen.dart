@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'dart:convert';
 import '../l10n/app_localizations.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
@@ -818,37 +817,18 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       List<int> bytes;
       String fileName;
-      String extension;
 
-      switch (format) {
-        case 'txt':
-          final text = await _conversationService.exportConversationToText(_currentConversation!.id, l10n);
-          bytes = utf8.encode(text);
-          extension = 'txt';
-          break;
-        case 'json':
-          final jsonData = await _conversationService.exportConversationToJson(_currentConversation!.id, l10n);
-          final jsonString = jsonEncode(jsonData);
-          bytes = utf8.encode(jsonString);
-          extension = 'json';
-          break;
-        case 'lumenflow':
-          final lumenflowData = await _conversationService.exportConversationToLumenflow(_currentConversation!.id, l10n);
-          final jsonString = jsonEncode(lumenflowData);
-          bytes = utf8.encode(jsonString);
-          extension = 'lumenflow';
-          break;
-        case 'pdf':
-          bytes = await _conversationService.exportConversationToPdf(_currentConversation!.id, l10n);
-          extension = 'pdf';
-          break;
-        default:
-          throw Exception('不支持的导出格式: $format');
-      }
+      // 使用新的导出方法（包含附件）
+      bytes = await _conversationService.exportConversationWithAttachments(_currentConversation!.id, format, l10n);
 
       // 生成文件名
       final safeTitle = _currentConversation!.title.replaceAll(RegExp(r'[^\w\s-]'), '').replaceAll(' ', '_');
-      fileName = '${safeTitle}_${DateTime.now().toIso8601String().substring(0, 10)}.$extension';
+      if (format == 'pdf') {
+        fileName = '${safeTitle}_${DateTime.now().toIso8601String().substring(0, 10)}.pdf';
+      } else {
+        // 对于ZIP文件，在文件名中包含原始格式信息
+        fileName = '${safeTitle}_${DateTime.now().toIso8601String().substring(0, 10)}_$format.zip';
+      }
 
       // 保存文件
       final result = await _conversationService.saveExportFile(fileName, bytes);

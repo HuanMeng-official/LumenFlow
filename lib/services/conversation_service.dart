@@ -7,6 +7,9 @@ import 'dart:io';
 import 'version_service.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:archive/archive.dart';
+import 'package:archive/archive_io.dart';
+import '../models/attachment.dart';
 
 /// 对话服务，管理对话的持久化存储和CRUD操作
 ///
@@ -324,6 +327,438 @@ class ConversationService {
                         ],
                       ),
                     ),
+                ],
+              ),
+            );
+
+            messageWidgets.add(messageWidget);
+          }
+
+          return messageWidgets;
+        },
+      ),
+    );
+
+    // 保存PDF
+    return pdf.save();
+  }
+
+  /// 收集对话中的所有附件文件路径
+  /// 返回Map<原始文件路径, 附件对象>
+  Future<Map<String, Attachment>> _collectAttachmentFiles(Conversation conversation) async {
+    final attachmentFiles = <String, Attachment>{};
+
+    for (final message in conversation.messages) {
+      for (final attachment in message.attachments) {
+        if (attachment.filePath != null && attachment.filePath!.isNotEmpty) {
+          final file = File(attachment.filePath!);
+          if (await file.exists()) {
+            attachmentFiles[attachment.filePath!] = attachment;
+          }
+        }
+      }
+    }
+
+    return attachmentFiles;
+  }
+
+  /// 导出对话为指定格式（包含附件）
+  /// 对于txt/json/lumenflow格式，返回包含对话文件和附件的ZIP文件字节
+  /// 对于pdf格式，返回嵌入附件的PDF文件字节
+  Future<List<int>> exportConversationWithAttachments(String conversationId, String format, AppLocalizations l10n) async {
+    final conversation = await getConversationById(conversationId);
+    if (conversation == null) {
+      throw Exception(l10n.exportConversationNotFound);
+    }
+
+    // 收集所有附件文件
+    final attachmentFiles = await _collectAttachmentFiles(conversation);
+
+    if (format == 'pdf') {
+      // PDF格式：嵌入附件到PDF中
+      return await _exportConversationToPdfWithAttachments(conversation, attachmentFiles, l10n);
+    } else {
+      // txt/json/lumenflow格式：创建ZIP文件
+      return await _exportConversationToZip(conversation, format, attachmentFiles, l10n);
+    }
+  }
+
+  /// 导出对话为ZIP文件（包含对话文件和附件）
+  Future<List<int>> _exportConversationToZip(Conversation conversation, String format, Map<String, Attachment> attachmentFiles, AppLocalizations l10n) async {
+    final archive = Archive();
+
+    // 1. 生成对话文件
+    String conversationContent;
+    String conversationFileName;
+
+    switch (format) {
+      case 'txt':
+        final text = await exportConversationToText(conversation.id, l10n);
+        conversationContent = text;
+        conversationFileName = 'conversation.txt';
+        break;
+      case 'json':
+        final jsonData = await exportConversationToJson(conversation.id, l10n);
+        conversationContent = jsonEncode(jsonData);
+        conversationFileName = 'conversation.json';
+        break;
+      case 'lumenflow':
+        final lumenflowData = await exportConversationToLumenflow(conversation.id, l10n);
+        conversationContent = jsonEncode(lumenflowData);
+        conversationFileName = 'conversation.lumenflow';
+        break;
+      default:
+        throw Exception('不支持的导出格式: $format');
+    }
+
+    // 添加对话文件到ZIP
+    final conversationBytes = utf8.encode(conversationContent);
+    archive.addFile(ArchiveFile(conversationFileName, conversationBytes.length, conversationBytes));
+
+    // 2. 添加附件文件到ZIP（放在attachments子目录中）
+    if (attachmentFiles.isNotEmpty) {
+      final usedNames = <String>{}; // 跟踪已使用的文件名，避免冲突
+
+      for (final entry in attachmentFiles.entries) {
+        final filePath = entry.key;
+        final attachment = entry.value;
+        final file = File(filePath);
+
+        if (await file.exists()) {
+          final fileBytes = await file.readAsBytes();
+
+          // 生成唯一的文件名
+          String baseName = attachment.fileName;
+          String zipPath = 'attachments/$baseName';
+          int counter = 1;
+
+          while (usedNames.contains(zipPath)) {
+            final ext = baseName.contains('.') ? baseName.substring(baseName.lastIndexOf('.')) : '';
+            final nameWithoutExt = ext.isNotEmpty ? baseName.substring(0, baseName.lastIndexOf('.')) : baseName;
+            zipPath = 'attachments/${nameWithoutExt}_($counter)$ext';
+            counter++;
+          }
+
+          usedNames.add(zipPath);
+          archive.addFile(ArchiveFile(zipPath, fileBytes.length, fileBytes));
+        }
+      }
+    }
+
+    // 3. 创建ZIP文件
+    final zipEncoder = ZipEncoder();
+    final zipBytes = zipEncoder.encode(archive);
+
+    return zipBytes;
+  }
+
+  /// 构建PDF中的附件部件
+  pw.Widget _buildAttachmentsWidget(List<Attachment> attachments, Map<String, Attachment> attachmentFiles, AppLocalizations l10n) {
+    final attachmentWidgets = <pw.Widget>[];
+
+    for (final attachment in attachments) {
+      // 尝试从attachmentFiles映射中获取文件路径，否则使用附件自带的路径
+      String? filePath;
+      if (attachment.filePath != null && attachment.filePath!.isNotEmpty) {
+        filePath = attachment.filePath;
+      } else {
+        // 在映射中查找
+        for (final entry in attachmentFiles.entries) {
+          if (entry.value.id == attachment.id) {
+            filePath = entry.key;
+            break;
+          }
+        }
+      }
+
+      if (filePath == null) {
+        // 文件不存在，只显示基本信息
+        attachmentWidgets.add(
+          pw.Container(
+            margin: const pw.EdgeInsets.only(bottom: 8),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text('${attachment.fileName} (${attachment.fileSize}${l10n.exportBytes})',
+                  style: pw.TextStyle(
+                    fontSize: 11,
+                    color: PdfColors.grey,
+                  ),
+                ),
+                pw.Text('文件未找到', style: pw.TextStyle(fontSize: 10, color: PdfColors.red)),
+              ],
+            ),
+          ),
+        );
+        continue;
+      }
+
+      final file = File(filePath);
+      if (!file.existsSync()) {
+        // 文件不存在
+        attachmentWidgets.add(
+          pw.Container(
+            margin: const pw.EdgeInsets.only(bottom: 8),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text('${attachment.fileName} (${attachment.fileSize}${l10n.exportBytes})',
+                  style: pw.TextStyle(
+                    fontSize: 11,
+                    color: PdfColors.grey,
+                  ),
+                ),
+                pw.Text('文件不存在: $filePath', style: pw.TextStyle(fontSize: 10, color: PdfColors.red)),
+              ],
+            ),
+          ),
+        );
+        continue;
+      }
+
+      try {
+        final fileBytes = file.readAsBytesSync();
+
+        if (attachment.type == AttachmentType.image) {
+          // 图片附件：显示缩略图
+          try {
+            final image = pw.MemoryImage(fileBytes);
+            attachmentWidgets.add(
+              pw.Container(
+                margin: const pw.EdgeInsets.only(bottom: 12),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text('${attachment.fileName} (${attachment.fileSize}${l10n.exportBytes})',
+                      style: pw.TextStyle(
+                        fontSize: 11,
+                        color: PdfColors.grey,
+                      ),
+                    ),
+                    pw.SizedBox(height: 4),
+                    pw.Container(
+                      constraints: const pw.BoxConstraints(maxWidth: 300, maxHeight: 200),
+                      child: pw.Image(image),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          } catch (e) {
+            // 图片加载失败，显示文件信息
+            attachmentWidgets.add(_buildFileInfoWidget(attachment, l10n, '图片加载失败: $e'));
+          }
+        } else if (attachment.type == AttachmentType.document) {
+          // 文档附件：显示文件信息和内容预览（如果是文本文件）
+          if (attachment.mimeType?.startsWith('text/') == true ||
+              attachment.fileName.toLowerCase().endsWith('.txt') ||
+              attachment.fileName.toLowerCase().endsWith('.md')) {
+            try {
+              final content = utf8.decode(fileBytes.take(5000).toList()); // 限制预览长度
+              attachmentWidgets.add(
+                pw.Container(
+                  margin: const pw.EdgeInsets.only(bottom: 12),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text('${attachment.fileName} (${attachment.fileSize}${l10n.exportBytes})',
+                        style: pw.TextStyle(
+                          fontSize: 11,
+                          color: PdfColors.grey,
+                        ),
+                      ),
+                      pw.SizedBox(height: 4),
+                      pw.Container(
+                        padding: const pw.EdgeInsets.all(8),
+                        decoration: pw.BoxDecoration(
+                          border: pw.Border.all(color: PdfColors.grey, width: 0.5),
+                          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                        ),
+                        child: pw.Text(
+                          content,
+                          style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey),
+                          maxLines: 20,
+                          overflow: pw.TextOverflow.clip,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            } catch (e) {
+              attachmentWidgets.add(_buildFileInfoWidget(attachment, l10n, '内容预览失败'));
+            }
+          } else {
+            // 非文本文档，只显示文件信息
+            attachmentWidgets.add(_buildFileInfoWidget(attachment, l10n, '文档文件'));
+          }
+        } else {
+          // 其他类型附件（音频、视频等）：显示文件信息
+          attachmentWidgets.add(_buildFileInfoWidget(attachment, l10n, '${attachment.type.toString().split('.').last}文件'));
+        }
+      } catch (e) {
+        // 文件读取失败
+        attachmentWidgets.add(_buildFileInfoWidget(attachment, l10n, '文件读取失败: $e'));
+      }
+    }
+
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(top: 12),
+      padding: const pw.EdgeInsets.all(8),
+      decoration: const pw.BoxDecoration(
+        borderRadius: pw.BorderRadius.all(pw.Radius.circular(4)),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(l10n.exportAttachmentsLabel,
+              style: pw.TextStyle(
+                fontSize: 12,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.grey,
+              )),
+          pw.SizedBox(height: 5),
+          ...attachmentWidgets,
+        ],
+      ),
+    );
+  }
+
+  /// 构建文件信息部件（通用）
+  pw.Widget _buildFileInfoWidget(Attachment attachment, AppLocalizations l10n, String description) {
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(bottom: 8),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text('${attachment.fileName} (${attachment.fileSize}${l10n.exportBytes})',
+            style: pw.TextStyle(
+              fontSize: 11,
+              color: PdfColors.grey,
+            ),
+          ),
+          if (description.isNotEmpty)
+            pw.Text(description,
+              style: pw.TextStyle(
+                fontSize: 10,
+                color: PdfColors.grey,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// 导出对话为PDF（嵌入附件）
+  Future<List<int>> _exportConversationToPdfWithAttachments(Conversation conversation, Map<String, Attachment> attachmentFiles, AppLocalizations l10n) async {
+    final pdf = pw.Document();
+
+    // 添加元数据
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Header(
+                level: 0,
+                child: pw.Text(conversation.title,
+                    style: pw.TextStyle(
+                      fontSize: 24,
+                      fontWeight: pw.FontWeight.bold,
+                    )),
+              ),
+              pw.SizedBox(height: 10),
+              pw.Text('${l10n.exportCreatedTime}${conversation.createdAt.toLocal()}'),
+              pw.Text('${l10n.exportUpdatedTime}${conversation.updatedAt.toLocal()}'),
+              pw.Text('${l10n.exportMessageCount}${conversation.messages.length}'),
+              pw.Divider(),
+              pw.SizedBox(height: 20),
+            ],
+          );
+        },
+      ),
+    );
+
+    // 添加消息页面（使用MultiPage自动分页）
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(72.0), // 1 inch margin
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        build: (pw.Context context) {
+          final messageWidgets = <pw.Widget>[];
+
+          for (final message in conversation.messages) {
+            final sender = message.isUser ? l10n.user : l10n.aiAssistant;
+            final time = message.timestamp.toLocal().toString();
+            final borderColor = message.isUser ? PdfColors.blue : PdfColors.green;
+
+            final messageWidget = pw.Container(
+              margin: const pw.EdgeInsets.only(bottom: 25),
+              padding: const pw.EdgeInsets.all(12),
+              decoration: pw.BoxDecoration(
+                border: pw.Border(
+                  left: pw.BorderSide(
+                    color: borderColor,
+                    width: 4,
+                  ),
+                ),
+              ),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Row(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Expanded(
+                        child: pw.Text(sender,
+                          style: pw.TextStyle(
+                            fontSize: 14,
+                            fontWeight: pw.FontWeight.bold,
+                            color: borderColor,
+                          ),
+                        ),
+                      ),
+                      pw.Text(time,
+                        style: pw.TextStyle(
+                          fontSize: 10,
+                          color: PdfColors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                  pw.SizedBox(height: 8),
+                  pw.Text(message.content,
+                      style: const pw.TextStyle(fontSize: 12)),
+                  if (message.reasoningContent != null &&
+                      message.reasoningContent!.isNotEmpty)
+                    pw.Container(
+                      margin: const pw.EdgeInsets.only(top: 12),
+                      padding: const pw.EdgeInsets.all(8),
+                      decoration: const pw.BoxDecoration(
+                        borderRadius: pw.BorderRadius.all(pw.Radius.circular(4)),
+                      ),
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text(l10n.exportThinkingProcess,
+                              style: pw.TextStyle(
+                                fontSize: 12,
+                                fontWeight: pw.FontWeight.bold,
+                                color: PdfColors.grey,
+                              )),
+                          pw.SizedBox(height: 5),
+                          pw.Text(message.reasoningContent!,
+                              style: pw.TextStyle(
+                                fontSize: 11,
+                                color: PdfColors.grey,
+                              )),
+                        ],
+                      ),
+                    ),
+                  if (message.attachments.isNotEmpty)
+                    _buildAttachmentsWidget(message.attachments, attachmentFiles, l10n),
                 ],
               ),
             );
