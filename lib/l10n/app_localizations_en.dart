@@ -859,4 +859,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String exportConversationError(String error) {
     return 'Error exporting conversation: $error';
   }
+
+  @override
+  String get exportConversationTitle => 'Conversation Title: ';
+
+  @override
+  String get exportCreatedTime => 'Created Time: ';
+
+  @override
+  String get exportUpdatedTime => 'Updated Time: ';
+
+  @override
+  String get exportMessageCount => 'Message Count: ';
+
+  @override
+  String get exportReasoningProcess => '[Reasoning Process]';
+
+  @override
+  String exportAttachments(int count) {
+    return '[Attachments: $count]';
+  }
+
+  @override
+  String get exportBytes => 'bytes';
+
+  @override
+  String get exportConversationNotFound => 'Conversation not found';
+
+  @override
+  String get exportThinkingProcess => 'Thinking Process';
+
+  @override
+  String get exportAttachmentsLabel => 'Attachments';
 }

@@ -381,24 +381,24 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
 
       switch (format) {
         case 'txt':
-          final text = await _conversationService.exportConversationToText(conversation.id);
+          final text = await _conversationService.exportConversationToText(conversation.id, l10n);
           bytes = utf8.encode(text);
           extension = 'txt';
           break;
         case 'json':
-          final jsonData = await _conversationService.exportConversationToJson(conversation.id);
+          final jsonData = await _conversationService.exportConversationToJson(conversation.id, l10n);
           final jsonString = jsonEncode(jsonData);
           bytes = utf8.encode(jsonString);
           extension = 'json';
           break;
         case 'lumenflow':
-          final lumenflowData = await _conversationService.exportConversationToLumenflow(conversation.id);
+          final lumenflowData = await _conversationService.exportConversationToLumenflow(conversation.id, l10n);
           final jsonString = jsonEncode(lumenflowData);
           bytes = utf8.encode(jsonString);
           extension = 'lumenflow';
           break;
         case 'pdf':
-          bytes = await _conversationService.exportConversationToPdf(conversation.id);
+          bytes = await _conversationService.exportConversationToPdf(conversation.id, l10n);
           extension = 'pdf';
           break;
         default:

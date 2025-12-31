@@ -859,4 +859,36 @@ class AppLocalizationsZh extends AppLocalizations {
   String exportConversationError(String error) {
     return '导出对话时出错: $error';
   }
+
+  @override
+  String get exportConversationTitle => '对话标题: ';
+
+  @override
+  String get exportCreatedTime => '创建时间: ';
+
+  @override
+  String get exportUpdatedTime => '更新时间: ';
+
+  @override
+  String get exportMessageCount => '消息数量: ';
+
+  @override
+  String get exportReasoningProcess => '[思考过程]';
+
+  @override
+  String exportAttachments(int count) {
+    return '[附件: $count个]';
+  }
+
+  @override
+  String get exportBytes => '字节';
+
+  @override
+  String get exportConversationNotFound => '对话不存在';
+
+  @override
+  String get exportThinkingProcess => '思考过程';
+
+  @override
+  String get exportAttachmentsLabel => '附件';
 }

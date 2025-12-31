@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/conversation.dart';
+import '../l10n/app_localizations.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'version_service.dart';
@@ -115,20 +116,20 @@ class ConversationService {
 
   /// 导出对话为JSON格式
   /// 返回原始对话的JSON表示
-  Future<Map<String, dynamic>> exportConversationToJson(String conversationId) async {
+  Future<Map<String, dynamic>> exportConversationToJson(String conversationId, AppLocalizations l10n) async {
     final conversation = await getConversationById(conversationId);
     if (conversation == null) {
-      throw Exception('对话不存在');
+      throw Exception(l10n.exportConversationNotFound);
     }
     return conversation.toJson();
   }
 
   /// 导出对话为Lumenflow格式
   /// 包含元数据和对话内容
-  Future<Map<String, dynamic>> exportConversationToLumenflow(String conversationId) async {
+  Future<Map<String, dynamic>> exportConversationToLumenflow(String conversationId, AppLocalizations l10n) async {
     final conversation = await getConversationById(conversationId);
     if (conversation == null) {
-      throw Exception('对话不存在');
+      throw Exception(l10n.exportConversationNotFound);
     }
 
     final versionService = VersionService();
@@ -149,32 +150,32 @@ class ConversationService {
 
   /// 导出对话为纯文本格式
   /// 返回人类可读的文本表示
-  Future<String> exportConversationToText(String conversationId) async {
+  Future<String> exportConversationToText(String conversationId, AppLocalizations l10n) async {
     final conversation = await getConversationById(conversationId);
     if (conversation == null) {
-      throw Exception('对话不存在');
+      throw Exception(l10n.exportConversationNotFound);
     }
 
     final buffer = StringBuffer();
-    buffer.writeln('对话标题: ${conversation.title}');
-    buffer.writeln('创建时间: ${conversation.createdAt.toLocal()}');
-    buffer.writeln('更新时间: ${conversation.updatedAt.toLocal()}');
-    buffer.writeln('消息数量: ${conversation.messages.length}');
+    buffer.writeln('${l10n.exportConversationTitle}${conversation.title}');
+    buffer.writeln('${l10n.exportCreatedTime}${conversation.createdAt.toLocal()}');
+    buffer.writeln('${l10n.exportUpdatedTime}${conversation.updatedAt.toLocal()}');
+    buffer.writeln('${l10n.exportMessageCount}${conversation.messages.length}');
     buffer.writeln('=' * 40);
 
     for (final message in conversation.messages) {
-      final sender = message.isUser ? '用户' : 'AI助手';
+      final sender = message.isUser ? l10n.user : l10n.aiAssistant;
       final time = message.timestamp.toLocal().toString();
       buffer.writeln('\n[$sender - $time]');
       buffer.writeln(message.content);
       if (message.reasoningContent != null && message.reasoningContent!.isNotEmpty) {
-        buffer.writeln('\n[思考过程]');
+        buffer.writeln('\n${l10n.exportReasoningProcess}');
         buffer.writeln(message.reasoningContent!);
       }
       if (message.attachments.isNotEmpty) {
-        buffer.writeln('\n[附件: ${message.attachments.length}个]');
+        buffer.writeln('\n${l10n.exportAttachments(message.attachments.length)}');
         for (final attachment in message.attachments) {
-          buffer.writeln('  - ${attachment.fileName} (${attachment.fileSize}字节)');
+          buffer.writeln('  - ${attachment.fileName} (${attachment.fileSize}${l10n.exportBytes})');
         }
       }
     }
@@ -184,10 +185,10 @@ class ConversationService {
 
   /// 导出对话为PDF格式
   /// 返回PDF文件的字节列表
-  Future<List<int>> exportConversationToPdf(String conversationId) async {
+  Future<List<int>> exportConversationToPdf(String conversationId, AppLocalizations l10n) async {
     final conversation = await getConversationById(conversationId);
     if (conversation == null) {
-      throw Exception('对话不存在');
+      throw Exception(l10n.exportConversationNotFound);
     }
 
     final pdf = pw.Document();
@@ -208,9 +209,9 @@ class ConversationService {
                     )),
               ),
               pw.SizedBox(height: 10),
-              pw.Text('创建时间: ${conversation.createdAt.toLocal()}'),
-              pw.Text('更新时间: ${conversation.updatedAt.toLocal()}'),
-              pw.Text('消息数量: ${conversation.messages.length}'),
+              pw.Text('${l10n.exportCreatedTime}${conversation.createdAt.toLocal()}'),
+              pw.Text('${l10n.exportUpdatedTime}${conversation.updatedAt.toLocal()}'),
+              pw.Text('${l10n.exportMessageCount}${conversation.messages.length}'),
               pw.Divider(),
               pw.SizedBox(height: 20),
             ],
@@ -221,7 +222,7 @@ class ConversationService {
 
     // 添加消息页面
     for (final message in conversation.messages) {
-      final sender = message.isUser ? '用户' : 'AI助手';
+      final sender = message.isUser ? l10n.user : l10n.aiAssistant;
       final time = message.timestamp.toLocal().toString();
 
       pdf.addPage(
@@ -250,7 +251,7 @@ class ConversationService {
                       pw.SizedBox(height: 10),
                       pw.Header(
                         level: 2,
-                        child: pw.Text('思考过程',
+                        child: pw.Text(l10n.exportThinkingProcess,
                             style: pw.TextStyle(
                               fontSize: 14,
                               fontWeight: pw.FontWeight.bold,
@@ -271,7 +272,7 @@ class ConversationService {
                       pw.SizedBox(height: 10),
                       pw.Header(
                         level: 2,
-                        child: pw.Text('附件',
+                        child: pw.Text(l10n.exportAttachmentsLabel,
                             style: pw.TextStyle(
                               fontSize: 14,
                               fontWeight: pw.FontWeight.bold,
@@ -280,7 +281,7 @@ class ConversationService {
                       ),
                       for (final attachment in message.attachments)
                         pw.Text(
-                            '  • ${attachment.fileName} (${attachment.fileSize}字节)',
+                            '  • ${attachment.fileName} (${attachment.fileSize}${l10n.exportBytes})',
                             style: const pw.TextStyle(fontSize: 11)),
                     ],
                   ),

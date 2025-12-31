@@ -822,24 +822,24 @@ class _ChatScreenState extends State<ChatScreen> {
 
       switch (format) {
         case 'txt':
-          final text = await _conversationService.exportConversationToText(_currentConversation!.id);
+          final text = await _conversationService.exportConversationToText(_currentConversation!.id, l10n);
           bytes = utf8.encode(text);
           extension = 'txt';
           break;
         case 'json':
-          final jsonData = await _conversationService.exportConversationToJson(_currentConversation!.id);
+          final jsonData = await _conversationService.exportConversationToJson(_currentConversation!.id, l10n);
           final jsonString = jsonEncode(jsonData);
           bytes = utf8.encode(jsonString);
           extension = 'json';
           break;
         case 'lumenflow':
-          final lumenflowData = await _conversationService.exportConversationToLumenflow(_currentConversation!.id);
+          final lumenflowData = await _conversationService.exportConversationToLumenflow(_currentConversation!.id, l10n);
           final jsonString = jsonEncode(lumenflowData);
           bytes = utf8.encode(jsonString);
           extension = 'lumenflow';
           break;
         case 'pdf':
-          bytes = await _conversationService.exportConversationToPdf(_currentConversation!.id);
+          bytes = await _conversationService.exportConversationToPdf(_currentConversation!.id, l10n);
           extension = 'pdf';
           break;
         default:

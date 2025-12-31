@@ -580,5 +580,22 @@
         "type": "String"
       }
     }
-  }
+  },
+  "exportConversationTitle": "对话标题: ",
+  "exportCreatedTime": "创建时间: ",
+  "exportUpdatedTime": "更新时间: ",
+  "exportMessageCount": "消息数量: ",
+  "exportReasoningProcess": "[思考过程]",
+  "exportAttachments": "[附件: {count}个]",
+  "@exportAttachments": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportBytes": "字节",
+  "exportConversationNotFound": "对话不存在",
+  "exportThinkingProcess": "思考过程",
+  "exportAttachmentsLabel": "附件"
 }

@@ -1642,6 +1642,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error exporting conversation: {error}'**
   String exportConversationError(String error);
+
+  /// No description provided for @exportConversationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversation Title: '**
+  String get exportConversationTitle;
+
+  /// No description provided for @exportCreatedTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Created Time: '**
+  String get exportCreatedTime;
+
+  /// No description provided for @exportUpdatedTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated Time: '**
+  String get exportUpdatedTime;
+
+  /// No description provided for @exportMessageCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Message Count: '**
+  String get exportMessageCount;
+
+  /// No description provided for @exportReasoningProcess.
+  ///
+  /// In en, this message translates to:
+  /// **'[Reasoning Process]'**
+  String get exportReasoningProcess;
+
+  /// No description provided for @exportAttachments.
+  ///
+  /// In en, this message translates to:
+  /// **'[Attachments: {count}]'**
+  String exportAttachments(int count);
+
+  /// No description provided for @exportBytes.
+  ///
+  /// In en, this message translates to:
+  /// **'bytes'**
+  String get exportBytes;
+
+  /// No description provided for @exportConversationNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversation not found'**
+  String get exportConversationNotFound;
+
+  /// No description provided for @exportThinkingProcess.
+  ///
+  /// In en, this message translates to:
+  /// **'Thinking Process'**
+  String get exportThinkingProcess;
+
+  /// No description provided for @exportAttachmentsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachments'**
+  String get exportAttachmentsLabel;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

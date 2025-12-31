@@ -580,5 +580,22 @@
         "type": "String"
       }
     }
-  }
+  },
+  "exportConversationTitle": "Conversation Title: ",
+  "exportCreatedTime": "Created Time: ",
+  "exportUpdatedTime": "Updated Time: ",
+  "exportMessageCount": "Message Count: ",
+  "exportReasoningProcess": "[Reasoning Process]",
+  "exportAttachments": "[Attachments: {count}]",
+  "@exportAttachments": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportBytes": "bytes",
+  "exportConversationNotFound": "Conversation not found",
+  "exportThinkingProcess": "Thinking Process",
+  "exportAttachmentsLabel": "Attachments"
 }
