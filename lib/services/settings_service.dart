@@ -250,6 +250,10 @@ class SettingsService {
     settings[_autoTitleRoundsKey] = prefs.getInt(_autoTitleRoundsKey) ?? defaultAutoTitleRounds;
     settings[_localeKey] = prefs.getString(_localeKey) ?? defaultLocale;
 
+    // 导出平台设置
+    settings[_platformsKey] = prefs.getString(_platformsKey);
+    settings[_currentPlatformIdKey] = prefs.getString(_currentPlatformIdKey) ?? 'openai';
+
     return settings;
   }
 
@@ -314,9 +318,15 @@ class SettingsService {
     if (settings.containsKey(_localeKey)) {
       await prefs.setString(_localeKey, settings[_localeKey] as String);
     }
-  }
 
-  // ========== 多平台管理相关方法 ==========
+    // 导入平台设置
+    if (settings.containsKey(_platformsKey) && settings[_platformsKey] != null) {
+      await prefs.setString(_platformsKey, settings[_platformsKey] as String);
+    }
+    if (settings.containsKey(_currentPlatformIdKey)) {
+      await prefs.setString(_currentPlatformIdKey, settings[_currentPlatformIdKey] as String);
+    }
+  }
 
   /// 获取所有AI平台配置
   Future<List<AIPlatform>> getPlatforms() async {
