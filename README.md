@@ -14,7 +14,7 @@ LumenFlow (Chinese: 流光) is a modern AI chat application built with Flutter t
 
 ## Features
 
-- **Multi-AI Model Support**: Seamlessly switch between OpenAI, Google Gemini, and DeepSeek APIs
+- **Multi-AI Model Support**: Seamlessly switch between OpenAI, Google Gemini and Claude APIs
 - **Multi-Modal Support**: Process images, videos, and audio files with vision capabilities
 - **Streaming Responses**: Real-time streaming output for responsive chat experience
 - **File Attachments**: Upload and extract content from various file types
@@ -28,6 +28,7 @@ LumenFlow (Chinese: 流光) is a modern AI chat application built with Flutter t
 - **Markdown Rendering**: Beautifully formatted AI responses
 - **About Page**: Displays application information and copyright details
 - **Settings Export/Import**: Backup and restore application settings via JSON files
+- **Custom .lumenflow Format**: Enhanced settings export/import with metadata and version control (see [LumenFlow Format Specification](./LumenFlowFormatSpecification.md))
 - **Role-Play System**: File-based prompt preset system with automatic content loading
 - **PowerShell Build Script**: Automated build process for both Android and Windows
 - **Internationalization**: Full English and Chinese language support
@@ -69,7 +70,8 @@ lib/
 │   ├── ai_provider.dart     # Abstract base class
 │   ├── openai_provider.dart # OpenAI implementation
 │   ├── gemini_provider.dart # Gemini implementation
-│   └── deepseek_provider.dart # DeepSeek implementation
+│   ├── deepseek_provider.dart # DeepSeek implementation
+│   └── claude_provider.dart   # Claude (Anthropic) implementation
 ├── utils/                    # Utility classes
 │   └── app_theme.dart        # Application theme management
 └── widgets/                  # Reusable UI components
@@ -129,6 +131,7 @@ The application uses a provider-based architecture for AI integration:
 - `OpenAIProvider`: Implementation for OpenAI API with multi-modal support
 - `GeminiProvider`: Implementation for Google Gemini API with multi-modal support
 - `DeepSeekProvider`: Implementation for DeepSeek API with text-only support
+- `ClaudeProvider`: Implementation for Claude (Anthropic) API with multi-modal support
 
 This architecture allows for easy addition of new AI providers while maintaining a consistent interface across all providers.
 
@@ -138,14 +141,14 @@ Before using the application, you need to configure it with your AI API keys:
 
 1. Navigate to the Settings screen
 2. Enter your API Key
-3. Select your preferred AI provider (OpenAI, Gemini, or DeepSeek)
+3. Select your preferred AI provider
 4. Optionally adjust model parameters (model, temperature, max tokens)
 
 ### Supported AI Providers
 
 1. **OpenAI**
-   - API Endpoint: `https://api.openai.com/v1`
-   - Supported models: GPT-5.1, GPT-4o, and other OpenAI models
+   - API Endpoint: `https://api.openai.com/v1/chat/completions` or `https://api.openai.com/v1/responses`
+   - Supported models: GPT-5.2, GPT-4o, and other OpenAI models
    - Multi-modal support for images, videos, and audio
 
 2. **Google Gemini**
@@ -158,10 +161,15 @@ Before using the application, you need to configure it with your AI API keys:
    - Supported models: DeepSeek Chat, DeepSeek Coder
    - Text-only support with streaming capabilities
 
+4. **Claude (Anthropic)**
+   - API Endpoint: `https://api.anthropic.com/v1/messages`
+   - Supported models: Claude Opus 4.5, Claude Sonnet 4.5
+   - Multi-modal support for images with thinking mode capability
+
 ### Default Values
 
 - Default Provider: OpenAI
-- Default Model: `gpt-5` (OpenAI), `gemini-2.5-flash` (Gemini), or `deepseek-chat` (DeepSeek)
+- Default Model: `gpt-5.2` (OpenAI), `gemini-3-flash-preview` (Gemini), `deepseek-chat` (DeepSeek), or `claude-sonnet-4-5` (Claude)
 - Temperature: `0.7`
 - Max Tokens: `1000`
 
@@ -219,7 +227,7 @@ LumenFlow includes an advanced role-playing system with file-based prompt preset
 
 ## Settings Management
 
-LumenFlow provides settings export and import functionality to backup and restore your application configuration.
+LumenFlow provides settings export and import functionality to backup and restore your application configuration. The application supports both standard JSON format and the enhanced `.lumenflow` format, which includes metadata for better version control and compatibility management. For detailed format specifications, see [LumenFlow Format Specification](./LumenFlowFormatSpecification.md).
 
 ### Exporting Settings
 1. Navigate to the Settings screen

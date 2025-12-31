@@ -14,7 +14,7 @@ LumenFlow（中文名：流光）是一款使用 Flutter 构建的现代化 AI �
 
 ## 功能特性
 
-- **多AI模型支持**: 支持 OpenAI 和 Google Gemini API，可无缝切换
+- **多AI模型支持**: 支持 OpenAI、Google Gemini 和 Claude API，可无缝切换
 - **多模态支持**: 处理图像、视频和音频文件，支持视觉能力
 - **流式响应**: 实时流式输出，提供响应式聊天体验
 - **文件附件**: 上传和提取各种文件类型的内容
@@ -28,6 +28,7 @@ LumenFlow（中文名：流光）是一款使用 Flutter 构建的现代化 AI �
 - **Markdown渲染**: 美观格式化的 AI 响应
 - **关于页面**: 显示应用信息、版本和版权详情
 - **设置导出/导入**: 通过 JSON 文件备份和恢复应用设置
+- **自定义 .lumenflow 格式**: 增强的设置导出/导入功能，包含元数据和版本控制（参见 [LumenFlow 格式规范](../LumenFlowFormatSpecification.md)）
 - **角色扮演系统**: 基于文件的预设提示词系统，支持自动内容加载
 - **PowerShell构建脚本**: 自动构建 Android 和 Windows 应用的脚本
 - **国际化**: 完整的英文和中文语言支持
@@ -69,7 +70,8 @@ lib/
 │   ├── ai_provider.dart     # 抽象基类
 │   ├── openai_provider.dart # OpenAI 实现
 │   ├── gemini_provider.dart # Gemini 实现
-│   └── deepseek_provider.dart # DeepSeek 实现
+│   ├── deepseek_provider.dart # DeepSeek 实现
+│   └── claude_provider.dart   # Claude (Anthropic) 实现
 ├── utils/                    # 工具类
 │   └── app_theme.dart        # 应用主题管理
 └── widgets/                  # 可重用 UI 组件
@@ -128,6 +130,7 @@ lib/
 - `OpenAIProvider`: OpenAI API 实现，支持多模态
 - `GeminiProvider`: Google Gemini API 实现，支持多模态
 - `DeepSeekProvider`: DeepSeek API 实现，支持文本流式传输
+- `ClaudeProvider`: Claude (Anthropic) API 实现，支持多模态和思考模式
 
 这种架构允许轻松添加新的 AI 提供商，同时保持所有提供商之间的一致接口。
 
@@ -137,14 +140,14 @@ lib/
 
 1. 导航到设置界面
 2. 输入您的密钥
-3. 选择您偏好的 AI 提供商（OpenAI、Gemini 或 DeepSeek）
+3. 选择您偏好的 AI 提供商（OpenAI、Gemini、DeepSeek 或 Claude）
 4. 可选地调整模型参数（模型、温度、最大 tokens 数）
 
 ### 支持的 AI 提供商
 
 1. **OpenAI**
-   - API 端点：`https://api.openai.com/v1`
-   - 支持的模型：GPT-5.1、GPT-4o 和其他 OpenAI 模型
+   - API 端点：`https://api.openai.com/v1/chat/completions` 或 `https://api.openai.com/v1/responses`
+   - 支持的模型：GPT-5.2、GPT-4o 和其他 OpenAI 模型
    - 图像、视频和音频的多模态支持
 
 2. **Google Gemini**
@@ -157,10 +160,15 @@ lib/
    - 支持的模型：DeepSeek Chat、DeepSeek Coder
    - 文本流式传输支持
 
+4. **Claude (Anthropic)**
+   - API 端点：`https://api.anthropic.com/v1/messages`
+   - 支持的模型：Claude Opus 4.5、Claude Sonnet 4.5
+   - 图像多模态支持，具备思考模式能力
+
 ### 默认值
 
 - 默认提供商：OpenAI
-- 默认模型：`gpt-5`（OpenAI）、`gemini-2.5-flash`（Gemini）或 `deepseek-chat`（DeepSeek）
+- 默认模型：`gpt-5.2`（OpenAI）、`gemini-3-flash-preview`（Gemini）、`deepseek-chat`（DeepSeek）或 `claude-sonnet-4.5`（Claude）
 - 温度：`0.7`
 - 最大 Tokens 数：`1000`
 
@@ -218,7 +226,7 @@ LumenFlow 包含一个先进的角色扮演系统，具有基于文件的提示�
 
 ## 设置管理
 
-LumenFlow 提供设置导出和导入功能，用于备份和恢复应用配置。
+LumenFlow 提供设置导出和导入功能，用于备份和恢复应用配置。应用程序支持标准 JSON 格式和增强的 `.lumenflow` 格式，后者包含元数据，提供更好的版本控制和兼容性管理。有关详细格式规范，请参见 [LumenFlow 格式规范](../LumenFlowFormatSpecification.md)。
 
 ### 导出设置
 1. 导航到设置界面
