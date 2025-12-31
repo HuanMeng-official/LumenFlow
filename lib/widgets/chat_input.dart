@@ -547,9 +547,11 @@ class _ChatInputState extends State<ChatInput> {
                         ),
                         hintText: widget.enabled ? l10n.messageInputPlaceholder : l10n.configureApiSettingsFirst,
                       ),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 17,
-                        color: CupertinoColors.label,
+                        color: brightness == Brightness.dark
+                            ? CupertinoColors.white
+                            : CupertinoColors.black,
                         height: 1.5,
                         textBaseline: TextBaseline.alphabetic,
                       ),
