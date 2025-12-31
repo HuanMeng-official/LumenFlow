@@ -21,7 +21,6 @@ class ChatInput extends StatefulWidget {
   final List<PromptPreset> presets;
   final Function()? onShowModelSelector;
   final String currentModelName;
-  final String? selectedActiveTool; // 当前选中的活跃工具: 'thinking', 'preset', 'model', or null
 
   const ChatInput({
     super.key,
@@ -37,7 +36,6 @@ class ChatInput extends StatefulWidget {
     this.presets = const [],
     this.onShowModelSelector,
     this.currentModelName = '',
-    this.selectedActiveTool,
   });
 
   @override
@@ -600,9 +598,13 @@ class _ChatInputState extends State<ChatInput> {
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              // 显示选中的活跃工具按钮
-              if (widget.selectedActiveTool != null) ...[
-                _buildActiveToolButton(),
+              // 显示已开启的工具按钮（可以多个同时显示）
+              if (widget.thinkingMode) ...[
+                _buildThinkingModeButton(),
+                const SizedBox(width: 8),
+              ],
+              if (widget.promptPresetEnabled && widget.currentPresetId.isNotEmpty) ...[
+                _buildPresetModeButton(),
                 const SizedBox(width: 8),
               ],
               // 工具菜单按钮（始终显示）
@@ -610,9 +612,8 @@ class _ChatInputState extends State<ChatInput> {
                 padding: EdgeInsets.zero,
                 onPressed: widget.enabled ? _showToolMenu : null,
                 child: Container(
-                  height: 34,
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  alignment: Alignment.center,
+                  width: 36,
+                  height: 36,
                   decoration: BoxDecoration(
                     color: widget.enabled
                         ? (brightness == Brightness.dark
@@ -621,11 +622,11 @@ class _ChatInputState extends State<ChatInput> {
                         : (brightness == Brightness.dark
                             ? CupertinoColors.systemGrey5.darkColor
                             : CupertinoColors.systemGrey5.color),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(18),
                   ),
                   child: Icon(
                     CupertinoIcons.add,
-                    size: 22,
+                    size: 20,
                     color: widget.enabled
                         ? (brightness == Brightness.dark
                             ? CupertinoColors.systemGrey.darkColor
@@ -643,201 +644,146 @@ class _ChatInputState extends State<ChatInput> {
     );
   }
 
-  /// 构建选中的活跃工具按钮
-  Widget _buildActiveToolButton() {
+  /// 构建思考模式按钮
+  Widget _buildThinkingModeButton() {
     final l10n = AppLocalizations.of(context)!;
     final brightness = CupertinoTheme.of(context).brightness;
 
-    switch (widget.selectedActiveTool) {
-      case 'thinking':
-        return CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: widget.enabled
-              ? () => widget.onThinkingModeChanged!(!widget.thinkingMode)
-              : null,
-          child: Container(
-            height: 34,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
+    return CupertinoButton(
+      padding: EdgeInsets.zero,
+      onPressed: widget.enabled
+          ? () => widget.onThinkingModeChanged!(!widget.thinkingMode)
+          : null,
+      child: Container(
+        height: 34,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: widget.enabled
+              ? (widget.thinkingMode
+                  ? (brightness == Brightness.dark
+                      ? CupertinoColors.systemBlue.darkColor.withAlpha(51)
+                      : CupertinoColors.systemBlue.color.withAlpha(38))
+                  : (brightness == Brightness.dark
+                      ? CupertinoColors.systemGrey6.darkColor
+                      : CupertinoColors.systemGrey6.color))
+              : (brightness == Brightness.dark
+                  ? CupertinoColors.systemGrey5.darkColor
+                  : CupertinoColors.systemGrey5.color),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              CupertinoIcons.lightbulb,
+              size: 19,
               color: widget.enabled
                   ? (widget.thinkingMode
                       ? (brightness == Brightness.dark
-                          ? CupertinoColors.systemBlue.darkColor.withAlpha(51)
-                          : CupertinoColors.systemBlue.color.withAlpha(38))
+                          ? CupertinoColors.systemBlue.darkColor
+                          : CupertinoColors.systemBlue.color)
                       : (brightness == Brightness.dark
-                          ? CupertinoColors.systemGrey6.darkColor
-                          : CupertinoColors.systemGrey6.color))
+                          ? CupertinoColors.systemGrey.darkColor
+                          : CupertinoColors.systemGrey))
                   : (brightness == Brightness.dark
-                      ? CupertinoColors.systemGrey5.darkColor
-                      : CupertinoColors.systemGrey5.color),
-              borderRadius: BorderRadius.circular(20),
+                      ? CupertinoColors.systemGrey4.darkColor
+                      : CupertinoColors.systemGrey4),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  CupertinoIcons.lightbulb,
-                  size: 19,
-                  color: widget.enabled
-                      ? (widget.thinkingMode
-                          ? (brightness == Brightness.dark
-                              ? CupertinoColors.systemBlue.darkColor
-                              : CupertinoColors.systemBlue.color)
-                          : (brightness == Brightness.dark
-                              ? CupertinoColors.systemGrey.darkColor
-                              : CupertinoColors.systemGrey))
-                      : (brightness == Brightness.dark
-                          ? CupertinoColors.systemGrey4.darkColor
-                          : CupertinoColors.systemGrey4),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  l10n.deepThinking,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: widget.enabled
-                        ? (widget.thinkingMode
-                            ? (brightness == Brightness.dark
-                                ? CupertinoColors.systemBlue.darkColor
-                                : CupertinoColors.systemBlue.color)
-                            : (brightness == Brightness.dark
-                                ? CupertinoColors.systemGrey.darkColor
-                                : CupertinoColors.systemGrey))
+            const SizedBox(width: 8),
+            Text(
+              l10n.deepThinking,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: widget.enabled
+                    ? (widget.thinkingMode
+                        ? (brightness == Brightness.dark
+                            ? CupertinoColors.systemBlue.darkColor
+                            : CupertinoColors.systemBlue.color)
                         : (brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey4.darkColor
-                            : CupertinoColors.systemGrey4),
-                  ),
-                ),
-              ],
+                            ? CupertinoColors.systemGrey.darkColor
+                            : CupertinoColors.systemGrey))
+                    : (brightness == Brightness.dark
+                        ? CupertinoColors.systemGrey4.darkColor
+                        : CupertinoColors.systemGrey4),
+              ),
             ),
-          ),
-        );
+          ],
+        ),
+      ),
+    );
+  }
 
-      case 'preset':
-        return CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: widget.enabled ? _showPresetMenu : null,
-          child: Container(
-            height: 34,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
+  /// 构建角色扮演按钮
+  Widget _buildPresetModeButton() {
+    final l10n = AppLocalizations.of(context)!;
+    final brightness = CupertinoTheme.of(context).brightness;
+
+    return CupertinoButton(
+      padding: EdgeInsets.zero,
+      onPressed: widget.enabled ? _showPresetMenu : null,
+      child: Container(
+        height: 34,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: widget.enabled
+              ? (widget.promptPresetEnabled
+                  ? (brightness == Brightness.dark
+                      ? CupertinoColors.systemBlue.darkColor.withAlpha(51)
+                      : CupertinoColors.systemBlue.color.withAlpha(38))
+                  : (brightness == Brightness.dark
+                      ? CupertinoColors.systemGrey6.darkColor
+                      : CupertinoColors.systemGrey6.color))
+              : (brightness == Brightness.dark
+                  ? CupertinoColors.systemGrey5.darkColor
+                  : CupertinoColors.systemGrey5.color),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              CupertinoIcons.person_fill,
+              size: 19,
               color: widget.enabled
                   ? (widget.promptPresetEnabled
                       ? (brightness == Brightness.dark
-                          ? CupertinoColors.systemBlue.darkColor.withAlpha(51)
-                          : CupertinoColors.systemBlue.color.withAlpha(38))
+                          ? CupertinoColors.systemBlue.darkColor
+                          : CupertinoColors.systemBlue.color)
                       : (brightness == Brightness.dark
-                          ? CupertinoColors.systemGrey6.darkColor
-                          : CupertinoColors.systemGrey6.color))
-                  : (brightness == Brightness.dark
-                      ? CupertinoColors.systemGrey5.darkColor
-                      : CupertinoColors.systemGrey5.color),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  CupertinoIcons.person_fill,
-                  size: 19,
-                  color: widget.enabled
-                      ? (widget.promptPresetEnabled
-                          ? (brightness == Brightness.dark
-                              ? CupertinoColors.systemBlue.darkColor
-                              : CupertinoColors.systemBlue.color)
-                          : (brightness == Brightness.dark
-                              ? CupertinoColors.systemGrey.darkColor
-                              : CupertinoColors.systemGrey))
-                      : (brightness == Brightness.dark
-                          ? CupertinoColors.systemGrey4.darkColor
-                          : CupertinoColors.systemGrey4),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  widget.promptPresetEnabled && widget.currentPresetId.isNotEmpty
-                      ? _getPresetName(widget.currentPresetId)
-                      : l10n.rolePlay,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: widget.enabled
-                        ? (widget.promptPresetEnabled
-                            ? (brightness == Brightness.dark
-                                ? CupertinoColors.systemBlue.darkColor
-                                : CupertinoColors.systemBlue.color)
-                            : (brightness == Brightness.dark
-                                ? CupertinoColors.systemGrey.darkColor
-                                : CupertinoColors.systemGrey))
-                        : (brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey4.darkColor
-                            : CupertinoColors.systemGrey4),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-
-      case 'model':
-        return CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: widget.enabled ? widget.onShowModelSelector : null,
-          child: Container(
-            height: 34,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: widget.enabled
-                  ? (brightness == Brightness.dark
-                      ? CupertinoColors.systemGrey6.darkColor
-                      : CupertinoColors.systemGrey6.color)
-                  : (brightness == Brightness.dark
-                      ? CupertinoColors.systemGrey5.darkColor
-                      : CupertinoColors.systemGrey5.color),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  CupertinoIcons.cube_box,
-                  size: 19,
-                  color: widget.enabled
-                      ? (brightness == Brightness.dark
                           ? CupertinoColors.systemGrey.darkColor
-                          : CupertinoColors.systemGrey)
-                      : (brightness == Brightness.dark
-                          ? CupertinoColors.systemGrey4.darkColor
-                          : CupertinoColors.systemGrey4),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  widget.currentModelName.isEmpty ? l10n.model : widget.currentModelName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: widget.enabled
-                        ? (brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey.darkColor
-                            : CupertinoColors.systemGrey)
-                        : (brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey4.darkColor
-                            : CupertinoColors.systemGrey4),
-                  ),
-                ),
-              ],
+                          : CupertinoColors.systemGrey))
+                  : (brightness == Brightness.dark
+                      ? CupertinoColors.systemGrey4.darkColor
+                      : CupertinoColors.systemGrey4),
             ),
-          ),
-        );
-
-      default:
-        return const SizedBox.shrink();
-    }
+            const SizedBox(width: 8),
+            Text(
+              widget.promptPresetEnabled && widget.currentPresetId.isNotEmpty
+                  ? _getPresetName(widget.currentPresetId)
+                  : l10n.rolePlay,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: widget.enabled
+                    ? (widget.promptPresetEnabled
+                        ? (brightness == Brightness.dark
+                            ? CupertinoColors.systemBlue.darkColor
+                            : CupertinoColors.systemBlue.color)
+                        : (brightness == Brightness.dark
+                            ? CupertinoColors.systemGrey.darkColor
+                            : CupertinoColors.systemGrey))
+                    : (brightness == Brightness.dark
+                        ? CupertinoColors.systemGrey4.darkColor
+                        : CupertinoColors.systemGrey4),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   /// 显示工具选择菜单
@@ -853,12 +799,11 @@ class _ChatInputState extends State<ChatInput> {
             CupertinoActionSheetAction(
               onPressed: () {
                 Navigator.pop(context);
-                widget.onThinkingModeChanged!(true);
+                widget.onThinkingModeChanged!(!widget.thinkingMode);
               },
               child: _buildActionSheetItem(
                 icon: CupertinoIcons.lightbulb,
                 title: l10n.deepThinking,
-                isSelected: widget.selectedActiveTool == 'thinking',
                 isActive: widget.thinkingMode,
               ),
             ),
@@ -868,7 +813,7 @@ class _ChatInputState extends State<ChatInput> {
             CupertinoActionSheetAction(
               onPressed: () {
                 Navigator.pop(context);
-                widget.onPromptPresetEnabledChanged!(true);
+                // 不立即启用角色扮演模式，等用户选择预设后再启用
                 Future.microtask(() => _showPresetMenu());
               },
               child: _buildActionSheetItem(
@@ -876,8 +821,7 @@ class _ChatInputState extends State<ChatInput> {
                 title: widget.promptPresetEnabled && widget.currentPresetId.isNotEmpty
                     ? _getPresetName(widget.currentPresetId)
                     : l10n.rolePlay,
-                isSelected: widget.selectedActiveTool == 'preset',
-                isActive: widget.promptPresetEnabled,
+                isActive: widget.promptPresetEnabled && widget.currentPresetId.isNotEmpty,
               ),
             ),
 
@@ -891,8 +835,7 @@ class _ChatInputState extends State<ChatInput> {
               child: _buildActionSheetItem(
                 icon: CupertinoIcons.cube_box,
                 title: widget.currentModelName.isEmpty ? l10n.model : widget.currentModelName,
-                isSelected: widget.selectedActiveTool == 'model',
-                isActive: false,
+                isActive: widget.currentModelName.isNotEmpty,
               ),
             ),
         ],
@@ -908,7 +851,6 @@ class _ChatInputState extends State<ChatInput> {
   Widget _buildActionSheetItem({
     required IconData icon,
     required String title,
-    required bool isSelected,
     required bool isActive,
   }) {
     final brightness = CupertinoTheme.of(context).brightness;
@@ -932,20 +874,12 @@ class _ChatInputState extends State<ChatInput> {
           title,
           style: TextStyle(
             fontSize: 17,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+            fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
             color: brightness == Brightness.dark
                 ? CupertinoColors.white
                 : CupertinoColors.black,
           ),
         ),
-        if (isSelected) ...[
-          const SizedBox(width: 8),
-          Icon(
-            CupertinoIcons.checkmark_alt,
-            size: 20,
-            color: CupertinoColors.systemBlue,
-          ),
-        ],
       ],
     );
   }

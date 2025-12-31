@@ -63,7 +63,6 @@ class _ChatScreenState extends State<ChatScreen> {
   String _currentTitle = '';
   bool _autoTitleGenerated = false; // 是否已经自动生成过标题
   String _currentModel = ''; // 当前选中的模型
-  String? _selectedActiveTool; // 当前选中的活跃工具: 'thinking', 'preset', 'model', or null
 
   @override
   void initState() {
@@ -108,14 +107,6 @@ class _ChatScreenState extends State<ChatScreen> {
       _promptPresetEnabled = promptPresetEnabled;
       _currentPresetId = currentPresetId;
       _presets = presets;
-      // 根据当前启用的模式设置选中的活跃工具
-      if (thinkingMode) {
-        _selectedActiveTool = 'thinking';
-      } else if (promptPresetEnabled && currentPresetId.isNotEmpty) {
-        _selectedActiveTool = 'preset';
-      } else {
-        _selectedActiveTool = null;
-      }
     });
   }
 
@@ -247,8 +238,6 @@ class _ChatScreenState extends State<ChatScreen> {
   void _handleThinkingModeChanged(bool enabled) {
     setState(() {
       _thinkingMode = enabled;
-      // 如果启用了思考模式，则标记为选中；否则取消选中
-      _selectedActiveTool = enabled ? 'thinking' : null;
     });
     // 保存到设置服务
     _settingsService.setThinkingMode(enabled);
@@ -258,11 +247,16 @@ class _ChatScreenState extends State<ChatScreen> {
   void _handlePromptPresetEnabledChanged(bool enabled) {
     setState(() {
       _promptPresetEnabled = enabled;
-      // 如果启用了预设模式，则标记为选中；否则取消选中
-      _selectedActiveTool = enabled ? 'preset' : null;
     });
     // 保存到设置服务
     _settingsService.setPromptPresetEnabled(enabled);
+    // 当关闭预设模式时，清空预设ID
+    if (!enabled) {
+      _settingsService.setPromptPresetId('');
+      setState(() {
+        _currentPresetId = '';
+      });
+    }
   }
 
   /// 处理预设选择变化
@@ -674,7 +668,6 @@ class _ChatScreenState extends State<ChatScreen> {
               presets: _presets,
               onShowModelSelector: _showModelSelector,
               currentModelName: _currentModel,
-              selectedActiveTool: _selectedActiveTool,
             ),
           ],
         ),
