@@ -830,4 +830,33 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get addPlatformHint => '点击右上角 + 添加您的第一个AI平台';
+
+  @override
+  String get exportConversation => '导出对话';
+
+  @override
+  String get exportFormat => '导出格式';
+
+  @override
+  String get exportFormatTxt => '纯文本 (.txt)';
+
+  @override
+  String get exportFormatJson => 'JSON (.json)';
+
+  @override
+  String get exportFormatLumenflow => 'Lumenflow (.lumenflow)';
+
+  @override
+  String get exportFormatPdf => 'PDF (.pdf)';
+
+  @override
+  String get exportConversationSuccess => '对话导出成功';
+
+  @override
+  String get exportConversationFailed => '对话导出失败';
+
+  @override
+  String exportConversationError(String error) {
+    return '导出对话时出错: $error';
+  }
 }

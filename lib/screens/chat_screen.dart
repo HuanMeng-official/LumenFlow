@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'dart:convert';
 import '../l10n/app_localizations.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
@@ -714,6 +715,20 @@ class _ChatScreenState extends State<ChatScreen> {
             },
           ),
           CupertinoActionSheetAction(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(CupertinoIcons.arrow_down_doc, size: 20),
+                const SizedBox(width: 8),
+                Text(l10n.exportConversation),
+              ],
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              _showExportFormatDialog();
+            },
+          ),
+          CupertinoActionSheetAction(
             isDestructiveAction: true,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -735,6 +750,160 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
     );
+  }
+
+  void _showExportFormatDialog() {
+    final l10n = AppLocalizations.of(context)!;
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => CupertinoActionSheet(
+        title: Text(l10n.exportFormat),
+        actions: [
+          CupertinoActionSheetAction(
+            child: Text(l10n.exportFormatTxt),
+            onPressed: () {
+              Navigator.pop(context);
+              _exportCurrentConversation('txt');
+            },
+          ),
+          CupertinoActionSheetAction(
+            child: Text(l10n.exportFormatJson),
+            onPressed: () {
+              Navigator.pop(context);
+              _exportCurrentConversation('json');
+            },
+          ),
+          CupertinoActionSheetAction(
+            child: Text(l10n.exportFormatLumenflow),
+            onPressed: () {
+              Navigator.pop(context);
+              _exportCurrentConversation('lumenflow');
+            },
+          ),
+          CupertinoActionSheetAction(
+            child: Text(l10n.exportFormatPdf),
+            onPressed: () {
+              Navigator.pop(context);
+              _exportCurrentConversation('pdf');
+            },
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          child: Text(l10n.cancel),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _exportCurrentConversation(String format) async {
+    final l10n = AppLocalizations.of(context)!;
+    if (_currentConversation == null) {
+      showCupertinoDialog(
+        context: context,
+        builder: (context) => CupertinoAlertDialog(
+          title: Text(l10n.exportConversationFailed),
+          content: const Text('当前没有对话可以导出'),
+          actions: [
+            CupertinoDialogAction(
+              child: Text(l10n.ok),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    try {
+      List<int> bytes;
+      String fileName;
+      String extension;
+
+      switch (format) {
+        case 'txt':
+          final text = await _conversationService.exportConversationToText(_currentConversation!.id);
+          bytes = utf8.encode(text);
+          extension = 'txt';
+          break;
+        case 'json':
+          final jsonData = await _conversationService.exportConversationToJson(_currentConversation!.id);
+          final jsonString = jsonEncode(jsonData);
+          bytes = utf8.encode(jsonString);
+          extension = 'json';
+          break;
+        case 'lumenflow':
+          final lumenflowData = await _conversationService.exportConversationToLumenflow(_currentConversation!.id);
+          final jsonString = jsonEncode(lumenflowData);
+          bytes = utf8.encode(jsonString);
+          extension = 'lumenflow';
+          break;
+        case 'pdf':
+          bytes = await _conversationService.exportConversationToPdf(_currentConversation!.id);
+          extension = 'pdf';
+          break;
+        default:
+          throw Exception('不支持的导出格式: $format');
+      }
+
+      // 生成文件名
+      final safeTitle = _currentConversation!.title.replaceAll(RegExp(r'[^\w\s-]'), '').replaceAll(' ', '_');
+      fileName = '${safeTitle}_${DateTime.now().toIso8601String().substring(0, 10)}.$extension';
+
+      // 保存文件
+      final result = await _conversationService.saveExportFile(fileName, bytes);
+      final filePath = result['filePath']!;
+      final locationType = result['locationType']!;
+
+      // 根据位置类型获取本地化的目录名称
+      String locationName;
+      switch (locationType) {
+        case 'download':
+          locationName = l10n.downloadDirectory;
+          break;
+        case 'external':
+          locationName = l10n.externalStorageDirectory;
+          break;
+        case 'app':
+          locationName = l10n.appDocumentsDirectory;
+          break;
+        default:
+          locationName = l10n.downloadDirectory;
+      }
+
+      // 显示成功消息
+      if (mounted) {
+        showCupertinoDialog(
+          context: context,
+          builder: (context) => CupertinoAlertDialog(
+            title: Text(l10n.exportConversationSuccess),
+            content: Text(l10n.exportLocation(locationName, filePath)),
+            actions: [
+              CupertinoDialogAction(
+                child: Text(l10n.ok),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        showCupertinoDialog(
+          context: context,
+          builder: (context) => CupertinoAlertDialog(
+            title: Text(l10n.exportConversationFailed),
+            content: Text(l10n.exportConversationError(e.toString())),
+            actions: [
+              CupertinoDialogAction(
+                child: Text(l10n.ok),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+        );
+      }
+    }
   }
 }
 

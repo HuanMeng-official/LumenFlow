@@ -1,6 +1,11 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/conversation.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'version_service.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 
 /// 对话服务，管理对话的持久化存储和CRUD操作
 ///
@@ -106,5 +111,221 @@ class ConversationService {
       );
       await saveConversations(conversations);
     }
+  }
+
+  /// 导出对话为JSON格式
+  /// 返回原始对话的JSON表示
+  Future<Map<String, dynamic>> exportConversationToJson(String conversationId) async {
+    final conversation = await getConversationById(conversationId);
+    if (conversation == null) {
+      throw Exception('对话不存在');
+    }
+    return conversation.toJson();
+  }
+
+  /// 导出对话为Lumenflow格式
+  /// 包含元数据和对话内容
+  Future<Map<String, dynamic>> exportConversationToLumenflow(String conversationId) async {
+    final conversation = await getConversationById(conversationId);
+    if (conversation == null) {
+      throw Exception('对话不存在');
+    }
+
+    final versionService = VersionService();
+    final versionInfo = await versionService.getVersionInfo();
+
+    final conversationJson = conversation.toJson();
+    final lumenflowData = {
+      '_format': 'lumenflow',
+      '_version': '1.0',
+      '_type': 'conversation',
+      '_created': DateTime.now().toUtc().toIso8601String(),
+      '_app_version': versionInfo['version'] ?? 'unknown',
+      'conversation': conversationJson,
+    };
+
+    return lumenflowData;
+  }
+
+  /// 导出对话为纯文本格式
+  /// 返回人类可读的文本表示
+  Future<String> exportConversationToText(String conversationId) async {
+    final conversation = await getConversationById(conversationId);
+    if (conversation == null) {
+      throw Exception('对话不存在');
+    }
+
+    final buffer = StringBuffer();
+    buffer.writeln('对话标题: ${conversation.title}');
+    buffer.writeln('创建时间: ${conversation.createdAt.toLocal()}');
+    buffer.writeln('更新时间: ${conversation.updatedAt.toLocal()}');
+    buffer.writeln('消息数量: ${conversation.messages.length}');
+    buffer.writeln('=' * 40);
+
+    for (final message in conversation.messages) {
+      final sender = message.isUser ? '用户' : 'AI助手';
+      final time = message.timestamp.toLocal().toString();
+      buffer.writeln('\n[$sender - $time]');
+      buffer.writeln(message.content);
+      if (message.reasoningContent != null && message.reasoningContent!.isNotEmpty) {
+        buffer.writeln('\n[思考过程]');
+        buffer.writeln(message.reasoningContent!);
+      }
+      if (message.attachments.isNotEmpty) {
+        buffer.writeln('\n[附件: ${message.attachments.length}个]');
+        for (final attachment in message.attachments) {
+          buffer.writeln('  - ${attachment.fileName} (${attachment.fileSize}字节)');
+        }
+      }
+    }
+
+    return buffer.toString();
+  }
+
+  /// 导出对话为PDF格式
+  /// 返回PDF文件的字节列表
+  Future<List<int>> exportConversationToPdf(String conversationId) async {
+    final conversation = await getConversationById(conversationId);
+    if (conversation == null) {
+      throw Exception('对话不存在');
+    }
+
+    final pdf = pw.Document();
+
+    // 添加元数据
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Header(
+                level: 0,
+                child: pw.Text(conversation.title,
+                    style: pw.TextStyle(
+                      fontSize: 24,
+                      fontWeight: pw.FontWeight.bold,
+                    )),
+              ),
+              pw.SizedBox(height: 10),
+              pw.Text('创建时间: ${conversation.createdAt.toLocal()}'),
+              pw.Text('更新时间: ${conversation.updatedAt.toLocal()}'),
+              pw.Text('消息数量: ${conversation.messages.length}'),
+              pw.Divider(),
+              pw.SizedBox(height: 20),
+            ],
+          );
+        },
+      ),
+    );
+
+    // 添加消息页面
+    for (final message in conversation.messages) {
+      final sender = message.isUser ? '用户' : 'AI助手';
+      final time = message.timestamp.toLocal().toString();
+
+      pdf.addPage(
+        pw.Page(
+          build: (pw.Context context) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Header(
+                  level: 1,
+                  child: pw.Text('$sender - $time',
+                      style: pw.TextStyle(
+                        fontSize: 18,
+                        fontWeight: pw.FontWeight.bold,
+                        color: message.isUser ? PdfColors.blue : PdfColors.green,
+                      )),
+                ),
+                pw.SizedBox(height: 10),
+                pw.Text(message.content,
+                    style: const pw.TextStyle(fontSize: 12)),
+                if (message.reasoningContent != null &&
+                    message.reasoningContent!.isNotEmpty)
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.SizedBox(height: 10),
+                      pw.Header(
+                        level: 2,
+                        child: pw.Text('思考过程',
+                            style: pw.TextStyle(
+                              fontSize: 14,
+                              fontWeight: pw.FontWeight.bold,
+                              color: PdfColors.grey,
+                            )),
+                      ),
+                      pw.Text(message.reasoningContent!,
+                          style: pw.TextStyle(
+                            fontSize: 11,
+                            color: PdfColors.grey,
+                          )),
+                    ],
+                  ),
+                if (message.attachments.isNotEmpty)
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.SizedBox(height: 10),
+                      pw.Header(
+                        level: 2,
+                        child: pw.Text('附件',
+                            style: pw.TextStyle(
+                              fontSize: 14,
+                              fontWeight: pw.FontWeight.bold,
+                              color: PdfColors.grey,
+                            )),
+                      ),
+                      for (final attachment in message.attachments)
+                        pw.Text(
+                            '  • ${attachment.fileName} (${attachment.fileSize}字节)',
+                            style: const pw.TextStyle(fontSize: 11)),
+                    ],
+                  ),
+              ],
+            );
+          },
+        ),
+      );
+    }
+
+    // 保存PDF
+    return pdf.save();
+  }
+
+  /// 保存文件到设备
+  /// 返回包含文件路径和位置标识的Map
+  /// locationType: 'download', 'external', 'app'
+  Future<Map<String, String>> saveExportFile(String fileName, List<int> bytes) async {
+    // 优先尝试保存到下载目录
+    Directory? targetDir = await getDownloadsDirectory();
+    String locationType = 'download';
+
+    // 如果下载目录不可用，尝试外部存储目录
+    if (targetDir == null) {
+      targetDir = await getExternalStorageDirectory();
+      locationType = 'external';
+    }
+
+    // 如果外部存储目录也不可用，使用应用文档目录
+    if (targetDir == null) {
+      targetDir = await getApplicationDocumentsDirectory();
+      locationType = 'app';
+    }
+
+    // 确保目录存在
+    if (!await targetDir.exists()) {
+      await targetDir.create(recursive: true);
+    }
+
+    final targetFile = File('${targetDir.path}/$fileName');
+    await targetFile.writeAsBytes(bytes);
+
+    return {
+      'filePath': targetFile.path,
+      'locationType': locationType,
+    };
   }
 }

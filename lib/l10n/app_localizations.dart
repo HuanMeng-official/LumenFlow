@@ -1588,6 +1588,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap the + button in the top right to add your first AI platform'**
   String get addPlatformHint;
+
+  /// No description provided for @exportConversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Conversation'**
+  String get exportConversation;
+
+  /// No description provided for @exportFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Format'**
+  String get exportFormat;
+
+  /// No description provided for @exportFormatTxt.
+  ///
+  /// In en, this message translates to:
+  /// **'Plain Text (.txt)'**
+  String get exportFormatTxt;
+
+  /// No description provided for @exportFormatJson.
+  ///
+  /// In en, this message translates to:
+  /// **'JSON (.json)'**
+  String get exportFormatJson;
+
+  /// No description provided for @exportFormatLumenflow.
+  ///
+  /// In en, this message translates to:
+  /// **'Lumenflow (.lumenflow)'**
+  String get exportFormatLumenflow;
+
+  /// No description provided for @exportFormatPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF (.pdf)'**
+  String get exportFormatPdf;
+
+  /// No description provided for @exportConversationSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversation exported successfully'**
+  String get exportConversationSuccess;
+
+  /// No description provided for @exportConversationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversation export failed'**
+  String get exportConversationFailed;
+
+  /// No description provided for @exportConversationError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error exporting conversation: {error}'**
+  String exportConversationError(String error);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

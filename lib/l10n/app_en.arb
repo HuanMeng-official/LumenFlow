@@ -564,5 +564,21 @@
   "addNewModel": "Add new model",
   "clickAddToCreate": "Tap the + button above to add a model",
   "noPlatformsConfigured": "No platforms configured",
-  "addPlatformHint": "Tap the + button in the top right to add your first AI platform"
+  "addPlatformHint": "Tap the + button in the top right to add your first AI platform",
+  "exportConversation": "Export Conversation",
+  "exportFormat": "Export Format",
+  "exportFormatTxt": "Plain Text (.txt)",
+  "exportFormatJson": "JSON (.json)",
+  "exportFormatLumenflow": "Lumenflow (.lumenflow)",
+  "exportFormatPdf": "PDF (.pdf)",
+  "exportConversationSuccess": "Conversation exported successfully",
+  "exportConversationFailed": "Conversation export failed",
+  "exportConversationError": "Error exporting conversation: {error}",
+  "@exportConversationError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

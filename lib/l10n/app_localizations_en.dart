@@ -830,4 +830,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addPlatformHint => 'Tap the + button in the top right to add your first AI platform';
+
+  @override
+  String get exportConversation => 'Export Conversation';
+
+  @override
+  String get exportFormat => 'Export Format';
+
+  @override
+  String get exportFormatTxt => 'Plain Text (.txt)';
+
+  @override
+  String get exportFormatJson => 'JSON (.json)';
+
+  @override
+  String get exportFormatLumenflow => 'Lumenflow (.lumenflow)';
+
+  @override
+  String get exportFormatPdf => 'PDF (.pdf)';
+
+  @override
+  String get exportConversationSuccess => 'Conversation exported successfully';
+
+  @override
+  String get exportConversationFailed => 'Conversation export failed';
+
+  @override
+  String exportConversationError(String error) {
+    return 'Error exporting conversation: $error';
+  }
 }

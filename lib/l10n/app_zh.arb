@@ -564,5 +564,21 @@
   "addNewModel": "添加新模型",
   "clickAddToCreate": "点击上方 + 按钮添加模型",
   "noPlatformsConfigured": "暂无平台配置",
-  "addPlatformHint": "点击右上角 + 添加您的第一个AI平台"
+  "addPlatformHint": "点击右上角 + 添加您的第一个AI平台",
+  "exportConversation": "导出对话",
+  "exportFormat": "导出格式",
+  "exportFormatTxt": "纯文本 (.txt)",
+  "exportFormatJson": "JSON (.json)",
+  "exportFormatLumenflow": "Lumenflow (.lumenflow)",
+  "exportFormatPdf": "PDF (.pdf)",
+  "exportConversationSuccess": "对话导出成功",
+  "exportConversationFailed": "对话导出失败",
+  "exportConversationError": "导出对话时出错: {error}",
+  "@exportConversationError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }
