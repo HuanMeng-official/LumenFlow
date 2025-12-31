@@ -269,14 +269,14 @@ class _SettingsScreenState extends State<SettingsScreen>
   Future<void> _exportSettings() async {
     final l10n = AppLocalizations.of(context)!;
     try {
-      final settings = await _settingsService.exportSettingsToJson();
-      if (settings.isEmpty) {
+      final lumenflowData = await _settingsService.exportSettingsToLumenflow();
+      if (lumenflowData.isEmpty) {
         throw Exception('设置数据为空，无法导出');
       }
 
-      final jsonString = jsonEncode(settings);
+      final jsonString = jsonEncode(lumenflowData);
       if (jsonString.isEmpty) {
-        throw Exception('JSON编码结果为空');
+        throw Exception('编码结果为空');
       }
 
       final bytes = utf8.encode(jsonString);
@@ -306,7 +306,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       }
 
       // 生成文件名
-      final fileName = 'lumenflow_settings_${DateTime.now().toIso8601String().substring(0, 10)}.json';
+      final fileName = 'lumenflow_settings_${DateTime.now().toIso8601String().substring(0, 10)}.lumenflow';
       final targetFile = File('${targetDir.path}/$fileName');
 
       // 保存文件
@@ -350,7 +350,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     try {
       final FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['json'],
+        allowedExtensions: ['lumenflow', 'json'],
         dialogTitle: AppLocalizations.of(context)!.importSettings,
         allowMultiple: false,
       );
@@ -358,7 +358,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       if (result != null && result.files.isNotEmpty) {
         final file = File(result.files.single.path!);
         final jsonString = await file.readAsString();
-        final settings = jsonDecode(jsonString) as Map<String, dynamic>;
+        final data = jsonDecode(jsonString) as Map<String, dynamic>;
 
         // 显示确认对话框
         if (!mounted) return;
@@ -383,7 +383,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         );
 
         if (confirmed == true) {
-          await _settingsService.importSettingsFromJson(settings);
+          await _settingsService.importSettingsFromLumenflow(data);
           // 重新加载设置以更新UI
           await _loadSettings();
 

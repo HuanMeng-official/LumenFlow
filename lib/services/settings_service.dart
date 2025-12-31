@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/ai_platform.dart';
+import 'version_service.dart';
 
 class SettingsService {
   static const String _apiEndpointKey = 'api_endpoint';
@@ -42,6 +43,9 @@ class SettingsService {
   static const int defaultMaxTokens = 1000;
   static const bool defaultEnableHistory = true;
   static const int defaultHistoryContextLength = 100;
+
+  static const String _lumenflowFormat = 'lumenflow';
+  static const String _lumenflowVersion = '1.0';
 
   Future<String> getApiEndpoint() async {
     final prefs = await SharedPreferences.getInstance();
@@ -257,6 +261,24 @@ class SettingsService {
     return settings;
   }
 
+  /// 导出所有设置为Lumenflow格式
+  /// 返回Lumenflow格式的Map，包含元数据和设置数据
+  Future<Map<String, dynamic>> exportSettingsToLumenflow() async {
+    final settings = await exportSettingsToJson();
+    final versionService = VersionService();
+    final versionInfo = await versionService.getVersionInfo();
+
+    final lumenflowData = {
+      '_format': _lumenflowFormat,
+      '_version': _lumenflowVersion,
+      '_created': DateTime.now().toUtc().toIso8601String(),
+      '_app_version': versionInfo['version'] ?? 'unknown',
+      'settings': settings,
+    };
+
+    return lumenflowData;
+  }
+
   /// 从JSON Map导入设置
   /// [settings] 包含设置键值对的Map
   /// [overwrite] 是否覆盖现有设置，默认为true
@@ -326,6 +348,27 @@ class SettingsService {
     if (settings.containsKey(_currentPlatformIdKey)) {
       await prefs.setString(_currentPlatformIdKey, settings[_currentPlatformIdKey] as String);
     }
+  }
+
+  /// 从Lumenflow格式或旧JSON格式导入设置
+  /// [data] 可以是Lumenflow格式（包含元数据）或旧JSON格式
+  /// [overwrite] 是否覆盖现有设置，默认为true
+  Future<void> importSettingsFromLumenflow(Map<String, dynamic> data, {bool overwrite = true}) async {
+    Map<String, dynamic> settings;
+
+    if (data.containsKey('_format') && data['_format'] == _lumenflowFormat) {
+      // 提取settings字段
+      if (data.containsKey('settings') && data['settings'] is Map<String, dynamic>) {
+        settings = data['settings'] as Map<String, dynamic>;
+      } else {
+        throw FormatException('无效的Lumenflow格式：缺少settings字段');
+      }
+    } else {
+      settings = data;
+    }
+
+    // 调用现有的导入函数
+    await importSettingsFromJson(settings, overwrite: overwrite);
   }
 
   /// 获取所有AI平台配置
