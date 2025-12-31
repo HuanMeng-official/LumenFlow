@@ -220,77 +220,121 @@ class ConversationService {
       ),
     );
 
-    // 添加消息页面
-    for (final message in conversation.messages) {
-      final sender = message.isUser ? l10n.user : l10n.aiAssistant;
-      final time = message.timestamp.toLocal().toString();
+    // 添加消息页面（使用MultiPage自动分页）
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(72.0), // 1 inch margin
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        build: (pw.Context context) {
+          final messageWidgets = <pw.Widget>[];
 
-      pdf.addPage(
-        pw.Page(
-          build: (pw.Context context) {
-            return pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Header(
-                  level: 1,
-                  child: pw.Text('$sender - $time',
-                      style: pw.TextStyle(
-                        fontSize: 18,
-                        fontWeight: pw.FontWeight.bold,
-                        color: message.isUser ? PdfColors.blue : PdfColors.green,
-                      )),
+          for (final message in conversation.messages) {
+            final sender = message.isUser ? l10n.user : l10n.aiAssistant;
+            final time = message.timestamp.toLocal().toString();
+            final borderColor = message.isUser ? PdfColors.blue : PdfColors.green;
+
+            final messageWidget = pw.Container(
+              margin: const pw.EdgeInsets.only(bottom: 25),
+              padding: const pw.EdgeInsets.all(12),
+              decoration: pw.BoxDecoration(
+                border: pw.Border(
+                  left: pw.BorderSide(
+                    color: borderColor,
+                    width: 4,
+                  ),
                 ),
-                pw.SizedBox(height: 10),
-                pw.Text(message.content,
-                    style: const pw.TextStyle(fontSize: 12)),
-                if (message.reasoningContent != null &&
-                    message.reasoningContent!.isNotEmpty)
-                  pw.Column(
+              ),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Row(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      pw.SizedBox(height: 10),
-                      pw.Header(
-                        level: 2,
-                        child: pw.Text(l10n.exportThinkingProcess,
-                            style: pw.TextStyle(
-                              fontSize: 14,
-                              fontWeight: pw.FontWeight.bold,
-                              color: PdfColors.grey,
-                            )),
-                      ),
-                      pw.Text(message.reasoningContent!,
+                      pw.Expanded(
+                        child: pw.Text(sender,
                           style: pw.TextStyle(
-                            fontSize: 11,
-                            color: PdfColors.grey,
-                          )),
-                    ],
-                  ),
-                if (message.attachments.isNotEmpty)
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.SizedBox(height: 10),
-                      pw.Header(
-                        level: 2,
-                        child: pw.Text(l10n.exportAttachmentsLabel,
-                            style: pw.TextStyle(
-                              fontSize: 14,
-                              fontWeight: pw.FontWeight.bold,
-                              color: PdfColors.grey,
-                            )),
+                            fontSize: 14,
+                            fontWeight: pw.FontWeight.bold,
+                            color: borderColor,
+                          ),
+                        ),
                       ),
-                      for (final attachment in message.attachments)
-                        pw.Text(
-                            '  • ${attachment.fileName} (${attachment.fileSize}${l10n.exportBytes})',
-                            style: const pw.TextStyle(fontSize: 11)),
+                      pw.Text(time,
+                        style: pw.TextStyle(
+                          fontSize: 10,
+                          color: PdfColors.grey,
+                        ),
+                      ),
                     ],
                   ),
-              ],
+                  pw.SizedBox(height: 8),
+                  pw.Text(message.content,
+                      style: const pw.TextStyle(fontSize: 12)),
+                  if (message.reasoningContent != null &&
+                      message.reasoningContent!.isNotEmpty)
+                    pw.Container(
+                      margin: const pw.EdgeInsets.only(top: 12),
+                      padding: const pw.EdgeInsets.all(8),
+                      decoration: const pw.BoxDecoration(
+                        borderRadius: pw.BorderRadius.all(pw.Radius.circular(4)),
+                      ),
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text(l10n.exportThinkingProcess,
+                              style: pw.TextStyle(
+                                fontSize: 12,
+                                fontWeight: pw.FontWeight.bold,
+                                color: PdfColors.grey,
+                              )),
+                          pw.SizedBox(height: 5),
+                          pw.Text(message.reasoningContent!,
+                              style: pw.TextStyle(
+                                fontSize: 11,
+                                color: PdfColors.grey,
+                              )),
+                        ],
+                      ),
+                    ),
+                  if (message.attachments.isNotEmpty)
+                    pw.Container(
+                      margin: const pw.EdgeInsets.only(top: 12),
+                      padding: const pw.EdgeInsets.all(8),
+                      decoration: const pw.BoxDecoration(
+                        borderRadius: pw.BorderRadius.all(pw.Radius.circular(4)),
+                      ),
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text(l10n.exportAttachmentsLabel,
+                              style: pw.TextStyle(
+                                fontSize: 12,
+                                fontWeight: pw.FontWeight.bold,
+                                color: PdfColors.grey,
+                              )),
+                          pw.SizedBox(height: 5),
+                          for (final attachment in message.attachments)
+                            pw.Text(
+                                '  • ${attachment.fileName} (${attachment.fileSize}${l10n.exportBytes})',
+                                style: pw.TextStyle(
+                                  fontSize: 11,
+                                  color: PdfColors.grey,
+                                )),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
             );
-          },
-        ),
-      );
-    }
+
+            messageWidgets.add(messageWidget);
+          }
+
+          return messageWidgets;
+        },
+      ),
+    );
 
     // 保存PDF
     return pdf.save();
