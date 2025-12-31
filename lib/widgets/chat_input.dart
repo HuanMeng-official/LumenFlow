@@ -19,6 +19,9 @@ class ChatInput extends StatefulWidget {
   final String currentPresetId;
   final Function(String)? onPresetSelected;
   final List<PromptPreset> presets;
+  final Function()? onShowModelSelector;
+  final String currentModelName;
+  final String? selectedActiveTool; // 当前选中的活跃工具: 'thinking', 'preset', 'model', or null
 
   const ChatInput({
     super.key,
@@ -32,6 +35,9 @@ class ChatInput extends StatefulWidget {
     this.currentPresetId = '',
     this.onPresetSelected,
     this.presets = const [],
+    this.onShowModelSelector,
+    this.currentModelName = '',
+    this.selectedActiveTool,
   });
 
   @override
@@ -594,149 +600,353 @@ class _ChatInputState extends State<ChatInput> {
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              // 思考模式按钮
-              if (widget.onThinkingModeChanged != null) ...[
-                CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: widget.enabled
-                      ? () => widget.onThinkingModeChanged!(!widget.thinkingMode)
-                      : null,
-                  child: Container(
-                    height: 34,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: widget.enabled
-                          ? (widget.thinkingMode
-                              ? (brightness == Brightness.dark
-                                  ? CupertinoColors.systemBlue.darkColor.withAlpha(51)
-                                  : CupertinoColors.systemBlue.color.withAlpha(38))
-                              : (brightness == Brightness.dark
-                                  ? CupertinoColors.systemGrey6.darkColor
-                                  : CupertinoColors.systemGrey6.color))
-                          : (brightness == Brightness.dark
-                              ? CupertinoColors.systemGrey5.darkColor
-                              : CupertinoColors.systemGrey5.color),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          CupertinoIcons.lightbulb,
-                          size: 19,
-                          color: widget.enabled
-                              ? (widget.thinkingMode
-                                  ? (brightness == Brightness.dark
-                                      ? CupertinoColors.systemBlue.darkColor
-                                      : CupertinoColors.systemBlue.color)
-                                  : (brightness == Brightness.dark
-                                      ? CupertinoColors.systemGrey.darkColor
-                                      : CupertinoColors.systemGrey))
-                              : (brightness == Brightness.dark
-                                  ? CupertinoColors.systemGrey4.darkColor
-                                  : CupertinoColors.systemGrey4),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          l10n.deepThinking,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: widget.enabled
-                                ? (widget.thinkingMode
-                                    ? (brightness == Brightness.dark
-                                        ? CupertinoColors.systemBlue.darkColor
-                                        : CupertinoColors.systemBlue.color)
-                                    : (brightness == Brightness.dark
-                                        ? CupertinoColors.systemGrey.darkColor
-                                        : CupertinoColors.systemGrey))
-                                : (brightness == Brightness.dark
-                                    ? CupertinoColors.systemGrey4.darkColor
-                                    : CupertinoColors.systemGrey4),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              // 显示选中的活跃工具按钮
+              if (widget.selectedActiveTool != null) ...[
+                _buildActiveToolButton(),
                 const SizedBox(width: 8),
               ],
-              // 预设提示词按钮
-              if (widget.onPromptPresetEnabledChanged != null) ...[
-                CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: widget.enabled ? _showPresetMenu : null,
-                  child: Container(
-                    height: 34,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    alignment: Alignment.center,
-                    // 【修正】将 decoration 移到 child 之前，解决 lint 错误
-                    decoration: BoxDecoration(
-                      color: widget.enabled
-                          ? (widget.promptPresetEnabled
-                              ? (brightness == Brightness.dark
-                                  ? CupertinoColors.systemBlue.darkColor.withAlpha(51)
-                                  : CupertinoColors.systemBlue.color.withAlpha(38))
-                              : (brightness == Brightness.dark
-                                  ? CupertinoColors.systemGrey6.darkColor
-                                  : CupertinoColors.systemGrey6.color))
-                          : (brightness == Brightness.dark
-                              ? CupertinoColors.systemGrey5.darkColor
-                              : CupertinoColors.systemGrey5.color),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          CupertinoIcons.person_fill,
-                          size: 19,
-                          color: widget.enabled
-                              ? (widget.promptPresetEnabled
-                                  ? (brightness == Brightness.dark
-                                      ? CupertinoColors.systemBlue.darkColor
-                                      : CupertinoColors.systemBlue.color)
-                                  : (brightness == Brightness.dark
-                                      ? CupertinoColors.systemGrey.darkColor
-                                      : CupertinoColors.systemGrey))
-                              : (brightness == Brightness.dark
-                                  ? CupertinoColors.systemGrey4.darkColor
-                                  : CupertinoColors.systemGrey4),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          widget.promptPresetEnabled && widget.currentPresetId.isNotEmpty
-                              ? _getPresetName(widget.currentPresetId)
-                              : l10n.rolePlay,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: widget.enabled
-                                ? (widget.promptPresetEnabled
-                                    ? (brightness == Brightness.dark
-                                        ? CupertinoColors.systemBlue.darkColor
-                                        : CupertinoColors.systemBlue.color)
-                                    : (brightness == Brightness.dark
-                                        ? CupertinoColors.systemGrey.darkColor
-                                        : CupertinoColors.systemGrey))
-                                : (brightness == Brightness.dark
-                                    ? CupertinoColors.systemGrey4.darkColor
-                                    : CupertinoColors.systemGrey4),
-                          ),
-                        ),
-                      ],
-                    ),
+              // 工具菜单按钮（始终显示）
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: widget.enabled ? _showToolMenu : null,
+                child: Container(
+                  height: 34,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: widget.enabled
+                        ? (brightness == Brightness.dark
+                            ? CupertinoColors.systemGrey6.darkColor
+                            : CupertinoColors.systemGrey6.color)
+                        : (brightness == Brightness.dark
+                            ? CupertinoColors.systemGrey5.darkColor
+                            : CupertinoColors.systemGrey5.color),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(
+                    CupertinoIcons.add,
+                    size: 22,
+                    color: widget.enabled
+                        ? (brightness == Brightness.dark
+                            ? CupertinoColors.systemGrey.darkColor
+                            : CupertinoColors.systemGrey)
+                        : (brightness == Brightness.dark
+                            ? CupertinoColors.systemGrey4.darkColor
+                            : CupertinoColors.systemGrey4),
                   ),
                 ),
-                const SizedBox(width: 8),
-              ],
-              // 预留位置给未来其他功能
-              // 可以在这里添加更多开关或按钮
+              ),
             ],
           ),
         ],
       ),
+    );
+  }
+
+  /// 构建选中的活跃工具按钮
+  Widget _buildActiveToolButton() {
+    final l10n = AppLocalizations.of(context)!;
+    final brightness = CupertinoTheme.of(context).brightness;
+
+    switch (widget.selectedActiveTool) {
+      case 'thinking':
+        return CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: widget.enabled
+              ? () => widget.onThinkingModeChanged!(!widget.thinkingMode)
+              : null,
+          child: Container(
+            height: 34,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: widget.enabled
+                  ? (widget.thinkingMode
+                      ? (brightness == Brightness.dark
+                          ? CupertinoColors.systemBlue.darkColor.withAlpha(51)
+                          : CupertinoColors.systemBlue.color.withAlpha(38))
+                      : (brightness == Brightness.dark
+                          ? CupertinoColors.systemGrey6.darkColor
+                          : CupertinoColors.systemGrey6.color))
+                  : (brightness == Brightness.dark
+                      ? CupertinoColors.systemGrey5.darkColor
+                      : CupertinoColors.systemGrey5.color),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  CupertinoIcons.lightbulb,
+                  size: 19,
+                  color: widget.enabled
+                      ? (widget.thinkingMode
+                          ? (brightness == Brightness.dark
+                              ? CupertinoColors.systemBlue.darkColor
+                              : CupertinoColors.systemBlue.color)
+                          : (brightness == Brightness.dark
+                              ? CupertinoColors.systemGrey.darkColor
+                              : CupertinoColors.systemGrey))
+                      : (brightness == Brightness.dark
+                          ? CupertinoColors.systemGrey4.darkColor
+                          : CupertinoColors.systemGrey4),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  l10n.deepThinking,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: widget.enabled
+                        ? (widget.thinkingMode
+                            ? (brightness == Brightness.dark
+                                ? CupertinoColors.systemBlue.darkColor
+                                : CupertinoColors.systemBlue.color)
+                            : (brightness == Brightness.dark
+                                ? CupertinoColors.systemGrey.darkColor
+                                : CupertinoColors.systemGrey))
+                        : (brightness == Brightness.dark
+                            ? CupertinoColors.systemGrey4.darkColor
+                            : CupertinoColors.systemGrey4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+
+      case 'preset':
+        return CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: widget.enabled ? _showPresetMenu : null,
+          child: Container(
+            height: 34,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: widget.enabled
+                  ? (widget.promptPresetEnabled
+                      ? (brightness == Brightness.dark
+                          ? CupertinoColors.systemBlue.darkColor.withAlpha(51)
+                          : CupertinoColors.systemBlue.color.withAlpha(38))
+                      : (brightness == Brightness.dark
+                          ? CupertinoColors.systemGrey6.darkColor
+                          : CupertinoColors.systemGrey6.color))
+                  : (brightness == Brightness.dark
+                      ? CupertinoColors.systemGrey5.darkColor
+                      : CupertinoColors.systemGrey5.color),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  CupertinoIcons.person_fill,
+                  size: 19,
+                  color: widget.enabled
+                      ? (widget.promptPresetEnabled
+                          ? (brightness == Brightness.dark
+                              ? CupertinoColors.systemBlue.darkColor
+                              : CupertinoColors.systemBlue.color)
+                          : (brightness == Brightness.dark
+                              ? CupertinoColors.systemGrey.darkColor
+                              : CupertinoColors.systemGrey))
+                      : (brightness == Brightness.dark
+                          ? CupertinoColors.systemGrey4.darkColor
+                          : CupertinoColors.systemGrey4),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  widget.promptPresetEnabled && widget.currentPresetId.isNotEmpty
+                      ? _getPresetName(widget.currentPresetId)
+                      : l10n.rolePlay,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: widget.enabled
+                        ? (widget.promptPresetEnabled
+                            ? (brightness == Brightness.dark
+                                ? CupertinoColors.systemBlue.darkColor
+                                : CupertinoColors.systemBlue.color)
+                            : (brightness == Brightness.dark
+                                ? CupertinoColors.systemGrey.darkColor
+                                : CupertinoColors.systemGrey))
+                        : (brightness == Brightness.dark
+                            ? CupertinoColors.systemGrey4.darkColor
+                            : CupertinoColors.systemGrey4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+
+      case 'model':
+        return CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: widget.enabled ? widget.onShowModelSelector : null,
+          child: Container(
+            height: 34,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: widget.enabled
+                  ? (brightness == Brightness.dark
+                      ? CupertinoColors.systemGrey6.darkColor
+                      : CupertinoColors.systemGrey6.color)
+                  : (brightness == Brightness.dark
+                      ? CupertinoColors.systemGrey5.darkColor
+                      : CupertinoColors.systemGrey5.color),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  CupertinoIcons.cube_box,
+                  size: 19,
+                  color: widget.enabled
+                      ? (brightness == Brightness.dark
+                          ? CupertinoColors.systemGrey.darkColor
+                          : CupertinoColors.systemGrey)
+                      : (brightness == Brightness.dark
+                          ? CupertinoColors.systemGrey4.darkColor
+                          : CupertinoColors.systemGrey4),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  widget.currentModelName.isEmpty ? l10n.model : widget.currentModelName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: widget.enabled
+                        ? (brightness == Brightness.dark
+                            ? CupertinoColors.systemGrey.darkColor
+                            : CupertinoColors.systemGrey)
+                        : (brightness == Brightness.dark
+                            ? CupertinoColors.systemGrey4.darkColor
+                            : CupertinoColors.systemGrey4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  /// 显示工具选择菜单
+  void _showToolMenu() {
+    final l10n = AppLocalizations.of(context)!;
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => CupertinoActionSheet(
+        actions: [
+          // 深度思考选项
+          if (widget.onThinkingModeChanged != null)
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(context);
+                widget.onThinkingModeChanged!(true);
+              },
+              child: _buildActionSheetItem(
+                icon: CupertinoIcons.lightbulb,
+                title: l10n.deepThinking,
+                isSelected: widget.selectedActiveTool == 'thinking',
+                isActive: widget.thinkingMode,
+              ),
+            ),
+
+          // 角色扮演选项
+          if (widget.onPromptPresetEnabledChanged != null)
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(context);
+                widget.onPromptPresetEnabledChanged!(true);
+                Future.microtask(() => _showPresetMenu());
+              },
+              child: _buildActionSheetItem(
+                icon: CupertinoIcons.person_fill,
+                title: widget.promptPresetEnabled && widget.currentPresetId.isNotEmpty
+                    ? _getPresetName(widget.currentPresetId)
+                    : l10n.rolePlay,
+                isSelected: widget.selectedActiveTool == 'preset',
+                isActive: widget.promptPresetEnabled,
+              ),
+            ),
+
+          // 模型选择选项
+          if (widget.onShowModelSelector != null)
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(context);
+                Future.microtask(() => widget.onShowModelSelector!());
+              },
+              child: _buildActionSheetItem(
+                icon: CupertinoIcons.cube_box,
+                title: widget.currentModelName.isEmpty ? l10n.model : widget.currentModelName,
+                isSelected: widget.selectedActiveTool == 'model',
+                isActive: false,
+              ),
+            ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          child: Text(l10n.cancel),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+    );
+  }
+
+  /// 构建ActionSheet菜单项
+  Widget _buildActionSheetItem({
+    required IconData icon,
+    required String title,
+    required bool isSelected,
+    required bool isActive,
+  }) {
+    final brightness = CupertinoTheme.of(context).brightness;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          icon,
+          size: 20,
+          color: isActive
+              ? (brightness == Brightness.dark
+                  ? CupertinoColors.systemBlue.darkColor
+                  : CupertinoColors.systemBlue.color)
+              : (brightness == Brightness.dark
+                  ? CupertinoColors.systemGrey.darkColor
+                  : CupertinoColors.systemGrey),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+            color: brightness == Brightness.dark
+                ? CupertinoColors.white
+                : CupertinoColors.black,
+          ),
+        ),
+        if (isSelected) ...[
+          const SizedBox(width: 8),
+          Icon(
+            CupertinoIcons.checkmark_alt,
+            size: 20,
+            color: CupertinoColors.systemBlue,
+          ),
+        ],
+      ],
     );
   }
 

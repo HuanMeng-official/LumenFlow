@@ -62,6 +62,8 @@ class _ChatScreenState extends State<ChatScreen> {
   Conversation? _currentConversation;
   String _currentTitle = '';
   bool _autoTitleGenerated = false; // 是否已经自动生成过标题
+  String _currentModel = ''; // 当前选中的模型
+  String? _selectedActiveTool; // 当前选中的活跃工具: 'thinking', 'preset', 'model', or null
 
   @override
   void initState() {
@@ -78,6 +80,8 @@ class _ChatScreenState extends State<ChatScreen> {
     super.didChangeDependencies();
     // 在这里加载当前对话,确保可以访问 AppLocalizations
     _loadCurrentConversation();
+    // 加载当前模型
+    _loadCurrentModel();
   }
 
   /// 检查应用配置状态
@@ -104,6 +108,14 @@ class _ChatScreenState extends State<ChatScreen> {
       _promptPresetEnabled = promptPresetEnabled;
       _currentPresetId = currentPresetId;
       _presets = presets;
+      // 根据当前启用的模式设置选中的活跃工具
+      if (thinkingMode) {
+        _selectedActiveTool = 'thinking';
+      } else if (promptPresetEnabled && currentPresetId.isNotEmpty) {
+        _selectedActiveTool = 'preset';
+      } else {
+        _selectedActiveTool = null;
+      }
     });
   }
 
@@ -235,6 +247,8 @@ class _ChatScreenState extends State<ChatScreen> {
   void _handleThinkingModeChanged(bool enabled) {
     setState(() {
       _thinkingMode = enabled;
+      // 如果启用了思考模式，则标记为选中；否则取消选中
+      _selectedActiveTool = enabled ? 'thinking' : null;
     });
     // 保存到设置服务
     _settingsService.setThinkingMode(enabled);
@@ -244,6 +258,8 @@ class _ChatScreenState extends State<ChatScreen> {
   void _handlePromptPresetEnabledChanged(bool enabled) {
     setState(() {
       _promptPresetEnabled = enabled;
+      // 如果启用了预设模式，则标记为选中；否则取消选中
+      _selectedActiveTool = enabled ? 'preset' : null;
     });
     // 保存到设置服务
     _settingsService.setPromptPresetEnabled(enabled);
@@ -656,6 +672,9 @@ class _ChatScreenState extends State<ChatScreen> {
               currentPresetId: _currentPresetId,
               onPresetSelected: _handlePresetSelected,
               presets: _presets,
+              onShowModelSelector: _showModelSelector,
+              currentModelName: _currentModel,
+              selectedActiveTool: _selectedActiveTool,
             ),
           ],
         ),
@@ -688,6 +707,135 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       ),
     );
+  }
+
+  /// 加载当前模型
+  Future<void> _loadCurrentModel() async {
+    final currentPlatform = await _settingsService.getCurrentPlatform();
+    if (currentPlatform != null && currentPlatform.defaultModel.isNotEmpty) {
+      setState(() {
+        _currentModel = currentPlatform.defaultModel;
+      });
+    } else {
+      // 如果没有配置平台，使用旧版本的模型设置
+      final oldModel = await _settingsService.getModel();
+      setState(() {
+        _currentModel = oldModel;
+      });
+    }
+  }
+
+  /// 显示模型选择器
+  ///
+  /// 显示底部菜单让用户选择模型
+  Future<void> _showModelSelector() async {
+    final currentPlatform = await _settingsService.getCurrentPlatform();
+
+    if (!mounted) return;
+
+    final l10n = AppLocalizations.of(context)!;
+
+    if (currentPlatform == null) {
+      if (mounted) {
+        showCupertinoDialog(
+          context: context,
+          builder: (context) => CupertinoAlertDialog(
+            title: const Text('未配置平台'),
+            content: const Text('请先在设置中配置AI平台'),
+            actions: [
+              CupertinoDialogAction(
+                child: Text(l10n.ok),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+        );
+      }
+      return;
+    }
+
+    final availableModels = currentPlatform.availableModels;
+
+    if (availableModels.isEmpty) {
+      if (mounted) {
+        showCupertinoDialog(
+          context: context,
+          builder: (context) => CupertinoAlertDialog(
+            title: const Text('暂无可用模型'),
+            content: const Text('当前平台没有可用的模型列表，请在设置中刷新模型列表'),
+            actions: [
+              CupertinoDialogAction(
+                child: Text(l10n.ok),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+        );
+      }
+      return;
+    }
+
+    if (!mounted) return;
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => CupertinoActionSheet(
+        title: Text(l10n.currentModel),
+        message: Text(currentPlatform.name),
+        actions: availableModels.map((model) {
+          return CupertinoActionSheetAction(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  _getModelIcon(currentPlatform.type),
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(model),
+                if (model == currentPlatform.defaultModel) ...[
+                  const SizedBox(width: 8),
+                  Icon(
+                    CupertinoIcons.checkmark_alt,
+                    color: CupertinoColors.systemBlue,
+                    size: 20,
+                  ),
+                ],
+              ],
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              _selectModel(model);
+            },
+          );
+        }).toList(),
+        cancelButton: CupertinoActionSheetAction(
+          child: Text(l10n.cancel),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+    );
+  }
+
+  /// 根据平台类型获取图标
+  IconData _getModelIcon(String platformType) {
+    return CupertinoIcons.cube_box;
+  }
+
+  /// 选择模型
+  Future<void> _selectModel(String model) async {
+    final currentPlatform = await _settingsService.getCurrentPlatform();
+    if (currentPlatform == null) return;
+
+    // 更新当前平台的默认模型
+    await _settingsService.updatePlatformModels(
+      currentPlatform.id,
+      currentPlatform.availableModels, // 保持现有的可用模型列表
+      newDefaultModel: model,
+    );
+
+    // 重新加载当前模型
+    await _loadCurrentModel();
   }
 
   /// 显示更多选项菜单
