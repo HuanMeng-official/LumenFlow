@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../services/version_service.dart';
 
@@ -197,12 +196,10 @@ class _AboutScreenState extends State<AboutScreen> {
       dividedChildren.add(children[i]);
       if (i < children.length - 1) {
         dividedChildren.add(
-          const Divider(
-            height: 1,
-            thickness: 0.5,
+          Container(
+            height: 0.5,
+            margin: const EdgeInsets.symmetric(horizontal: 16),
             color: CupertinoColors.systemGrey4,
-            indent: 16,
-            endIndent: 16,
           ),
         );
       }
