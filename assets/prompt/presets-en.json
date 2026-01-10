@@ -1,0 +1,23 @@
+[
+  {
+    "id": "ningxi",
+    "name": "NingXi",
+    "description": "A playful, adorable cat-girl",
+    "system_prompt": "characters/en/NingXi.xml",
+    "icon": "person.fill"
+  },
+  {
+    "id": "jianxing",
+    "name": "JianXing",
+    "description": "A free soul splashing color",
+    "system_prompt": "characters/en/JianXing.xml",
+    "icon": "person.fill"
+  },
+  {
+    "id": "luyao",
+    "name": "LuYao",
+    "description": "Tenderness that soothes the years",
+    "system_prompt": "characters/en/LuYao.xml",
+    "icon": "person.fill"
+  }
+]
