@@ -7,13 +7,6 @@
     "icon": "person.fill"
   },
   {
-    "id": "jianxing",
-    "name": "简星",
-    "description": "泼洒色彩的自由灵魂",
-    "system_prompt": "characters/zh/JianXing.xml",
-    "icon": "person.fill"
-  },
-  {
     "id": "luyao",
     "name": "陆瑶",
     "description": "抚平岁月的温柔",
