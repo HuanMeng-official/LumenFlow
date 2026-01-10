@@ -15,6 +15,7 @@ LumenFlow (Chinese: 流光) is a modern AI chat application built with Flutter t
 ## Features
 
 - **Multi-AI Model Support**: Seamlessly switch between OpenAI, Google Gemini and Claude APIs
+- **Multi-AI Platform Management**: Configure and manage multiple AI platforms with independent settings, model lists, and platform-specific configurations
 - **Multi-Modal Support**: Process images, videos, and audio files with vision capabilities
 - **Streaming Responses**: Real-time streaming output for responsive chat experience
 - **File Attachments**: Upload and extract content from various file types
@@ -50,14 +51,16 @@ lib/
 │   ├── message.dart          # Message model
 │   ├── user_profile.dart     # User profile model
 │   ├── attachment.dart       # Attachment model (files, images, etc.)
-│   └── prompt_preset.dart    # Prompt preset model
+│   ├── prompt_preset.dart    # Prompt preset model
+│   └── ai_platform.dart      # AI platform configuration model
 ├── screens/                  # UI screens
 │   ├── chat_screen.dart      # Main chat interface
 │   ├── conversation_list_screen.dart  # Conversation history
 │   ├── settings_screen.dart  # Application settings
 │   ├── user_profile_screen.dart  # User profile management
 │   ├── about_screen.dart     # About page with app information
-│   └── image_preview_screen.dart  # Image preview and viewing
+│   ├── image_preview_screen.dart  # Image preview and viewing
+│   └── platform_settings_screen.dart  # AI platform and model configuration screen
 ├── services/                 # Business logic and API integration
 │   ├── ai_service.dart       # AI service (OpenAI, Gemini & DeepSeek integration)
 │   ├── conversation_service.dart  # Conversation management
@@ -94,6 +97,9 @@ lib/
 - [path_provider](https://pub.dev/packages/path_provider) - Path resolution
 - [path](https://pub.dev/packages/path) - Path manipulation
 - [flutter_localizations](https://api.flutter.dev/flutter/flutter_localizations/flutter_localizations-library.html) - Flutter localization support
+- [flutter_svg](https://pub.dev/packages/flutter_svg) - SVG image rendering for platform icons
+- [pdf](https://pub.dev/packages/pdf) - PDF file generation and processing
+- [archive](https://pub.dev/packages/archive) - Archive file (ZIP) creation and extraction
 
 ## Architecture
 
@@ -113,12 +119,13 @@ The application follows a layered architecture pattern:
 - `UserProfile`: Stores user-specific settings and preferences
 - `Attachment`: Represents file attachments (images, videos, audio, documents) with metadata
 - `PromptPreset`: Represents pre-configured prompt presets with role-playing character settings
+- `AIPlatform`: Represents AI platform configuration with API endpoints, models, and platform-specific settings
 
 ### Services
 
 - `AIService`: Handles communication with OpenAI, Google Gemini, and DeepSeek APIs, including request formatting, response parsing, and multi-modal support
 - `ConversationService`: Manages local conversation storage and retrieval
-- `SettingsService`: Manages application settings and configuration
+- `SettingsService`: Manages application settings and configuration, including multi-AI platform management, configuration migration, and platform-specific settings
 - `UserService`: Manages user profile data
 - `FileService`: Handles file operations, including reading, processing, and extracting content from attachments
 - `PromptService`: Manages prompt preset data and configuration
@@ -135,14 +142,32 @@ The application uses a provider-based architecture for AI integration:
 
 This architecture allows for easy addition of new AI providers while maintaining a consistent interface across all providers.
 
+### Multi-AI Platform Management
+
+LumenFlow now supports managing multiple AI platforms simultaneously. Each platform can have its own configuration, model lists, and settings. Key features include:
+
+- **Multiple Platform Support**: Configure and manage multiple AI platforms (OpenAI, Claude, DeepSeek, Gemini) in a single application
+- **Platform Switching**: Easily switch between configured platforms during conversations
+- **Model Management**: Each platform maintains its own model list, with support for automatic model list fetching from APIs
+- **Platform Icons**: Visual identification with platform-specific SVG icons
+- **Configuration Migration**: Automatic migration from legacy single-platform configuration to multi-platform configuration
+- **Platform-Specific Settings**: Each platform can have independent API endpoints, authentication methods, and model parameters
+
+The platform management interface is accessible through the "Platform & Models" section in the settings screen.
+
 ## Configuration
 
-Before using the application, you need to configure it with your AI API keys:
+Before using the application, you need to configure at least one AI platform with your API keys:
 
 1. Navigate to the Settings screen
-2. Enter your API Key
-3. Select your preferred AI provider
-4. Optionally adjust model parameters (model, temperature, max tokens)
+2. Select "Platform & Models" to access platform configuration
+3. Add a new platform or edit an existing one
+4. Enter the platform name, API endpoint, and API key
+5. Configure model parameters (default model, temperature, max tokens)
+6. Save the platform configuration
+7. Set the platform as active for use in conversations
+
+You can configure multiple platforms and switch between them as needed.
 
 ### Supported AI Providers
 
@@ -168,10 +193,18 @@ Before using the application, you need to configure it with your AI API keys:
 
 ### Default Values
 
-- Default Provider: OpenAI
-- Default Model: `gpt-5.2` (OpenAI), `gemini-3-flash-preview` (Gemini), `deepseek-chat` (DeepSeek), or `claude-sonnet-4-5` (Claude)
-- Temperature: `0.7`
-- Max Tokens: `1000`
+When configuring a new platform, the following default values are used:
+
+- **Default Platform Type**: OpenAI
+- **Default Models**:
+  - OpenAI: `gpt-5.2`
+  - Gemini: `gemini-3-flash-preview`
+  - DeepSeek: `deepseek-chat`
+  - Claude: `claude-sonnet-4-5`
+- **Temperature**: `0.7`
+- **Max Tokens**: `1000`
+
+Note: These defaults apply when creating a new platform configuration. You can customize these values for each platform independently.
 
 ### Prompt Presets
 
@@ -201,8 +234,8 @@ LumenFlow includes an advanced role-playing system with file-based prompt preset
 ```json
 {
   "id": "ningxi",
-  "name": "宁汐",
-  "description": "俏皮可爱的猫娘",
+  "name": "NingXi",
+  "description": "A playful, adorable cat-girl",
   "system_prompt": "characters/zh(or en)/NingXi.xml",
   "icon": "person.fill"
 }

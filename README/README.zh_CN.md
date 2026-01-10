@@ -15,6 +15,7 @@ LumenFlow（中文名：流光）是一款使用 Flutter 构建的现代化 AI �
 ## 功能特性
 
 - **多AI模型支持**: 支持 OpenAI、Google Gemini 和 Claude API，可无缝切换
+- **多AI平台管理**: 配置和管理多个AI平台，支持独立的设置、模型列表和平台特定配置
 - **多模态支持**: 处理图像、视频和音频文件，支持视觉能力
 - **流式响应**: 实时流式输出，提供响应式聊天体验
 - **文件附件**: 上传和提取各种文件类型的内容
@@ -50,14 +51,16 @@ lib/
 │   ├── message.dart          # 消息模型
 │   ├── user_profile.dart     # 用户配置模型
 │   ├── attachment.dart       # 附件模型（文件、图像等）
-│   └── prompt_preset.dart    # 预设提示词模型
+│   ├── prompt_preset.dart    # 预设提示词模型
+│   └── ai_platform.dart      # AI平台配置模型
 ├── screens/                  # UI 界面
 │   ├── chat_screen.dart      # 主聊天界面
 │   ├── conversation_list_screen.dart  # 对话历史记录
 │   ├── settings_screen.dart  # 应用设置
 │   ├── user_profile_screen.dart  # 用户配置管理
 │   ├── about_screen.dart     # 关于页面，显示应用信息
-│   └── image_preview_screen.dart  # 图片预览和查看
+│   ├── image_preview_screen.dart  # 图片预览和查看
+│   └── platform_settings_screen.dart  # AI平台与模型配置界面
 ├── services/                 # 业务逻辑和 API 集成
 │   ├── ai_service.dart       # AI 服务（OpenAI、Gemini 和 DeepSeek 集成）
 │   ├── conversation_service.dart  # 对话管理
@@ -93,6 +96,9 @@ lib/
 - [path_provider](https://pub.dev/packages/path_provider) - 路径解析
 - [path](https://pub.dev/packages/path) - 路径操作
 - [flutter_localizations](https://api.flutter.dev/flutter/flutter_localizations/flutter_localizations-library.html) - Flutter 本地化支持
+- [flutter_svg](https://pub.dev/packages/flutter_svg) - SVG图像渲染，用于平台图标显示
+- [pdf](https://pub.dev/packages/pdf) - PDF文件生成和处理
+- [archive](https://pub.dev/packages/archive) - 压缩文件（ZIP）创建和解压
 
 ## 架构
 
@@ -112,12 +118,13 @@ lib/
 - `UserProfile`: 存储用户特定的设置和偏好
 - `Attachment`: 表示文件附件（图像、视频、音频、文档）及其元数据
 - `PromptPreset`: 表示预配置的提示词预设，包含角色扮演角色设置
+- `AIPlatform`: 表示AI平台配置，包含API端点、模型列表和平台特定设置
 
 ### 服务
 
 - `AIService`: 处理与 OpenAI、Google Gemini 和 DeepSeek API 的通信，包括请求格式化、响应解析和多模态支持
 - `ConversationService`: 管理本地对话存储和检索
-- `SettingsService`: 管理应用程序设置和配置
+- `SettingsService`: 管理应用程序设置和配置，包括多AI平台管理、配置迁移和平台特定设置
 - `UserService`: 管理用户配置数据
 - `FileService`: 处理文件操作，包括读取、处理和从附件中提取内容
 - `PromptService`: 管理提示词预设数据和配置
@@ -134,14 +141,32 @@ lib/
 
 这种架构允许轻松添加新的 AI 提供商，同时保持所有提供商之间的一致接口。
 
+### 多AI平台管理
+
+LumenFlow 现在支持同时管理多个 AI 平台。每个平台都可以有自己的配置、模型列表和设置。主要功能包括：
+
+- **多平台支持**：在单个应用程序中配置和管理多个 AI 平台（OpenAI、Claude、DeepSeek、Gemini）
+- **平台切换**：在对话过程中轻松在已配置的平台之间切换
+- **模型管理**：每个平台维护自己的模型列表，支持从 API 自动获取模型列表
+- **平台图标**：通过平台特定的 SVG 图标进行视觉识别
+- **配置迁移**：自动从传统的单平台配置迁移到多平台配置
+- **平台特定设置**：每个平台可以拥有独立的 API 端点、身份验证方法和模型参数
+
+平台管理界面可通过设置界面中的"平台与模型"部分访问。
+
 ## 配置
 
-在使用应用程序之前，需要配置您的 AI API 密钥：
+在使用应用程序之前，需要至少配置一个 AI 平台并输入 API 密钥：
 
 1. 导航到设置界面
-2. 输入您的密钥
-3. 选择您偏好的 AI 提供商（OpenAI、Gemini、DeepSeek 或 Claude）
-4. 可选地调整模型参数（模型、温度、最大 tokens 数）
+2. 选择"平台与模型"进入平台配置界面
+3. 添加新平台或编辑现有平台
+4. 输入平台名称、API 端点和 API 密钥
+5. 配置模型参数（默认模型、温度、最大 tokens 数）
+6. 保存平台配置
+7. 将平台设置为活动状态以用于对话
+
+您可以根据需要配置多个平台并在它们之间切换。
 
 ### 支持的 AI 提供商
 
@@ -167,10 +192,18 @@ lib/
 
 ### 默认值
 
-- 默认提供商：OpenAI
-- 默认模型：`gpt-5.2`（OpenAI）、`gemini-3-flash-preview`（Gemini）、`deepseek-chat`（DeepSeek）或 `claude-sonnet-4.5`（Claude）
-- 温度：`0.7`
-- 最大 Tokens 数：`1000`
+配置新平台时，使用以下默认值：
+
+- **默认平台类型**：OpenAI
+- **默认模型**：
+  - OpenAI：`gpt-5.2`
+  - Gemini：`gemini-3-flash-preview`
+  - DeepSeek：`deepseek-chat`
+  - Claude：`claude-sonnet-4.5`
+- **温度**：`0.7`
+- **最大 Tokens 数**：`1000`
+
+注意：这些默认值在创建新平台配置时应用。您可以为每个平台独立自定义这些值。
 
 ### 预设提示词（角色扮演系统）
 
