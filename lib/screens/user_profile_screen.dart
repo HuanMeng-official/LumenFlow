@@ -394,7 +394,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       child: Container(
                         decoration: BoxDecoration(
                           color: _userProfile?.avatarEmoji == emoji
-                              ? CupertinoColors.systemBlue.withOpacity(0.2)
+                              ? CupertinoColors.systemBlue.withValues(alpha: 0.2)
                               : (brightness == Brightness.dark
                                   ? CupertinoColors.systemGrey6.darkColor
                                   : CupertinoColors.systemGrey6.color),

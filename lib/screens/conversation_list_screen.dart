@@ -164,7 +164,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
 
                       return Container(
                         color: isCurrentConversation
-                            ? CupertinoColors.systemBlue.withOpacity(0.1)
+                            ? CupertinoColors.systemBlue.withValues(alpha: 0.1)
                             : null,
                         child: CupertinoListTile(
                           title: Text(

@@ -621,7 +621,7 @@ class _ChatScreenState extends State<ChatScreen> {
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
-                color: CupertinoColors.systemYellow.withOpacity(0.2),
+                color: CupertinoColors.systemYellow.withValues(alpha: 0.2),
                 child: Row(
                   children: [
                     const Icon(

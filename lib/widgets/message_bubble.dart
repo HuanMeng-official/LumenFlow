@@ -57,14 +57,14 @@ class _MessageBubbleState extends State<MessageBubble> {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: widget.message.isUser
-              ? CupertinoColors.systemBlue.withOpacity(0.2)
+              ? CupertinoColors.systemBlue.withValues(alpha: 0.2)
               : (brightness == Brightness.dark
                   ? CupertinoColors.systemGrey5.darkColor
                   : CupertinoColors.systemGrey5.color),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: widget.message.isUser
-                ? CupertinoColors.systemBlue.withOpacity(0.3)
+                ? CupertinoColors.systemBlue.withValues(alpha: 0.3)
                 : (brightness == Brightness.dark
                     ? CupertinoColors.systemGrey4.darkColor
                     : CupertinoColors.systemGrey4.color),
@@ -133,7 +133,7 @@ class _MessageBubbleState extends State<MessageBubble> {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: widget.message.isUser
-              ? CupertinoColors.systemBlue.withOpacity(0.3)
+              ? CupertinoColors.systemBlue.withValues(alpha: 0.3)
               : (brightness == Brightness.dark
                   ? CupertinoColors.systemGrey4.darkColor
                   : CupertinoColors.systemGrey4.color),
@@ -253,9 +253,9 @@ class _MessageBubbleState extends State<MessageBubble> {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
                   color: widget.message.isUser
-                      ? CupertinoColors.systemBlue.withOpacity(0.85)
+                      ? CupertinoColors.systemBlue.withValues(alpha: 0.85)
                       : (widget.message.status == MessageStatus.error
-                          ? CupertinoColors.systemRed.withOpacity(0.1)
+                          ? CupertinoColors.systemRed.withValues(alpha: 0.1)
                           : (brightness == Brightness.dark
                               ? CupertinoColors.systemGrey6.darkColor
                               : CupertinoColors.systemGrey6.color)),
