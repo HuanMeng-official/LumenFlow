@@ -389,6 +389,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get licenses => '开源许可';
 
   @override
+  String get sponsor => '赞助';
+
+  @override
+  String get sponsorDesc => '如果觉得这个应用对你有帮助，欢迎扫码赞助支持开发';
+
+  @override
   String get copyright => '© 2025 幻梦official';
 
   @override

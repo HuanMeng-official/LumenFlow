@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../l10n/app_localizations.dart';
 import '../services/version_service.dart';
 
@@ -52,7 +53,7 @@ class _AboutScreenState extends State<AboutScreen> {
                 _buildSection(context, l10n.appInfo, [
                   _buildInfoTile(l10n.version, version),
                   _buildInfoTile(l10n.buildDate, buildDate),
-                  _buildInfoTile(l10n.developer, '幻梦official'),
+                  _buildDeveloperTile(l10n.developer, '幻梦official'),
                 ]),
                 // 功能介绍部分
                 _buildSection(context, l10n.features, [
@@ -83,6 +84,10 @@ class _AboutScreenState extends State<AboutScreen> {
                   _buildLicenseTile('Cupertino Icons', 'MIT License'),
                   _buildLicenseTile('HTTP', 'Apache License 2.0'),
                   _buildLicenseTile('Shared Preferences', 'Apache License 2.0'),
+                ]),
+                // 赞助码部分
+                _buildSection(context, l10n.sponsor, [
+                  _buildSponsorTile(isDarkMode),
                 ]),
                 // 版权声明
                 _buildCopyrightSection(isDarkMode),
@@ -301,6 +306,79 @@ class _AboutScreenState extends State<AboutScreen> {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeveloperTile(String title, String value) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          GestureDetector(
+            onTap: () async {
+              final Uri url = Uri.parse('https://github.com/HuanMeng-official');
+              if (await canLaunchUrl(url)) {
+                await launchUrl(url, mode: LaunchMode.externalApplication);
+              }
+            },
+            child: Row(
+              children: [
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: CupertinoColors.activeBlue,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+                const Icon(
+                  CupertinoIcons.link,
+                  size: 16,
+                  color: CupertinoColors.activeBlue,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSponsorTile(bool isDarkMode) {
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Center(
+            child: Image.asset(
+              'assets/collection_code.png',
+              width: 200,
+              height: 200,
+              fit: BoxFit.contain,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            l10n.sponsorDesc,
+            style: TextStyle(
+              fontSize: 13,
+              color: isDarkMode
+                  ? CupertinoColors.systemGrey.darkColor
+                  : CupertinoColors.systemGrey.color,
+            ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),

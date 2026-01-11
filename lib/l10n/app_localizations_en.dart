@@ -389,6 +389,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get licenses => 'Licenses';
 
   @override
+  String get sponsor => 'Sponsor';
+
+  @override
+  String get sponsorDesc => 'If you find this app helpful, please scan the code to sponsor and support development';
+
+  @override
   String get copyright => '© 2025 幻梦official';
 
   @override

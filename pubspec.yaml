@@ -15,7 +15,7 @@ dependencies:
   http: ^1.5.0
   shared_preferences: ^2.5.3
   intl: any
-  flutter_markdown: ^0.7.7+1
+  flutter_markdown_plus: ^1.0.7
   image_picker: ^1.2.0
   file_picker: ^10.3.7
   path_provider: ^2.1.5
@@ -23,6 +23,7 @@ dependencies:
   flutter_svg: ^2.0.10
   pdf: ^3.11.3
   archive: ^4.0.7
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:
@@ -39,6 +40,7 @@ flutter:
     - assets/prompt/characters/zh/
     - assets/prompt/characters/en/
     - assets/logo.png
+    - assets/collection_code.png
     - assets/platform/
     - pubspec.yaml
 

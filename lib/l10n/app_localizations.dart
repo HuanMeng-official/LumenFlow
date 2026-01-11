@@ -827,6 +827,18 @@ abstract class AppLocalizations {
   /// **'Licenses'**
   String get licenses;
 
+  /// No description provided for @sponsor.
+  ///
+  /// In en, this message translates to:
+  /// **'Sponsor'**
+  String get sponsor;
+
+  /// No description provided for @sponsorDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'If you find this app helpful, please scan the code to sponsor and support development'**
+  String get sponsorDesc;
+
   /// No description provided for @copyright.
   ///
   /// In en, this message translates to:
