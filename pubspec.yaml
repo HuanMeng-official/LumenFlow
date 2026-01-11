@@ -1,7 +1,7 @@
 name: lumen_flow
 description: "Chat With Your AI"
 publish_to: "none"
-version: 1.9.0+190
+version: 2.0.0+0
 
 environment:
   sdk: ^3.10.7
