@@ -455,6 +455,12 @@ abstract class AppLocalizations {
   /// **'Claude API'**
   String get claudeApi;
 
+  /// No description provided for @siliconflowApi.
+  ///
+  /// In en, this message translates to:
+  /// **'SiliconFlow API'**
+  String get siliconflowApi;
+
   /// No description provided for @apiTypeDesc.
   ///
   /// In en, this message translates to:

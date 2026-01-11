@@ -201,6 +201,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get claudeApi => 'Claude API';
 
   @override
+  String get siliconflowApi => 'SiliconFlow API';
+
+  @override
   String get apiTypeDesc => 'Select AI service provider';
 
   @override

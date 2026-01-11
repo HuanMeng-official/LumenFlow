@@ -96,6 +96,10 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Text('Gemini'),
                       ),
+                      'siliconflow': Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text('SiliconFlow'),
+                      ),
                     },
                     groupValue: selectedType,
                     onValueChanged: (value) {
@@ -399,12 +403,8 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
               ),
               onPressed: () async {
                 Navigator.pop(context, true);
-                final newModels = await _refreshPlatformModels(platform);
-                if (newModels != null && mounted) {
-                  setDialogState(() {
-                    models = newModels;
-                  });
-                }
+                // 刷新模型列表
+                await _refreshPlatformModels(platform);
               },
             ),
             if (selectedModel != null)
@@ -484,7 +484,17 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
   Future<List<String>> _fetchModelsFromApi(AIPlatform platform) async {
     final client = HttpClient();
     try {
-      final request = await client.getUrl(Uri.parse('${platform.endpoint}/v1/models'));
+      // 构建正确的模型列表URL
+      String modelsUrl;
+      if (platform.endpoint.endsWith('/v1')) {
+        modelsUrl = '${platform.endpoint}/models';
+      } else if (platform.endpoint.contains('/v1/')) {
+        modelsUrl = '$platform.endpoint/models';
+      } else {
+        modelsUrl = '${platform.endpoint}/v1/models';
+      }
+
+      final request = await client.getUrl(Uri.parse(modelsUrl));
       request.headers.add('Authorization', 'Bearer ${platform.apiKey}');
 
       final response = await request.close();
@@ -894,6 +904,8 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
         return CupertinoIcons.search;
       case 'gemini':
         return CupertinoIcons.star_fill;
+      case 'siliconflow':
+        return CupertinoIcons.flame_fill;
       default:
         return CupertinoIcons.cube_box;
     }

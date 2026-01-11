@@ -9,6 +9,7 @@ import '../providers/openai_provider.dart';
 import '../providers/gemini_provider.dart';
 import '../providers/deepseek_provider.dart';
 import '../providers/claude_provider.dart';
+import '../providers/siliconflow_provider.dart';
 import '../l10n/app_localizations.dart';
 
 /// AI服务类，负责处理与AI模型的通信
@@ -42,7 +43,8 @@ class AIService {
       if ((apiType == 'gemini' && _cachedProvider is GeminiProvider) ||
           (apiType == 'deepseek' && _cachedProvider is DeepSeekProvider) ||
           (apiType == 'claude' && _cachedProvider is ClaudeProvider) ||
-          (apiType != 'gemini' && apiType != 'deepseek' && apiType != 'claude' && _cachedProvider is OpenAIProvider)) {
+          (apiType == 'siliconflow' && _cachedProvider is SiliconFlowProvider) ||
+          (apiType != 'gemini' && apiType != 'deepseek' && apiType != 'claude' && apiType != 'siliconflow' && _cachedProvider is OpenAIProvider)) {
         return _cachedProvider!;
       }
     }
@@ -54,6 +56,8 @@ class AIService {
       _cachedProvider = DeepSeekProvider();
     } else if (apiType == 'claude') {
       _cachedProvider = ClaudeProvider();
+    } else if (apiType == 'siliconflow') {
+      _cachedProvider = SiliconFlowProvider();
     } else {
       _cachedProvider = OpenAIProvider();
     }

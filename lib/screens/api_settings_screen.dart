@@ -61,6 +61,8 @@ class _ApiSettingsScreenState extends State<ApiSettingsScreen> {
         _endpointController.text = 'https://api.deepseek.com';
       } else if (apiType == 'claude') {
         _endpointController.text = 'https://api.anthropic.com';
+      } else if (apiType == 'siliconflow') {
+        _endpointController.text = 'https://api.siliconflow.cn/v1';
       } else {
         _endpointController.text = SettingsService.defaultEndpoint;
       }
@@ -172,6 +174,7 @@ class _ApiSettingsScreenState extends State<ApiSettingsScreen> {
                     'gemini': l10n.geminiApi,
                     'claude': l10n.claudeApi,
                     'deepseek': l10n.deepseekApi,
+                    'siliconflow': l10n.siliconflowApi,
                   },
                   subtitle: l10n.apiTypeDesc,
                   onChanged: (newValue) {

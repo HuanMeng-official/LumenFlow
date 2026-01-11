@@ -549,6 +549,7 @@ class SettingsService {
       AIPlatform.createDefaultPlatform('claude'),
       AIPlatform.createDefaultPlatform('deepseek'),
       AIPlatform.createDefaultPlatform('gemini'),
+      AIPlatform.createDefaultPlatform('siliconflow'),
     ];
   }
 }

@@ -105,6 +105,7 @@
   "geminiApi": "Gemini API",
   "deepseekApi": "DeepSeek API",
   "claudeApi": "Claude API",
+  "siliconflowApi": "SiliconFlow API",
   "apiTypeDesc": "Select AI service provider",
   "apiEndpoint": "API Endpoint",
   "apiEndpointPlaceholder": "Enter API endpoint URL",
