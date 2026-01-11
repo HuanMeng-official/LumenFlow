@@ -201,7 +201,7 @@ LumenFlow 现在支持同时管理多个 AI 平台。每个平台都可以有自
   - DeepSeek：`deepseek-chat`
   - Claude：`claude-sonnet-4.5`
 - **温度**：`0.7`
-- **最大 Tokens 数**：`1000`
+- **最大 Tokens 数**：`4096`
 
 注意：这些默认值在创建新平台配置时应用。您可以为每个平台独立自定义这些值。
 

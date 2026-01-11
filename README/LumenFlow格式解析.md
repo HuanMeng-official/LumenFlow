@@ -21,7 +21,7 @@ Lumenflow 格式是 LumenFlow 应用的自定义设置文件格式，专为应�
         "api_key": "sk-...",
         "model": "gpt-5",
         "temperature": 0.7,
-        "max_tokens": 1000,
+        "max_tokens": 4096,
         "enable_history": true,
         "history_context_length": 100,
         "custom_system_prompt": "",

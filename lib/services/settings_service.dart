@@ -40,7 +40,7 @@ class SettingsService {
   static const String defaultEndpoint = 'https://api.openai.com/v1';
   static const String defaultModel = 'gpt-5';
   static const double defaultTemperature = 0.7;
-  static const int defaultMaxTokens = 1000;
+  static const int defaultMaxTokens = 4096;
   static const bool defaultEnableHistory = true;
   static const int defaultHistoryContextLength = 100;
 

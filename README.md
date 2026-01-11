@@ -202,7 +202,7 @@ When configuring a new platform, the following default values are used:
   - DeepSeek: `deepseek-chat`
   - Claude: `claude-sonnet-4-5`
 - **Temperature**: `0.7`
-- **Max Tokens**: `1000`
+- **Max Tokens**: `4096`
 
 Note: These defaults apply when creating a new platform configuration. You can customize these values for each platform independently.
 
