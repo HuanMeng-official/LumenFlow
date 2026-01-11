@@ -407,6 +407,8 @@ class _LanguageDropdownTile extends StatelessWidget {
     final options = {
       'zh': '简体中文',
       'en': 'English',
+      'ja': '日本語',
+      'ko': '한국어',
     };
 
     final currentLabel = options[value] ?? value;

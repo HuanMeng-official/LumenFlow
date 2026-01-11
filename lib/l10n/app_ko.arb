@@ -1,0 +1,604 @@
+{
+  "@@locale": "ko",
+  "appTitle": "LumenFlow",
+  "appSubtitle": "AI와 대화하기",
+  "chat": "채팅",
+  "settings": "설정",
+  "about": "정보",
+  "conversations": "대화 목록",
+  "newConversation": "새 대화",
+  "noConversations": "아직 대화가 없습니다",
+  "createNewConversation": "새 대화 만들기",
+  "aiAssistant": "AI 어시스턴트",
+  "startChatting": "AI와 채팅을 시작하세요!",
+  "pleaseConfigureAPI": "채팅을 시작하려면 먼저 API 설정을 구성해주세요",
+  "settingsButton": "설정",
+  "needConfiguration": "구성이 필요합니다",
+  "configureAPIPrompt": "설정에서 API 엔드포인트 및 키를 구성해주세요",
+  "cancel": "취소",
+  "confirm": "확인",
+  "save": "저장",
+  "delete": "삭제",
+  "edit": "편집",
+  "ok": "확인",
+  "goToSettings": "설정으로 이동",
+  "clearConversation": "현재 대화 지우기",
+  "clearConversationConfirm": "현재 대화의 모든 메시지를 지우시겠습니까?",
+  "deleteConversation": "대화 삭제",
+  "deleteConversationConfirm": "「{title}」 대화를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+  "@deleteConversationConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "editConversationTitle": "대화 제목 편집",
+  "enterConversationTitle": "대화 제목 입력",
+  "saveSuccess": "저장 성공",
+  "settingsSaved": "설정이 저장되었습니다",
+  "saveFailed": "저장 실패",
+  "saveError": "설정 저장 오류: {error}",
+  "@saveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "resetSettings": "설정 초기화",
+  "resetSettingsConfirm": "기본 설정으로 복원하시겠습니까? 현재 모든 구성이 초기화됩니다.",
+  "exportSettings": "설정 내보내기",
+  "exportSuccess": "내보내기 성공",
+  "exportLocation": "설정이 다음 위치에 성공적으로 내보내졌습니다: {location}\n{path}",
+  "@exportLocation": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      },
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "exportFailed": "내보내기 실패",
+  "exportError": "설정 내보내기 오류: {error}\n\n앱에 저장소 권한이 있는지 확인하고 사용 가능한 저장 공간을 점검해주세요.",
+  "@exportError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "importSettings": "설정 가져오기",
+  "importSettingsConfirm": "현재 설정을 덮어씁니다. 가져오시겠습니까?",
+  "importSuccess": "가져오기 성공",
+  "settingsImported": "설정이 성공적으로 가져와졌습니다.",
+  "importFailed": "가져오기 실패",
+  "importError": "설정 가져오기 오류: {error}",
+  "@importError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "error": "오류",
+  "responseInterrupted": "응답이 중단되었습니다. 앱이 예기치 않게 종료되었을 수 있습니다",
+  "yesterday": "어제",
+  "daysAgo": "{days}일 전",
+  "@daysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "editTitle": "제목 수정",
+  "deleteConversation2": "대화 삭제",
+  "userInfo": "사용자 정보",
+  "userProfile": "사용자 프로필",
+  "userProfileDesc": "아바타 및 사용자 이름 설정",
+  "basicSettings": "기본 설정",
+  "apiType": "API 유형",
+  "openaiApi": "OpenAI API",
+  "geminiApi": "Gemini API",
+  "deepseekApi": "DeepSeek API",
+  "claudeApi": "Claude API",
+  "siliconflowApi": "SiliconFlow API",
+  "apiTypeDesc": "AI 서비스 제공업체 선택",
+  "apiEndpoint": "API 엔드포인트",
+  "apiEndpointPlaceholder": "API 엔드포인트 URL 입력",
+  "apiEndpointDesc": "예: https://api.openai.com/v1",
+  "apiKey": "API 키",
+  "apiKeyPlaceholder": "API 키 입력",
+  "apiKeyDesc": "AI 서비스 제공업체에서 발급받은 인증 키",
+  "modelSettings": "모델 설정",
+  "model": "모델",
+  "modelPlaceholder": "모델 이름 입력",
+  "modelDesc": "예: gpt-5, deepseek-chat",
+  "maxTokens": "최대 토큰 수",
+  "maxTokensPlaceholder": "최대 토큰 수 입력",
+  "maxTokensDesc": "단일 응답 길이 제한, 권장값 500-8000",
+  "systemPrompt": "시스템 프롬프트",
+  "systemPromptPlaceholder": "시스템 프롬프트 입력",
+  "systemPromptDesc": "예: 항상 한국어로 답변하세요",
+  "temperature": "온도",
+  "temperatureDesc": "응답 무작위성 제어, 0.0-2.0, 값이 높을수록 창의적인 응답",
+  "historyConversation": "대화 기록",
+  "enableHistory": "히스토리 활성화",
+  "enableHistoryDesc": "활성화 시 AI는 이전 대화 맥락을 기억하여 더 일관된 응답 제공",
+  "historyRounds": "히스토리 라운드",
+  "historyRoundsPlaceholder": "히스토리 라운드 수 입력",
+  "historyRoundsDesc": "AI가 기억하는 대화 라운드 수, 권장 5-20라운드. 너무 많으면 토큰 제한 초과 가능",
+  "conversationTitle": "대화 제목",
+  "autoGenerateTitle": "자동 제목 생성",
+  "autoGenerateTitleDesc": "여러 라운드 대화 후 AI가 내용 기반으로 자동 제목 생성",
+  "generateTiming": "생성 타이밍",
+  "generateTimingDesc": "자동 제목 생성 전 대화 라운드 수 설정",
+  "rounds": "라운드",
+  "appearance": "테마",
+  "followSystem": "시스템 설정 따르기",
+  "followSystemDesc": "자동으로 시스템 색상 모드 따름",
+  "appColor": "앱 색상",
+  "lightMode": "라이트 모드",
+  "darkMode": "다크 모드",
+  "followSystemSetting": "시스템 따름 ({mode})",
+  "@followSystemSetting": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "selectColorMode": "앱 색상 모드 선택",
+  "others": "기타",
+  "resetToDefault": "기본 설정으로 재설정",
+  "usageInstructions": "사용법",
+  "usageInstructionsContent": "• API 유형: AI 서비스 제공업체(OpenAI, Gemini 또는 DeepSeek) 선택. 선택 후 엔드포인트 및 모델 자동 입력됨\n• API 엔드포인트: AI 서비스 제공업체의 API 주소. 도움말 버튼 클릭하여 일반적인 엔드포인트 보기\n• API 키: 서비스 제공업체에서 발급받은 인증 키. 안전하게 보관하세요\n• 모델: 사용할 AI 모델 이름. 다양한 엔드포인트는 서로 다른 모델 지원\n• 토큰 수: 단일 응답 길이 제한. 너무 작으면 불완전한 응답 발생 가능\n• 온도: 값이 높을수록 창의적인 응답. 권장 0.3-1.0\n• 과거 대화: 활성화 시 AI는 대화 맥락 기억하여 더 일관된 경험 제공",
+  "commonApiEndpoints": "일반적인 API 엔드포인트",
+  "commonApiEndpointsContent": "OpenAI: https://api.openai.com/v1\n\nDeepSeek: https://api.deepseek.com\n\n알리바바 클라우드: https://dashscope.aliyuncs.com/api/v1\n\n사용하는 AI 서비스 제공업체에 따라 해당 엔드포인트 주소 입력.",
+  "commonModels": "일반적인 모델",
+  "commonModelsContent": "OpenAI:\n• gpt-5\n\nDeepSeek:\n• deepseek-chat\n• deepseek-reasoner\n\nAPI 엔드포인트에 따라 해당 모델 선택.",
+  "appInfo": "앱 정보",
+  "version": "버전",
+  "buildDate": "빌드 날짜",
+  "developer": "개발자",
+  "features": "기능",
+  "intelligentConversation": "지능형 대화",
+  "intelligentConversationDesc": "다양한 AI 모델과 자연어 대화 지원",
+  "fileProcessing": "파일 처리",
+  "fileProcessingDesc": "이미지 및 문서 등 다양한 파일 형식 업로드 지원",
+  "historyRecords": "히스토리 기록",
+  "historyRecordsDesc": "맥락 기억 기능 포함 대화 기록 자동 저장",
+  "customSettings": "사용자 정의 설정",
+  "customSettingsDesc": "API 파라미터, 테마 및 개인 설정 유연하게 구성",
+  "licenses": "라이선스",
+  "sponsor": "후원",
+  "sponsorDesc": "이 앱이 도움이 되었다면 코드를 스캔하여 후원하고 개발을 지원해주세요",
+  "copyright": "© 2026 幻梦official",
+  "copyrightNotice": "이 애플리케이션은 학습 및 연구 목적으로만 사용됩니다",
+  "copyrightTerms": "사용 전 관련 API 서비스 약관 준수 여부 확인하세요",
+  "profileSaved": "사용자 프로필이 저장되었습니다",
+  "saveProfileError": "사용자 프로필 저장 오류: {error}",
+  "@saveProfileError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pickAvatarFailed": "아바타 선택 실패",
+  "takePhotoFailed": "사진 촬영 실패",
+  "selectEmojiAvatar": "이모지 아바타 선택",
+  "selectAvatar": "아바타 선택",
+  "selectFromGallery": "갤러리에서 선택",
+  "takePhoto": "사진 촬영",
+  "selectEmoji": "이모지 선택",
+  "tapToChangeAvatar": "탭하여 아바타 변경",
+  "username": "사용자 이름",
+  "usernameHint": "AI는 이 이름으로 사용자를 부릅니다",
+  "enterYourUsername": "사용자 이름 입력",
+  "gender": "성별",
+  "genderHint": "성별 선택",
+  "male": "남성",
+  "female": "여성",
+  "selectGender": "성별 선택",
+  "aboutUserProfile": "사용자 프로필 정보",
+  "aboutUserProfileContent": "• 아바타: 사진 또는 이모지를 아바타로 선택하여 채팅 인터페이스에 표시됨\n• 사용자 이름: AI는 대화 중 이 이름으로 사용자를 부름\n• 모든 정보는 로컬에만 저장되며 서버에 업로드되지 않음",
+  "selectPresetRole": "사전 설정 역할 선택",
+  "selectPresetRoleMessage": "사전 설정 역할을 선택하여 해당 시스템 프롬프트 적용",
+  "closePresetMode": "사전 설정 모드 닫기",
+  "continueAction": "계속",
+  "deepThinking": "심도 있는 사고",
+  "rolePlay": "역할 수행",
+  "language": "언어",
+  "interfaceLanguage": "인터페이스 언어",
+  "selectInterfaceLanguage": "앱 인터페이스 언어 선택",
+  "thinkChain": "사고 체인",
+  "expandChain": "추론 과정 보기",
+  "downloadDirectory": "다운로드 디렉터리",
+  "externalStorageDirectory": "외부 저장 디렉터리",
+  "appDocumentsDirectory": "앱 문서 디렉터리",
+  "imagePreview": "이미지 미리보기",
+  "unableToLoadImage": "이미지를 불러올 수 없음",
+  "errorPrefix": "오류",
+  "fileTooLarge": "파일이 너무 큼",
+  "fileTooLargeMessage": "선택한 파일 총 크기 {size}가 {limit} 제한을 초과합니다. 더 작은 파일을 선택하세요.",
+  "@fileTooLargeMessage": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "fileTooLargeWarning": "파일 크기 경고",
+  "fileTooLargeWarningMessage": "다음 파일은 {limit} 제한을 초과하여 올바르게 처리되지 않을 수 있습니다:\n\n{files}\n\n업로드를 계속하시겠습니까?",
+  "@fileTooLargeWarningMessage": {
+    "placeholders": {
+      "limit": {
+        "type": "String"
+      },
+      "files": {
+        "type": "String"
+      }
+    }
+  },
+  "noValidFiles": "유효한 파일 없음",
+  "noValidFilesMessage": "파일이 성공적으로 처리되지 않았습니다. 다시 시도하세요.",
+  "selectFileFailed": "파일 선택 실패",
+  "selectFileFailedMessage": "오류: {error}",
+  "@selectFileFailedMessage": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "user": "사용자",
+  "ai": "AI",
+  "unknownError": "알 수 없는 오류",
+  "attachmentInfo": "첨부파일: {fileName} ({fileSize}, {mimeType})",
+  "@attachmentInfo": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      },
+      "mimeType": {
+        "type": "String"
+      }
+    }
+  },
+  "attachmentCannotRead": " - 콘텐츠를 읽을 수 없음",
+  "unknownMimeType": "알 수 없는 형식",
+  "multimediaNotSupported": "\n참고: DeepSeek는 이미지, 동영상, 오디오 등의 멀티미디어 파일 처리를 지원하지 않습니다",
+  "responseBlocked": "안전 필터에 의해 응답이 차단됨",
+  "apiError": "API 오류: {message} (상태 코드: {statusCode})",
+  "@apiError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "configureApiKeyFirst": "먼저 설정에서 API 키를 구성해주세요",
+  "selectModelFirst": "먼저 모델을 선택해주세요",
+  "messageInputPlaceholder": "메시지를 입력하세요...",
+  "configureApiSettingsFirst": "먼저 API 설정을 구성해주세요",
+  "baseSystemPrompt": "「{username}」은(는) 사용자 이름입니다. 대화 중 적절히 사용하고 한국어로 응답하세요",
+  "@baseSystemPrompt": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "requestTimeout": "요청 시간 초과: 서버 응답이 너무 오래 걸립니다. 네트워크 연결을 확인하거나 나중에 다시 시도하세요. 오류 세부 정보: {error}",
+  "@requestTimeout": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "networkConnectionFailed": "네트워크 연결 실패: 서버에 연결할 수 없습니다. 네트워크 연결을 확인하세요. 오류 세부 정보: {error}",
+  "@networkConnectionFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "securityConnectionFailed": "보안 연결 실패: SSL/TLS 핸드셰이크 실패, 시스템 시간 또는 네트워크 설정을 확인하세요. 오류 세부 정보: {error}",
+  "@securityConnectionFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionError": "연결 오류: 네트워크 연결 문제 발생, 네트워크 설정을 확인하세요. 오류 세부 정보: {error}",
+  "@connectionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "httpProtocolError": "HTTP 프로토콜 오류: 요청 처리 실패, 나중에 다시 시도하세요. 오류 세부 정보: {error}",
+  "@httpProtocolError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "networkCommunicationFailed": "네트워크 통신 실패: {error}",
+  "@networkCommunicationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "providerFileNotFound": "파일 {fileName}이(가) 존재하지 않거나 삭제됨",
+  "@providerFileNotFound": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "providerFileTooLarge": "파일 {fileName}({fileSize})이(가) 너무 커서 처리할 수 없습니다",
+  "@providerFileTooLarge": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      }
+    }
+  },
+  "providerFileProcessError": "파일 {fileName} 처리 오류: {error}",
+  "@providerFileProcessError": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "providerFileContent": "파일: {fileName} ({fileSize})\n내용:\n{content}",
+  "@providerFileContent": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      },
+      "content": {
+        "type": "String"
+      }
+    }
+  },
+  "providerAttachmentCannotRead": "첨부파일: {fileName} ({fileSize}, {mimeType}) - 콘텐츠를 읽을 수 없음",
+  "@providerAttachmentCannotRead": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      },
+      "mimeType": {
+        "type": "String"
+      }
+    }
+  },
+  "providerAttachmentInfo": "첨부파일: {fileName} ({fileSize}, {mimeType})",
+  "@providerAttachmentInfo": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      },
+      "mimeType": {
+        "type": "String"
+      }
+    }
+  },
+  "providerTotalSizeExceeded": "총 첨부파일 크기가 {limit}MB 제한을 초과했습니다",
+  "@providerTotalSizeExceeded": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "providerInvalidResponseFormat": "API가 잘못된 응답 형식을 반환했습니다",
+  "providerMissingMessageField": "API 응답에 메시지 필드가 누락되었습니다",
+  "providerInvalidResponseFormatWithCode": "API 오류: 잘못된 응답 형식 (상태 코드: {statusCode})",
+  "@providerInvalidResponseFormatWithCode": {
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "providerApiError": "API 오류: {message} (상태 코드: {statusCode})",
+  "@providerApiError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "providerStreamingTimeout": "스트리밍 응답 시간 초과: {seconds}초 동안 새로운 데이터 수신 없음",
+  "@providerStreamingTimeout": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "providerUnknownError": "알 수 없는 오류",
+  "providerUser": "사용자",
+  "providerAi": "AI",
+  "providerTitleGenSystemPrompt": "사용자의 언어 및 대화 내용을 기반으로 짧고 정확한 한글 제목 생성. 15단어 이내. 따옴표나 기타 형식 없이 제목만 반환.",
+  "providerTitleGenUserPrompt": "대화 내용을 기반으로 짧은 한글 제목을 생성해주세요:\n\n{conversationSummary}",
+  "@providerTitleGenUserPrompt": {
+    "placeholders": {
+      "conversationSummary": {
+        "type": "String"
+      }
+    }
+  },
+  "providerMultimediaNotSupported": "\n참고: DeepSeek는 이미지, 동영상, 오디오 등의 멀티미디어 파일 처리를 지원하지 않습니다",
+  "providerGeminiInvalidResponse": "Gemini API가 잘못된 응답 형식을 반환했습니다",
+  "providerGeminiMissingCandidates": "Gemini API 응답에 후보 필드가 누락되었습니다",
+  "providerGeminiInvalidFormat": "잘못된 Gemini API 응답 형식",
+  "providerGeminiError": "Gemini API 오류: {message} (상태 코드: {statusCode})",
+  "@providerGeminiError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "providerGeminiStreamingTimeout": "Gemini 스트리밍 응답 시간 초과: {seconds}초 동안 새로운 데이터 수신 없음",
+  "@providerGeminiStreamingTimeout": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "providerGeminiInvalidFormatWithCode": "Gemini API 오류: 잘못된 응답 형식 (상태 코드: {statusCode})",
+  "@providerGeminiInvalidFormatWithCode": {
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "providerResponseBlocked": "안전 필터에 의해 응답이 차단됨",
+  "platformAndModel": "플랫폼 및 모델",
+  "platformAndModelDesc": "다양한 AI 플랫폼 및 모델 구성 관리",
+  "addPlatform": "플랫폼 추가",
+  "editPlatform": "플랫폼 편집",
+  "platformType": "플랫폼 유형",
+  "platformNamePlaceholder": "플랫폼 이름",
+  "endpointPlaceholder": "API 엔드포인트 URL",
+  "apiKeyPlaceholder": "API 키",
+  "configured": "구성됨",
+  "notConfigured": "구성되지 않음",
+  "models": "모델",
+  "available": "사용 가능",
+  "current": "현재",
+  "currentModel": "현재 모델",
+  "manageModels": "모델 관리",
+  "refreshModels": "모델 새로 고침",
+  "noModelsAvailable": "사용 가능한 모델 없음",
+  "noModelSelected": "모델이 선택되지 않음",
+  "modelsRefreshed": "모델 목록이 새로 고쳐짐",
+  "refreshModelsError": "모델 새로 고침 실패: {error}",
+  "@refreshModelsError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletePlatform": "플랫폼 삭제",
+  "deletePlatformConfirm": "「{name}」 플랫폼을 삭제하시겠습니까?",
+  "@deletePlatformConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "switchToPlatform": "이 플랫폼으로 전환",
+  "switchedToPlatform": "{name}(으)로 전환됨",
+  "@switchedToPlatform": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addModelTitle": "모델 추가",
+  "modelNamePh": "모델 이름",
+  "addModelBtn": "추가",
+  "deleteModelTitle": "모델 삭제",
+  "deleteModelConfirm": "「{model}」 모델을 삭제하시겠습니까?",
+  "@deleteModelConfirm": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteModelBtn": "선택 항목 삭제",
+  "selectModelToDelete": "먼저 삭제할 모델을 선택하세요",
+  "add": "추가",
+  "delete": "삭제",
+  "addNewModel": "새 모델 추가",
+  "clickAddToCreate": "위의 + 버튼을 눌러 모델을 추가하세요",
+  "noPlatformsConfigured": "구성된 플랫폼 없음",
+  "addPlatformHint": "오른쪽 상단의 + 버튼을 눌러 첫 번째 AI 플랫폼을 추가하세요",
+  "exportConversation": "대화 내보내기",
+  "exportFormat": "내보내기 형식",
+  "exportFormatTxt": "일반 텍스트 (.txt)",
+  "exportFormatJson": "JSON (.json)",
+  "exportFormatLumenflow": "Lumenflow (.lumenflow)",
+  "exportFormatPdf": "PDF (.pdf)",
+  "exportConversationSuccess": "대화 내보내기 성공",
+  "exportConversationFailed": "대화 내보내기 실패",
+  "exportConversationError": "대화 내보내기 오류: {error}",
+  "@exportConversationError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "exportConversationTitle": "대화 제목: ",
+  "exportCreatedTime": "생성 시간: ",
+  "exportUpdatedTime": "수정 시간: ",
+  "exportMessageCount": "메시지 수: ",
+  "exportReasoningProcess": "[추론 과정]",
+  "exportAttachments": "[첨부파일: {count}]",
+  "@exportAttachments": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportBytes": "바이트",
+  "exportConversationNotFound": "대화를 찾을 수 없음",
+  "exportThinkingProcess": "사고 과정",
+  "exportAttachmentsLabel": "첨부파일"
+}

@@ -36,9 +36,13 @@ flutter:
   assets:
     - assets/prompt/presets-en.json
     - assets/prompt/presets-zh.json
+    - assets/prompt/presets-ja.json
+    - assets/prompt/presets-ko.json
     - assets/prompt/characters/
     - assets/prompt/characters/zh/
     - assets/prompt/characters/en/
+    - assets/prompt/characters/ja/
+    - assets/prompt/characters/ko/
     - assets/logo.png
     - assets/collection_code.png
     - assets/platform/

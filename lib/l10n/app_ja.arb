@@ -1,0 +1,604 @@
+{
+  "@@locale": "ja",
+  "appTitle": "LumenFlow",
+  "appSubtitle": "AIとチャット",
+  "chat": "チャット",
+  "settings": "設定",
+  "about": "アプリについて",
+  "conversations": "会話履歴",
+  "newConversation": "新しい会話",
+  "noConversations": "まだ会話がありません",
+  "createNewConversation": "新しい会話を開始",
+  "aiAssistant": "AIアシスタント",
+  "startChatting": "AIとのチャットを開始しましょう！",
+  "pleaseConfigureAPI": "チャットを始めるには、まずAPI設定を行ってください",
+  "settingsButton": "設定",
+  "needConfiguration": "設定が必要です",
+  "configureAPIPrompt": "設定画面でAPIエンドポイントとキーを構成してください",
+  "cancel": "キャンセル",
+  "confirm": "確認",
+  "save": "保存",
+  "delete": "削除",
+  "edit": "編集",
+  "ok": "OK",
+  "goToSettings": "設定へ移動",
+  "clearConversation": "現在の会話をクリア",
+  "clearConversationConfirm": "現在の会話のすべてのメッセージをクリアしてもよろしいですか？",
+  "deleteConversation": "会話を削除",
+  "deleteConversationConfirm": "「{title}」の会話を削除してもよろしいですか？この操作は元に戻せません。",
+  "@deleteConversationConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "editConversationTitle": "会話タイトルを編集",
+  "enterConversationTitle": "会話タイトルを入力",
+  "saveSuccess": "保存に成功しました",
+  "settingsSaved": "設定が保存されました",
+  "saveFailed": "保存に失敗しました",
+  "saveError": "設定の保存中にエラーが発生しました: {error}",
+  "@saveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "resetSettings": "設定をリセット",
+  "resetSettingsConfirm": "デフォルト設定を復元してもよろしいですか？現在のすべての構成がクリアされます。",
+  "exportSettings": "設定をエクスポート",
+  "exportSuccess": "エクスポートに成功しました",
+  "exportLocation": "設定は {location} に正常にエクスポートされました:\n{path}",
+  "@exportLocation": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      },
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "exportFailed": "エクスポートに失敗しました",
+  "exportError": "設定のエクスポート中にエラーが発生しました: {error}\n\nアプリがストレージへのアクセス許可を持っていること、および利用可能なストレージ容量を確認してください。",
+  "@exportError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "importSettings": "設定をインポート",
+  "importSettingsConfirm": "これにより現在の設定が上書きされます。本当にインポートしますか？",
+  "importSuccess": "インポートに成功しました",
+  "settingsImported": "設定が正常にインポートされました。",
+  "importFailed": "インポートに失敗しました",
+  "importError": "設定のインポート中にエラーが発生しました: {error}",
+  "@importError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "error": "エラー",
+  "responseInterrupted": "応答が中断されました。アプリが予期せず終了した可能性があります",
+  "yesterday": "昨日",
+  "daysAgo": "{days}日前",
+  "@daysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "editTitle": "タイトルを編集",
+  "deleteConversation2": "会話を削除",
+  "userInfo": "ユーザー情報",
+  "userProfile": "ユーザープロファイル",
+  "userProfileDesc": "アバターとユーザー名を設定",
+  "basicSettings": "基本設定",
+  "apiType": "APIタイプ",
+  "openaiApi": "OpenAI API",
+  "geminiApi": "Gemini API",
+  "deepseekApi": "DeepSeek API",
+  "claudeApi": "Claude API",
+  "siliconflowApi": "SiliconFlow API",
+  "apiTypeDesc": "AIサービスプロバイダーを選択",
+  "apiEndpoint": "APIエンドポイント",
+  "apiEndpointPlaceholder": "APIエンドポイントURLを入力",
+  "apiEndpointDesc": "例: https://api.openai.com/v1",
+  "apiKey": "APIキー",
+  "apiKeyPlaceholder": "APIキーを入力",
+  "apiKeyDesc": "AIサービスプロバイダーから取得した認証キー",
+  "modelSettings": "モデル設定",
+  "model": "モデル",
+  "modelPlaceholder": "モデル名を入力",
+  "modelDesc": "例: gpt-5, deepseek-chat",
+  "maxTokens": "最大トークン数",
+  "maxTokensPlaceholder": "最大トークン数を入力",
+  "maxTokensDesc": "単一応答の長さを制限します。推奨値: 500-8000",
+  "systemPrompt": "システムプロンプト",
+  "systemPromptPlaceholder": "システムプロンプトを入力",
+  "systemPromptDesc": "例: 必ず日本語で回答してください",
+  "temperature": "温度",
+  "temperatureDesc": "応答のランダム性を制御します（0.0-2.0）。値が高いほど創造的な応答になります",
+  "historyConversation": "履歴会話",
+  "enableHistory": "履歴を有効化",
+  "enableHistoryDesc": "有効にすると、AIは以前の会話コンテキストを記憶し、より連続性のある応答を提供します",
+  "historyRounds": "履歴ラウンド数",
+  "historyRoundsPlaceholder": "履歴ラウンド数を入力",
+  "historyRoundsDesc": "AIが記憶する会話ラウンド数。推奨値: 5-20ラウンド。多すぎるとトークン制限を超える可能性があります",
+  "conversationTitle": "会話タイトル",
+  "autoGenerateTitle": "タイトル自動生成",
+  "autoGenerateTitleDesc": "数回の会話後に、AIが内容に基づいてタイトルを自動生成します",
+  "generateTiming": "生成タイミング",
+  "generateTimingDesc": "タイトルを自動生成するまでの会話ラウンド数を設定",
+  "rounds": "ラウンド",
+  "appearance": "外観",
+  "followSystem": "システム設定に従う",
+  "followSystemDesc": "システムのカラーモードに自動的に従います",
+  "appColor": "アプリカラー",
+  "lightMode": "ライトモード",
+  "darkMode": "ダークモード",
+  "followSystemSetting": "システムに従っています ({mode})",
+  "@followSystemSetting": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "selectColorMode": "アプリのカラーモードを選択",
+  "others": "その他",
+  "resetToDefault": "デフォルト設定に戻す",
+  "usageInstructions": "使用方法",
+  "usageInstructionsContent": "• APIタイプ: AIサービスプロバイダー (OpenAI, Gemini, または DeepSeek) を選択します。選択後、エンドポイントとモデルが自動入力されます。\n• APIエンドポイント: AIサービスプロバイダーのAPIアドレスです。ヘルプボタンをクリックして一般的なエンドポイントを表示できます。\n• APIキー: サービスプロバイダーから取得した認証キーです。安全に保管してください。\n• モデル: 使用するAIモデル名です。異なるエンドポイントは異なるモデルをサポートしています。\n• トークン数: 単一応答の長さを制限します。小さすぎると応答が不完全になる可能性があります。\n• 温度: 値が高いほど創造的な応答になります。推奨値: 0.3-1.0\n• 履歴会話: 有効にすると、AIは会話のコンテキストを記憶し、より連続性のある体験を提供します。",
+  "commonApiEndpoints": "よく使われるAPIエンドポイント",
+  "commonApiEndpointsContent": "OpenAI: https://api.openai.com/v1\n\nDeepSeek: https://api.deepseek.com\n\nAlibaba Cloud: https://dashscope.aliyuncs.com/api/v1\n\n使用するAIサービスプロバイダーに応じて、対応するエンドポイントアドレスを入力してください。",
+  "commonModels": "よく使われるモデル",
+  "commonModelsContent": "OpenAI:\n• gpt-5\n\nDeepSeek:\n• deepseek-chat\n• deepseek-reasoner\n\nAPIエンドポイントに応じて対応するモデルを選択してください。",
+  "appInfo": "アプリ情報",
+  "version": "バージョン",
+  "buildDate": "ビルド日",
+  "developer": "開発者",
+  "features": "機能",
+  "intelligentConversation": "インテリジェント会話",
+  "intelligentConversationDesc": "さまざまなAIモデルとの自然言語による会話をサポート",
+  "fileProcessing": "ファイル処理",
+  "fileProcessingDesc": "画像やドキュメントなど、複数のファイル形式のアップロードをサポート",
+  "historyRecords": "履歴記録",
+  "historyRecordsDesc": "会話履歴を自動保存し、コンテキストメモリを備える",
+  "customSettings": "カスタム設定",
+  "customSettingsDesc": "APIパラメータ、テーマ、個人設定などを柔軟に構成可能",
+  "licenses": "ライセンス",
+  "sponsor": "スポンサー",
+  "sponsorDesc": "このアプリが役立った場合は、コードをスキャンしてスポンサーし、開発を支援してください",
+  "copyright": "© 2026 幻夢official",
+  "copyrightNotice": "このアプリケーションは学習と研究目的のみを想定しています",
+  "copyrightTerms": "使用前に関連するAPIサービス規約を遵守していることを確認してください",
+  "profileSaved": "ユーザープロファイルが保存されました",
+  "saveProfileError": "ユーザープロファイルの保存中にエラーが発生しました: {error}",
+  "@saveProfileError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pickAvatarFailed": "アバターの選択に失敗しました",
+  "takePhotoFailed": "写真撮影に失敗しました",
+  "selectEmojiAvatar": "絵文字アバターを選択",
+  "selectAvatar": "アバターを選択",
+  "selectFromGallery": "ギャラリーから選択",
+  "takePhoto": "写真を撮る",
+  "selectEmoji": "絵文字を選択",
+  "tapToChangeAvatar": "タップしてアバターを変更",
+  "username": "ユーザー名",
+  "usernameHint": "AIはこの名前でユーザーを呼びかけます",
+  "enterYourUsername": "ユーザー名を入力",
+  "gender": "性別",
+  "genderHint": "ご自身の性別を選択してください",
+  "male": "男性",
+  "female": "女性",
+  "selectGender": "性別を選択",
+  "aboutUserProfile": "ユーザープロファイルについて",
+  "aboutUserProfileContent": "• アバター: 画像または絵文字をアバターとして選択し、チャットインターフェースに表示されます\n• ユーザー名: AIは会話中、この名前でユーザーを呼びかけます\n• すべての情報はローカルにのみ保存され、サーバーにはアップロードされません",
+  "selectPresetRole": "プリセットロールを選択",
+  "selectPresetRoleMessage": "プリセットロールを選択して、対応するシステムプロンプトを適用します",
+  "closePresetMode": "プリセットモードを閉じる",
+  "continueAction": "続ける",
+  "deepThinking": "深く考え中",
+  "rolePlay": "ロールプレイ",
+  "language": "言語",
+  "interfaceLanguage": "インターフェース言語",
+  "selectInterfaceLanguage": "アプリのインターフェース言語を選択",
+  "thinkChain": "思考の連鎖",
+  "expandChain": "推論プロセスを表示",
+  "downloadDirectory": "ダウンロードディレクトリ",
+  "externalStorageDirectory": "外部ストレージディレクトリ",
+  "appDocumentsDirectory": "アプリ文書ディレクトリ",
+  "imagePreview": "画像プレビュー",
+  "unableToLoadImage": "画像を読み込めません",
+  "errorPrefix": "エラー",
+  "fileTooLarge": "ファイルが大きすぎます",
+  "fileTooLargeMessage": "選択されたファイルの合計サイズ {size} が {limit} の制限を超えています。小さなファイルを選択してください。",
+  "@fileTooLargeMessage": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "fileTooLargeWarning": "ファイルサイズ超過警告",
+  "fileTooLargeWarningMessage": "以下のファイルは {limit} の制限を超えているため、正しく処理できない可能性があります:\n\n{files}\n\nアップロードを続けますか？",
+  "@fileTooLargeWarningMessage": {
+    "placeholders": {
+      "limit": {
+        "type": "String"
+      },
+      "files": {
+        "type": "String"
+      }
+    }
+  },
+  "noValidFiles": "有効なファイルがありません",
+  "noValidFilesMessage": "ファイルが正常に処理されませんでした。もう一度お試しください。",
+  "selectFileFailed": "ファイル選択に失敗しました",
+  "selectFileFailedMessage": "エラー: {error}",
+  "@selectFileFailedMessage": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "user": "ユーザー",
+  "ai": "AI",
+  "unknownError": "不明なエラー",
+  "attachmentInfo": "添付ファイル: {fileName} ({fileSize}, {mimeType})",
+  "@attachmentInfo": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      },
+      "mimeType": {
+        "type": "String"
+      }
+    }
+  },
+  "attachmentCannotRead": " - コンテンツを読み取れません",
+  "unknownMimeType": "不明なタイプ",
+  "multimediaNotSupported": "\n注意: DeepSeekは画像、動画、音声などのマルチメディアファイルの処理をサポートしていません",
+  "responseBlocked": "安全性フィルターによって応答がブロックされました",
+  "apiError": "APIエラー: {message} (ステータスコード: {statusCode})",
+  "@apiError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "configureApiKeyFirst": "まず設定でAPIキーを構成してください",
+  "selectModelFirst": "まずモデルを選択してください",
+  "messageInputPlaceholder": "メッセージを入力...",
+  "configureApiSettingsFirst": "まずAPI設定を行ってください",
+  "baseSystemPrompt": "「{username}」はユーザー名です。会話の中で適切に使用し、日本語で返答してください",
+  "@baseSystemPrompt": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "requestTimeout": "リクエストタイムアウト: サーバー応答が遅すぎます。ネットワーク接続を確認するか、後でもう一度お試しください。エラー詳細: {error}",
+  "@requestTimeout": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "networkConnectionFailed": "ネットワーク接続に失敗しました: サーバーに接続できません。ネットワーク接続を確認してください。エラー詳細: {error}",
+  "@networkConnectionFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "securityConnectionFailed": "セキュリティ接続に失敗しました: SSL/TLSハンドシェイクに失敗しました。システム時刻またはネットワーク設定を確認してください。エラー詳細: {error}",
+  "@securityConnectionFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionError": "接続エラー: ネットワーク接続の問題が発生しました。ネットワーク設定を確認してください。エラー詳細: {error}",
+  "@connectionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "httpProtocolError": "HTTPプロトコルエラー: リクエスト処理に失敗しました。後でもう一度お試しください。エラー詳細: {error}",
+  "@httpProtocolError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "networkCommunicationFailed": "ネットワーク通信に失敗しました: {error}",
+  "@networkCommunicationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "providerFileNotFound": "ファイル {fileName} が存在しないか削除されています",
+  "@providerFileNotFound": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "providerFileTooLarge": "ファイル {fileName} ({fileSize}) が大きすぎて処理できません",
+  "@providerFileTooLarge": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      }
+    }
+  },
+  "providerFileProcessError": "ファイル {fileName} の処理中にエラーが発生しました: {error}",
+  "@providerFileProcessError": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "providerFileContent": "ファイル: {fileName} ({fileSize})\nコンテンツ:\n{content}",
+  "@providerFileContent": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      },
+      "content": {
+        "type": "String"
+      }
+    }
+  },
+  "providerAttachmentCannotRead": "添付ファイル: {fileName} ({fileSize}, {mimeType}) - コンテンツを読み取れません",
+  "@providerAttachmentCannotRead": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      },
+      "mimeType": {
+        "type": "String"
+      }
+    }
+  },
+  "providerAttachmentInfo": "添付ファイル: {fileName} ({fileSize}, {mimeType})",
+  "@providerAttachmentInfo": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      },
+      "mimeType": {
+        "type": "String"
+      }
+    }
+  },
+  "providerTotalSizeExceeded": "添付ファイルの合計サイズが {limit}MB の制限を超えています",
+  "@providerTotalSizeExceeded": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "providerInvalidResponseFormat": "APIが無効な応答形式を返しました",
+  "providerMissingMessageField": "API応答にメッセージフィールドがありません",
+  "providerInvalidResponseFormatWithCode": "APIエラー: 無効な応答形式 (ステータスコード: {statusCode})",
+  "@providerInvalidResponseFormatWithCode": {
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "providerApiError": "APIエラー: {message} (ステータスコード: {statusCode})",
+  "@providerApiError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "providerStreamingTimeout": "ストリーミング応答タイムアウト: {seconds} 秒間新しいデータが受信されませんでした",
+  "@providerStreamingTimeout": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "providerUnknownError": "不明なエラー",
+  "providerUser": "ユーザー",
+  "providerAi": "AI",
+  "providerTitleGenSystemPrompt": "ユーザーの言語と会話内容に基づいて、短くて正確な日本語のタイトルを生成してください。15語以内。タイトルのみを返し、引用符やその他の書式は不要です。",
+  "providerTitleGenUserPrompt": "会話内容に基づいて短い日本語のタイトルを生成してください:\n\n{conversationSummary}",
+  "@providerTitleGenUserPrompt": {
+    "placeholders": {
+      "conversationSummary": {
+        "type": "String"
+      }
+    }
+  },
+  "providerMultimediaNotSupported": "\n注意: DeepSeekは画像、動画、音声などのマルチメディアファイルの処理をサポートしていません",
+  "providerGeminiInvalidResponse": "Gemini APIが無効な応答形式を返しました",
+  "providerGeminiMissingCandidates": "Gemini API応答に候補フィールドがありません",
+  "providerGeminiInvalidFormat": "無効なGemini API応答形式",
+  "providerGeminiError": "Gemini APIエラー: {message} (ステータスコード: {statusCode})",
+  "@providerGeminiError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "providerGeminiStreamingTimeout": "Geminiストリーミング応答タイムアウト: {seconds} 秒間新しいデータが受信されませんでした",
+  "@providerGeminiStreamingTimeout": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "providerGeminiInvalidFormatWithCode": "Gemini APIエラー: 無効な応答形式 (ステータスコード: {statusCode})",
+  "@providerGeminiInvalidFormatWithCode": {
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "providerResponseBlocked": "安全性フィルターによって応答がブロックされました",
+  "platformAndModel": "プラットフォームとモデル",
+  "platformAndModelDesc": "複数のAIプラットフォームとモデル構成を管理",
+  "addPlatform": "プラットフォームを追加",
+  "editPlatform": "プラットフォームを編集",
+  "platformType": "プラットフォームタイプ",
+  "platformNamePlaceholder": "プラットフォーム名",
+  "endpointPlaceholder": "APIエンドポイントURL",
+  "apiKeyPlaceholder": "APIキー",
+  "configured": "構成済み",
+  "notConfigured": "未構成",
+  "models": "モデル",
+  "available": "利用可能",
+  "current": "現在",
+  "currentModel": "現在のモデル",
+  "manageModels": "モデルを管理",
+  "refreshModels": "モデルを更新",
+  "noModelsAvailable": "利用可能なモデルがありません",
+  "noModelSelected": "モデルが選択されていません",
+  "modelsRefreshed": "モデルリストが更新されました",
+  "refreshModelsError": "モデルの更新に失敗しました: {error}",
+  "@refreshModelsError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletePlatform": "プラットフォームを削除",
+  "deletePlatformConfirm": "プラットフォーム「{name}」を削除してもよろしいですか？",
+  "@deletePlatformConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "switchToPlatform": "このプラットフォームに切り替える",
+  "switchedToPlatform": "{name} に切り替えました",
+  "@switchedToPlatform": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addModelTitle": "モデルを追加",
+  "modelNamePh": "モデル名",
+  "addModelBtn": "追加",
+  "deleteModelTitle": "モデルを削除",
+  "deleteModelConfirm": "モデル「{model}」を削除してもよろしいですか？",
+  "@deleteModelConfirm": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteModelBtn": "選択したものを削除",
+  "selectModelToDelete": "まず削除するモデルを選択してください",
+  "add": "追加",
+  "delete": "削除",
+  "addNewModel": "新しいモデルを追加",
+  "clickAddToCreate": "上記の+ボタンをタップしてモデルを追加してください",
+  "noPlatformsConfigured": "プラットフォームが構成されていません",
+  "addPlatformHint": "右上の+ボタンをタップして、最初のAIプラットフォームを追加してください",
+  "exportConversation": "会話をエクスポート",
+  "exportFormat": "エクスポート形式",
+  "exportFormatTxt": "プレーンテキスト (.txt)",
+  "exportFormatJson": "JSON (.json)",
+  "exportFormatLumenflow": "Lumenflow (.lumenflow)",
+  "exportFormatPdf": "PDF (.pdf)",
+  "exportConversationSuccess": "会話のエクスポートに成功しました",
+  "exportConversationFailed": "会話のエクスポートに失敗しました",
+  "exportConversationError": "会話のエクスポート中にエラーが発生しました: {error}",
+  "@exportConversationError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "exportConversationTitle": "会話タイトル: ",
+  "exportCreatedTime": "作成日時: ",
+  "exportUpdatedTime": "更新日時: ",
+  "exportMessageCount": "メッセージ数: ",
+  "exportReasoningProcess": "[推論プロセス]",
+  "exportAttachments": "[添付ファイル: {count}]",
+  "@exportAttachments": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportBytes": "バイト",
+  "exportConversationNotFound": "会話が見つかりません",
+  "exportThinkingProcess": "思考プロセス",
+  "exportAttachmentsLabel": "添付ファイル"
+}

@@ -89,11 +89,11 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "me.huanmeng" "\0"
+            VALUE "CompanyName", "HuanMeng" "\0"
             VALUE "FileDescription", "lumen_flow" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "lumen_flow" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2025 me.huanmeng. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 HuanMeng All rights reserved." "\0"
             VALUE "OriginalFilename", "lumen_flow.exe" "\0"
             VALUE "ProductName", "lumen_flow" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"

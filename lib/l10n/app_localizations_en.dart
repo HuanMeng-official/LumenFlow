@@ -395,7 +395,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sponsorDesc => 'If you find this app helpful, please scan the code to sponsor and support development';
 
   @override
-  String get copyright => '© 2025 幻梦official';
+  String get copyright => '© 2026 幻梦official';
 
   @override
   String get copyrightNotice => 'This application is for learning and research purposes only';
