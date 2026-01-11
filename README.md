@@ -357,3 +357,8 @@ Contributions are welcome! Please feel free to submit issues and pull requests f
 - AI capabilities powered by [OpenAI](https://openai.com/), [Google Gemini](https://gemini.google.com/), and [DeepSeek](https://www.deepseek.com/)
 - Internationalization support using Flutter's localization system
 - Icons provided by [Cupertino Icons](https://pub.dev/packages/cupertino_icons)
+
+## Sponsor
+
+![Code](./assets/collection_code.png)
+If you find this app helpful, please scan the code to sponsor and support development

@@ -357,3 +357,8 @@ flutter build windows --release
 - AI 能力由 [OpenAI](https://openai.com/)、[Google Gemini](https://gemini.google.com/) 和 [DeepSeek](https://www.deepseek.com/) 提供支持
 - 国际化支持使用 Flutter 的本地化系统
 - 图标由 [Cupertino Icons](https://pub.dev/packages/cupertino_icons) 提供
+
+## 赞助
+
+![赞助码](../assets/collection_code.png)
+如果觉得这个应用对你有帮助，欢迎扫码赞助支持开发
