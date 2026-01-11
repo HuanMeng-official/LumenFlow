@@ -900,4 +900,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get exportAttachmentsLabel => '添付ファイル';
+
+  @override
+  String get notificationSettings => '通知設定';
+
+  @override
+  String get enableNotification => '通知を有効にする';
+
+  @override
+  String get enableNotificationDesc => 'AIの回答が完了したときに通知を受け取る';
+
+  @override
+  String get dataManagement => 'データ管理';
 }

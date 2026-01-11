@@ -15,6 +15,7 @@ import 'appearance_settings_screen.dart';
 import '../widgets/settings/settings_section.dart';
 import '../widgets/settings/settings_navigation_tile.dart';
 import '../widgets/settings/settings_action_tile.dart';
+import '../widgets/settings/settings_switch_tile.dart';
 
 /// 应用主设置界面
 ///
@@ -36,6 +37,29 @@ class SettingsScreen extends StatefulWidget {
 /// SettingsScreen的状态类，管理主设置页面的导航和操作
 class _SettingsScreenState extends State<SettingsScreen> {
   final SettingsService _settingsService = SettingsService();
+  bool _notificationEnabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotificationSetting();
+  }
+
+  Future<void> _loadNotificationSetting() async {
+    final enabled = await _settingsService.getNotificationEnabled();
+    if (mounted) {
+      setState(() {
+        _notificationEnabled = enabled;
+      });
+    }
+  }
+
+  void _handleNotificationChanged(bool value) async {
+    await _settingsService.setNotificationEnabled(value);
+    setState(() {
+      _notificationEnabled = value;
+    });
+  }
 
   void _openUserProfile() {
     Navigator.push(
@@ -315,7 +339,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
             SettingsSection(
-              title: l10n.basicSettings,
+              title: l10n.notificationSettings,
+              children: [
+                SettingsSwitchTile(
+                  title: l10n.enableNotification,
+                  subtitle: l10n.enableNotificationDesc,
+                  value: _notificationEnabled,
+                  onChanged: _handleNotificationChanged,
+                ),
+              ],
+            ),
+            SettingsSection(
+              title: l10n.dataManagement,
               children: [
                 SettingsActionTile(
                   icon: CupertinoIcons.arrow_down_doc,

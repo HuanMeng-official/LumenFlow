@@ -900,4 +900,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get exportAttachmentsLabel => '附件';
+
+  @override
+  String get notificationSettings => '通知设置';
+
+  @override
+  String get enableNotification => '启用通知';
+
+  @override
+  String get enableNotificationDesc => '在AI回复完成时收到通知提醒';
+
+  @override
+  String get dataManagement => '数据管理';
 }

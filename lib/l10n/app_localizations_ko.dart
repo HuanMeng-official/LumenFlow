@@ -900,4 +900,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get exportAttachmentsLabel => '첨부파일';
+
+  @override
+  String get notificationSettings => '알림 설정';
+
+  @override
+  String get enableNotification => '알림 사용';
+
+  @override
+  String get enableNotificationDesc => 'AI 응답 완료 시 알림 받기';
+
+  @override
+  String get dataManagement => '데이터 관리';
 }

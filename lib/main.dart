@@ -2,11 +2,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
 import 'services/settings_service.dart';
+import 'services/notification_service.dart';
 import 'screens/chat_screen.dart';
 import 'utils/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 初始化通知服务
+  final notificationService = NotificationService();
+  await notificationService.initialize();
 
   final settingsService = SettingsService();
   try {

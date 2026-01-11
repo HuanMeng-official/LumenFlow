@@ -600,5 +600,9 @@
   "exportBytes": "bytes",
   "exportConversationNotFound": "Conversation not found",
   "exportThinkingProcess": "Thinking Process",
-  "exportAttachmentsLabel": "Attachments"
+  "exportAttachmentsLabel": "Attachments",
+  "notificationSettings": "Notification Settings",
+  "enableNotification": "Enable Notifications",
+  "enableNotificationDesc": "Receive notification when AI response is completed",
+  "dataManagement": "Data Management"
 }

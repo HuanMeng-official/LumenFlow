@@ -7,6 +7,7 @@ import '../models/prompt_preset.dart';
 import '../services/ai_service.dart';
 import '../services/conversation_service.dart';
 import '../services/settings_service.dart';
+import '../services/notification_service.dart';
 import '../services/prompt_service.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/chat_input.dart';
@@ -45,12 +46,13 @@ class ChatScreen extends StatefulWidget {
 /// - _aiService: AI服务，处理与AI模型的通信
 /// - _conversationService: 对话服务，管理对话的CRUD操作
 /// - _settingsService: 设置服务，读取应用配置
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final List<Message> _messages = [];
   final ScrollController _scrollController = ScrollController();
   final AIService _aiService = AIService();
   final ConversationService _conversationService = ConversationService();
   final SettingsService _settingsService = SettingsService();
+  final NotificationService _notificationService = NotificationService();
   final PromptService _promptService = PromptService();
 
   bool _isLoading = false;
@@ -67,11 +69,41 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    // 添加生命周期观察者
+    WidgetsBinding.instance.addObserver(this);
 
     /// 初始化状态时检查应用配置并加载当前对话
     /// 1. 检查API配置是否完成
     /// 2. 加载最近使用的对话或创建新对话
     _checkConfiguration();
+  }
+
+  @override
+  void dispose() {
+    // 移除生命周期观察者
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // 监听应用前后台状态变化
+    switch (state) {
+      case AppLifecycleState.resumed:
+        // 应用回到前台
+        _notificationService.setAppForegroundState(true);
+        debugPrint('应用回到前台');
+        break;
+      case AppLifecycleState.paused:
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+        // 应用进入后台或隐藏
+        _notificationService.setAppForegroundState(false);
+        debugPrint('应用进入后台');
+        break;
+    }
   }
 
   @override
@@ -463,6 +495,15 @@ class _ChatScreenState extends State<ChatScreen> {
           status: MessageStatus.sent,
         );
       });
+
+      // 发送通知（如果通知已启用且应用不在前台）
+      final notificationEnabled = await _settingsService.getNotificationEnabled();
+      if (notificationEnabled) {
+        await _notificationService.showAIResponseCompleted(
+          answerBuffer.toString(),
+          conversationTitle: _currentTitle,
+        );
+      }
     } catch (e) {
       debugPrint('AI消息发送错误: $e');
       debugPrint(e.toString());

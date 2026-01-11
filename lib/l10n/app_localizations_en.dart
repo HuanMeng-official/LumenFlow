@@ -900,4 +900,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exportAttachmentsLabel => 'Attachments';
+
+  @override
+  String get notificationSettings => 'Notification Settings';
+
+  @override
+  String get enableNotification => 'Enable Notifications';
+
+  @override
+  String get enableNotificationDesc => 'Receive notification when AI response is completed';
+
+  @override
+  String get dataManagement => 'Data Management';
 }

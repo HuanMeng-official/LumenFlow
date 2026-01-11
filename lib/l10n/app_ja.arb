@@ -600,5 +600,9 @@
   "exportBytes": "バイト",
   "exportConversationNotFound": "会話が見つかりません",
   "exportThinkingProcess": "思考プロセス",
-  "exportAttachmentsLabel": "添付ファイル"
+  "exportAttachmentsLabel": "添付ファイル",
+  "notificationSettings": "通知設定",
+  "enableNotification": "通知を有効にする",
+  "enableNotificationDesc": "AIの回答が完了したときに通知を受け取る",
+  "dataManagement": "データ管理"
 }

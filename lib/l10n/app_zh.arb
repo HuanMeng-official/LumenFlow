@@ -600,5 +600,9 @@
   "exportBytes": "字节",
   "exportConversationNotFound": "对话不存在",
   "exportThinkingProcess": "思考过程",
-  "exportAttachmentsLabel": "附件"
+  "exportAttachmentsLabel": "附件",
+  "notificationSettings": "通知设置",
+  "enableNotification": "启用通知",
+  "enableNotificationDesc": "在AI回复完成时收到通知提醒",
+  "dataManagement": "数据管理"
 }

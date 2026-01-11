@@ -22,6 +22,7 @@ class SettingsService {
   static const String _autoTitleEnabledKey = 'auto_title_enabled';
   static const String _autoTitleRoundsKey = 'auto_title_rounds';
   static const String _localeKey = 'locale';
+  static const String _notificationEnabledKey = 'notification_enabled';
   // 多平台配置相关的key
   static const String _platformsKey = 'ai_platforms';
   static const String _currentPlatformIdKey = 'current_platform_id';
@@ -36,6 +37,7 @@ class SettingsService {
   static const bool defaultAutoTitleEnabled = true;
   static const int defaultAutoTitleRounds = 3;
   static const String defaultLocale = 'zh';
+  static const bool defaultNotificationEnabled = true;
 
   static const String defaultEndpoint = 'https://api.openai.com/v1';
   static const String defaultModel = 'gpt-5';
@@ -228,6 +230,16 @@ class SettingsService {
     await prefs.setString(_localeKey, locale);
   }
 
+  Future<bool> getNotificationEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_notificationEnabledKey) ?? defaultNotificationEnabled;
+  }
+
+  Future<void> setNotificationEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_notificationEnabledKey, enabled);
+  }
+
   /// 导出所有设置为JSON格式的Map
   /// 返回包含所有设置键值对的Map
   Future<Map<String, dynamic>> exportSettingsToJson() async {
@@ -253,6 +265,7 @@ class SettingsService {
     settings[_autoTitleEnabledKey] = prefs.getBool(_autoTitleEnabledKey) ?? defaultAutoTitleEnabled;
     settings[_autoTitleRoundsKey] = prefs.getInt(_autoTitleRoundsKey) ?? defaultAutoTitleRounds;
     settings[_localeKey] = prefs.getString(_localeKey) ?? defaultLocale;
+    settings[_notificationEnabledKey] = prefs.getBool(_notificationEnabledKey) ?? defaultNotificationEnabled;
 
     // 导出平台设置
     settings[_platformsKey] = prefs.getString(_platformsKey);
@@ -339,6 +352,9 @@ class SettingsService {
     }
     if (settings.containsKey(_localeKey)) {
       await prefs.setString(_localeKey, settings[_localeKey] as String);
+    }
+    if (settings.containsKey(_notificationEnabledKey)) {
+      await prefs.setBool(_notificationEnabledKey, settings[_notificationEnabledKey] as bool);
     }
 
     // 导入平台设置

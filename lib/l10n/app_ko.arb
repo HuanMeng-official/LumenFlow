@@ -600,5 +600,9 @@
   "exportBytes": "바이트",
   "exportConversationNotFound": "대화를 찾을 수 없음",
   "exportThinkingProcess": "사고 과정",
-  "exportAttachmentsLabel": "첨부파일"
+  "exportAttachmentsLabel": "첨부파일",
+  "notificationSettings": "알림 설정",
+  "enableNotification": "알림 사용",
+  "enableNotificationDesc": "AI 응답 완료 시 알림 받기",
+  "dataManagement": "데이터 관리"
 }
