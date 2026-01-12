@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
 import 'services/settings_service.dart';
 import 'services/notification_service.dart';
+import 'services/live_update_service.dart';
 import 'screens/chat_screen.dart';
 import 'utils/app_theme.dart';
 
@@ -12,6 +13,10 @@ void main() async {
   // 初始化通知服务
   final notificationService = NotificationService();
   await notificationService.initialize();
+
+  // 初始化Live Update服务
+  final liveUpdateService = LiveUpdateService();
+  await liveUpdateService.initialize();
 
   final settingsService = SettingsService();
   try {

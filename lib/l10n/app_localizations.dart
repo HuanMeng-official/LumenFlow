@@ -1748,6 +1748,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Data Management'**
   String get dataManagement;
+
+  /// No description provided for @liveUpdateAIResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Response'**
+  String get liveUpdateAIResponse;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -912,4 +912,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataManagement => '数据管理';
+
+  @override
+  String get liveUpdateAIResponse => '回复';
 }

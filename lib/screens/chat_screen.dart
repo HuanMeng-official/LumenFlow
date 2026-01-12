@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'dart:io';
 import '../l10n/app_localizations.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
@@ -8,6 +9,7 @@ import '../services/ai_service.dart';
 import '../services/conversation_service.dart';
 import '../services/settings_service.dart';
 import '../services/notification_service.dart';
+import '../services/live_update_service.dart';
 import '../services/prompt_service.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/chat_input.dart';
@@ -53,6 +55,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final ConversationService _conversationService = ConversationService();
   final SettingsService _settingsService = SettingsService();
   final NotificationService _notificationService = NotificationService();
+  final LiveUpdateService _liveUpdateService = LiveUpdateService();
   final PromptService _promptService = PromptService();
 
   bool _isLoading = false;
@@ -420,6 +423,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     _scrollToBottom();
     await _saveCurrentConversation();
 
+    // 启动Android 16 Live Update通知（如果可用）
+    if (Platform.isAndroid && _liveUpdateService.isAvailable) {
+      await _liveUpdateService.startLiveUpdate(title: l10n.liveUpdateAIResponse);
+    }
+
     final aiMessageId = DateTime.now().millisecondsSinceEpoch.toString();
     var aiMessageIndex = _messages.length;
 
@@ -442,6 +450,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       final historyMessages = _messages.length >= 2
           ? _messages.sublist(0, _messages.length - 2)
           : <Message>[];
+
+      // 停止Live Update通知（开始接收第一个chunk时）
+      bool stopLiveUpdateCalled = false;
+
       final stream = _aiService.sendMessageStreaming(content, historyMessages,
           attachments: attachments, thinkingMode: _thinkingMode,
           presetSystemPrompt: presetSystemPrompt, l10n: l10n);
@@ -450,6 +462,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       int receivedChunks = 0;
 
       await for (final chunk in stream) {
+        // 在接收到第一个chunk时停止Live Update
+        if (!stopLiveUpdateCalled && Platform.isAndroid && _liveUpdateService.isAvailable) {
+          await _liveUpdateService.stopLiveUpdate();
+          stopLiveUpdateCalled = true;
+        }
         receivedChunks++;
         final type = chunk['type'] as String;
         final chunkContent = chunk['content'] as String? ?? '';
@@ -482,6 +499,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
       // 如果没有收到任何chunk，显示错误
       if (receivedChunks == 0) {
+        // 停止Live Update通知
+        if (Platform.isAndroid && _liveUpdateService.isAvailable && !stopLiveUpdateCalled) {
+          await _liveUpdateService.stopLiveUpdate();
+        }
         throw Exception('API未返回任何响应内容');
       }
 
@@ -505,6 +526,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         );
       }
     } catch (e) {
+      // 停止Live Update通知（如果还在运行）
+      if (Platform.isAndroid && _liveUpdateService.isAvailable) {
+        await _liveUpdateService.stopLiveUpdate();
+      }
+
       debugPrint('AI消息发送错误: $e');
       debugPrint(e.toString());
       setState(() {

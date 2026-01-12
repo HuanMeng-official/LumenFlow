@@ -912,4 +912,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get dataManagement => '데이터 관리';
+
+  @override
+  String get liveUpdateAIResponse => '응답';
 }

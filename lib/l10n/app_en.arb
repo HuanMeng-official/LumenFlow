@@ -604,5 +604,6 @@
   "notificationSettings": "Notification Settings",
   "enableNotification": "Enable Notifications",
   "enableNotificationDesc": "Receive notification when AI response is completed",
-  "dataManagement": "Data Management"
+  "dataManagement": "Data Management",
+  "liveUpdateAIResponse": "Response"
 }

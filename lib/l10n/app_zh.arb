@@ -604,5 +604,6 @@
   "notificationSettings": "通知设置",
   "enableNotification": "启用通知",
   "enableNotificationDesc": "在AI回复完成时收到通知提醒",
-  "dataManagement": "数据管理"
+  "dataManagement": "数据管理",
+  "liveUpdateAIResponse": "回复"
 }

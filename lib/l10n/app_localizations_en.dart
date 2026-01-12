@@ -912,4 +912,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dataManagement => 'Data Management';
+
+  @override
+  String get liveUpdateAIResponse => 'Response';
 }

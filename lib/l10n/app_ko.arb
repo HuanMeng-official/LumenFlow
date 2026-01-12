@@ -604,5 +604,6 @@
   "notificationSettings": "알림 설정",
   "enableNotification": "알림 사용",
   "enableNotificationDesc": "AI 응답 완료 시 알림 받기",
-  "dataManagement": "데이터 관리"
+  "dataManagement": "데이터 관리",
+  "liveUpdateAIResponse": "응답"
 }
