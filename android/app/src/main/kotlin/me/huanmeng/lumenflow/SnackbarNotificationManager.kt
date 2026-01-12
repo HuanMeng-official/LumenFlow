@@ -11,6 +11,7 @@ import androidx.core.app.NotificationCompat.ProgressStyle
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.drawable.IconCompat
+import me.huanmeng.lumenflow.R
 
 object SnackbarNotificationManager {
     private lateinit var notificationManager: NotificationManager
@@ -34,11 +35,9 @@ object SnackbarNotificationManager {
     }
 
     private enum class UpdateState(val delay: Long, val progress: Int) {
-        INITIALIZING(2000, 0),
-        PROCESSING(5000, 25),
-        TRANSFERRING(8000, 50),
-        NEARLY_DONE(11000, 75),
-        COMPLETED(14000, 100);
+        INITIALIZING(1000, 0),
+        PROCESSING(2000, 0),
+        COMPLETED(4000, 100);
 
         @RequiresApi(Build.VERSION_CODES.BAKLAVA)
         fun buildNotification(): NotificationCompat.Builder {
@@ -49,7 +48,7 @@ object SnackbarNotificationManager {
     @RequiresApi(Build.VERSION_CODES.BAKLAVA)
     private fun buildBaseNotification(context: Context, state: UpdateState): NotificationCompat.Builder {
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setOngoing(true)
             .setRequestPromotedOngoing(true)
 
@@ -65,42 +64,15 @@ object SnackbarNotificationManager {
                 builder.setContentTitle("$customTitle: 处理中")
                     .setContentText("正在处理数据...")
                     .setStyle(
-                        buildProgressStyle(state).setProgress(state.progress)
-                    )
-            }
-            UpdateState.TRANSFERRING -> {
-                builder.setContentTitle("$customTitle: 传输中")
-                    .setContentText("正在同步数据...")
-                    .setStyle(
                         buildProgressStyle(state)
                             .setProgressTrackerIcon(
                                 IconCompat.createWithResource(
                                     context,
-                                    android.R.drawable.ic_menu_upload
+                                    R.mipmap.ic_launcher
                                 )
                             )
-                            .setProgress(state.progress)
+                            .setProgressIndeterminate(true)
                     )
-                    .setWhen(System.currentTimeMillis().plus(5 * 60 * 1000))
-                    .setUsesChronometer(true)
-                    .setChronometerCountDown(true)
-            }
-            UpdateState.NEARLY_DONE -> {
-                builder.setContentTitle("$customTitle: 即将完成")
-                    .setContentText("正在完成最后的步骤...")
-                    .setStyle(
-                        buildProgressStyle(state)
-                            .setProgressTrackerIcon(
-                                IconCompat.createWithResource(
-                                    context,
-                                    android.R.drawable.ic_menu_view
-                                )
-                            )
-                            .setProgress(state.progress)
-                    )
-                    .setWhen(System.currentTimeMillis().plus(2 * 60 * 1000))
-                    .setUsesChronometer(true)
-                    .setChronometerCountDown(true)
             }
             UpdateState.COMPLETED -> {
                 builder.setContentTitle("$customTitle: 已完成")
@@ -110,7 +82,7 @@ object SnackbarNotificationManager {
                             .setProgressTrackerIcon(
                                 IconCompat.createWithResource(
                                     context,
-                                    android.R.drawable.checkbox_on_background
+                                    R.mipmap.ic_launcher
                                 )
                             )
                             .setProgress(100)
@@ -128,34 +100,24 @@ object SnackbarNotificationManager {
         val pointColor = Color.valueOf(100f / 255f, 181f / 255f, 246f / 255f, 1f).toArgb()
         val segmentColor = Color.valueOf(129f / 255f, 212f / 255f, 250f / 255f, 1f).toArgb()
 
-        val points = mutableListOf<ProgressStyle.Point>()
-        for (i in 25..100 step 25) {
-            points.add(ProgressStyle.Point(i).setColor(pointColor))
+        return when (state) {
+            UpdateState.COMPLETED -> {
+                val points = mutableListOf<ProgressStyle.Point>()
+                for (i in 25..100 step 25) {
+                    points.add(ProgressStyle.Point(i).setColor(pointColor))
+                }
+                val segments = mutableListOf<ProgressStyle.Segment>()
+                repeat(4) {
+                    segments.add(ProgressStyle.Segment(25).setColor(segmentColor))
+                }
+                NotificationCompat.ProgressStyle()
+                    .setProgressPoints(points)
+                    .setProgressSegments(segments)
+            }
+            else -> {
+                NotificationCompat.ProgressStyle()
+            }
         }
-
-        val segments = mutableListOf<ProgressStyle.Segment>()
-        repeat(4) {
-            segments.add(ProgressStyle.Segment(25).setColor(segmentColor))
-        }
-
-        val completedPoints = when (state) {
-            UpdateState.INITIALIZING -> emptyList()
-            UpdateState.PROCESSING -> emptyList()
-            UpdateState.TRANSFERRING -> listOf(ProgressStyle.Point(25).setColor(pointColor))
-            UpdateState.NEARLY_DONE -> listOf(
-                ProgressStyle.Point(25).setColor(pointColor),
-                ProgressStyle.Point(50).setColor(pointColor)
-            )
-            UpdateState.COMPLETED -> listOf(
-                ProgressStyle.Point(25).setColor(pointColor),
-                ProgressStyle.Point(50).setColor(pointColor),
-                ProgressStyle.Point(75).setColor(pointColor)
-            )
-        }
-
-        return NotificationCompat.ProgressStyle()
-            .setProgressPoints(if (completedPoints.isEmpty()) points else completedPoints)
-            .setProgressSegments(segments)
     }
 
     @RequiresApi(Build.VERSION_CODES.BAKLAVA)
