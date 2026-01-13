@@ -74,6 +74,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   String _currentModel = ''; // 当前选中的模型
   UserProfile? _userProfile; // 全局用户信息，预加载避免每个气泡重复加载
   Timer? _saveTimer; // 防抖保存定时器
+  Timer? _setStateTimer; // 批量setState定时器
+  bool _pendingStateUpdate = false; // 是否有待处理的state更新
 
   @override
   void initState() {
@@ -89,8 +91,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    // 取消防抖保存定时器
+    // 取消所有定时器
     _saveTimer?.cancel();
+    _setStateTimer?.cancel();
     // 移除生命周期观察者
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -258,6 +261,23 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     _saveTimer = Timer(const Duration(milliseconds: 500), () {
       _saveCurrentConversation();
     });
+  }
+
+  /// 批量setState（流式输出期间使用）
+  ///
+  /// 使用定时器合并多个setState调用，减少UI重绘次数
+  /// 每100ms最多触发一次setState，提高流式输出时的流畅度
+  void _batchedSetState(VoidCallback fn) {
+    fn(); // 先执行函数更新数据
+    if (!_pendingStateUpdate) {
+      _pendingStateUpdate = true;
+      _setStateTimer = Timer(const Duration(milliseconds: 100), () {
+        if (mounted) {
+          setState(() {}); // 触发一次UI更新
+        }
+        _pendingStateUpdate = false;
+      });
+    }
   }
 
   /// 滚动消息列表到底部
@@ -503,7 +523,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           answerBuffer.write(chunkContent);
         }
 
-        setState(() {
+        // 使用批量setState合并多次更新，减少UI重绘
+        _batchedSetState(() {
           _messages[aiMessageIndex] = Message(
             id: aiMessageId,
             content: answerBuffer.toString(),
@@ -527,6 +548,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         throw Exception('API未返回任何响应内容');
       }
 
+      // 流式输出结束，立即更新状态
       setState(() {
         _messages[aiMessageIndex] = Message(
           id: aiMessageId,
