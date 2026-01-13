@@ -107,9 +107,12 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
         title: Text(l10n.editConversationTitle),
         content: Padding(
           padding: const EdgeInsets.only(top: 16),
-          child: CupertinoTextField(
-            controller: controller,
-            placeholder: l10n.enterConversationTitle,
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.8,
+            child: CupertinoTextField(
+              controller: controller,
+              placeholder: l10n.enterConversationTitle,
+            ),
           ),
         ),
         actions: [

@@ -28,6 +28,19 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
   bool _isLoading = true;
   final Set<String> _loadingPlatforms = {};
 
+  /// 可用的平台类型列表
+  /// 添加新平台时只需在此列表中添加类型名称
+  static const List<String> _availablePlatformTypes = [
+    'openai',
+    'claude',
+    'deepseek',
+    'gemini',
+    'siliconflow',
+    // 未来添加新平台在这里添加即可，例如：
+    // 'ollama',
+    // 'perplexity',
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -77,41 +90,36 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
                 children: [
                   Text(l10n.platformType),
                   const SizedBox(height: 8),
-                  CupertinoSegmentedControl<String>(
-                    selectedColor: CupertinoColors.activeBlue,
-                    children: {
-                      'openai': Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text('OpenAI'),
+                  SizedBox(
+                    height: 70, // 减小高度
+                    child: GridView.builder(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 5, // 一行5个图标
+                        mainAxisSpacing: 8, // 减小垂直间距
+                        crossAxisSpacing: 8, // 减小水平间距
+                        childAspectRatio: 1, // 正方形图标
                       ),
-                      'claude': Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text('Claude'),
-                      ),
-                      'deepseek': Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text('DeepSeek'),
-                      ),
-                      'gemini': Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text('Gemini'),
-                      ),
-                      'siliconflow': Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text('SiliconFlow'),
-                      ),
-                    },
-                    groupValue: selectedType,
-                    onValueChanged: (value) {
-                      setDialogState(() {
-                        selectedType = value;
-                        // 自动填充默认端点
-                        final defaultPlatform = AIPlatform.createDefaultPlatform(value);
-                        endpointController.text = defaultPlatform.endpoint;
-                      });
-                    },
+                      itemCount: _availablePlatformTypes.length,
+                      itemBuilder: (context, index) {
+                        final type = _availablePlatformTypes[index];
+                        final platform = AIPlatform.createDefaultPlatform(type);
+                        return _buildPlatformTypeButton(
+                          type,
+                          platform.name,
+                          'assets/platform/$type.svg',
+                          selectedType,
+                          (value) {
+                            setDialogState(() {
+                              selectedType = value;
+                              endpointController.text =
+                                  AIPlatform.createDefaultPlatform(value).endpoint;
+                            });
+                          },
+                        );
+                      },
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   CupertinoTextField(
                     controller: nameController,
                     placeholder: l10n.platformNamePlaceholder,
@@ -200,11 +208,68 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
     }
   }
 
+  /// 构建平台类型选择按钮
+  Widget _buildPlatformTypeButton(
+    String type,
+    String label,
+    String svgPath,
+    String currentType,
+    Function(String) onTap,
+  ) {
+    final isSelected = type == currentType;
+    final brightness = CupertinoTheme.of(context).brightness;
+
+    return GestureDetector(
+      onTap: () => onTap(type),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? (brightness == Brightness.dark
+                  ? CupertinoColors.activeBlue.darkColor
+                  : CupertinoColors.activeBlue.color)
+              : (brightness == Brightness.dark
+                  ? CupertinoColors.systemGrey6.darkColor
+                  : CupertinoColors.systemGrey6.color),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected
+                ? CupertinoColors.transparent
+                : (brightness == Brightness.dark
+                    ? CupertinoColors.systemGrey5.darkColor
+                    : CupertinoColors.systemGrey5.color),
+            width: 1,
+          ),
+        ),
+        child: SizedBox(
+          width: 40,
+          height: 40,
+          child: SvgPicture.asset(
+            svgPath,
+            colorFilter: ColorFilter.mode(
+              isSelected
+                  ? CupertinoColors.white
+                  : (brightness == Brightness.dark
+                      ? CupertinoColors.label.darkColor
+                      : CupertinoColors.label.color),
+              BlendMode.srcIn,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   /// 显示模型选择和刷新对话框
   Future<void> _showModelsDialog(AIPlatform platform) async {
     final l10n = AppLocalizations.of(context)!;
     String? selectedModel = platform.defaultModel;
     List<String> models = List.from(platform.availableModels);
+
+    // 根据屏幕大小动态计算对话框高度
+    final screenHeight = MediaQuery.of(context).size.height;
+    final dialogHeight = (screenHeight * 0.6).clamp(200.0, 600.0).toDouble();
+    final listHeight = (dialogHeight - 180.0).toDouble();
 
     final result = await showCupertinoDialog<Object>(
       context: context,
@@ -213,7 +278,7 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
           title: Text('${l10n.manageModels} - ${platform.name}'),
           content: SizedBox(
             width: double.maxFinite,
-            height: 380,
+            height: dialogHeight,
             child: Column(
               children: [
                 // 当前选择的模型
@@ -245,10 +310,13 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
                       context: context,
                       builder: (context) => CupertinoAlertDialog(
                         title: Text(l10n.addModelTitle),
-                        content: CupertinoTextField(
-                          controller: addController,
-                          placeholder: l10n.modelNamePh,
-                          autofocus: true,
+                        content: SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.8,
+                          child: CupertinoTextField(
+                            controller: addController,
+                            placeholder: l10n.modelNamePh,
+                            autofocus: true,
+                          ),
                         ),
                         actions: [
                           CupertinoDialogAction(
@@ -294,7 +362,7 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
                 const SizedBox(height: 8),
                 // 模型列表
                 SizedBox(
-                  height: 200,
+                  height: listHeight,
                   child: models.isEmpty
                       ? Center(
                           child: Column(

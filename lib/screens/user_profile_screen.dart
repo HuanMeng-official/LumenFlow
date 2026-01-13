@@ -337,12 +337,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   void _selectEmojiAvatar() {
     final l10n = AppLocalizations.of(context)!;
+    // 根据屏幕大小动态计算弹窗高度
+    final screenHeight = MediaQuery.of(context).size.height;
+    final popupHeight = (screenHeight * 0.4).clamp(250.0, 400.0).toDouble();
+
     showCupertinoModalPopup(
       context: context,
       builder: (context) {
         final brightness = CupertinoTheme.of(context).brightness;
         return Container(
-          height: 300,
+          height: popupHeight,
           color: brightness == Brightness.dark
               ? CupertinoColors.systemBackground.darkColor
               : CupertinoColors.systemBackground.color,
@@ -379,48 +383,55 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 ),
               ),
               Expanded(
-                child: GridView.builder(
-                  padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 8,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                  ),
-                  itemCount: _emojiAvatars.length,
-                  itemBuilder: (context, index) {
-                    final emoji = _emojiAvatars[index];
-                    return CupertinoButton(
-                      padding: EdgeInsets.zero,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: _userProfile?.avatarEmoji == emoji
-                              ? CupertinoColors.systemBlue.withValues(alpha: 0.2)
-                              : (brightness == Brightness.dark
-                                  ? CupertinoColors.systemGrey6.darkColor
-                                  : CupertinoColors.systemGrey6.color),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Center(
-                          child: Text(
-                            emoji,
-                            style: const TextStyle(fontSize: 24),
-                          ),
-                        ),
+                child: Builder(
+                  builder: (context) {
+                    // 根据屏幕宽度动态计算列数
+                    final screenWidth = MediaQuery.of(context).size.width;
+                    final crossAxisCount = (screenWidth / 50).floor().clamp(5, 10);
+                    return GridView.builder(
+                      padding: const EdgeInsets.all(16),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
                       ),
-                      onPressed: () async {
-                        await _userService
-                            .deleteAvatarImage(_userProfile?.avatarPath);
+                      itemCount: _emojiAvatars.length,
+                      itemBuilder: (context, index) {
+                        final emoji = _emojiAvatars[index];
+                        return CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: _userProfile?.avatarEmoji == emoji
+                                  ? CupertinoColors.systemBlue.withValues(alpha: 0.2)
+                                  : (brightness == Brightness.dark
+                                      ? CupertinoColors.systemGrey6.darkColor
+                                      : CupertinoColors.systemGrey6.color),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Center(
+                              child: Text(
+                                emoji,
+                                style: const TextStyle(fontSize: 24),
+                              ),
+                            ),
+                          ),
+                          onPressed: () async {
+                            await _userService
+                                .deleteAvatarImage(_userProfile?.avatarPath);
 
-                        setState(() {
-                          _userProfile = _userProfile!.copyWith(
-                            avatarEmoji: emoji,
-                            avatarPath: null,
-                          );
-                        });
-                        if (mounted) {
-                          Navigator.pop(
-                              context); // ignore: use_build_context_synchronously
-                        }
+                            setState(() {
+                              _userProfile = _userProfile!.copyWith(
+                                avatarEmoji: emoji,
+                                avatarPath: null,
+                              );
+                            });
+                            if (mounted) {
+                              Navigator.pop(
+                                  context); // ignore: use_build_context_synchronously
+                            }
+                          },
+                        );
                       },
                     );
                   },

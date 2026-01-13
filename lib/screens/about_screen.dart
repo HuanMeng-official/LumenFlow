@@ -364,8 +364,9 @@ class _AboutScreenState extends State<AboutScreen> {
           Center(
             child: Image.asset(
               'assets/collection_code.png',
-              width: 200,
-              height: 200,
+              // 根据屏幕宽度动态计算图片大小
+              width: MediaQuery.of(context).size.width * 0.5,
+              height: MediaQuery.of(context).size.width * 0.5,
               fit: BoxFit.contain,
             ),
           ),

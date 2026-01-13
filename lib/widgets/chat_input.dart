@@ -373,7 +373,7 @@ class _ChatInputState extends State<ChatInput> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(
-                width: 120,
+                width: MediaQuery.of(context).size.width * 0.15,
                 child: Text(
                   attachment.fileName,
                   overflow: TextOverflow.ellipsis,
