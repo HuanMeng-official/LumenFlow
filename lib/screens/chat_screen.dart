@@ -1,16 +1,19 @@
 import 'package:flutter/cupertino.dart';
 import 'dart:io';
+import 'dart:async';
 import '../l10n/app_localizations.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
 import '../models/conversation.dart';
 import '../models/prompt_preset.dart';
+import '../models/user_profile.dart';
 import '../services/ai_service.dart';
 import '../services/conversation_service.dart';
 import '../services/settings_service.dart';
 import '../services/notification_service.dart';
 import '../services/live_update_service.dart';
 import '../services/prompt_service.dart';
+import '../services/user_service.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/chat_input.dart';
 import 'settings_screen.dart';
@@ -57,6 +60,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final NotificationService _notificationService = NotificationService();
   final LiveUpdateService _liveUpdateService = LiveUpdateService();
   final PromptService _promptService = PromptService();
+  final UserService _userService = UserService();
 
   bool _isLoading = false;
   bool _isConfigured = false;
@@ -68,6 +72,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   String _currentTitle = '';
   bool _autoTitleGenerated = false; // 是否已经自动生成过标题
   String _currentModel = ''; // 当前选中的模型
+  UserProfile? _userProfile; // 全局用户信息，预加载避免每个气泡重复加载
+  Timer? _saveTimer; // 防抖保存定时器
 
   @override
   void initState() {
@@ -83,6 +89,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    // 取消防抖保存定时器
+    _saveTimer?.cancel();
     // 移除生命周期观察者
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -122,12 +130,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   ///
   /// 调用设置服务检查API密钥等必要配置是否已设置
   /// 更新_isConfigured状态变量，控制界面显示和交互
+  /// 同时预加载用户头像，避免每个消息气泡重复加载
   Future<void> _checkConfiguration() async {
     final configured = await _settingsService.isConfigured();
     final thinkingMode = await _settingsService.getThinkingMode();
     final promptPresetEnabled = await _settingsService.getPromptPresetEnabled();
     final currentPresetId = await _settingsService.getPromptPresetId();
     final presets = await _promptService.loadPresets();
+    // 预加载用户头像，避免每个消息气泡重复加载
+    final userProfile = await _userService.getUserProfile();
     // 调试日志：检查加载的预设
     debugPrint('Loaded ${presets.length} preset(s)');
     for (final preset in presets) {
@@ -142,6 +153,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _promptPresetEnabled = promptPresetEnabled;
       _currentPresetId = currentPresetId;
       _presets = presets;
+      _userProfile = userProfile;
     });
   }
 
@@ -235,6 +247,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         _currentConversation = updatedConversation;
       });
     }
+  }
+
+  /// 防抖保存对话（流式输出期间使用）
+  ///
+  /// 使用定时器防抖，确保至少每500ms保存一次
+  /// 避免流式输出时每个chunk都触发IO操作，同时保证崩溃时最多丢失500ms的内容
+  void _debouncedSaveConversation() {
+    _saveTimer?.cancel();
+    _saveTimer = Timer(const Duration(milliseconds: 500), () {
+      _saveCurrentConversation();
+    });
   }
 
   /// 滚动消息列表到底部
@@ -491,10 +514,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           );
         });
         _scrollToBottom();
-        // 流式输出过程中实时保存对话，防止应用崩溃时消息丢失
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _saveCurrentConversation();
-        });
+        // 使用防抖保存，避免每次chunk都触发IO操作
+        _debouncedSaveConversation();
       }
 
       // 如果没有收到任何chunk，显示错误
@@ -545,6 +566,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       });
     }
 
+    // 取消防抖定时器并立即保存，确保最后状态被持久化
+    _saveTimer?.cancel();
     _scrollToBottom();
     await _saveCurrentConversation();
 
@@ -714,11 +737,18 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       controller: _scrollController,
                       padding: const EdgeInsets.all(16),
                       itemCount: _messages.length + (_isLoading ? 1 : 0),
+                      // 性能优化配置
+                      addAutomaticKeepAlives: false, // MessageBubble 已使用 AutomaticKeepAliveClientMixin
+                      addRepaintBoundaries: true,   // 隔离重绘，避免整个列表重绘
+                      cacheExtent: 500,              // 预渲染屏幕外 500 像素的消息
                       itemBuilder: (context, index) {
                         if (index == _messages.length && _isLoading) {
                           return const TypingIndicator();
                         }
-                        return MessageBubble(message: _messages[index]);
+                        return MessageBubble(
+                          message: _messages[index],
+                          userProfile: _userProfile,
+                        );
                       },
                     ),
             ),

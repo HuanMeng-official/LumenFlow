@@ -7,40 +7,35 @@ import '../l10n/app_localizations.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
 import '../models/user_profile.dart';
-import '../services/user_service.dart';
 import '../screens/image_preview_screen.dart';
 import 'avatar_widget.dart';
 
 class MessageBubble extends StatefulWidget {
   final Message message;
+  final UserProfile? userProfile; // 外部传入的用户信息，避免重复加载
 
-  const MessageBubble({super.key, required this.message});
+  const MessageBubble({
+    super.key,
+    required this.message,
+    this.userProfile,
+  });
 
   @override
   State<MessageBubble> createState() => _MessageBubbleState();
 }
 
-class _MessageBubbleState extends State<MessageBubble> {
-  final UserService _userService = UserService();
-  UserProfile? _userProfile;
+/// 消息气泡状态，支持缓存机制
+///
+/// 使用 AutomaticKeepAliveClientMixin 确保滚动时 widget 不会被销毁
+/// 避免重复渲染 Markdown 和重新加载用户头像
+class _MessageBubbleState extends State<MessageBubble> with AutomaticKeepAliveClientMixin {
   bool _isReasoningExpanded = false;
 
-  @override
-  void initState() {
-    super.initState();
-    if (widget.message.isUser) {
-      _loadUserProfile();
-    }
-  }
+  // 使用外部传入的用户配置，避免每个气泡重复加载
+  UserProfile? get _userProfile => widget.userProfile;
 
-  Future<void> _loadUserProfile() async {
-    final profile = await _userService.getUserProfile();
-    if (mounted) {
-      setState(() {
-        _userProfile = profile;
-      });
-    }
-  }
+  @override
+  bool get wantKeepAlive => true;
 
   Widget _buildAttachment(Attachment attachment, Brightness brightness) {
     final isImage = attachment.type == AttachmentType.image;
@@ -201,6 +196,8 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // 必须调用，支持 AutomaticKeepAliveClientMixin
+
     final l10n = AppLocalizations.of(context)!;
     final Brightness brightness = CupertinoTheme.of(context).brightness!;
 
