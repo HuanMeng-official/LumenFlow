@@ -82,6 +82,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     super.initState();
     // 添加生命周期观察者
     WidgetsBinding.instance.addObserver(this);
+    // 初始化时检查当前的前台状态
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final isInForeground = WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
+      _notificationService.setAppForegroundState(isInForeground);
+      _liveUpdateService.setAppForegroundState(isInForeground);
+    });
 
     /// 初始化状态时检查应用配置并加载当前对话
     /// 1. 检查API配置是否完成
