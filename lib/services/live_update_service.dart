@@ -20,16 +20,6 @@ class LiveUpdateService {
   bool _isInitialized = false;
   bool _isAvailable = false;
 
-  /// 应用是否在前台
-  bool _isAppInForeground = true;
-
-  /// 设置应用前台状态
-  ///
-  /// [isInForeground] - 应用是否在前台
-  void setAppForegroundState(bool isInForeground) {
-    _isAppInForeground = isInForeground;
-  }
-
   /// 初始化服务
   Future<void> initialize() async {
     if (_isInitialized) return;
@@ -61,12 +51,6 @@ class LiveUpdateService {
   Future<bool> startLiveUpdate({String title = 'LumenFlow'}) async {
     if (!_isAvailable) {
       debugPrint('Live Update 不可用，当前平台或SDK版本不支持');
-      return false;
-    }
-
-    // 如果应用在前台，则不显示 Live Update
-    if (_isAppInForeground) {
-      debugPrint('应用在前台，跳过 Live Update');
       return false;
     }
 
