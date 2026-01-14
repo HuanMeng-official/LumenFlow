@@ -1081,13 +1081,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       // 使用新的导出方法（包含附件）
       bytes = await _conversationService.exportConversationWithAttachments(_currentConversation!.id, format, l10n);
 
-      // 生成文件名
+      // 生成文件名（包含时间戳确保唯一性）
       final safeTitle = _currentConversation!.title.replaceAll(RegExp(r'[^\w\s-]'), '').replaceAll(' ', '_');
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
       if (format == 'pdf') {
-        fileName = '${safeTitle}_${DateTime.now().toIso8601String().substring(0, 10)}.pdf';
+        fileName = '${safeTitle}_$timestamp.pdf';
       } else {
         // 对于ZIP文件，在文件名中包含原始格式信息
-        fileName = '${safeTitle}_${DateTime.now().toIso8601String().substring(0, 10)}_$format.zip';
+        fileName = '${safeTitle}_$timestamp.$format.zip';
       }
 
       // 保存文件
