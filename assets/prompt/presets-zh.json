@@ -12,5 +12,12 @@
     "description": "抚平岁月的温柔",
     "system_prompt": "characters/zh/LuYao.xml",
     "icon": "person.fill"
+  },
+  {
+    "id": "luoling",
+    "name": "洛灵",
+    "description": "妩媚腹黑的深海人鱼",
+    "system_prompt": "characters/zh/LuoLing.xml",
+    "icon": "person.fill"
   }
 ]

@@ -12,5 +12,12 @@
     "description": "Tenderness that soothes the years",
     "system_prompt": "characters/en/LuYao.xml",
     "icon": "person.fill"
+  },
+  {
+    "id": "luoling",
+    "name": "LuoLing",
+    "description": "Seductive and Scheming Mermaid",
+    "system_prompt": "characters/en/LuoLing.xml",
+    "icon": "person.fill"
   }
 ]

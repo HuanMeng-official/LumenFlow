@@ -12,5 +12,12 @@
     "description": "歳月を癒やす優しさ",
     "system_prompt": "characters/ja/LuYao.xml",
     "icon": "person.fill"
+  },
+  {
+    "id": "luoling",
+    "name": "洛霊",
+    "description": "妖艶で腹黒い深海の人魚",
+    "system_prompt": "characters/ja/LuoLing.xml",
+    "icon": "person.fill"
   }
 ]
