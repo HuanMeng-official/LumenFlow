@@ -107,6 +107,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       case AppLifecycleState.resumed:
         // 应用回到前台
         _notificationService.setAppForegroundState(true);
+        _liveUpdateService.setAppForegroundState(true);
         debugPrint('应用回到前台');
         break;
       case AppLifecycleState.paused:
@@ -115,6 +116,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       case AppLifecycleState.hidden:
         // 应用进入后台或隐藏
         _notificationService.setAppForegroundState(false);
+        _liveUpdateService.setAppForegroundState(false);
         debugPrint('应用进入后台');
         break;
     }
