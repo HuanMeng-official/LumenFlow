@@ -19,6 +19,7 @@ class SettingsInputTile extends StatelessWidget {
   final VoidCallback? onVisibilityToggle;
   final VoidCallback? onHelpPressed;
   final int? maxLines;
+  final ValueChanged<String>? onChanged;
 
   const SettingsInputTile({
     super.key,
@@ -33,6 +34,7 @@ class SettingsInputTile extends StatelessWidget {
     this.onVisibilityToggle,
     this.onHelpPressed,
     this.maxLines = 1,
+    this.onChanged,
   });
 
   @override
@@ -89,6 +91,7 @@ class SettingsInputTile extends StatelessWidget {
             obscureText: obscureText,
             keyboardType: keyboardType,
             maxLines: obscureText ? 1 : maxLines,
+            onChanged: onChanged,
             suffix: showVisibilityToggle
                 ? CupertinoButton(
                     padding: EdgeInsets.zero,

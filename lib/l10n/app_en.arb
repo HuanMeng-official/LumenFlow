@@ -605,5 +605,8 @@
   "enableNotification": "Enable Notifications",
   "enableNotificationDesc": "Receive notification when AI response is completed",
   "dataManagement": "Data Management",
-  "liveUpdateAIResponse": "Response"
+  "liveUpdateAIResponse": "Response",
+  "languageChanged": "Language Changed",
+  "restartAppToApplyLanguage": "Please restart the app to apply the language change",
+  "loading": "Loading"
 }

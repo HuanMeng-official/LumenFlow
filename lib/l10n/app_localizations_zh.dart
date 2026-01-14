@@ -915,4 +915,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get liveUpdateAIResponse => '回复';
+
+  @override
+  String get languageChanged => '语言已更改';
+
+  @override
+  String get restartAppToApplyLanguage => '语言更改需要重启应用才能生效';
+
+  @override
+  String get loading => '加载中';
 }

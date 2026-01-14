@@ -915,4 +915,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get liveUpdateAIResponse => '응답';
+
+  @override
+  String get languageChanged => '언어가 변경됨';
+
+  @override
+  String get restartAppToApplyLanguage => '언어 변경 사항을 적용하려면 앱을 다시 시작하세요';
+
+  @override
+  String get loading => '로드 중';
 }

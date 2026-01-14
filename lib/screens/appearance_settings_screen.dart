@@ -11,6 +11,9 @@ import '../widgets/settings/settings_switch_tile.dart';
 /// - 跟随系统主题
 /// - 应用主题颜色
 /// - 界面语言
+///
+/// 设置更改实时保存，无需手动点击保存按钮
+/// 注意：更改语言后需要重启应用才能生效
 class AppearanceSettingsScreen extends StatefulWidget {
   const AppearanceSettingsScreen({super.key});
 
@@ -23,9 +26,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen>
     with WidgetsBindingObserver {
   final SettingsService _settingsService = SettingsService();
   bool _isLoading = true;
-  bool _isSaving = false;
   bool _followSystemTheme = SettingsService.defaultFollowSystemTheme;
-  bool _darkMode = SettingsService.defaultDarkMode;
   String _appTheme = SettingsService.defaultAppTheme;
   String _locale = SettingsService.defaultLocale;
 
@@ -53,68 +54,48 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen>
 
   Future<void> _loadSettings() async {
     final followSystemTheme = await _settingsService.getFollowSystemTheme();
-    final darkMode = await _settingsService.getDarkMode();
     final appTheme = await _settingsService.getAppTheme();
     final locale = await _settingsService.getLocale();
 
     setState(() {
       _followSystemTheme = followSystemTheme;
-      _darkMode = darkMode;
       _appTheme = appTheme;
       _locale = locale;
       _isLoading = false;
     });
   }
 
-  Future<void> _save() async {
+  /// 实时保存跟随系统主题设置
+  Future<void> _onFollowSystemThemeChanged(bool value) async {
     setState(() {
-      _isSaving = true;
+      _followSystemTheme = value;
     });
+    await _settingsService.setFollowSystemTheme(value);
+    _updateAppBrightness();
+  }
 
-    try {
-      await _settingsService.setFollowSystemTheme(_followSystemTheme);
-      await _settingsService.setDarkMode(_darkMode);
-      await _settingsService.setAppTheme(_appTheme);
-      await _settingsService.setLocale(_locale);
+  /// 实时保存应用主题设置
+  Future<void> _onAppThemeChanged(String? newValue) async {
+    if (newValue == null) return;
 
-      if (mounted) {
-        final l10n = AppLocalizations.of(context)!;
-        showCupertinoDialog(
-          context: context,
-          builder: (context) => CupertinoAlertDialog(
-            title: Text(l10n.saveSuccess),
-            content: Text(l10n.settingsSaved),
-            actions: [
-              CupertinoDialogAction(
-                child: Text(l10n.ok),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        final l10n = AppLocalizations.of(context)!;
-        showCupertinoDialog(
-          context: context,
-          builder: (context) => CupertinoAlertDialog(
-            title: Text(l10n.saveFailed),
-            content: Text(l10n.saveError(e.toString())),
-            actions: [
-              CupertinoDialogAction(
-                child: Text(l10n.ok),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-        );
-      }
-    } finally {
-      setState(() {
-        _isSaving = false;
-      });
-    }
+    setState(() {
+      _appTheme = newValue;
+    });
+    await _settingsService.setAppTheme(newValue);
+    _updateAppBrightness();
+  }
+
+  /// 实时保存语言设置
+  Future<void> _onLocaleChanged(String? newValue) async {
+    if (newValue == null || newValue == _locale) return;
+
+    setState(() {
+      _locale = newValue;
+    });
+    await _settingsService.setLocale(newValue);
+
+    // 语言更改需要重启应用才能生效
+    _showRestartDialog();
   }
 
   void _updateAppBrightness() {
@@ -125,6 +106,23 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen>
       brightness = _appTheme == 'dark' ? Brightness.dark : Brightness.light;
     }
     appBrightness.value = brightness;
+  }
+
+  void _showRestartDialog() {
+    final l10n = AppLocalizations.of(context)!;
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text(l10n.languageChanged),
+        content: Text(l10n.restartAppToApplyLanguage),
+        actions: [
+          CupertinoDialogAction(
+            child: Text(l10n.ok),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -143,13 +141,6 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen>
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: Text(l10n.appearance),
-        trailing: _isSaving
-            ? const CupertinoActivityIndicator()
-            : CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: _save,
-                child: Text(l10n.save),
-              ),
       ),
       child: SafeArea(
         child: ListView(
@@ -161,13 +152,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen>
                   title: l10n.followSystem,
                   value: _followSystemTheme,
                   subtitle: l10n.followSystemDesc,
-                  onChanged: (value) async {
-                    setState(() {
-                      _followSystemTheme = value;
-                    });
-                    await _settingsService.setFollowSystemTheme(value);
-                    _updateAppBrightness();
-                  },
+                  onChanged: _onFollowSystemThemeChanged,
                 ),
                 _ThemeDropdownTile(
                   title: l10n.appColor,
@@ -188,15 +173,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen>
                       : l10n.selectColorMode,
                   onChanged: _followSystemTheme
                       ? null
-                      : (newValue) async {
-                          if (newValue != null) {
-                            setState(() {
-                              _appTheme = newValue;
-                            });
-                            await _settingsService.setAppTheme(newValue);
-                            _updateAppBrightness();
-                          }
-                        },
+                      : _onAppThemeChanged,
                 ),
               ],
             ),
@@ -207,13 +184,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen>
                   title: l10n.interfaceLanguage,
                   value: _locale,
                   subtitle: l10n.selectInterfaceLanguage,
-                  onChanged: (newValue) {
-                    if (newValue != null) {
-                      setState(() {
-                        _locale = newValue;
-                      });
-                    }
-                  },
+                  onChanged: _onLocaleChanged,
                 ),
               ],
             ),
@@ -306,8 +277,7 @@ class _ThemeDropdownTile extends StatelessWidget {
                                   style: TextStyle(
                                     color: value == entry.key
                                         ? (popupBrightness == Brightness.dark
-                                            ? CupertinoColors
-                                                .activeBlue.darkColor
+                                            ? CupertinoColors.activeBlue.darkColor
                                             : CupertinoColors.activeBlue.color)
                                         : (popupBrightness == Brightness.dark
                                             ? CupertinoColors.label.darkColor
@@ -464,8 +434,7 @@ class _LanguageDropdownTile extends StatelessWidget {
                                   style: TextStyle(
                                     color: value == entry.key
                                         ? (popupBrightness == Brightness.dark
-                                            ? CupertinoColors
-                                                .activeBlue.darkColor
+                                            ? CupertinoColors.activeBlue.darkColor
                                             : CupertinoColors.activeBlue.color)
                                         : (popupBrightness == Brightness.dark
                                             ? CupertinoColors.label.darkColor

@@ -11,6 +11,8 @@ import '../widgets/settings/settings_switch_tile.dart';
 /// 管理对话相关配置：
 /// - 对话历史记录
 /// - 对话标题自动生成
+///
+/// 设置更改实时保存，无需手动点击保存按钮
 class ConversationSettingsScreen extends StatefulWidget {
   const ConversationSettingsScreen({super.key});
 
@@ -25,7 +27,6 @@ class _ConversationSettingsScreenState
   final TextEditingController _historyContextLengthController =
       TextEditingController();
   bool _isLoading = true;
-  bool _isSaving = false;
   bool _enableHistory = SettingsService.defaultEnableHistory;
   bool _autoTitleEnabled = SettingsService.defaultAutoTitleEnabled;
   int _autoTitleRounds = SettingsService.defaultAutoTitleRounds;
@@ -58,57 +59,36 @@ class _ConversationSettingsScreenState
     });
   }
 
-  Future<void> _save() async {
+  /// 实时保存历史记录开关状态
+  Future<void> _onEnableHistoryChanged(bool value) async {
     setState(() {
-      _isSaving = true;
+      _enableHistory = value;
     });
+    await _settingsService.setEnableHistory(value);
+  }
 
-    try {
-      await _settingsService.setEnableHistory(_enableHistory);
-      await _settingsService.setHistoryContextLength(
-          int.tryParse(_historyContextLengthController.text) ??
-              SettingsService.defaultHistoryContextLength);
-      await _settingsService.setAutoTitleEnabled(_autoTitleEnabled);
-      await _settingsService.setAutoTitleRounds(_autoTitleRounds);
-
-      if (mounted) {
-        final l10n = AppLocalizations.of(context)!;
-        showCupertinoDialog(
-          context: context,
-          builder: (context) => CupertinoAlertDialog(
-            title: Text(l10n.saveSuccess),
-            content: Text(l10n.settingsSaved),
-            actions: [
-              CupertinoDialogAction(
-                child: Text(l10n.ok),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        final l10n = AppLocalizations.of(context)!;
-        showCupertinoDialog(
-          context: context,
-          builder: (context) => CupertinoAlertDialog(
-            title: Text(l10n.saveFailed),
-            content: Text(l10n.saveError(e.toString())),
-            actions: [
-              CupertinoDialogAction(
-                child: Text(l10n.ok),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-        );
-      }
-    } finally {
-      setState(() {
-        _isSaving = false;
-      });
+  /// 实时保存历史记录轮数
+  Future<void> _onHistoryContextLengthChanged(String value) async {
+    final parsed = int.tryParse(value);
+    if (parsed != null && parsed >= 1) {
+      await _settingsService.setHistoryContextLength(parsed);
     }
+  }
+
+  /// 实时保存自动标题开关状态
+  Future<void> _onAutoTitleEnabledChanged(bool value) async {
+    setState(() {
+      _autoTitleEnabled = value;
+    });
+    await _settingsService.setAutoTitleEnabled(value);
+  }
+
+  /// 实时保存自动标题生成轮数
+  Future<void> _onAutoTitleRoundsChanged(double value) async {
+    setState(() {
+      _autoTitleRounds = value.toInt();
+    });
+    await _settingsService.setAutoTitleRounds(value.toInt());
   }
 
   @override
@@ -127,13 +107,6 @@ class _ConversationSettingsScreenState
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: Text(l10n.basicSettings),
-        trailing: _isSaving
-            ? const CupertinoActivityIndicator()
-            : CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: _save,
-                child: Text(l10n.save),
-              ),
       ),
       child: SafeArea(
         child: ListView(
@@ -145,11 +118,7 @@ class _ConversationSettingsScreenState
                   title: l10n.enableHistory,
                   value: _enableHistory,
                   subtitle: l10n.enableHistoryDesc,
-                  onChanged: (value) {
-                    setState(() {
-                      _enableHistory = value;
-                    });
-                  },
+                  onChanged: _onEnableHistoryChanged,
                 ),
                 if (_enableHistory)
                   SettingsInputTile(
@@ -158,6 +127,7 @@ class _ConversationSettingsScreenState
                     placeholder: l10n.historyRoundsPlaceholder,
                     subtitle: l10n.historyRoundsDesc,
                     keyboardType: TextInputType.number,
+                    onChanged: _onHistoryContextLengthChanged,
                   ),
               ],
             ),
@@ -168,11 +138,7 @@ class _ConversationSettingsScreenState
                   title: l10n.autoGenerateTitle,
                   value: _autoTitleEnabled,
                   subtitle: l10n.autoGenerateTitleDesc,
-                  onChanged: (value) {
-                    setState(() {
-                      _autoTitleEnabled = value;
-                    });
-                  },
+                  onChanged: _onAutoTitleEnabledChanged,
                 ),
                 if (_autoTitleEnabled)
                   SettingsSliderTile(
@@ -185,11 +151,7 @@ class _ConversationSettingsScreenState
                     decimalPlaces: 0,
                     valueSuffix: ' ${l10n.rounds}',
                     showValueInRow: true,
-                    onChanged: (value) {
-                      setState(() {
-                        _autoTitleRounds = value.toInt();
-                      });
-                    },
+                    onChanged: _onAutoTitleRoundsChanged,
                   ),
               ],
             ),

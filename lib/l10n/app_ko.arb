@@ -605,5 +605,8 @@
   "enableNotification": "알림 사용",
   "enableNotificationDesc": "AI 응답 완료 시 알림 받기",
   "dataManagement": "데이터 관리",
-  "liveUpdateAIResponse": "응답"
+  "liveUpdateAIResponse": "응답",
+  "languageChanged": "언어가 변경됨",
+  "restartAppToApplyLanguage": "언어 변경 사항을 적용하려면 앱을 다시 시작하세요",
+  "loading": "로드 중"
 }

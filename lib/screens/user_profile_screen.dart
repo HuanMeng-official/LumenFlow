@@ -6,6 +6,9 @@ import '../models/user_profile.dart';
 import '../services/user_service.dart';
 import '../widgets/avatar_widget.dart';
 
+/// 用户信息设置页面
+///
+/// 设置更改实时保存，无需手动点击保存按钮
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
 
@@ -21,7 +24,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   UserProfile? _userProfile;
   String? _gender;
   bool _isLoading = true;
-  bool _isSaving = false;
 
   final List<String> _emojiAvatars = [
     '😊',
@@ -64,6 +66,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     _loadUserProfile();
   }
 
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadUserProfile() async {
     final profile = await _userService.getUserProfile();
     setState(() {
@@ -74,70 +82,60 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     });
   }
 
-  Future<void> _saveUserProfile() async {
+  /// 实时保存用户名变更（防抖）
+  Future<void> _onUsernameChanged() async {
     if (_userProfile == null || _usernameController.text.trim().isEmpty) return;
 
+    final newUsername = _usernameController.text.trim();
+    if (newUsername == _userProfile!.username) return;
+
+    final updatedProfile = _userProfile!.copyWith(username: newUsername);
+    await _userService.saveUserProfile(updatedProfile);
     setState(() {
-      _isSaving = true;
+      _userProfile = updatedProfile;
+    });
+  }
+
+  /// 实时保存性别变更
+  Future<void> _onGenderChanged(String? newValue) async {
+    if (newValue == null || newValue == _gender) return;
+
+    setState(() {
+      _gender = newValue;
     });
 
-    try {
-      final updatedProfile = _userProfile!.copyWith(
-        username: _usernameController.text.trim(),
-        gender: _gender,
-      );
-
+    if (_userProfile != null) {
+      final updatedProfile = _userProfile!.copyWith(gender: newValue);
       await _userService.saveUserProfile(updatedProfile);
       setState(() {
         _userProfile = updatedProfile;
       });
-
-      if (mounted) {
-        final l10n = AppLocalizations.of(context)!;
-        showCupertinoDialog(
-          context: context,
-          builder: (context) => CupertinoAlertDialog(
-            title: Text(l10n.saveSuccess),
-            content: Text(l10n.profileSaved),
-            actions: [
-              CupertinoDialogAction(
-                child: Text(l10n.ok),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        final l10n = AppLocalizations.of(context)!;
-        showCupertinoDialog(
-          context: context,
-          builder: (context) => CupertinoAlertDialog(
-            title: Text(l10n.saveFailed),
-            content: Text(l10n.saveProfileError(e.toString())),
-            actions: [
-              CupertinoDialogAction(
-                child: Text(l10n.ok),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-        );
-      }
-    } finally {
-      setState(() {
-        _isSaving = false;
-      });
     }
   }
 
-  void _onGenderChanged(String? newValue) {
-    if (newValue != null) {
-      setState(() {
-        _gender = newValue;
-      });
-    }
+  /// 实时保存并更新头像
+  Future<void> _updateAvatarWithImage(String newAvatarPath) async {
+    if (_userProfile == null) return;
+
+    await _userService.deleteAvatarImage(_userProfile?.avatarPath);
+    final savedPath = await _userService.saveAvatarImage(File(newAvatarPath));
+
+    setState(() {
+      _userProfile = _userProfile!.copyWith(avatarPath: savedPath, avatarEmoji: null);
+    });
+    await _userService.saveUserProfile(_userProfile!);
+  }
+
+  /// 实时保存并更新表情头像
+  Future<void> _updateAvatarWithEmoji(String emoji) async {
+    if (_userProfile == null) return;
+
+    await _userService.deleteAvatarImage(_userProfile?.avatarPath);
+
+    setState(() {
+      _userProfile = _userProfile!.copyWith(avatarEmoji: emoji, avatarPath: null);
+    });
+    await _userService.saveUserProfile(_userProfile!);
   }
 
   Widget _buildDropdownTile(
@@ -183,8 +181,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     showCupertinoModalPopup<void>(
                       context: context,
                       builder: (BuildContext context) {
-                        final popupBrightness =
-                            CupertinoTheme.of(context).brightness;
+                        final popupBrightness = CupertinoTheme.of(context).brightness;
                         return CupertinoActionSheet(
                           title: Text(title),
                           message: subtitle != null ? Text(subtitle) : null,
@@ -200,8 +197,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                   style: TextStyle(
                                     color: value == entry.key
                                         ? (popupBrightness == Brightness.dark
-                                            ? CupertinoColors
-                                                .activeBlue.darkColor
+                                            ? CupertinoColors.activeBlue.darkColor
                                             : CupertinoColors.activeBlue.color)
                                         : (popupBrightness == Brightness.dark
                                             ? CupertinoColors.label.darkColor
@@ -286,17 +282,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         imageQuality: 80,
       );
 
-      if (image != null) {
-        await _userService.deleteAvatarImage(_userProfile?.avatarPath);
-
-        final savedPath = await _userService.saveAvatarImage(File(image.path));
-
-        setState(() {
-          _userProfile = _userProfile!.copyWith(
-            avatarPath: savedPath,
-            avatarEmoji: null,
-          );
-        });
+      if (image != null && mounted) {
+        await _updateAvatarWithImage(image.path);
       }
     } catch (e) {
       if (mounted) {
@@ -315,17 +302,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         imageQuality: 80,
       );
 
-      if (image != null) {
-        await _userService.deleteAvatarImage(_userProfile?.avatarPath);
-
-        final savedPath = await _userService.saveAvatarImage(File(image.path));
-
-        setState(() {
-          _userProfile = _userProfile!.copyWith(
-            avatarPath: savedPath,
-            avatarEmoji: null,
-          );
-        });
+      if (image != null && mounted) {
+        await _updateAvatarWithImage(image.path);
       }
     } catch (e) {
       if (mounted) {
@@ -337,7 +315,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   void _selectEmojiAvatar() {
     final l10n = AppLocalizations.of(context)!;
-    // 根据屏幕大小动态计算弹窗高度
     final screenHeight = MediaQuery.of(context).size.height;
     final popupHeight = (screenHeight * 0.4).clamp(250.0, 400.0).toDouble();
 
@@ -385,7 +362,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               Expanded(
                 child: Builder(
                   builder: (context) {
-                    // 根据屏幕宽度动态计算列数
                     final screenWidth = MediaQuery.of(context).size.width;
                     final crossAxisCount = (screenWidth / 50).floor().clamp(5, 10);
                     return GridView.builder(
@@ -417,18 +393,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                             ),
                           ),
                           onPressed: () async {
-                            await _userService
-                                .deleteAvatarImage(_userProfile?.avatarPath);
-
-                            setState(() {
-                              _userProfile = _userProfile!.copyWith(
-                                avatarEmoji: emoji,
-                                avatarPath: null,
-                              );
-                            });
+                            final navigator = Navigator.of(context);
+                            await _updateAvatarWithEmoji(emoji);
                             if (mounted) {
-                              Navigator.pop(
-                                  context); // ignore: use_build_context_synchronously
+                              navigator.pop();
                             }
                           },
                         );
@@ -523,6 +491,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final brightness = CupertinoTheme.of(context).brightness;
+
     if (_isLoading) {
       return CupertinoPageScaffold(
         navigationBar: CupertinoNavigationBar(
@@ -531,17 +500,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         child: const Center(child: CupertinoActivityIndicator()),
       );
     }
+    if (_userProfile == null) {
+      return CupertinoPageScaffold(
+        navigationBar: CupertinoNavigationBar(
+          middle: Text(l10n.userInfo),
+        ),
+        child: Center(child: Text(l10n.loading)),
+      );
+    }
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: Text(l10n.userInfo),
-        trailing: _isSaving
-            ? const CupertinoActivityIndicator()
-            : CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: _saveUserProfile,
-                child: Text(l10n.save),
-              ),
       ),
       child: SafeArea(
         child: ListView(
@@ -645,7 +615,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+                        horizontal: 16, vertical: 12,
+                      ),
+                      onChanged: (_) => _onUsernameChanged(),
                     ),
                   ],
                 ),
@@ -713,11 +685,5 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _usernameController.dispose();
-    super.dispose();
   }
 }

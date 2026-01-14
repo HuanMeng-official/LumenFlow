@@ -915,4 +915,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get liveUpdateAIResponse => 'レスポンス';
+
+  @override
+  String get languageChanged => '言語が変更されました';
+
+  @override
+  String get restartAppToApplyLanguage => '言語の変更を適用するにはアプリを再起動してください';
+
+  @override
+  String get loading => '読み込み中';
 }

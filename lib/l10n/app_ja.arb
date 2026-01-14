@@ -605,5 +605,8 @@
   "enableNotification": "通知を有効にする",
   "enableNotificationDesc": "AIの回答が完了したときに通知を受け取る",
   "dataManagement": "データ管理",
-  "liveUpdateAIResponse": "レスポンス"
+  "liveUpdateAIResponse": "レスポンス",
+  "languageChanged": "言語が変更されました",
+  "restartAppToApplyLanguage": "言語の変更を適用するにはアプリを再起動してください",
+  "loading": "読み込み中"
 }

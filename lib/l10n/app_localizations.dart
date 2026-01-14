@@ -1754,6 +1754,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Response'**
   String get liveUpdateAIResponse;
+
+  /// No description provided for @languageChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Language Changed'**
+  String get languageChanged;
+
+  /// No description provided for @restartAppToApplyLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Please restart the app to apply the language change'**
+  String get restartAppToApplyLanguage;
+
+  /// No description provided for @loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading'**
+  String get loading;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
