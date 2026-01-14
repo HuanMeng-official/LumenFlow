@@ -1,0 +1,16 @@
+[
+  {
+    "id": "ningxi",
+    "name": "寧汐",
+    "description": "可愛らしくて遊び心のある猫少女",
+    "system_prompt": "characters/ja/NingXi.xml",
+    "icon": "person.fill"
+  },
+  {
+    "id": "luyao",
+    "name": "陸瑶",
+    "description": "歳月を癒やす優しさ",
+    "system_prompt": "characters/ja/LuYao.xml",
+    "icon": "person.fill"
+  }
+]
