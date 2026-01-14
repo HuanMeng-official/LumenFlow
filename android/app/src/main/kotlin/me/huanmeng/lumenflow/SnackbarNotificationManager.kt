@@ -12,6 +12,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.drawable.IconCompat
 import me.huanmeng.lumenflow.R
+import java.util.concurrent.atomic.AtomicBoolean
 
 object SnackbarNotificationManager {
     private lateinit var notificationManager: NotificationManager
@@ -21,6 +22,11 @@ object SnackbarNotificationManager {
     const val CHANNEL_ID = "live_updates_channel_id"
     private const val CHANNEL_NAME = "LumenFlow Live Updates"
     const val NOTIFICATION_ID = 9999
+
+    private var isRunning = AtomicBoolean(false)
+    private var currentProgress = 0
+    private val handler = Handler(Looper.getMainLooper())
+    private var lastUpdateContent = ""
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun initialize(context: Context, notifManager: NotificationManager) {
@@ -34,101 +40,118 @@ object SnackbarNotificationManager {
         customTitle = title
     }
 
-    private enum class UpdateState(val delay: Long, val progress: Int) {
-        INITIALIZING(1000, 0),
-        PROCESSING(2000, 0),
-        COMPLETED(4000, 100);
-
-        @RequiresApi(Build.VERSION_CODES.BAKLAVA)
-        fun buildNotification(): NotificationCompat.Builder {
-            return buildBaseNotification(appContext, this)
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.BAKLAVA)
-    private fun buildBaseNotification(context: Context, state: UpdateState): NotificationCompat.Builder {
-        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setOngoing(true)
-            .setRequestPromotedOngoing(true)
-
-        when (state) {
-            UpdateState.INITIALIZING -> {
-                builder.setContentTitle("$customTitle: 初始化")
-                    .setContentText("正在准备...")
-                    .setStyle(
-                        buildProgressStyle(state).setProgressIndeterminate(true)
-                    )
-            }
-            UpdateState.PROCESSING -> {
-                builder.setContentTitle("$customTitle: 处理中")
-                    .setContentText("正在处理数据...")
-                    .setStyle(
-                        buildProgressStyle(state)
-                            .setProgressTrackerIcon(
-                                IconCompat.createWithResource(
-                                    context,
-                                    R.mipmap.ic_launcher
-                                )
-                            )
-                            .setProgressIndeterminate(true)
-                    )
-            }
-            UpdateState.COMPLETED -> {
-                builder.setContentTitle("$customTitle: 已完成")
-                    .setContentText("所有操作已成功完成！")
-                    .setStyle(
-                        buildProgressStyle(state)
-                            .setProgressTrackerIcon(
-                                IconCompat.createWithResource(
-                                    context,
-                                    R.mipmap.ic_launcher
-                                )
-                            )
-                            .setProgress(100)
-                    )
-                    .setOngoing(false)
-                    .setAutoCancel(true)
-            }
-        }
-
-        return builder
-    }
-
-    @RequiresApi(Build.VERSION_CODES.BAKLAVA)
-    private fun buildProgressStyle(state: UpdateState): ProgressStyle {
+    private fun buildProgressStyle(progress: Int, isIndeterminate: Boolean): ProgressStyle {
         val pointColor = Color.valueOf(100f / 255f, 181f / 255f, 246f / 255f, 1f).toArgb()
         val segmentColor = Color.valueOf(129f / 255f, 212f / 255f, 250f / 255f, 1f).toArgb()
 
-        return when (state) {
-            UpdateState.COMPLETED -> {
-                val points = mutableListOf<ProgressStyle.Point>()
-                for (i in 25..100 step 25) {
-                    points.add(ProgressStyle.Point(i).setColor(pointColor))
-                }
-                val segments = mutableListOf<ProgressStyle.Segment>()
-                repeat(4) {
-                    segments.add(ProgressStyle.Segment(25).setColor(segmentColor))
-                }
-                NotificationCompat.ProgressStyle()
-                    .setProgressPoints(points)
-                    .setProgressSegments(segments)
+        if (progress >= 100) {
+            val points = mutableListOf<ProgressStyle.Point>()
+            for (i in 25..100 step 25) {
+                points.add(ProgressStyle.Point(i).setColor(pointColor))
             }
-            else -> {
-                NotificationCompat.ProgressStyle()
+            val segments = mutableListOf<ProgressStyle.Segment>()
+            repeat(4) {
+                segments.add(ProgressStyle.Segment(25).setColor(segmentColor))
             }
+            return NotificationCompat.ProgressStyle()
+                .setProgressTrackerIcon(
+                    IconCompat.createWithResource(appContext, R.mipmap.ic_launcher)
+                )
+                .setProgressPoints(points)
+                .setProgressSegments(segments)
+                .setProgress(100)
+        } else if (isIndeterminate) {
+            return NotificationCompat.ProgressStyle()
+                .setProgressTrackerIcon(
+                    IconCompat.createWithResource(appContext, R.mipmap.ic_launcher)
+                )
+                .setProgressIndeterminate(true)
+        } else {
+            return NotificationCompat.ProgressStyle()
+                .setProgressTrackerIcon(
+                    IconCompat.createWithResource(appContext, R.mipmap.ic_launcher)
+                )
+                .setProgress(progress.coerceIn(0, 99))
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.BAKLAVA)
     fun start() {
-        for (state in UpdateState.entries) {
-            val notification = state.buildNotification().build()
+        isRunning.set(true)
+        currentProgress = 0
+        lastUpdateContent = ""
 
-            Handler(Looper.getMainLooper()).postDelayed({
-                notificationManager.notify(NOTIFICATION_ID, notification)
-            }, state.delay)
+        val builder = NotificationCompat.Builder(appContext, CHANNEL_ID)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setOngoing(true)
+            .setRequestPromotedOngoing(true)
+            .setContentTitle(customTitle)
+            .setContentText("正在思考...")
+            .setStyle(buildProgressStyle(0, true))
+
+        notificationManager.notify(NOTIFICATION_ID, builder.build())
+    }
+
+    @RequiresApi(Build.VERSION_CODES.BAKLAVA)
+    fun updateContent(content: String) {
+        if (!isRunning.get()) return
+
+        // 显示内容预览（最多80字符）
+        val previewContent = if (content.length > 80) {
+            "${content.substring(0, 80)}..."
+        } else {
+            content
+        }.ifEmpty { "正在思考..." }
+
+        lastUpdateContent = previewContent
+
+        // 基于内容长度估算进度（简单启发式）
+        val estimatedProgress = if (content.isNotEmpty()) {
+            minOf(95, 10 + (content.length / 20))
+        } else {
+            0
         }
+
+        val builder = NotificationCompat.Builder(appContext, CHANNEL_ID)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setOngoing(true)
+            .setRequestPromotedOngoing(true)
+            .setContentTitle(customTitle)
+            .setContentText(previewContent)
+            .setStyle(buildProgressStyle(estimatedProgress, estimatedProgress <= 0))
+
+        notificationManager.notify(NOTIFICATION_ID, builder.build())
+    }
+
+    @RequiresApi(Build.VERSION_CODES.BAKLAVA)
+    fun complete() {
+        isRunning.set(false)
+
+        val builder = NotificationCompat.Builder(appContext, CHANNEL_ID)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle("$customTitle: 已完成")
+            .setContentText("响应已完成")
+            .setStyle(buildProgressStyle(100, false))
+            .setOngoing(false)
+            .setAutoCancel(true)
+
+        notificationManager.notify(NOTIFICATION_ID, builder.build())
+
+        // 3秒后自动取消
+        handler.postDelayed({
+            notificationManager.cancel(NOTIFICATION_ID)
+        }, 3000)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.BAKLAVA)
+    fun cancel() {
+        isRunning.set(false)
+        notificationManager.cancel(NOTIFICATION_ID)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.BAKLAVA)
+    fun isRunning(): Boolean {
+        return isRunning.get()
     }
 
     @RequiresApi(Build.VERSION_CODES.BAKLAVA)

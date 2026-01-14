@@ -5,13 +5,14 @@ import 'package:flutter/services.dart';
 /// Android 16 Live Update 服务
 ///
 /// 用于展示实时进度更新的通知，支持：
+/// - 实时显示 AI 输出内容
 /// - 进度追踪和进度点
 /// - 追踪图标
-/// - 倒计时功能
-/// - 提升为持续通知
+/// - 完成状态提示
 class LiveUpdateService {
   static final LiveUpdateService _instance = LiveUpdateService._internal();
-  factory LiveUpdateService() => _instance;
+  factory LiveUpdateService() =>
+      _instance;
   LiveUpdateService._internal();
 
   static const MethodChannel _channel = MethodChannel('me.huanmeng.lumenflow/live_update');
@@ -41,7 +42,8 @@ class LiveUpdateService {
   }
 
   /// 检查Live Update是否可用
-  bool get isAvailable => _isAvailable;
+  bool get isAvailable =>
+      _isAvailable;
 
   /// 启动 Live Update 通知
   ///
@@ -58,6 +60,39 @@ class LiveUpdateService {
       return true;
     } catch (e) {
       debugPrint('启动 Live Update 失败: $e');
+      return false;
+    }
+  }
+
+  /// 更新通知内容（实时显示 AI 输出）
+  ///
+  /// [content] - 要显示的输出内容
+  Future<bool> updateContent(String content) async {
+    if (!_isAvailable) {
+      return false;
+    }
+
+    try {
+      await _channel.invokeMethod('updateContent', {'content': content});
+      return true;
+    } catch (e) {
+      debugPrint('更新 Live Update 内容失败: $e');
+      return false;
+    }
+  }
+
+  /// 标记 Live Update 为完成状态
+  Future<bool> complete() async {
+    if (!_isAvailable) {
+      return false;
+    }
+
+    try {
+      await _channel.invokeMethod('completeLiveUpdate');
+      debugPrint('Live Update 已标记为完成');
+      return true;
+    } catch (e) {
+      debugPrint('完成 Live Update 失败: $e');
       return false;
     }
   }

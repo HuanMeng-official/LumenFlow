@@ -40,6 +40,18 @@ class LiveUpdateManager : MethodCallHandler {
                 stopLiveUpdate()
                 result.success(true)
             }
+            "updateContent" -> {
+                updateContent(call.argument<String>("content") ?: "")
+                result.success(true)
+            }
+            "completeLiveUpdate" -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+                    completeLiveUpdate()
+                    result.success(true)
+                } else {
+                    result.success(false)
+                }
+            }
             else -> {
                 result.notImplemented()
             }
@@ -59,5 +71,19 @@ class LiveUpdateManager : MethodCallHandler {
     private fun stopLiveUpdate() {
         val notificationManager = context?.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
         notificationManager?.cancel(SnackbarNotificationManager.NOTIFICATION_ID)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+            SnackbarNotificationManager.cancel()
+        }
+    }
+
+    private fun updateContent(content: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+            SnackbarNotificationManager.updateContent(content)
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.BAKLAVA)
+    private fun completeLiveUpdate() {
+        SnackbarNotificationManager.complete()
     }
 }

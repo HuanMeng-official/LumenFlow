@@ -494,9 +494,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           ? _messages.sublist(0, _messages.length - 2)
           : <Message>[];
 
-      // 停止Live Update通知（开始接收第一个chunk时）
-      bool stopLiveUpdateCalled = false;
-
       final stream = _aiService.sendMessageStreaming(content, historyMessages,
           attachments: attachments, thinkingMode: _thinkingMode,
           presetSystemPrompt: presetSystemPrompt, l10n: l10n);
@@ -505,11 +502,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       int receivedChunks = 0;
 
       await for (final chunk in stream) {
-        // 在接收到第一个chunk时停止Live Update
-        if (!stopLiveUpdateCalled && Platform.isAndroid && _liveUpdateService.isAvailable) {
-          await _liveUpdateService.stopLiveUpdate();
-          stopLiveUpdateCalled = true;
-        }
         receivedChunks++;
         final type = chunk['type'] as String;
         final chunkContent = chunk['content'] as String? ?? '';
@@ -521,6 +513,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         } else {
           // 未知类型，作为答案处理
           answerBuffer.write(chunkContent);
+        }
+
+        // 实时更新 Live Update 通知内容
+        if (Platform.isAndroid && _liveUpdateService.isAvailable) {
+          await _liveUpdateService.updateContent(answerBuffer.toString());
         }
 
         // 使用批量setState合并多次更新，减少UI重绘
@@ -542,13 +539,18 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       // 如果没有收到任何chunk，显示错误
       if (receivedChunks == 0) {
         // 停止Live Update通知
-        if (Platform.isAndroid && _liveUpdateService.isAvailable && !stopLiveUpdateCalled) {
+        if (Platform.isAndroid && _liveUpdateService.isAvailable) {
           await _liveUpdateService.stopLiveUpdate();
         }
         throw Exception('API未返回任何响应内容');
       }
 
-      // 流式输出结束，立即更新状态
+      // 流式输出结束，先标记 Live Update 完成
+      if (Platform.isAndroid && _liveUpdateService.isAvailable) {
+        await _liveUpdateService.complete();
+      }
+
+      // 然后更新消息状态
       setState(() {
         _messages[aiMessageIndex] = Message(
           id: aiMessageId,
