@@ -37,6 +37,7 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
     'gemini',
     'siliconflow',
     'minimax',
+    'zhipu',
     // 未来添加新平台在这里添加即可，例如：
     // 'ollama',
     // 'perplexity',
@@ -605,6 +606,32 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
       }
     }
 
+    // ZhiPu 使用直接路径
+    if (platform.type == 'zhipu') {
+      try {
+        final modelsUrl = '${platform.endpoint}/models';
+        final request = await client.getUrl(Uri.parse(modelsUrl));
+        request.headers.add('Authorization', 'Bearer ${platform.apiKey}');
+
+        final response = await request.close();
+        final responseBody = await response.transform(utf8.decoder).join();
+
+        if (response.statusCode != 200) {
+          throw Exception('API returned error: ${response.statusCode}\n$responseBody');
+        }
+
+        final data = jsonDecode(responseBody);
+        if (data is Map && data.containsKey('data')) {
+          final modelsData = data['data'] as List;
+          return modelsData.map((m) => m['id'] as String).toList();
+        }
+
+        throw Exception('API returned invalid format');
+      } finally {
+        client.close();
+      }
+    }
+
     // 其他平台使用 OpenAI 兼容格式
     try {
       // 构建正确的模型列表URL
@@ -1031,6 +1058,8 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
         return CupertinoIcons.flame_fill;
       case 'minimax':
         return CupertinoIcons.sparkles;
+      case 'zhipu':
+        return CupertinoIcons.heart_fill;
       default:
         return CupertinoIcons.cube_box;
     }
@@ -1051,6 +1080,8 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
         return const Color(0xFF5865F2);
       case 'minimax':
         return const Color(0xFFD4367A);
+      case 'zhipu':
+        return const Color(0xFFE11D48);
       default:
         return CupertinoColors.systemBlue;
     }

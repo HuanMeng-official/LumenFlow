@@ -107,6 +107,7 @@
   "claudeApi": "Claude API",
   "siliconflowApi": "SiliconFlow API",
   "minimaxApi": "MiniMax API",
+  "zhipuApi": "ZhipuAI API",
   "apiTypeDesc": "选择AI服务提供商",
   "apiEndpoint": "API端点",
   "apiEndpointPlaceholder": "输入API端点URL",

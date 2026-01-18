@@ -207,6 +207,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get minimaxApi => 'MiniMax API';
 
   @override
+  String get zhipuApi => 'ZhipuAI API';
+
+  @override
   String get apiTypeDesc => 'AI 서비스 제공업체 선택';
 
   @override

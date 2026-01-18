@@ -11,6 +11,7 @@ import '../providers/deepseek_provider.dart';
 import '../providers/claude_provider.dart';
 import '../providers/siliconflow_provider.dart';
 import '../providers/minimax_provider.dart';
+import '../providers/zhipu_provider.dart';
 import '../l10n/app_localizations.dart';
 
 /// AI服务类，负责处理与AI模型的通信
@@ -46,7 +47,8 @@ class AIService {
           (apiType == 'claude' && _cachedProvider is ClaudeProvider) ||
           (apiType == 'siliconflow' && _cachedProvider is SiliconFlowProvider) ||
           (apiType == 'minimax' && _cachedProvider is MiniMaxProvider) ||
-          (apiType != 'gemini' && apiType != 'deepseek' && apiType != 'claude' && apiType != 'siliconflow' && apiType != 'minimax' && _cachedProvider is OpenAIProvider)) {
+          (apiType == 'zhipu' && _cachedProvider is ZhiPuProvider) ||
+          (apiType != 'gemini' && apiType != 'deepseek' && apiType != 'claude' && apiType != 'siliconflow' && apiType != 'minimax' && apiType != 'zhipu' && _cachedProvider is OpenAIProvider)) {
         return _cachedProvider!;
       }
     }
@@ -62,6 +64,8 @@ class AIService {
       _cachedProvider = SiliconFlowProvider();
     } else if (apiType == 'minimax') {
       _cachedProvider = MiniMaxProvider();
+    } else if (apiType == 'zhipu') {
+      _cachedProvider = ZhiPuProvider();
     } else {
       _cachedProvider = OpenAIProvider();
     }

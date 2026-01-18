@@ -10,7 +10,7 @@ class AIPlatform {
   final String name;
 
   /// 平台类型
-  final String type; // 'openai', 'claude', 'gemini', 'deepseek', 'siliconflow', 'minimax'
+  final String type; // 'openai', 'claude', 'gemini', 'deepseek', 'siliconflow', 'minimax', 'zhipu'
 
   /// API端点URL
   final String endpoint;
@@ -177,6 +177,17 @@ class AIPlatform {
           availableModels: [],
           defaultModel: '',
           icon: 'minimax',
+        );
+      case 'zhipu':
+        return AIPlatform(
+          id: 'zhipu',
+          name: 'ZhiPu AI',
+          type: 'zhipu',
+          endpoint: 'https://open.bigmodel.cn/api/paas/v4',
+          apiKey: '',
+          availableModels: [],
+          defaultModel: '',
+          icon: 'zhipu',
         );
       default:
         throw ArgumentError('Unknown platform type: $type');

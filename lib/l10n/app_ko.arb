@@ -107,6 +107,7 @@
   "claudeApi": "Claude API",
   "siliconflowApi": "SiliconFlow API",
   "minimaxApi": "MiniMax API",
+  "zhipuApi": "ZhipuAI API",
   "apiTypeDesc": "AI 서비스 제공업체 선택",
   "apiEndpoint": "API 엔드포인트",
   "apiEndpointPlaceholder": "API 엔드포인트 URL 입력",

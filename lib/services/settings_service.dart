@@ -567,6 +567,7 @@ class SettingsService {
       AIPlatform.createDefaultPlatform('gemini'),
       AIPlatform.createDefaultPlatform('siliconflow'),
       AIPlatform.createDefaultPlatform('minimax'),
+      AIPlatform.createDefaultPlatform('zhipu'),
     ];
   }
 }

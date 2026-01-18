@@ -471,6 +471,12 @@ abstract class AppLocalizations {
   /// **'MiniMax API'**
   String get minimaxApi;
 
+  /// No description provided for @zhipuApi.
+  ///
+  /// In en, this message translates to:
+  /// **'ZhipuAI API'**
+  String get zhipuApi;
+
   /// No description provided for @apiTypeDesc.
   ///
   /// In en, this message translates to:

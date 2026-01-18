@@ -207,6 +207,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get minimaxApi => 'MiniMax API';
 
   @override
+  String get zhipuApi => 'ZhipuAI API';
+
+  @override
   String get apiTypeDesc => 'Select AI service provider';
 
   @override
