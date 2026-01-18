@@ -106,6 +106,7 @@
   "deepseekApi": "DeepSeek API",
   "claudeApi": "Claude API",
   "siliconflowApi": "SiliconFlow API",
+  "minimaxApi": "MiniMax API",
   "apiTypeDesc": "AIサービスプロバイダーを選択",
   "apiEndpoint": "APIエンドポイント",
   "apiEndpointPlaceholder": "APIエンドポイントURLを入力",

@@ -175,6 +175,7 @@ class _ApiSettingsScreenState extends State<ApiSettingsScreen> {
                     'claude': l10n.claudeApi,
                     'deepseek': l10n.deepseekApi,
                     'siliconflow': l10n.siliconflowApi,
+                    'minimax': l10n.minimaxApi
                   },
                   subtitle: l10n.apiTypeDesc,
                   onChanged: (newValue) {

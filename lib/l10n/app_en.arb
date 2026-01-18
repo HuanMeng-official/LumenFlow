@@ -106,6 +106,7 @@
   "deepseekApi": "DeepSeek API",
   "claudeApi": "Claude API",
   "siliconflowApi": "SiliconFlow API",
+  "minimaxApi": "MiniMax API",
   "apiTypeDesc": "Select AI service provider",
   "apiEndpoint": "API Endpoint",
   "apiEndpointPlaceholder": "Enter API endpoint URL",

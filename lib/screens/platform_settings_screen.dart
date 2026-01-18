@@ -36,6 +36,7 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
     'deepseek',
     'gemini',
     'siliconflow',
+    'minimax',
     // 未来添加新平台在这里添加即可，例如：
     // 'ollama',
     // 'perplexity',
@@ -1028,6 +1029,8 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
         return CupertinoIcons.star_fill;
       case 'siliconflow':
         return CupertinoIcons.flame_fill;
+      case 'minimax':
+        return CupertinoIcons.sparkles;
       default:
         return CupertinoIcons.cube_box;
     }
@@ -1044,6 +1047,10 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
         return const Color(0xFF4D6BFE);
       case 'gemini':
         return const Color(0xFF4285F4);
+      case 'siliconflow':
+        return const Color(0xFF5865F2);
+      case 'minimax':
+        return const Color(0xFFD4367A);
       default:
         return CupertinoColors.systemBlue;
     }

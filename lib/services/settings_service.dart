@@ -524,7 +524,7 @@ class SettingsService {
   Future<void> migrateLegacySettings() async {
     final platforms = await getPlatforms();
     // 如果已经有自定义配置，不进行迁移
-    if (platforms.length > 4 && platforms.any((p) => p.isConfigured)) {
+    if (platforms.length > 5 && platforms.any((p) => p.isConfigured)) {
       return;
     }
 
@@ -566,6 +566,7 @@ class SettingsService {
       AIPlatform.createDefaultPlatform('deepseek'),
       AIPlatform.createDefaultPlatform('gemini'),
       AIPlatform.createDefaultPlatform('siliconflow'),
+      AIPlatform.createDefaultPlatform('minimax'),
     ];
   }
 }

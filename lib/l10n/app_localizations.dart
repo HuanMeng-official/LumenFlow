@@ -465,6 +465,12 @@ abstract class AppLocalizations {
   /// **'SiliconFlow API'**
   String get siliconflowApi;
 
+  /// No description provided for @minimaxApi.
+  ///
+  /// In en, this message translates to:
+  /// **'MiniMax API'**
+  String get minimaxApi;
+
   /// No description provided for @apiTypeDesc.
   ///
   /// In en, this message translates to:

@@ -204,6 +204,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get siliconflowApi => 'SiliconFlow API';
 
   @override
+  String get minimaxApi => 'MiniMax API';
+
+  @override
   String get apiTypeDesc => 'Select AI service provider';
 
   @override

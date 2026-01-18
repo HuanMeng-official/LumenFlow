@@ -204,6 +204,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get siliconflowApi => 'SiliconFlow API';
 
   @override
+  String get minimaxApi => 'MiniMax API';
+
+  @override
   String get apiTypeDesc => 'AI 서비스 제공업체 선택';
 
   @override

@@ -10,7 +10,7 @@ class AIPlatform {
   final String name;
 
   /// 平台类型
-  final String type; // 'openai', 'claude', 'gemini', 'deepseek', 'siliconflow'
+  final String type; // 'openai', 'claude', 'gemini', 'deepseek', 'siliconflow', 'minimax'
 
   /// API端点URL
   final String endpoint;
@@ -166,6 +166,17 @@ class AIPlatform {
           availableModels: [],
           defaultModel: '',
           icon: 'siliconflow',
+        );
+      case 'minimax':
+        return AIPlatform(
+          id: 'minimax',
+          name: 'MiniMax',
+          type: 'minimax',
+          endpoint: 'https://api.minimaxi.com/v1',
+          apiKey: '',
+          availableModels: [],
+          defaultModel: '',
+          icon: 'minimax',
         );
       default:
         throw ArgumentError('Unknown platform type: $type');
