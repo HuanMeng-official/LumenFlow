@@ -108,6 +108,7 @@ class MiniMaxProvider extends AIProvider {
         }
       },
       onRetry: (error, retryCount, delayMs) {
+        debugPrint('MiniMax API请求失败，第$retryCount次重试，延迟${delayMs}ms: $error');
       },
       l10n: l10n,
     );
