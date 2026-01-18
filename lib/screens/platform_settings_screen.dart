@@ -551,6 +551,60 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
   /// 从API获取模型列表
   Future<List<String>> _fetchModelsFromApi(AIPlatform platform) async {
     final client = HttpClient();
+
+    if (platform.type == 'gemini') {
+      try {
+        // URL: https://generativelanguage.googleapis.com/v1beta/models?key=XXX
+        var endpoint = platform.endpoint;
+        if (endpoint.endsWith('/')) {
+          endpoint = endpoint.substring(0, endpoint.length - 1);
+        }
+        final modelsUrl = '$endpoint/models?key=${platform.apiKey}';
+
+        final request = await client.getUrl(Uri.parse(modelsUrl));
+        final response = await request.close();
+        final responseBody = await response.transform(utf8.decoder).join();
+
+        if (response.statusCode != 200) {
+          throw Exception('API returned error: ${response.statusCode}\nURL: $modelsUrl\n$responseBody');
+        }
+
+        final data = jsonDecode(responseBody);
+        // 排除 embedding、imagen、veo、tts 等专用模型
+        if (data is Map && data.containsKey('models')) {
+          final modelsData = data['models'] as List;
+          final excludedPatterns = [
+            'embedding',    // text embedding 模型
+            'imagen',       // image generation 模型
+            'veo',          // video generation 模型
+            '-tts',         // TTS 模型
+            'robotics',     // 机器人专用模型
+            'computer-use', // 计算机使用专用模型
+            'nano-banana',  // 图像生成模型
+            'aqa',          // Attributed Question Answering
+            'deep-research', // 深度研究专用模型
+          ];
+          return modelsData
+              .where((m) {
+                final name = m['name'] as String? ?? '';
+                final methods = m['supportedGenerationMethods'] as List? ?? [];
+                if (!methods.contains('generateContent')) return false;
+                for (final pattern in excludedPatterns) {
+                  if (name.contains(pattern)) return false;
+                }
+                return true;
+              })
+              .map((m) => m['name'] as String)
+              .toList();
+        }
+
+        throw Exception('API returned invalid format');
+      } finally {
+        client.close();
+      }
+    }
+
+    // 其他平台使用 OpenAI 兼容格式
     try {
       // 构建正确的模型列表URL
       String modelsUrl;
