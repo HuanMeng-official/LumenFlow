@@ -210,6 +210,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get zhipuApi => 'ZhipuAI API';
 
   @override
+  String get kimiApi => 'Kimi API';
+
+  @override
   String get apiTypeDesc => 'Select AI service provider';
 
   @override

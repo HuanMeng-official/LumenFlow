@@ -477,6 +477,12 @@ abstract class AppLocalizations {
   /// **'ZhipuAI API'**
   String get zhipuApi;
 
+  /// No description provided for @kimiApi.
+  ///
+  /// In en, this message translates to:
+  /// **'Kimi API'**
+  String get kimiApi;
+
   /// No description provided for @apiTypeDesc.
   ///
   /// In en, this message translates to:

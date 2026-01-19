@@ -568,6 +568,7 @@ class SettingsService {
       AIPlatform.createDefaultPlatform('siliconflow'),
       AIPlatform.createDefaultPlatform('minimax'),
       AIPlatform.createDefaultPlatform('zhipu'),
+      AIPlatform.createDefaultPlatform('kimi'),
     ];
   }
 }

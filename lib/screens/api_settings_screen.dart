@@ -65,6 +65,8 @@ class _ApiSettingsScreenState extends State<ApiSettingsScreen> {
         _endpointController.text = 'https://api.siliconflow.cn/v1';
       } else if (apiType == 'zhipu') {
         _endpointController.text = 'https://open.bigmodel.cn/api/paas/v4';
+      } else if (apiType == 'kimi') {
+        _endpointController.text = 'https://api.moonshot.cn/v1';
       } else {
         _endpointController.text = SettingsService.defaultEndpoint;
       }
@@ -178,7 +180,8 @@ class _ApiSettingsScreenState extends State<ApiSettingsScreen> {
                     'deepseek': l10n.deepseekApi,
                     'siliconflow': l10n.siliconflowApi,
                     'minimax': l10n.minimaxApi,
-                    'zhipu': l10n.zhipuApi
+                    'zhipu': l10n.zhipuApi,
+                    'kimi': l10n.kimiApi
                   },
                   subtitle: l10n.apiTypeDesc,
                   onChanged: (newValue) {

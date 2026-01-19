@@ -189,6 +189,17 @@ class AIPlatform {
           defaultModel: '',
           icon: 'zhipu',
         );
+      case 'kimi':
+        return AIPlatform(
+          id: 'kimi',
+          name: 'Kimi',
+          type: 'kimi',
+          endpoint: 'https://api.moonshot.cn/v1',
+          apiKey: '',
+          availableModels: [],
+          defaultModel: '',
+          icon: 'kimi',
+        );
       default:
         throw ArgumentError('Unknown platform type: $type');
     }

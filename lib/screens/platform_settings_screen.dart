@@ -38,6 +38,7 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
     'siliconflow',
     'minimax',
     'zhipu',
+    'kimi',
     // 未来添加新平台在这里添加即可，例如：
     // 'ollama',
     // 'perplexity',
@@ -1060,6 +1061,8 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
         return CupertinoIcons.sparkles;
       case 'zhipu':
         return CupertinoIcons.heart_fill;
+      case 'kimi':
+        return CupertinoIcons.moon_fill;
       default:
         return CupertinoIcons.cube_box;
     }
@@ -1082,6 +1085,8 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
         return const Color(0xFFD4367A);
       case 'zhipu':
         return const Color(0xFFE11D48);
+      case 'kimi':
+        return const Color(0xFF6B57FF);
       default:
         return CupertinoColors.systemBlue;
     }
