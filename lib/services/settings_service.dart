@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/ai_platform.dart';
 import 'version_service.dart';
@@ -418,15 +419,22 @@ class SettingsService {
     final platforms = await getPlatforms();
     final index = platforms.indexWhere((p) => p.id == platform.id);
 
+    debugPrint('保存平台: id=${platform.id}, name=${platform.name}, defaultModel=${platform.defaultModel}');
+    debugPrint('找到索引: $index, 总平台数: ${platforms.length}');
+
     if (index >= 0) {
       // 更新现有平台
+      debugPrint('更新现有平台: ${platforms[index].name} -> ${platform.name}');
+      debugPrint('原默认模型: ${platforms[index].defaultModel}, 新默认模型: ${platform.defaultModel}');
       platforms[index] = platform;
     } else {
       // 添加新平台
+      debugPrint('添加新平台: ${platform.name}');
       platforms.add(platform);
     }
 
     await savePlatforms(platforms);
+    debugPrint('保存完成');
   }
 
   /// 删除一个AI平台配置
