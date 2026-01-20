@@ -762,7 +762,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       padding: const EdgeInsets.all(16),
                       itemCount: _messages.length + (_isLoading ? 1 : 0),
                       // 性能优化配置
-                      addAutomaticKeepAlives: false, // MessageBubble 已使用 AutomaticKeepAliveClientMixin
+                      addAutomaticKeepAlives: true, // 启用自动保持活动状态
                       addRepaintBoundaries: true,   // 隔离重绘，避免整个列表重绘
                       cacheExtent: 500,              // 预渲染屏幕外 500 像素的消息
                       itemBuilder: (context, index) {
