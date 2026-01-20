@@ -266,6 +266,7 @@ class _MessageBubbleState extends State<MessageBubble> with AutomaticKeepAliveCl
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     super.build(context); // 必须调用，支持 AutomaticKeepAliveClientMixin
@@ -496,20 +497,35 @@ class _MessageBubbleState extends State<MessageBubble> with AutomaticKeepAliveCl
                                   ),
                                   code: TextStyle(
                                     fontSize: 12,
-                                    fontFamily: 'SF Mono',
+                                    fontFamily: 'JetBrains Mono, SF Mono, Courier, monospace',
                                     color: brightness == Brightness.dark
-                                        ? CupertinoColors.white
-                                        : CupertinoColors.black,
+                                        ? CupertinoColors.systemGreen.darkColor
+                                        : const Color(0xFF006400), // 深绿色
                                     backgroundColor: brightness == Brightness.dark
-                                        ? CupertinoColors.systemGrey.darkColor
-                                        : CupertinoColors.systemGrey5.color,
+                                        ? const Color(0xFF1E1E1E)
+                                        : const Color(0xFFF8F9FA),
                                   ),
-                                  codeblockPadding: const EdgeInsets.all(8),
+                                  codeblockPadding: const EdgeInsets.all(12),
                                   codeblockDecoration: BoxDecoration(
                                     color: brightness == Brightness.dark
-                                        ? CupertinoColors.systemGrey.darkColor
-                                        : CupertinoColors.systemGrey5.color,
-                                    borderRadius: BorderRadius.circular(6),
+                                        ? const Color(0xFF1E1E1E)
+                                        : const Color(0xFFF8F9FA),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: brightness == Brightness.dark
+                                          ? const Color(0xFF404040)
+                                          : const Color(0xFFE0E0E0),
+                                      width: 1,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: brightness == Brightness.dark
+                                            ? CupertinoColors.black.withAlpha(100)
+                                            : CupertinoColors.systemGrey.withAlpha(30),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
                                   ),
                                   blockquote: TextStyle(
                                     fontSize: 13,
@@ -563,21 +579,36 @@ class _MessageBubbleState extends State<MessageBubble> with AutomaticKeepAliveCl
                           height: 1.5,
                         ),
                         code: TextStyle(
+                          fontSize: 15,
+                          fontFamily: 'JetBrains Mono, SF Mono, Courier, monospace',
                           color: brightness == Brightness.dark
-                              ? CupertinoColors.white
-                              : CupertinoColors.black,
-                          fontSize: 16,
-                          fontFamily: 'Courier',
+                              ? const Color(0xFFD4D4D4)
+                              : const Color(0xFF24292E),
                           backgroundColor: brightness == Brightness.dark
-                              ? CupertinoColors.systemGrey.darkColor
-                              : CupertinoColors.systemGrey5.color,
+                              ? const Color(0xFF1E1E1E)
+                              : const Color(0xFFF6F8FA),
                         ),
-                        codeblockPadding: const EdgeInsets.all(12),
+                        codeblockPadding: const EdgeInsets.all(16),
                         codeblockDecoration: BoxDecoration(
                           color: brightness == Brightness.dark
-                              ? CupertinoColors.systemGrey.darkColor
-                              : CupertinoColors.systemGrey5.color,
-                          borderRadius: BorderRadius.circular(8),
+                              ? const Color(0xFF1E1E1E)
+                              : const Color(0xFFF6F8FA),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: brightness == Brightness.dark
+                                ? const Color(0xFF404040)
+                                : const Color(0xFFD0D7DE),
+                            width: 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: brightness == Brightness.dark
+                                  ? CupertinoColors.black.withAlpha(120)
+                                  : CupertinoColors.systemGrey.withAlpha(40),
+                              blurRadius: 12,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
                         ),
                         h1: TextStyle(
                           color: widget.message.isUser
