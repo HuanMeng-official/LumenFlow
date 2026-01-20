@@ -11,6 +11,246 @@ import '../models/user_profile.dart';
 import '../screens/image_preview_screen.dart';
 import 'avatar_widget.dart';
 
+/// 自定义代码块构建器，用于在代码块右上角添加复制按钮
+class CodeBlockBuilder extends MarkdownElementBuilder {
+  final BuildContext context;
+  final Brightness brightness;
+
+  CodeBlockBuilder(this.context, this.brightness);
+
+  @override
+  bool isBlockElement() => true;
+
+  @override
+  Widget? visitElementAfterWithContext(
+    BuildContext context,
+    dynamic element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) {
+    // 获取代码块内容
+    final codeContent = _getElementTextContent(element);
+
+    // 创建带有复制按钮的代码块
+    return _CodeBlockWithCopyButton(
+      codeContent: codeContent,
+      brightness: brightness,
+      context: context,
+    );
+  }
+
+  String _getElementTextContent(dynamic element) {
+    // 尝试通过反射获取textContent属性
+    try {
+      // 如果element有textContent属性，直接使用
+      if (element is Map<String, dynamic>) {
+        return element['textContent']?.toString() ?? '';
+      }
+
+      // 尝试通过dynamic调用
+      return (element.textContent as String?) ?? '';
+    } catch (e) {
+      // 如果无法获取textContent，返回空字符串
+      return '';
+    }
+  }
+}
+
+/// 带有复制按钮的代码块组件
+class _CodeBlockWithCopyButton extends StatefulWidget {
+  final String codeContent;
+  final Brightness brightness;
+  final BuildContext context;
+
+  const _CodeBlockWithCopyButton({
+    required this.codeContent,
+    required this.brightness,
+    required this.context,
+  });
+
+  @override
+  State<_CodeBlockWithCopyButton> createState() => __CodeBlockWithCopyButtonState();
+}
+
+class __CodeBlockWithCopyButtonState extends State<_CodeBlockWithCopyButton> {
+  bool _isHovering = false;
+  bool _isCopied = false;
+
+  Future<void> _copyCodeToClipboard() async {
+    final l10n = AppLocalizations.of(widget.context)!;
+
+    try {
+      await Clipboard.setData(ClipboardData(text: widget.codeContent));
+
+      setState(() {
+        _isCopied = true;
+      });
+
+      // 3秒后重置复制状态
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          setState(() {
+            _isCopied = false;
+          });
+        }
+      });
+
+      // 显示成功提示
+      _showCopySuccessToast(l10n.copySuccess);
+    } catch (error) {
+      // 显示错误提示
+      _showCopyErrorToast(l10n.copyError(error.toString()));
+    }
+  }
+
+  void _showCopySuccessToast(String message) {
+    final l10n = AppLocalizations.of(widget.context)!;
+    showCupertinoDialog(
+      context: widget.context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text(l10n.copySuccessTitle),
+        content: Text(message),
+        actions: [
+          CupertinoDialogAction(
+            child: Text(l10n.ok),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCopyErrorToast(String message) {
+    final l10n = AppLocalizations.of(widget.context)!;
+    showCupertinoDialog(
+      context: widget.context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text(l10n.error),
+        content: Text(message),
+        actions: [
+          CupertinoDialogAction(
+            child: Text(l10n.ok),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final brightness = widget.brightness;
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovering = true),
+      onExit: (_) => setState(() => _isHovering = false),
+      child: Stack(
+        children: [
+          // 代码块内容
+          Container(
+            clipBehavior: Clip.hardEdge,
+            decoration: BoxDecoration(
+              color: brightness == Brightness.dark
+                  ? const Color(0xFF1E1E1E)
+                  : const Color(0xFFF6F8FA),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: brightness == Brightness.dark
+                    ? const Color(0xFF404040)
+                    : const Color(0xFFD0D7DE),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: brightness == Brightness.dark
+                      ? CupertinoColors.black.withAlpha(120)
+                      : CupertinoColors.systemGrey.withAlpha(40),
+                  blurRadius: 12,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: SelectableRegion(
+                selectionControls: cupertinoTextSelectionControls,
+                child: Text(
+                  widget.codeContent,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontFamily: 'JetBrains Mono, SF Mono, Courier, monospace',
+                    color: brightness == Brightness.dark
+                        ? const Color(0xFFD4D4D4)
+                        : const Color(0xFF24292E),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // 复制按钮（右上角）
+          if (_isHovering || _isCopied)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: GestureDetector(
+                onTap: _copyCodeToClipboard,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: brightness == Brightness.dark
+                        ? CupertinoColors.systemGrey6.darkColor
+                        : CupertinoColors.systemGrey6.color,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: brightness == Brightness.dark
+                          ? CupertinoColors.systemGrey4.darkColor
+                          : CupertinoColors.systemGrey4.color,
+                      width: 0.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: CupertinoColors.black.withAlpha(30),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _isCopied ? CupertinoIcons.checkmark_alt : CupertinoIcons.doc_on_clipboard,
+                        size: 12,
+                        color: _isCopied
+                            ? CupertinoColors.systemGreen
+                            : (brightness == Brightness.dark
+                                ? CupertinoColors.systemGrey.darkColor
+                                : CupertinoColors.systemGrey.color),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _isCopied ? '已复制' : '复制',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: _isCopied
+                              ? CupertinoColors.systemGreen
+                              : (brightness == Brightness.dark
+                                  ? CupertinoColors.systemGrey.darkColor
+                                  : CupertinoColors.systemGrey.color),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class MessageBubble extends StatefulWidget {
   final Message message;
   final UserProfile? userProfile; // 外部传入的用户信息，避免重复加载
@@ -487,6 +727,9 @@ class _MessageBubbleState extends State<MessageBubble> with AutomaticKeepAliveCl
                               selectionControls: cupertinoTextSelectionControls,
                               child: MarkdownBody(
                                 data: widget.message.reasoningContent!,
+                                builders: {
+                                  'pre': CodeBlockBuilder(context, brightness),
+                                },
                                 styleSheet: MarkdownStyleSheet(
                                   p: TextStyle(
                                     fontSize: 13,
@@ -564,6 +807,9 @@ class _MessageBubbleState extends State<MessageBubble> with AutomaticKeepAliveCl
                     selectionControls: cupertinoTextSelectionControls,
                     child: MarkdownBody(
                       data: widget.message.content,
+                      builders: {
+                        'pre': CodeBlockBuilder(context, brightness),
+                      },
                       styleSheet: MarkdownStyleSheet(
                         p: TextStyle(
                           color: widget.message.isUser
