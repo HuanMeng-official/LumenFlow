@@ -933,4 +933,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loading => 'Loading';
+
+  @override
+  String get copyMessage => 'Copy message';
+
+  @override
+  String get copySuccess => 'Copied to clipboard';
+
+  @override
+  String get copyFailed => 'Copy failed';
+
+  @override
+  String copyError(String error) {
+    return 'Copy error: $error';
+  }
+
+  @override
+  String get copySuccessTitle => 'Copy Success';
+
+  @override
+  String get copyFailedTitle => 'Copy Failed';
 }

@@ -611,5 +611,18 @@
   "liveUpdateAIResponse": "レスポンス",
   "languageChanged": "言語が変更されました",
   "restartAppToApplyLanguage": "言語の変更を適用するにはアプリを再起動してください",
-  "loading": "読み込み中"
+  "loading": "読み込み中",
+  "copyMessage": "メッセージをコピー",
+  "copySuccess": "クリップボードにコピーしました",
+  "copyFailed": "コピーに失敗しました",
+  "copyError": "コピーエラー: {error}",
+  "@copyError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "copySuccessTitle": "コピー成功",
+  "copyFailedTitle": "コピー失敗"
 }

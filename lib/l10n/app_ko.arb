@@ -611,5 +611,18 @@
   "liveUpdateAIResponse": "응답",
   "languageChanged": "언어가 변경됨",
   "restartAppToApplyLanguage": "언어 변경 사항을 적용하려면 앱을 다시 시작하세요",
-  "loading": "로드 중"
+  "loading": "로드 중",
+  "copyMessage": "메시지 복사",
+  "copySuccess": "클립보드에 복사됨",
+  "copyFailed": "복사 실패",
+  "copyError": "복사 오류: {error}",
+  "@copyError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "copySuccessTitle": "복사 성공",
+  "copyFailedTitle": "복사 실패"
 }

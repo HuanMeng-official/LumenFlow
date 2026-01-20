@@ -611,5 +611,18 @@
   "liveUpdateAIResponse": "Response",
   "languageChanged": "Language Changed",
   "restartAppToApplyLanguage": "Please restart the app to apply the language change",
-  "loading": "Loading"
+  "loading": "Loading",
+  "copyMessage": "Copy message",
+  "copySuccess": "Copied to clipboard",
+  "copyFailed": "Copy failed",
+  "copyError": "Copy error: {error}",
+  "@copyError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "copySuccessTitle": "Copy Success",
+  "copyFailedTitle": "Copy Failed"
 }

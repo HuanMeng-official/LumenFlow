@@ -933,4 +933,24 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get loading => '加载中';
+
+  @override
+  String get copyMessage => '复制消息';
+
+  @override
+  String get copySuccess => '已复制到剪贴板';
+
+  @override
+  String get copyFailed => '复制失败';
+
+  @override
+  String copyError(String error) {
+    return '复制时出错: $error';
+  }
+
+  @override
+  String get copySuccessTitle => '复制成功';
+
+  @override
+  String get copyFailedTitle => '复制失败';
 }

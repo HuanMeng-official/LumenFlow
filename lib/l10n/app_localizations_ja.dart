@@ -933,4 +933,24 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get loading => '読み込み中';
+
+  @override
+  String get copyMessage => 'メッセージをコピー';
+
+  @override
+  String get copySuccess => 'クリップボードにコピーしました';
+
+  @override
+  String get copyFailed => 'コピーに失敗しました';
+
+  @override
+  String copyError(String error) {
+    return 'コピーエラー: $error';
+  }
+
+  @override
+  String get copySuccessTitle => 'コピー成功';
+
+  @override
+  String get copyFailedTitle => 'コピー失敗';
 }

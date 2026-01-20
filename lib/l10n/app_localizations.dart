@@ -1790,6 +1790,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loading'**
   String get loading;
+
+  /// No description provided for @copyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy message'**
+  String get copyMessage;
+
+  /// No description provided for @copySuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get copySuccess;
+
+  /// No description provided for @copyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy failed'**
+  String get copyFailed;
+
+  /// No description provided for @copyError.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy error: {error}'**
+  String copyError(String error);
+
+  /// No description provided for @copySuccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Success'**
+  String get copySuccessTitle;
+
+  /// No description provided for @copyFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Failed'**
+  String get copyFailedTitle;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

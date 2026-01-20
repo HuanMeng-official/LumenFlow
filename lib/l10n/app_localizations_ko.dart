@@ -933,4 +933,24 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get loading => '로드 중';
+
+  @override
+  String get copyMessage => '메시지 복사';
+
+  @override
+  String get copySuccess => '클립보드에 복사됨';
+
+  @override
+  String get copyFailed => '복사 실패';
+
+  @override
+  String copyError(String error) {
+    return '복사 오류: $error';
+  }
+
+  @override
+  String get copySuccessTitle => '복사 성공';
+
+  @override
+  String get copyFailedTitle => '복사 실패';
 }

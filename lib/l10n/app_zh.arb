@@ -611,5 +611,18 @@
   "liveUpdateAIResponse": "回复",
   "languageChanged": "语言已更改",
   "restartAppToApplyLanguage": "语言更改需要重启应用才能生效",
-  "loading": "加载中"
+  "loading": "加载中",
+  "copyMessage": "复制消息",
+  "copySuccess": "已复制到剪贴板",
+  "copyFailed": "复制失败",
+  "copyError": "复制时出错: {error}",
+  "@copyError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "copySuccessTitle": "复制成功",
+  "copyFailedTitle": "复制失败"
 }

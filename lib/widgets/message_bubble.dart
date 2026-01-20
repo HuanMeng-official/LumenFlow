@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+import 'package:flutter/services.dart';
 import '../l10n/app_localizations.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
@@ -33,6 +34,77 @@ class _MessageBubbleState extends State<MessageBubble> with AutomaticKeepAliveCl
 
   // 使用外部传入的用户配置，避免每个气泡重复加载
   UserProfile? get _userProfile => widget.userProfile;
+
+  // 复制消息到剪贴板
+  Future<void> _copyMessageToClipboard() async {
+    final l10n = AppLocalizations.of(context)!;
+
+    try {
+      // 构建要复制的文本内容
+      String textToCopy = widget.message.content;
+
+      // 如果有思考链内容，也一并复制
+      if (widget.message.reasoningContent != null &&
+          widget.message.reasoningContent!.isNotEmpty) {
+        textToCopy = '${widget.message.reasoningContent}\n\n$textToCopy';
+      }
+
+      // 复制到剪贴板
+      await Clipboard.setData(ClipboardData(text: textToCopy));
+
+      // 显示成功提示
+      if (mounted) {
+        _showCopySuccessToast(l10n.copySuccess);
+      }
+    } catch (error) {
+      // 显示错误提示
+      if (mounted) {
+        _showCopyErrorToast(l10n.copyError(error.toString()));
+      }
+    }
+  }
+
+  // 显示复制成功提示
+  void _showCopySuccessToast(String message) {
+    final l10n = AppLocalizations.of(context)!;
+    // 使用 Cupertino 风格的提示
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text(l10n.copySuccessTitle),
+        content: Text(message),
+        actions: [
+          CupertinoDialogAction(
+            child: Text(l10n.ok),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 显示复制错误提示
+  void _showCopyErrorToast(String message) {
+    final l10n = AppLocalizations.of(context)!;
+    // 使用 Cupertino 风格的提示
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text(l10n.copyFailedTitle),
+        content: Text(message),
+        actions: [
+          CupertinoDialogAction(
+            child: Text(l10n.ok),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   bool get wantKeepAlive => true;
@@ -658,11 +730,61 @@ class _MessageBubbleState extends State<MessageBubble> with AutomaticKeepAliveCl
                         DateFormat('HH:mm').format(widget.message.timestamp),
                         style: TextStyle(
                           color: widget.message.isUser
-                              ? CupertinoColors.systemGrey4
+                              ? CupertinoColors.white.withValues(alpha: 0.7)
                               : (brightness == Brightness.dark
                                   ? CupertinoColors.systemGrey.darkColor
                                   : CupertinoColors.systemGrey.color),
                           fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // 复制按钮
+                      GestureDetector(
+                        onTap: _copyMessageToClipboard,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: widget.message.isUser
+                                ? CupertinoColors.white.withValues(alpha: 0.25)
+                                : (brightness == Brightness.dark
+                                    ? CupertinoColors.systemGrey5.darkColor
+                                    : CupertinoColors.systemGrey5.color),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: widget.message.isUser
+                                  ? CupertinoColors.white.withValues(alpha: 0.4)
+                                  : (brightness == Brightness.dark
+                                      ? CupertinoColors.systemGrey4.darkColor
+                                      : CupertinoColors.systemGrey4.color),
+                              width: 0.5,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                CupertinoIcons.doc_on_clipboard,
+                                size: 10,
+                                color: widget.message.isUser
+                                    ? CupertinoColors.white
+                                    : (brightness == Brightness.dark
+                                        ? CupertinoColors.systemGrey.darkColor
+                                        : CupertinoColors.systemGrey.color),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                l10n.copyMessage,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: widget.message.isUser
+                                      ? CupertinoColors.white
+                                      : (brightness == Brightness.dark
+                                          ? CupertinoColors.systemGrey.darkColor
+                                          : CupertinoColors.systemGrey.color),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       if (widget.message.status == MessageStatus.sending) ...[
