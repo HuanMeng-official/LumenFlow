@@ -73,7 +73,6 @@ class _CodeBlockWithCopyButton extends StatefulWidget {
 }
 
 class __CodeBlockWithCopyButtonState extends State<_CodeBlockWithCopyButton> {
-  bool _isHovering = false;
   bool _isCopied = false;
 
   Future<void> _copyCodeToClipboard() async {
@@ -140,12 +139,10 @@ class __CodeBlockWithCopyButtonState extends State<_CodeBlockWithCopyButton> {
   @override
   Widget build(BuildContext context) {
     final brightness = widget.brightness;
+    final l10n = AppLocalizations.of(context)!;
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovering = true),
-      onExit: (_) => setState(() => _isHovering = false),
-      child: Stack(
-        children: [
+    return Stack(
+      children: [
           // 代码块内容
           Container(
             clipBehavior: Clip.hardEdge,
@@ -189,10 +186,9 @@ class __CodeBlockWithCopyButtonState extends State<_CodeBlockWithCopyButton> {
           ),
 
           // 复制按钮（右上角）
-          if (_isHovering || _isCopied)
-            Positioned(
-              top: 8,
-              right: 8,
+          Positioned(
+            top: 8,
+            right: 8,
               child: GestureDetector(
                 onTap: _copyCodeToClipboard,
                 child: Container(
@@ -230,7 +226,7 @@ class __CodeBlockWithCopyButtonState extends State<_CodeBlockWithCopyButton> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        _isCopied ? '已复制' : '复制',
+                        _isCopied ? l10n.copied : l10n.copyCode,
                         style: TextStyle(
                           fontSize: 11,
                           color: _isCopied
@@ -246,8 +242,7 @@ class __CodeBlockWithCopyButtonState extends State<_CodeBlockWithCopyButton> {
               ),
             ),
         ],
-      ),
-    );
+      );
   }
 }
 

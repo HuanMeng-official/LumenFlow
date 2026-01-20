@@ -953,4 +953,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get copyFailedTitle => '복사 실패';
+
+  @override
+  String get copyCode => '복사';
+
+  @override
+  String get copied => '복사됨';
 }

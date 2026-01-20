@@ -624,5 +624,7 @@
     }
   },
   "copySuccessTitle": "복사 성공",
-  "copyFailedTitle": "복사 실패"
+  "copyFailedTitle": "복사 실패",
+  "copyCode": "복사",
+  "copied": "복사됨"
 }

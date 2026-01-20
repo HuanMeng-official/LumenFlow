@@ -624,5 +624,7 @@
     }
   },
   "copySuccessTitle": "コピー成功",
-  "copyFailedTitle": "コピー失敗"
+  "copyFailedTitle": "コピー失敗",
+  "copyCode": "コピー",
+  "copied": "コピー済み"
 }

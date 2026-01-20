@@ -624,5 +624,7 @@
     }
   },
   "copySuccessTitle": "Copy Success",
-  "copyFailedTitle": "Copy Failed"
+  "copyFailedTitle": "Copy Failed",
+  "copyCode": "Copy",
+  "copied": "Copied"
 }

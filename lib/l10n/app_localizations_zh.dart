@@ -953,4 +953,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get copyFailedTitle => '复制失败';
+
+  @override
+  String get copyCode => '复制';
+
+  @override
+  String get copied => '已复制';
 }

@@ -1826,6 +1826,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Copy Failed'**
   String get copyFailedTitle;
+
+  /// No description provided for @copyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get copyCode;
+
+  /// No description provided for @copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get copied;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

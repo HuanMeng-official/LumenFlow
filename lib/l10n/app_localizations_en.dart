@@ -953,4 +953,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get copyFailedTitle => 'Copy Failed';
+
+  @override
+  String get copyCode => 'Copy';
+
+  @override
+  String get copied => 'Copied';
 }

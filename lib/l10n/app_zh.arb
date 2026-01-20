@@ -624,5 +624,7 @@
     }
   },
   "copySuccessTitle": "复制成功",
-  "copyFailedTitle": "复制失败"
+  "copyFailedTitle": "复制失败",
+  "copyCode": "复制",
+  "copied": "已复制"
 }
