@@ -14,27 +14,32 @@ LumenFlow（中文名：流光）是一款使用 Flutter 构建的现代化 AI �
 
 ## 功能特性
 
-- **多AI模型支持**: 支持 OpenAI、Google Gemini 和 Claude API，可无缝切换
+- **多AI模型支持**: 支持 OpenAI、Google Gemini、Claude、DeepSeek、硅基流动、MiniMax、智谱AI 和 Kimi API，可无缝切换
 - **多AI平台管理**: 配置和管理多个AI平台，支持独立的设置、模型列表和平台特定配置
 - **多模态支持**: 处理图像、视频和音频文件，支持视觉能力
 - **流式响应**: 实时流式输出，提供响应式聊天体验
 - **文件附件**: 上传和提取各种文件类型的内容
-- **对话管理**: 完整的对话历史记录，支持本地持久化
+- **对话管理**: 完整的对话历史记录，支持本地持久化和内存缓存
 - **用户配置**: 个性化设置和偏好
 - **预设提示词系统**: 预配置的角色扮演提示词，包含丰富的角色设定
 - **多语言预设**: 基于界面语言自动加载特定语言的预设
 - **主题管理**: 支持亮色/暗色主题切换，支持跟随系统主题
 - **跨平台**: 支持 Android 和 Windows 平台
 - **本地存储**: 使用 SharedPreferences 实现数据持久化
-- **Markdown渲染**: 美观格式化的 AI 响应
+- **Markdown渲染**: 美观格式化的 AI 响应，支持代码块复制功能
 - **关于页面**: 显示应用信息、版本和版权详情
 - **设置导出/导入**: 通过 JSON 文件备份和恢复应用设置
-- **自定义 .lumenflow 格式**: 增强的设置导出/导入功能，包含元数据和版本控制（参见 [LumenFlow 格式规范](./LumenFlow格式解析.md)）
+- **自定义 .lumenflow 格式**: 增强的设置导出/导入功能，包含元数据和版本控制（参见 [LumenFlow 格式规范](../LumenFlowFormatSpecification.md)）
 - **角色扮演系统**: 基于文件的预设提示词系统，支持自动内容加载
 - **PowerShell构建脚本**: 自动构建 Android 和 Windows 应用的脚本
-- **国际化**: 完整的英文和中文语言支持
+- **国际化**: 完整的英文、中文、日文和韩文语言支持
 - **思考模式**: AI思考过程可视化
 - **自动标题生成**: 自动对话标题生成
+- **实时更新服务**: 实时应用更新和通知
+- **消息通知**: 重要事件的本地通知支持
+- **代码块复制**: AI响应中代码块的一键复制功能
+- **消息复制**: 整个消息的一键复制功能
+- **性能优化**: 减少重绘和优化聊天性能
 
 ## 项目结构
 
@@ -62,19 +67,25 @@ lib/
 │   ├── image_preview_screen.dart  # 图片预览和查看
 │   └── platform_settings_screen.dart  # AI平台与模型配置界面
 ├── services/                 # 业务逻辑和 API 集成
-│   ├── ai_service.dart       # AI 服务（OpenAI、Gemini 和 DeepSeek 集成）
+│   ├── ai_service.dart       # AI 服务（OpenAI、Gemini、Claude、DeepSeek、硅基流动、MiniMax、智谱AI 和 Kimi 集成）
 │   ├── conversation_service.dart  # 对话管理
 │   ├── settings_service.dart # 设置管理
 │   ├── user_service.dart     # 用户配置管理
 │   ├── file_service.dart     # 文件处理和操作
 │   ├── prompt_service.dart   # 预设提示词管理
+│   ├── notification_service.dart # 通知服务
+│   ├── live_update_service.dart # 实时更新服务
 │   └── version_service.dart  # 版本信息管理
 ├── providers/                # AI 提供商实现
 │   ├── ai_provider.dart     # 抽象基类
 │   ├── openai_provider.dart # OpenAI 实现
 │   ├── gemini_provider.dart # Gemini 实现
 │   ├── deepseek_provider.dart # DeepSeek 实现
-│   └── claude_provider.dart   # Claude (Anthropic) 实现
+│   ├── claude_provider.dart   # Claude (Anthropic) 实现
+│   ├── siliconflow_provider.dart # 硅基流动实现
+│   ├── minimax_provider.dart  # MiniMax 实现
+│   ├── zhipu_provider.dart    # 智谱AI 实现
+│   └── kimi_provider.dart     # Kimi 实现
 ├── utils/                    # 工具类
 │   └── app_theme.dart        # 应用主题管理
 └── widgets/                  # 可重用 UI 组件
@@ -90,7 +101,7 @@ lib/
 - [http](https://pub.dev/packages/http) - 用于 API 请求的 HTTP 客户端
 - [shared_preferences](https://pub.dev/packages/shared_preferences) - 持久化存储
 - [intl](https://pub.dev/packages/intl) - 国际化和本地化
-- [flutter_markdown](https://pub.dev/packages/flutter_markdown) - Markdown 渲染
+- [flutter_markdown_plus](https://pub.dev/packages/flutter_markdown_plus) - 增强的 Markdown 渲染，支持代码块复制
 - [image_picker](https://pub.dev/packages/image_picker) - 图片选择
 - [file_picker](https://pub.dev/packages/file_picker) - 文件选择和拾取
 - [path_provider](https://pub.dev/packages/path_provider) - 路径解析
@@ -99,6 +110,8 @@ lib/
 - [flutter_svg](https://pub.dev/packages/flutter_svg) - SVG图像渲染，用于平台图标显示
 - [pdf](https://pub.dev/packages/pdf) - PDF文件生成和处理
 - [archive](https://pub.dev/packages/archive) - 压缩文件（ZIP）创建和解压
+- [url_launcher](https://pub.dev/packages/url_launcher) - URL启动支持
+- [flutter_local_notifications](https://pub.dev/packages/flutter_local_notifications) - 本地通知
 
 ## 架构
 
@@ -138,6 +151,10 @@ lib/
 - `GeminiProvider`: Google Gemini API 实现，支持多模态
 - `DeepSeekProvider`: DeepSeek API 实现，支持文本流式传输
 - `ClaudeProvider`: Claude (Anthropic) API 实现，支持多模态和思考模式
+- `SiliconFlowProvider`: 硅基流动 API 实现
+- `MiniMaxProvider`: MiniMax API 实现
+- `ZhipuProvider`: 智谱AI API 实现
+- `KimiProvider`: Kimi API 实现
 
 这种架构允许轻松添加新的 AI 提供商，同时保持所有提供商之间的一致接口。
 
@@ -145,7 +162,7 @@ lib/
 
 LumenFlow 现在支持同时管理多个 AI 平台。每个平台都可以有自己的配置、模型列表和设置。主要功能包括：
 
-- **多平台支持**：在单个应用程序中配置和管理多个 AI 平台（OpenAI、Claude、DeepSeek、Gemini）
+- **多平台支持**：在单个应用程序中配置和管理多个 AI 平台（OpenAI、Claude、DeepSeek、Gemini、硅基流动、MiniMax、智谱AI、Kimi）
 - **平台切换**：在对话过程中轻松在已配置的平台之间切换
 - **模型管理**：每个平台维护自己的模型列表，支持从 API 自动获取模型列表
 - **平台图标**：通过平台特定的 SVG 图标进行视觉识别
@@ -190,6 +207,26 @@ LumenFlow 现在支持同时管理多个 AI 平台。每个平台都可以有自
    - 支持的模型：Claude Opus 4.5、Claude Sonnet 4.5
    - 图像多模态支持，具备思考模式能力
 
+5. **硅基流动 (SiliconFlow)**
+   - API 端点：`https://api.siliconflow.cn/v1/chat/completions`
+   - 支持的模型：各种开源模型
+   - 文本支持
+
+6. **MiniMax**
+   - API 端点：`https://api.minimax.chat/v1/text/chatcompletion_v2`
+   - 支持的模型：MiniMax 专有模型
+   - 文本支持
+
+7. **智谱AI (Zhipu AI)**
+   - API 端点：`https://open.bigmodel.cn/api/paas/v4/chat/completions`
+   - 支持的模型：GLM 系列模型
+   - 文本支持
+
+8. **Kimi**
+   - API 端点：`https://api.moonshot.cn/v1/chat/completions`
+   - 支持的模型：Kimi Chat 模型
+   - 文本支持，具备长上下文能力
+
 ### 默认值
 
 配置新平台时，使用以下默认值：
@@ -200,6 +237,10 @@ LumenFlow 现在支持同时管理多个 AI 平台。每个平台都可以有自
   - Gemini：`gemini-3-flash-preview`
   - DeepSeek：`deepseek-chat`
   - Claude：`claude-sonnet-4.5`
+  - 硅基流动：`Qwen2.5-32B-Instruct`
+  - MiniMax：`MiniMax-M2.1`
+  - 智谱AI：`glm-4.7`
+  - Kimi：`moonshot-k2`
 - **温度**：`0.7`
 - **最大 Tokens 数**：`4096`
 
@@ -285,11 +326,13 @@ LumenFlow 提供设置导出和导入功能，用于备份和恢复应用配置�
 
 ## 国际化
 
-LumenFlow 支持英文和中文两种语言。应用程序会自动检测系统语言，也可以在设置中手动选择。所有界面元素、AI 响应和提示词预设都完全本地化。
+LumenFlow 支持英文、中文、日文和韩文四种语言。应用程序会自动检测系统语言，也可以在设置中手动选择。所有界面元素、AI 响应和提示词预设都完全本地化。
 
 ### 语言支持
 - **英文**: 所有界面元素和 AI 响应的完整英文本地化
 - **中文**: 所有界面元素和 AI 响应的完整中文本地化
+- **日文**: 所有界面元素和 AI 响应的完整日文本地化
+- **韩文**: 所有界面元素和 AI 响应的完整韩文本地化
 
 ### 实现方式
 - 使用 Flutter 内置的本地化系统，配合 ARB 文件
@@ -354,7 +397,7 @@ flutter build windows --release
 ## 致谢
 
 - 基于 [Flutter](https://flutter.dev/) 构建
-- AI 能力由 [OpenAI](https://openai.com/)、[Google Gemini](https://gemini.google.com/) 和 [DeepSeek](https://www.deepseek.com/) 提供支持
+- AI 能力由 [OpenAI](https://openai.com/)、[Google Gemini](https://gemini.google.com/)、[Claude](https://www.anthropic.com/)、[DeepSeek](https://www.deepseek.com/)、[硅基流动](https://www.siliconflow.cn/)、[MiniMax](https://www.minimaxi.com/)、[智谱AI](https://www.zhipuai.cn/) 和 [Kimi](https://kimi.moonshot.cn/) 提供支持
 - 国际化支持使用 Flutter 的本地化系统
 - 图标由 [Cupertino Icons](https://pub.dev/packages/cupertino_icons) 提供
 

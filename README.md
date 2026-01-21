@@ -14,27 +14,32 @@ LumenFlow (Chinese: 流光) is a modern AI chat application built with Flutter t
 
 ## Features
 
-- **Multi-AI Model Support**: Seamlessly switch between OpenAI, Google Gemini and Claude APIs
+- **Multi-AI Model Support**: Seamlessly switch between OpenAI, Google Gemini, Claude, DeepSeek, SiliconFlow, MiniMax, Zhipu AI, and Kimi APIs
 - **Multi-AI Platform Management**: Configure and manage multiple AI platforms with independent settings, model lists, and platform-specific configurations
 - **Multi-Modal Support**: Process images, videos, and audio files with vision capabilities
 - **Streaming Responses**: Real-time streaming output for responsive chat experience
 - **File Attachments**: Upload and extract content from various file types
-- **Conversation Management**: Complete conversation history with local persistence
+- **Conversation Management**: Complete conversation history with local persistence and memory caching
 - **User Profiles**: Personalized settings and preferences
 - **Prompt Preset System**: Pre-configured role-playing prompts with rich character settings
 - **Multi-Language Presets**: Automatic language-specific preset loading based on interface language
 - **Theme Management**: Support for light/dark theme switching with system theme following
 - **Cross-Platform**: Supports Android and Windows platforms
 - **Local Storage**: Data persistence using SharedPreferences
-- **Markdown Rendering**: Beautifully formatted AI responses
+- **Markdown Rendering**: Beautifully formatted AI responses with code block copy functionality
 - **About Page**: Displays application information and copyright details
 - **Settings Export/Import**: Backup and restore application settings via JSON files
 - **Custom .lumenflow Format**: Enhanced settings export/import with metadata and version control (see [LumenFlow Format Specification](./LumenFlowFormatSpecification.md))
 - **Role-Play System**: File-based prompt preset system with automatic content loading
 - **PowerShell Build Script**: Automated build process for both Android and Windows
-- **Internationalization**: Full English and Chinese language support
+- **Internationalization**: Full English, Chinese, Japanese, and Korean language support
 - **Thinking Mode**: AI thinking process visualization
 - **Auto Title Generation**: Automatic conversation title generation
+- **Live Update Service**: Real-time application updates and notifications
+- **Message Notifications**: Local notification support for important events
+- **Code Block Copy**: One-click copy functionality for code blocks in AI responses
+- **Message Copy**: One-click copy functionality for entire messages
+- **Performance Optimizations**: Reduced repaints and optimized chat performance
 
 ## Project Structure
 
@@ -62,19 +67,25 @@ lib/
 │   ├── image_preview_screen.dart  # Image preview and viewing
 │   └── platform_settings_screen.dart  # AI platform and model configuration screen
 ├── services/                 # Business logic and API integration
-│   ├── ai_service.dart       # AI service (OpenAI, Gemini & DeepSeek integration)
+│   ├── ai_service.dart       # AI service (OpenAI, Gemini, Claude, DeepSeek, SiliconFlow, MiniMax, Zhipu AI & Kimi integration)
 │   ├── conversation_service.dart  # Conversation management
 │   ├── settings_service.dart # Settings management
 │   ├── user_service.dart     # User profile management
 │   ├── file_service.dart     # File handling and processing
 │   ├── prompt_service.dart   # Prompt preset management
+│   ├── notification_service.dart # Notification service
+│   ├── live_update_service.dart # Live update service
 │   └── version_service.dart  # Version information management
 ├── providers/                # AI provider implementations
 │   ├── ai_provider.dart     # Abstract base class
 │   ├── openai_provider.dart # OpenAI implementation
 │   ├── gemini_provider.dart # Gemini implementation
 │   ├── deepseek_provider.dart # DeepSeek implementation
-│   └── claude_provider.dart   # Claude (Anthropic) implementation
+│   ├── claude_provider.dart   # Claude (Anthropic) implementation
+│   ├── siliconflow_provider.dart # SiliconFlow implementation
+│   ├── minimax_provider.dart  # MiniMax implementation
+│   ├── zhipu_provider.dart    # Zhipu AI implementation
+│   └── kimi_provider.dart     # Kimi implementation
 ├── utils/                    # Utility classes
 │   └── app_theme.dart        # Application theme management
 └── widgets/                  # Reusable UI components
@@ -91,7 +102,7 @@ lib/
 - [http](https://pub.dev/packages/http) - HTTP client for API requests
 - [shared_preferences](https://pub.dev/packages/shared_preferences) - Persistent storage
 - [intl](https://pub.dev/packages/intl) - Internationalization and localization
-- [flutter_markdown](https://pub.dev/packages/flutter_markdown) - Markdown rendering
+- [flutter_markdown_plus](https://pub.dev/packages/flutter_markdown_plus) - Enhanced Markdown rendering with code block copy
 - [image_picker](https://pub.dev/packages/image_picker) - Image selection
 - [file_picker](https://pub.dev/packages/file_picker) - File selection and picking
 - [path_provider](https://pub.dev/packages/path_provider) - Path resolution
@@ -100,6 +111,8 @@ lib/
 - [flutter_svg](https://pub.dev/packages/flutter_svg) - SVG image rendering for platform icons
 - [pdf](https://pub.dev/packages/pdf) - PDF file generation and processing
 - [archive](https://pub.dev/packages/archive) - Archive file (ZIP) creation and extraction
+- [url_launcher](https://pub.dev/packages/url_launcher) - URL launching support
+- [flutter_local_notifications](https://pub.dev/packages/flutter_local_notifications) - Local notifications
 
 ## Architecture
 
@@ -139,6 +152,10 @@ The application uses a provider-based architecture for AI integration:
 - `GeminiProvider`: Implementation for Google Gemini API with multi-modal support
 - `DeepSeekProvider`: Implementation for DeepSeek API with text-only support
 - `ClaudeProvider`: Implementation for Claude (Anthropic) API with multi-modal support
+- `SiliconFlowProvider`: Implementation for SiliconFlow API
+- `MiniMaxProvider`: Implementation for MiniMax API
+- `ZhipuProvider`: Implementation for Zhipu AI API
+- `KimiProvider`: Implementation for Kimi API
 
 This architecture allows for easy addition of new AI providers while maintaining a consistent interface across all providers.
 
@@ -146,7 +163,7 @@ This architecture allows for easy addition of new AI providers while maintaining
 
 LumenFlow now supports managing multiple AI platforms simultaneously. Each platform can have its own configuration, model lists, and settings. Key features include:
 
-- **Multiple Platform Support**: Configure and manage multiple AI platforms (OpenAI, Claude, DeepSeek, Gemini) in a single application
+- **Multiple Platform Support**: Configure and manage multiple AI platforms (OpenAI, Claude, DeepSeek, Gemini, SiliconFlow, MiniMax, Zhipu AI, Kimi) in a single application
 - **Platform Switching**: Easily switch between configured platforms during conversations
 - **Model Management**: Each platform maintains its own model list, with support for automatic model list fetching from APIs
 - **Platform Icons**: Visual identification with platform-specific SVG icons
@@ -191,6 +208,26 @@ You can configure multiple platforms and switch between them as needed.
    - Supported models: Claude Opus 4.5, Claude Sonnet 4.5
    - Multi-modal support for images with thinking mode capability
 
+5. **SiliconFlow**
+   - API Endpoint: `https://api.siliconflow.cn/v1/chat/completions`
+   - Supported models: Various open-source models
+   - Text-only support
+
+6. **MiniMax**
+   - API Endpoint: `https://api.minimax.chat/v1/text/chatcompletion_v2`
+   - Supported models: MiniMax proprietary models
+   - Text-only support
+
+7. **Zhipu AI**
+   - API Endpoint: `https://open.bigmodel.cn/api/paas/v4/chat/completions`
+   - Supported models: GLM series models
+   - Text-only support
+
+8. **Kimi**
+   - API Endpoint: `https://api.moonshot.cn/v1/chat/completions`
+   - Supported models: Kimi Chat models
+   - Text-only support with long context capabilities
+
 ### Default Values
 
 When configuring a new platform, the following default values are used:
@@ -201,6 +238,10 @@ When configuring a new platform, the following default values are used:
   - Gemini: `gemini-3-flash-preview`
   - DeepSeek: `deepseek-chat`
   - Claude: `claude-sonnet-4-5`
+  - SiliconFlow: `Qwen2.5-32B-Instruct`
+  - MiniMax: `MiniMax-M2.1`
+  - Zhipu AI: `glm-4.7`
+  - Kimi: `moonshot-k2`
 - **Temperature**: `0.7`
 - **Max Tokens**: `4096`
 
@@ -286,17 +327,19 @@ LumenFlow provides settings export and import functionality to backup and restor
 
 ## Internationalization
 
-LumenFlow supports both English and Chinese languages. The application automatically detects the system language or allows manual selection in settings. All interface elements, AI responses, and prompt presets are fully localized.
+LumenFlow supports English, Chinese, Japanese, and Korean languages. The application automatically detects the system language or allows manual selection in settings. All interface elements, AI responses, and prompt presets are fully localized.
 
 ### Language Support
 - **English**: Complete English localization for all interface elements and AI responses
 - **Chinese**: Complete Chinese localization for all interface elements and AI responses
+- **Japanese**: Complete Japanese localization for all interface elements and AI responses
+- **Korean**: Complete Korean localization for all interface elements and AI responses
 
 ### Implementation
 - Uses Flutter's built-in localization system with ARB files
 - AI responses are localized based on selected language
 - Prompt presets automatically load the appropriate language version
-- Character definitions are available in both languages with separate XML files
+- Character definitions are available in multiple languages with separate XML files
 
 ## Building
 
@@ -354,7 +397,7 @@ Contributions are welcome! Please feel free to submit issues and pull requests f
 ## Acknowledgments
 
 - Built with [Flutter](https://flutter.dev/)
-- AI capabilities powered by [OpenAI](https://openai.com/), [Google Gemini](https://gemini.google.com/), and [DeepSeek](https://www.deepseek.com/)
+- AI capabilities powered by [OpenAI](https://openai.com/), [Google Gemini](https://gemini.google.com/), [Claude](https://www.anthropic.com/), [DeepSeek](https://www.deepseek.com/), [SiliconFlow](https://www.siliconflow.cn/), [MiniMax](https://www.minimaxi.com/), [Zhipu AI](https://www.zhipuai.cn/), and [Kimi](https://kimi.moonshot.cn/)
 - Internationalization support using Flutter's localization system
 - Icons provided by [Cupertino Icons](https://pub.dev/packages/cupertino_icons)
 
