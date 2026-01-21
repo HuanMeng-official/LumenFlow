@@ -29,7 +29,7 @@ LumenFlow（中文名：流光）是一款使用 Flutter 构建的现代化 AI �
 - **Markdown渲染**: 美观格式化的 AI 响应，支持代码块复制功能
 - **关于页面**: 显示应用信息、版本和版权详情
 - **设置导出/导入**: 通过 JSON 文件备份和恢复应用设置
-- **自定义 .lumenflow 格式**: 增强的设置导出/导入功能，包含元数据和版本控制（参见 [LumenFlow 格式规范](../LumenFlowFormatSpecification.md)）
+- **自定义 .lumenflow 格式**: 增强的设置导出/导入功能，包含元数据和版本控制（参见 [LumenFlow 格式规范](./LumenFlow格式解析.md)）
 - **角色扮演系统**: 基于文件的预设提示词系统，支持自动内容加载
 - **PowerShell构建脚本**: 自动构建 Android 和 Windows 应用的脚本
 - **国际化**: 完整的英文、中文、日文和韩文语言支持
