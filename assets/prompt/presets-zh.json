@@ -2,22 +2,29 @@
   {
     "id": "ningxi",
     "name": "宁汐",
-    "description": "俏皮可爱的猫娘",
+    "description": "作者：幻梦official",
     "system_prompt": "characters/zh/NingXi.xml",
     "icon": "person.fill"
   },
   {
     "id": "luyao",
     "name": "陆瑶",
-    "description": "抚平岁月的温柔",
+    "description": "作者：幻梦official",
     "system_prompt": "characters/zh/LuYao.xml",
     "icon": "person.fill"
   },
   {
     "id": "luoling",
     "name": "洛灵",
-    "description": "妩媚腹黑的深海人鱼",
+    "description": "作者：幻梦official",
     "system_prompt": "characters/zh/LuoLing.xml",
+    "icon": "person.fill"
+  },
+  {
+    "id": "yujin",
+    "name": "余烬",
+    "description": "作者：浅唱official",
+    "system_prompt": "characters/zh/YuJin.xml",
     "icon": "person.fill"
   }
 ]
