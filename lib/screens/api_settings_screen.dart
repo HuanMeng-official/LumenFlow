@@ -67,6 +67,8 @@ class _ApiSettingsScreenState extends State<ApiSettingsScreen> {
         _endpointController.text = 'https://open.bigmodel.cn/api/paas/v4';
       } else if (apiType == 'kimi') {
         _endpointController.text = 'https://api.moonshot.cn/v1';
+      } else if (apiType == 'lmstudio') {
+        _endpointController.text = 'http://YOUR_LM-STUDIO_ADDRESS:PORT/v1';
       } else {
         _endpointController.text = SettingsService.defaultEndpoint;
       }
@@ -181,7 +183,8 @@ class _ApiSettingsScreenState extends State<ApiSettingsScreen> {
                     'siliconflow': l10n.siliconflowApi,
                     'minimax': l10n.minimaxApi,
                     'zhipu': l10n.zhipuApi,
-                    'kimi': l10n.kimiApi
+                    'kimi': l10n.kimiApi,
+                    'lmstudio': l10n.lmsApi
                   },
                   subtitle: l10n.apiTypeDesc,
                   onChanged: (newValue) {

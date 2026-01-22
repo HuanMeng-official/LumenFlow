@@ -213,6 +213,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kimiApi => 'Kimi API';
 
   @override
+  String get lmsApi => 'LM-Studio API';
+
+  @override
   String get apiTypeDesc => 'Select AI service provider';
 
   @override

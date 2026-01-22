@@ -10,7 +10,7 @@ class AIPlatform {
   final String name;
 
   /// 平台类型
-  final String type; // 'openai', 'claude', 'gemini', 'deepseek', 'siliconflow', 'minimax', 'zhipu'
+  final String type;
 
   /// API端点URL
   final String endpoint;
@@ -199,6 +199,17 @@ class AIPlatform {
           availableModels: [],
           defaultModel: '',
           icon: 'kimi',
+        );
+      case 'lmstudio':
+        return AIPlatform(
+          id: 'lmstudio',
+          name: 'LM-Studio',
+          type: 'lmstudio',
+          endpoint: 'http://YOUR_LM-STUDIO_ADDRESS:PORT/v1',
+          apiKey: 'LM-Studio',
+          availableModels: [],
+          defaultModel: '',
+          icon: 'lmstudio',
         );
       default:
         throw ArgumentError('Unknown platform type: $type');

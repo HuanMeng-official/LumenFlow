@@ -13,6 +13,7 @@ import '../providers/siliconflow_provider.dart';
 import '../providers/minimax_provider.dart';
 import '../providers/zhipu_provider.dart';
 import '../providers/kimi_provider.dart';
+import '../providers/lmstudio_provider.dart';
 import '../l10n/app_localizations.dart';
 
 /// AI服务类，负责处理与AI模型的通信
@@ -50,7 +51,8 @@ class AIService {
           (apiType == 'minimax' && _cachedProvider is MiniMaxProvider) ||
           (apiType == 'zhipu' && _cachedProvider is ZhiPuProvider) ||
           (apiType == 'kimi' && _cachedProvider is KimiProvider) ||
-          (apiType != 'gemini' && apiType != 'deepseek' && apiType != 'claude' && apiType != 'siliconflow' && apiType != 'minimax' && apiType != 'zhipu' && apiType != 'kimi' && _cachedProvider is OpenAIProvider)) {
+          (apiType == 'lmstudio' && _cachedProvider is LMStudioProvider) ||
+          (apiType != 'gemini' && apiType != 'deepseek' && apiType != 'claude' && apiType != 'siliconflow' && apiType != 'minimax' && apiType != 'zhipu' && apiType != 'kimi' && apiType != 'lmstudio' && _cachedProvider is OpenAIProvider)) {
         return _cachedProvider!;
       }
     }
@@ -70,6 +72,8 @@ class AIService {
       _cachedProvider = ZhiPuProvider();
     } else if (apiType == 'kimi') {
       _cachedProvider = KimiProvider();
+    } else if (apiType == 'lmstudio') {
+      _cachedProvider = LMStudioProvider();
     } else {
       _cachedProvider = OpenAIProvider();
     }

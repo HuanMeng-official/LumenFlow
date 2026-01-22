@@ -39,6 +39,7 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
     'minimax',
     'zhipu',
     'kimi',
+    'lmstudio',
     // 未来添加新平台在这里添加即可，例如：
     // 'ollama',
     // 'perplexity',
@@ -1074,6 +1075,8 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
         return CupertinoIcons.heart_fill;
       case 'kimi':
         return CupertinoIcons.moon_fill;
+      case 'lmstudio':
+        return CupertinoIcons.building_2_fill;
       default:
         return CupertinoIcons.cube_box;
     }
@@ -1098,6 +1101,8 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
         return const Color(0xFFE11D48);
       case 'kimi':
         return const Color(0xFF6B57FF);
+      case 'lmstudio':
+        return const Color(0xFF00BFFF);
       default:
         return CupertinoColors.systemBlue;
     }

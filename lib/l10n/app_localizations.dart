@@ -483,6 +483,12 @@ abstract class AppLocalizations {
   /// **'Kimi API'**
   String get kimiApi;
 
+  /// No description provided for @lmsApi.
+  ///
+  /// In en, this message translates to:
+  /// **'LM-Studio API'**
+  String get lmsApi;
+
   /// No description provided for @apiTypeDesc.
   ///
   /// In en, this message translates to:
