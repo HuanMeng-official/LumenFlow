@@ -94,7 +94,7 @@ class LMStudioProvider extends AIProvider {
         }
       },
       onRetry: (error, retryCount, delayMs) {
-        debugPrint('OpenAI API请求失败，第$retryCount次重试，延迟${delayMs}ms: $error');
+        debugPrint('LM-Studio 请求失败，第$retryCount次重试，延迟${delayMs}ms: $error');
       },
       l10n: l10n,
     );
