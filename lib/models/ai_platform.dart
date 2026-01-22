@@ -206,10 +206,21 @@ class AIPlatform {
           name: 'LM-Studio',
           type: 'lmstudio',
           endpoint: 'http://YOUR_LM-STUDIO_ADDRESS:PORT/v1',
-          apiKey: 'LM-Studio',
+          apiKey: '',
           availableModels: [],
           defaultModel: '',
           icon: 'lmstudio',
+        );
+      case 'other':
+        return AIPlatform(
+          id: 'other',
+          name: 'Other',
+          type: 'other',
+          endpoint: 'https://YOUR_LLM_ADDRESS/v1',
+          apiKey: '',
+          availableModels: [],
+          defaultModel: '',
+          icon: 'other',
         );
       default:
         throw ArgumentError('Unknown platform type: $type');

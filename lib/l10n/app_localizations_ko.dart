@@ -216,6 +216,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get lmsApi => 'LM-Studio API';
 
   @override
+  String get otherApi => 'Other API';
+
+  @override
   String get apiTypeDesc => 'AI 서비스 제공업체 선택';
 
   @override

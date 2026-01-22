@@ -489,6 +489,12 @@ abstract class AppLocalizations {
   /// **'LM-Studio API'**
   String get lmsApi;
 
+  /// No description provided for @otherApi.
+  ///
+  /// In en, this message translates to:
+  /// **'Other API'**
+  String get otherApi;
+
   /// No description provided for @apiTypeDesc.
   ///
   /// In en, this message translates to:

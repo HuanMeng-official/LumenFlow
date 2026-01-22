@@ -216,6 +216,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get lmsApi => 'LM-Studio API';
 
   @override
+  String get otherApi => 'Other API';
+
+  @override
   String get apiTypeDesc => 'AIサービスプロバイダーを選択';
 
   @override

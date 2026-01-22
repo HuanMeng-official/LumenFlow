@@ -578,6 +578,7 @@ class SettingsService {
       AIPlatform.createDefaultPlatform('zhipu'),
       AIPlatform.createDefaultPlatform('kimi'),
       AIPlatform.createDefaultPlatform('lmstudio'),
+      AIPlatform.createDefaultPlatform('other'),
     ];
   }
 }
