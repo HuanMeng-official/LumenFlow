@@ -11,7 +11,7 @@ import '../services/settings_service.dart';
 import '../l10n/app_localizations.dart';
 
 /// OpenAI API Provider 实现
-/// 负责处理与 OpenAI 兼容的 API 通信
+/// 负责处理 OpenAI API 通信
 class OpenAIProvider extends AIProvider {
   final SettingsService _settingsService = SettingsService();
   final FileService _fileService = FileService();
@@ -48,29 +48,41 @@ class OpenAIProvider extends AIProvider {
           final historyContextLength =
               await _settingsService.getHistoryContextLength();
 
-          final messages = await _buildMessages(
+          // 构建响应API的请求体
+          final requestBody = <String, dynamic>{
+            'model': model,
+            'max_output_tokens': maxTokens,
+            'temperature': temperature,
+          };
+
+          // 添加系统提示词作为instructions
+          if (systemPrompt.isNotEmpty) {
+            requestBody['instructions'] = systemPrompt;
+          }
+
+          // 构建input字段
+          final input = await _buildInput(
             message: message,
             chatHistory: chatHistory,
             attachments: attachments,
-            systemPrompt: systemPrompt,
             enableHistory: enableHistory,
             historyContextLength: historyContextLength,
             l10n: l10n,
           );
+          requestBody['input'] = input;
+
+          // 添加推理配置
+          if (thinkingMode) {
+            requestBody['reasoning'] = {'effort': 'medium', 'summary': 'auto'};
+          }
 
           final response = await client.post(
-            Uri.parse(thinkingMode ? '$apiEndpoint/responses' : '$apiEndpoint/chat/completions'),
+            Uri.parse('$apiEndpoint/responses'),
             headers: {
               'Content-Type': 'application/json',
               'Authorization': 'Bearer $apiKey',
             },
-            body: jsonEncode({
-              'model': model,
-              'messages': messages,
-              'max_tokens': maxTokens,
-              'temperature': temperature,
-              if (thinkingMode) 'reasoning': {'effort': 'medium', 'summary': 'auto'},
-            }),
+            body: jsonEncode(requestBody),
           ).timeout(connectionTimeout + readTimeout);
 
           if (response.statusCode == 200) {
@@ -109,30 +121,42 @@ class OpenAIProvider extends AIProvider {
       final historyContextLength =
           await _settingsService.getHistoryContextLength();
 
-      final messages = await _buildMessages(
+      // 构建响应API的请求体
+      final requestBody = <String, dynamic>{
+        'model': model,
+        'max_output_tokens': maxTokens,
+        'temperature': temperature,
+        'stream': true,
+      };
+
+      // 添加系统提示词作为instructions
+      if (systemPrompt.isNotEmpty) {
+        requestBody['instructions'] = systemPrompt;
+      }
+
+      // 构建input字段
+      final input = await _buildInput(
         message: message,
         chatHistory: chatHistory,
         attachments: attachments,
-        systemPrompt: systemPrompt,
         enableHistory: enableHistory,
         historyContextLength: historyContextLength,
         l10n: l10n,
       );
+      requestBody['input'] = input;
+
+      // 添加推理配置
+      if (thinkingMode) {
+        requestBody['reasoning'] = {'effort': 'medium', 'summary': 'auto'};
+      }
 
       final request = http.Request(
         'POST',
-        Uri.parse(thinkingMode ? '$apiEndpoint/responses' : '$apiEndpoint/chat/completions'),
+        Uri.parse('$apiEndpoint/responses'),
       );
       request.headers['Content-Type'] = 'application/json';
       request.headers['Authorization'] = 'Bearer $apiKey';
-      request.body = jsonEncode({
-        'model': model,
-        'messages': messages,
-        'max_tokens': maxTokens,
-        'temperature': temperature,
-        'stream': true,
-        if (thinkingMode) 'reasoning': {'effort': 'medium', 'summary': 'auto'},
-      });
+      request.body = jsonEncode(requestBody);
 
       final streamedResponse = await client.send(request).timeout(streamingTimeout);
 
@@ -151,6 +175,8 @@ class OpenAIProvider extends AIProvider {
         stopwatch.reset();
 
         if (line.isEmpty) continue;
+
+        // 处理SSE格式：event: 和 data: 行
         if (line.startsWith('data: ')) {
           final data = line.substring(6);
           if (data == '[DONE]') {
@@ -158,50 +184,28 @@ class OpenAIProvider extends AIProvider {
           }
           try {
             final jsonData = jsonDecode(data);
-
-            // 处理新的 /responses 流式格式
             final type = jsonData['type'] as String?;
-            if (type == 'reasoning') {
-              final summaryList = jsonData['summary'] as List?;
-              if (summaryList != null) {
-                for (final summaryItem in summaryList) {
-                  if (summaryItem is Map<String, dynamic> &&
-                      summaryItem['type'] == 'summary_text') {
-                    final text = summaryItem['text'] as String?;
-                    if (text != null && text.isNotEmpty) {
-                      yield {'type': 'reasoning', 'content': text};
-                    }
-                  }
-                }
-              }
-            } else if (type == 'message') {
-              final contentList = jsonData['content'] as List?;
-              if (contentList != null) {
-                for (final contentItem in contentList) {
-                  if (contentItem is Map<String, dynamic> &&
-                      contentItem['type'] == 'output_text') {
-                    final text = contentItem['text'] as String?;
-                    if (text != null && text.isNotEmpty) {
-                      yield {'type': 'answer', 'content': text};
-                    }
-                  }
-                }
-              }
-            } else {
-              // 处理传统的 /chat/completions 流式格式
-              final delta = jsonData['choices']?[0]?['delta'];
-              if (delta != null) {
-                // 处理思考模型的推理过程
-                final reasoningContent = delta['reasoning'] as String?;
-                if (reasoningContent != null && reasoningContent.isNotEmpty) {
-                  yield {'type': 'reasoning', 'content': reasoningContent};
-                }
 
-                // 处理最终回答
-                final content = delta['content'] as String?;
-                if (content != null && content.isNotEmpty) {
-                  yield {'type': 'answer', 'content': content};
-                }
+            // 处理响应API的流式事件
+            if (type == 'response.output_text.delta') {
+              final delta = jsonData['delta'] as String?;
+              if (delta != null && delta.isNotEmpty) {
+                yield {'type': 'answer', 'content': delta};
+              }
+            } else if (type == 'response.output_text.done') {
+              final text = jsonData['text'] as String?;
+              if (text != null && text.isNotEmpty) {
+                yield {'type': 'answer', 'content': text};
+              }
+            } else if (type == 'response.reasoning.delta') {
+              final delta = jsonData['delta'] as String?;
+              if (delta != null && delta.isNotEmpty) {
+                yield {'type': 'reasoning', 'content': delta};
+              }
+            } else if (type == 'response.reasoning.done') {
+              final text = jsonData['text'] as String?;
+              if (text != null && text.isNotEmpty) {
+                yield {'type': 'reasoning', 'content': text};
               }
             }
           } catch (e) {
@@ -231,34 +235,42 @@ class OpenAIProvider extends AIProvider {
       return '$role: ${msg.content.trim()}';
     }).join('\n');
 
-    final requestMessages = [
-      {
-        'role': 'system',
-        'content': l10n.providerTitleGenSystemPrompt
-      },
-      {
-        'role': 'user',
-        'content': l10n.providerTitleGenUserPrompt(conversationSummary)
-      }
-    ];
+    // 构建响应API请求
+    final requestBody = <String, dynamic>{
+      'model': model,
+      'instructions': l10n.providerTitleGenSystemPrompt,
+      'input': l10n.providerTitleGenUserPrompt(conversationSummary),
+      'max_output_tokens': 50,
+      'temperature': 0.3,
+    };
 
     final response = await http.post(
-      Uri.parse('$apiEndpoint/chat/completions'),
+      Uri.parse('$apiEndpoint/responses'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $apiKey',
       },
-      body: jsonEncode({
-        'model': model,
-        'messages': requestMessages,
-        'max_tokens': 50,
-        'temperature': 0.3,
-      }),
+      body: jsonEncode(requestBody),
     );
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      var title = data['choices'][0]['message']['content']?.toString().trim() ?? '';
+
+      // 从响应API格式中提取标题
+      var title = '';
+      final output = data['output'] as List?;
+      if (output != null && output.isNotEmpty) {
+        final firstOutput = output[0] as Map<String, dynamic>?;
+        if (firstOutput != null && firstOutput['type'] == 'message') {
+          final contentList = firstOutput['content'] as List?;
+          if (contentList != null && contentList.isNotEmpty) {
+            final firstContent = contentList[0] as Map<String, dynamic>?;
+            if (firstContent != null && firstContent['type'] == 'output_text') {
+              title = firstContent['text']?.toString().trim() ?? '';
+            }
+          }
+        }
+      }
 
       // 移除可能的引号
       if (title.startsWith('"') || title.startsWith('\'') || title.startsWith('|')) {
@@ -283,43 +295,44 @@ class OpenAIProvider extends AIProvider {
     }
   }
 
-  /// 构建 OpenAI 消息列表
-  Future<List<Map<String, dynamic>>> _buildMessages({
+  /// 构建响应API的input字段
+  Future<dynamic> _buildInput({
     required String message,
     required List<Message> chatHistory,
     required List<Attachment> attachments,
-    required String systemPrompt,
     required bool enableHistory,
     required int historyContextLength,
     required AppLocalizations l10n,
   }) async {
+    // 如果没有历史消息，直接返回当前消息
+    if (!enableHistory || chatHistory.isEmpty) {
+      final userMessageContent = await _buildMessageContent(message, attachments, l10n);
+      return userMessageContent;
+    }
+
+    // 构建包含历史消息的对话数组
     final messages = <Map<String, dynamic>>[];
 
-    // 添加系统提示词
-    messages.add({
-      'role': 'system',
-      'content': systemPrompt,
-    });
-
     // 添加历史消息
-    if (enableHistory && chatHistory.isNotEmpty) {
-      final recentHistory = chatHistory
-          .where((msg) =>
-              msg.status != MessageStatus.error &&
-              msg.content.trim().isNotEmpty)
-          .toList()
-          .reversed
-          .take(historyContextLength * 2)
-          .toList()
-          .reversed
-          .toList();
+    final recentHistory = chatHistory
+        .where((msg) =>
+            msg.status != MessageStatus.error &&
+            msg.content.trim().isNotEmpty)
+        .toList()
+        .reversed
+        .take(historyContextLength * 2)
+        .toList()
+        .reversed
+        .toList();
 
-      for (final historyMsg in recentHistory) {
-        messages.add({
-          'role': historyMsg.isUser ? 'user' : 'assistant',
-          'content': historyMsg.content,
-        });
-      }
+    for (final historyMsg in recentHistory) {
+      final role = historyMsg.isUser ? 'user' : 'assistant';
+      final content = historyMsg.content;
+
+      messages.add({
+        'role': role,
+        'content': content,
+      });
     }
 
     // 添加当前用户消息
@@ -331,6 +344,7 @@ class OpenAIProvider extends AIProvider {
 
     return messages;
   }
+
 
   /// 构建消息内容（处理附件）
   Future<dynamic> _buildMessageContent(
@@ -348,7 +362,8 @@ class OpenAIProvider extends AIProvider {
     final contentParts = <Map<String, dynamic>>[];
 
     if (message.isNotEmpty) {
-      contentParts.add({'type': 'text', 'text': message});
+      // 响应API使用 input_text 类型
+      contentParts.add({'type': 'input_text', 'text': message});
     }
 
     for (final attachment in attachments) {
@@ -356,7 +371,7 @@ class OpenAIProvider extends AIProvider {
         if (attachment.filePath == null ||
             !await _fileService.fileExists(attachment.filePath!)) {
           contentParts.add(
-              {'type': 'text', 'text': l10n.providerFileNotFound(attachment.fileName)});
+              {'type': 'input_text', 'text': l10n.providerFileNotFound(attachment.fileName)});
           continue;
         }
 
@@ -366,7 +381,7 @@ class OpenAIProvider extends AIProvider {
 
         if (fileSize > AIProvider.maxFileSizeForBase64) {
           contentParts.add({
-            'type': 'text',
+            'type': 'input_text',
             'text': l10n.providerFileTooLarge(attachment.fileName, formatFileSize(fileSize))
           });
           continue;
@@ -377,12 +392,12 @@ class OpenAIProvider extends AIProvider {
             final dataUrl =
                 await _fileService.getFileDataUrl(file, attachment.mimeType);
             contentParts.add({
-              'type': 'image_url',
+              'type': 'input_image',
               'image_url': {'url': dataUrl}
             });
           } catch (e) {
             contentParts.add({
-              'type': 'text',
+              'type': 'input_text',
               'text': l10n.providerFileProcessError(attachment.fileName, e.toString())
             });
           }
@@ -391,7 +406,7 @@ class OpenAIProvider extends AIProvider {
             try {
               final content = await _fileService.readTextFile(file);
               contentParts.add({
-                'type': 'text',
+                'type': 'input_text',
                 'text': l10n.providerFileContent(
                   attachment.fileName,
                   formatFileSize(fileSize),
@@ -400,7 +415,7 @@ class OpenAIProvider extends AIProvider {
               });
             } catch (e) {
               contentParts.add({
-                'type': 'text',
+                'type': 'input_text',
                 'text': l10n.providerAttachmentCannotRead(
                   attachment.fileName,
                   formatFileSize(fileSize),
@@ -410,7 +425,7 @@ class OpenAIProvider extends AIProvider {
             }
           } else {
             contentParts.add({
-              'type': 'text',
+              'type': 'input_text',
               'text': l10n.providerAttachmentInfo(
                 attachment.fileName,
                 formatFileSize(fileSize),
@@ -421,11 +436,11 @@ class OpenAIProvider extends AIProvider {
         }
       } catch (e) {
         contentParts.add(
-            {'type': 'text', 'text': l10n.providerFileProcessError(attachment.fileName, e.toString())});
+            {'type': 'input_text', 'text': l10n.providerFileProcessError(attachment.fileName, e.toString())});
       }
     }
 
-    if (contentParts.length == 1 && contentParts[0]['type'] == 'text') {
+    if (contentParts.length == 1 && contentParts[0]['type'] == 'input_text') {
       return contentParts[0]['text'] as String;
     }
 
@@ -436,41 +451,40 @@ class OpenAIProvider extends AIProvider {
   Map<String, dynamic> _parseResponse(String responseBody, AppLocalizations l10n) {
     final data = jsonDecode(responseBody);
 
-    // 处理新的 /responses 端点格式（数组）
-    if (data is List) {
+    // 处理响应API格式
+    if (data is Map<String, dynamic> && data['object'] == 'response') {
+      final output = data['output'] as List?;
       String reasoningContent = '';
       String content = '';
 
-      for (final item in data) {
-        if (item is! Map<String, dynamic>) continue;
+      if (output != null) {
+        for (final item in output) {
+          if (item is! Map<String, dynamic>) continue;
 
-        final type = item['type'] as String?;
-        if (type == 'reasoning') {
-          final summaryList = item['summary'] as List?;
-          if (summaryList != null) {
-            for (final summaryItem in summaryList) {
-              if (summaryItem is Map<String, dynamic> &&
-                  summaryItem['type'] == 'summary_text') {
-                final text = summaryItem['text'] as String?;
-                if (text != null && text.isNotEmpty) {
-                  reasoningContent += (reasoningContent.isNotEmpty ? '\n' : '') + text;
+          final type = item['type'] as String?;
+          if (type == 'message') {
+            final contentList = item['content'] as List?;
+            if (contentList != null) {
+              for (final contentItem in contentList) {
+                if (contentItem is Map<String, dynamic> &&
+                    contentItem['type'] == 'output_text') {
+                  final text = contentItem['text'] as String?;
+                  if (text != null && text.isNotEmpty) {
+                    content += (content.isNotEmpty ? '\n' : '') + text;
+                  }
                 }
               }
             }
           }
-        } else if (type == 'message') {
-          final contentList = item['content'] as List?;
-          if (contentList != null) {
-            for (final contentItem in contentList) {
-              if (contentItem is Map<String, dynamic> &&
-                  contentItem['type'] == 'output_text') {
-                final text = contentItem['text'] as String?;
-                if (text != null && text.isNotEmpty) {
-                  content += (content.isNotEmpty ? '\n' : '') + text;
-                }
-              }
-            }
-          }
+        }
+      }
+
+      // 检查是否有推理内容
+      final reasoning = data['reasoning'] as Map<String, dynamic>?;
+      if (reasoning != null) {
+        final summary = reasoning['summary'] as String?;
+        if (summary != null && summary.isNotEmpty) {
+          reasoningContent = summary;
         }
       }
 
@@ -480,26 +494,8 @@ class OpenAIProvider extends AIProvider {
       };
     }
 
-    // 处理传统的 /chat/completions 端点格式（对象）
-    if (data is! Map<String, dynamic> ||
-        data['choices'] == null ||
-        (data['choices'] as List).isEmpty) {
-      throw Exception(l10n.providerInvalidResponseFormat);
-    }
-
-    final firstChoice = data['choices'][0];
-    if (firstChoice['message'] == null) {
-      throw Exception(l10n.providerMissingMessageField);
-    }
-
-    final message = firstChoice['message'];
-    final reasoningContent = message['reasoning']?.toString().trim() ?? '';
-    final content = message['content']?.toString().trim() ?? '';
-
-    return {
-      'reasoningContent': reasoningContent,
-      'content': content,
-    };
+    // 如果格式不符合预期，抛出异常
+    throw Exception(l10n.providerInvalidResponseFormat);
   }
 
   /// 解析错误
