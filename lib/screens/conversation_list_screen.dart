@@ -6,7 +6,7 @@ import '../models/conversation.dart';
 import '../services/conversation_service.dart';
 
 class ConversationListScreen extends StatefulWidget {
-  final Function(Conversation?) onConversationSelected;
+  final Function(String? conversationId) onConversationSelected;
 
   const ConversationListScreen({
     super.key,
@@ -49,7 +49,8 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
       _conversations.insert(0, conversation);
       _currentConversationId = conversation.id;
     });
-    widget.onConversationSelected(conversation);
+    // 只传递对话 ID，由 ChatScreen 负责加载完整对话
+    widget.onConversationSelected(conversation.id);
     if (mounted) {
       Navigator.pop(context);
     }
@@ -60,7 +61,8 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
     setState(() {
       _currentConversationId = conversation.id;
     });
-    widget.onConversationSelected(conversation);
+    // 只传递对话 ID，由 ChatScreen 负责加载完整对话
+    widget.onConversationSelected(conversation.id);
     if (mounted) {
       Navigator.pop(context);
     }
