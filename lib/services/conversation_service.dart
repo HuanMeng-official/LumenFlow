@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/conversation.dart';
 import '../l10n/app_localizations.dart';
 import 'package:path_provider/path_provider.dart';
@@ -11,61 +9,40 @@ import 'package:archive/archive.dart';
 import 'package:archive/archive_io.dart';
 import '../models/attachment.dart';
 import 'dart:async';
-
-/// 简单的异步锁实现
-class _Lock {
-  Completer<void>? _completer;
-
-  /// 执行同步操作，确保同一时间只有一个操作执行
-  Future<T> synchronized<T>(Future<T> Function() operation) async {
-    // 等待上一个操作完成
-    while (_completer != null) {
-      await _completer!.future;
-    }
-
-    // 获取锁
-    _completer = Completer<void>();
-
-    try {
-      return await operation();
-    } finally {
-      // 无论成功或失败，都要释放锁
-      final completer = _completer!;
-      _completer = null;
-      completer.complete();
-    }
-  }
-}
+import 'dart:convert';
+import 'conversation_database.dart';
 
 /// 对话服务，管理对话的持久化存储和CRUD操作
 ///
-/// 使用SharedPreferences作为本地存储，存储对话列表和当前对话ID
+/// 使用SQLite作为本地存储，存储对话列表和当前对话ID
 /// 提供对话的创建、读取、更新、删除等完整功能
 ///
 /// 性能优化:
 /// - 单例模式，确保缓存全局共享
 /// - 内存缓存对话列表，减少磁盘IO
 /// - 异步操作队列防止并发冲突
+/// - 延迟加载消息，只在需要时加载
 ///
 /// 设计特点:
 /// - 自动按更新时间排序（最近更新的对话在前）
 /// - 维护当前对话ID，支持快速切换
 /// - 线程安全的异步操作
+/// - 支持从 SharedPreferences 自动迁移数据
 class ConversationService {
   // 单例实例
   static final ConversationService _instance = ConversationService._internal();
   factory ConversationService() => _instance;
-  ConversationService._internal() : _lock = _Lock();
+  ConversationService._internal();
 
-  static const String _conversationsKey = 'conversations';
-  static const String _currentConversationIdKey = 'current_conversation_id';
+  /// 数据库实例
+  final ConversationDatabase _db = ConversationDatabase();
 
   /// 内存缓存（由于是单例，实例变量也是全局共享的）
   List<Conversation>? _cachedConversations;
   bool _isCacheDirty = false;
 
-  /// 异步操作锁，防止并发冲突
-  final _Lock _lock;
+  /// 内存缓存已加载消息的对话ID
+  final Set<String> _loadedConversationIds = {};
 
   /// 从本地存储加载所有对话（带缓存）
   /// 返回按更新时间倒序排序的对话列表（最近更新的在前）
@@ -75,135 +52,140 @@ class ConversationService {
       return List.from(_cachedConversations!);
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    final conversationsString = prefs.getString(_conversationsKey);
-
-    if (conversationsString == null) {
-      _cachedConversations = [];
-      _isCacheDirty = false;
-      return [];
-    }
-
-    final conversationsJson = jsonDecode(conversationsString) as List;
-    final conversations = conversationsJson
-        .map((json) => Conversation.fromJson(json as Map<String, dynamic>))
-        .toList()
-      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    final conversations = await _db.getConversations();
 
     _cachedConversations = conversations;
     _isCacheDirty = false;
     return conversations;
   }
 
-  /// 保存对话列表到磁盘（并更新缓存）
-  Future<void> saveConversations(List<Conversation> conversations) async {
-    final prefs = await SharedPreferences.getInstance();
-    final conversationsJson = conversations.map((c) => c.toJson()).toList();
-    await prefs.setString(_conversationsKey, jsonEncode(conversationsJson));
-
-    // 更新缓存
-    _cachedConversations = conversations;
-    _isCacheDirty = false;
-  }
-
   /// 清除缓存（用于测试或强制重新加载）
   void clearCache() {
     _cachedConversations = null;
     _isCacheDirty = true;
+    _loadedConversationIds.clear();
   }
 
   Future<String?> getCurrentConversationId() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_currentConversationIdKey);
+    return await _db.getCurrentConversationId();
   }
 
   Future<void> setCurrentConversationId(String conversationId) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_currentConversationIdKey, conversationId);
+    await _db.setCurrentConversationId(conversationId);
   }
 
-  /// 创建新对话（带锁保护，使用缓存优化）
+  /// 创建新对话
   Future<Conversation> createNewConversation({String? title}) async {
-    return await _lock.synchronized(() async {
-      final conversation = Conversation(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        title: title ?? '新对话',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-        messages: [],
-      );
+    final conversation = Conversation(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      title: title ?? '新对话',
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      messages: [],
+    );
 
-      // 使用缓存
-      final conversations = _cachedConversations ?? await loadConversations();
-      conversations.insert(0, conversation);
-      await saveConversations(conversations);
-      await setCurrentConversationId(conversation.id);
+    await _db.createConversation(
+      id: conversation.id,
+      title: conversation.title,
+      createdAt: conversation.createdAt,
+      updatedAt: conversation.updatedAt,
+    );
 
-      return conversation;
-    });
+    await setCurrentConversationId(conversation.id);
+
+    // 更新缓存
+    _cachedConversations?.insert(0, conversation);
+    _isCacheDirty = false;
+
+    return conversation;
   }
 
-  /// 更新对话（带锁保护，使用缓存优化）
+  /// 更新对话
   Future<void> updateConversation(Conversation conversation) async {
-    await _lock.synchronized(() async {
-      // 使用缓存，避免重复加载
-      final conversations = _cachedConversations ?? await loadConversations();
-      final index = conversations.indexWhere((c) => c.id == conversation.id);
+    await _db.updateConversation(conversation);
 
+    // 更新缓存
+    if (_cachedConversations != null) {
+      final index = _cachedConversations!.indexWhere((c) => c.id == conversation.id);
       if (index != -1) {
-        conversations[index] = conversation.copyWith(updatedAt: DateTime.now());
+        _cachedConversations![index] = conversation.copyWith(
+          updatedAt: conversation.updatedAt,
+        );
         // 重新排序，确保最新对话在前面
-        conversations.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-        await saveConversations(conversations);
+        _cachedConversations!.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
       } else {
         // 如果对话不存在，添加它
-        conversations.insert(0, conversation.copyWith(updatedAt: DateTime.now()));
-        conversations.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-        await saveConversations(conversations);
+        _cachedConversations!.insert(0, conversation.copyWith(
+          updatedAt: conversation.updatedAt,
+        ));
+        _cachedConversations!.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
       }
-    });
+      _isCacheDirty = false;
+    }
+
+    _loadedConversationIds.add(conversation.id);
   }
 
-  /// 删除对话（带锁保护，使用缓存优化）
+  /// 删除对话
   Future<void> deleteConversation(String conversationId) async {
-    await _lock.synchronized(() async {
-      final conversations = _cachedConversations ?? await loadConversations();
-      conversations.removeWhere((c) => c.id == conversationId);
-      await saveConversations(conversations);
+    await _db.deleteConversation(conversationId);
 
-      final currentId = await getCurrentConversationId();
-      if (currentId == conversationId) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.remove(_currentConversationIdKey);
-      }
-    });
+    // 更新缓存
+    _cachedConversations?.removeWhere((c) => c.id == conversationId);
+    _loadedConversationIds.remove(conversationId);
+
+    final currentId = await getCurrentConversationId();
+    if (currentId == conversationId) {
+      await _db.setCurrentConversationId('');
+    }
   }
 
   /// 根据ID获取对话（带缓存优化）
   Future<Conversation?> getConversationById(String id) async {
-    final conversations = _cachedConversations ?? await loadConversations();
-    try {
-      return conversations.firstWhere((c) => c.id == id);
-    } catch (e) {
-      return null;
+    // 先检查缓存
+    if (_loadedConversationIds.contains(id) && _cachedConversations != null) {
+      try {
+        return _cachedConversations!.firstWhere((c) => c.id == id);
+      } catch (e) {
+        // 缓存中找不到，继续从数据库加载
+      }
     }
+
+    // 从数据库加载完整对话
+    final conversation = await _db.getConversationById(id);
+
+    if (conversation != null) {
+      // 更新缓存
+      if (_cachedConversations != null) {
+        final index = _cachedConversations!.indexWhere((c) => c.id == id);
+        if (index != -1) {
+          _cachedConversations![index] = conversation;
+        } else {
+          _cachedConversations!.add(conversation);
+          _cachedConversations!.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+        }
+      }
+      _loadedConversationIds.add(id);
+    }
+
+    return conversation;
   }
 
-  /// 更新对话标题（带锁保护，使用缓存优化）
+  /// 更新对话标题
   Future<void> updateConversationTitle(
       String conversationId, String title) async {
-    await _lock.synchronized(() async {
-      final conversations = _cachedConversations ?? await loadConversations();
-      final index = conversations.indexWhere((c) => c.id == conversationId);
+    await _db.updateConversationTitle(conversationId, title);
 
+    // 更新缓存
+    if (_cachedConversations != null) {
+      final index = _cachedConversations!.indexWhere((c) => c.id == conversationId);
       if (index != -1) {
-        conversations[index] = conversations[index].copyWith(
+        _cachedConversations![index] = _cachedConversations![index].copyWith(
           title: title,
           updatedAt: DateTime.now(),
         );
-        await saveConversations(conversations);
       }
-    });
+    }
   }
 
   /// 导出对话为JSON格式
