@@ -242,7 +242,7 @@ You can configure multiple platforms and switch between them as needed.
    - Multi-modal capabilities
 
 3. **DeepSeek**
-   - API Endpoint: `https://api.deepseek.com/v1/chat/completions`
+   - API Endpoint: `https://api.deepseek.com/chat/completions`
    - Supported models: DeepSeek-V3.2
    - Text-only support with streaming capabilities
 

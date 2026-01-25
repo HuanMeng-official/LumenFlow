@@ -242,7 +242,7 @@ LumenFlow 支持同时管理多个 AI 平台。每个平台都可以有自己的
    - 多模态能力
 
 3. **DeepSeek**
-   - API 端点：`https://api.deepseek.com/v1/chat/completions`
+   - API 端点：`https://api.deepseek.com/chat/completions`
    - 支持的模型：DeepSeek-V3.2
    - 文本流式传输支持
 
