@@ -5,7 +5,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 /// 通知服务类
 ///
 /// 负责处理应用的所有本地通知功能
-/// 支持 Android、Windows 平台
+/// 支持 Android、Windows、Linux 平台
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
@@ -41,9 +41,14 @@ class NotificationService {
       guid: '550E8400-E29B-41D4-A716-446655440000',
     );
 
+    final initializationSettingsLinux = LinuxInitializationSettings(
+      defaultActionName: 'Open',
+    );
+
     final initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
       windows: initializationSettingsWindows,
+      linux: initializationSettingsLinux,
     );
 
     await _notificationsPlugin.initialize(initializationSettings);
@@ -116,9 +121,12 @@ class NotificationService {
 
     final windowsDetails = WindowsNotificationDetails();
 
+    final linuxDetails = LinuxNotificationDetails();
+
     final notificationDetails = NotificationDetails(
       android: androidDetails,
       windows: windowsDetails,
+      linux: linuxDetails,
     );
 
     await _notificationsPlugin.show(
