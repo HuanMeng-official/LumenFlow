@@ -628,5 +628,33 @@
   "copySuccessTitle": "Copy Success",
   "copyFailedTitle": "Copy Failed",
   "copyCode": "Copy",
-  "copied": "Copied"
+  "copied": "Copied",
+  "toolsSettings": "Tools",
+  "mcpServerSettings": "MCP Server",
+  "mcpServerType": "Connection Type",
+  "mcpServerTypeDesc": "Select MCP Server connection type",
+  "mcpServerUrl": "Server Address",
+  "mcpServerUrlPlaceholder": "Enter server address or command",
+  "mcpServerUrlDesc": "URL for HTTP/WebSocket or command for stdio",
+  "mcpServerHelpTitle": "About MCP Server",
+  "mcpServerHelpContent": "MCP (Model Context Protocol) Server allows connecting to external tools and services.\n\nConnection Types:\n• HTTP: Connect via HTTP/HTTPS URL\n• stdio: Connect via standard input/output (local command)\n• WebSocket: Connect via WebSocket URL\n\nEnter the appropriate address based on your connection type.",
+  "mcpServerNamePlaceholder": "MCP Server Name",
+  "mcpServerEnable": "Enable Server",
+  "mcpServerAddressHttpDesc": "HTTP/HTTPS URL address",
+  "mcpServerAddressWebsocketDesc": "WebSocket URL address",
+  "mcpServerAddressStdioDesc": "Local command line command",
+  "mcpServerAddressGenericDesc": "Server address",
+  "mcpServerDeleteConfirm": "Are you sure you want to delete MCP Server \"{name}\"?",
+  "@mcpServerDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "mcpServerNoConfig": "No MCP Server configured",
+  "mcpServerAddHint": "Tap the + button in the top right to add the first MCP Server",
+  "mcpServerDisabled": "Disabled",
+  "mcpServerErrorNameRequired": "Please enter server name",
+  "mcpServerErrorAddressRequired": "Please enter server address"
 }

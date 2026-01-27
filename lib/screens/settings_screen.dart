@@ -12,6 +12,7 @@ import 'api_settings_screen.dart';
 import 'model_settings_screen.dart';
 import 'conversation_settings_screen.dart';
 import 'appearance_settings_screen.dart';
+import 'tools_settings_screen.dart';
 import '../widgets/settings/settings_section.dart';
 import '../widgets/settings/settings_navigation_tile.dart';
 import '../widgets/settings/settings_action_tile.dart';
@@ -111,6 +112,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context,
       CupertinoPageRoute(
         builder: (context) => const AppearanceSettingsScreen(),
+      ),
+    );
+  }
+
+  void _openToolsSettings() {
+    Navigator.push(
+      context,
+      CupertinoPageRoute(
+        builder: (context) => const ToolsSettingsScreen(),
       ),
     );
   }
@@ -329,6 +339,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: l10n.conversationTitle,
                   icon: CupertinoIcons.chat_bubble_2,
                   onTap: _openConversationSettings,
+                ),
+                SettingsNavigationTile(
+                  title: l10n.toolsSettings,
+                  subtitle: l10n.mcpServerUrlDesc,
+                  icon: CupertinoIcons.wrench,
+                  onTap: _openToolsSettings,
                 ),
                 SettingsNavigationTile(
                   title: l10n.appearance,

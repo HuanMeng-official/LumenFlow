@@ -965,4 +965,69 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get copied => '복사됨';
+
+  @override
+  String get toolsSettings => '도구';
+
+  @override
+  String get mcpServerSettings => 'MCP 서버';
+
+  @override
+  String get mcpServerType => '연결 유형';
+
+  @override
+  String get mcpServerTypeDesc => 'MCP 서버 연결 유형 선택';
+
+  @override
+  String get mcpServerUrl => '서버 주소';
+
+  @override
+  String get mcpServerUrlPlaceholder => '서버 주소 또는 명령어 입력';
+
+  @override
+  String get mcpServerUrlDesc => 'HTTP/WebSocket은 URL, stdio는 명령어 사용';
+
+  @override
+  String get mcpServerHelpTitle => 'MCP 서버 정보';
+
+  @override
+  String get mcpServerHelpContent => 'MCP(모델 컨텍스트 프로토콜) 서버를 사용하면 외부 도구 및 서비스에 연결할 수 있습니다.\n\n연결 유형:\n• HTTP: HTTP/HTTPS URL로 연결\n• stdio: 표준 입출력으로 연결 (로컬 명령어)\n• WebSocket: WebSocket URL로 연결\n\n연결 유형에 따라 적절한 주소를 입력하세요.';
+
+  @override
+  String get mcpServerNamePlaceholder => 'MCP 서버 이름';
+
+  @override
+  String get mcpServerEnable => '서버 활성화';
+
+  @override
+  String get mcpServerAddressHttpDesc => 'HTTP/HTTPS URL 주소';
+
+  @override
+  String get mcpServerAddressWebsocketDesc => 'WebSocket URL 주소';
+
+  @override
+  String get mcpServerAddressStdioDesc => '로컬 명령어';
+
+  @override
+  String get mcpServerAddressGenericDesc => '서버 주소';
+
+  @override
+  String mcpServerDeleteConfirm(String name) {
+    return 'MCP 서버 \"$name\"을(를) 삭제하시겠습니까?';
+  }
+
+  @override
+  String get mcpServerNoConfig => '구성된 MCP 서버 없음';
+
+  @override
+  String get mcpServerAddHint => '오른쪽 상단의 + 버튼을 눌러 첫 번째 MCP 서버를 추가하세요';
+
+  @override
+  String get mcpServerDisabled => '비활성화됨';
+
+  @override
+  String get mcpServerErrorNameRequired => '서버 이름을 입력하세요';
+
+  @override
+  String get mcpServerErrorAddressRequired => '서버 주소를 입력하세요';
 }

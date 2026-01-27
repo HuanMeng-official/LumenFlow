@@ -628,5 +628,33 @@
   "copySuccessTitle": "复制成功",
   "copyFailedTitle": "复制失败",
   "copyCode": "复制",
-  "copied": "已复制"
+  "copied": "已复制",
+  "toolsSettings": "工具",
+  "mcpServerSettings": "MCP服务器",
+  "mcpServerType": "连接类型",
+  "mcpServerTypeDesc": "选择MCP服务器连接类型",
+  "mcpServerUrl": "服务器地址",
+  "mcpServerUrlPlaceholder": "输入服务器地址或命令",
+  "mcpServerUrlDesc": "HTTP/WebSocket使用URL，stdio使用命令",
+  "mcpServerHelpTitle": "关于MCP服务器",
+  "mcpServerHelpContent": "MCP（模型上下文协议）服务器允许连接到外部工具和服务。\n\n连接类型：\n• HTTP：通过HTTP/HTTPS URL连接\n• stdio：通过标准输入/输出连接（本地命令）\n• WebSocket：通过WebSocket URL连接\n\n根据您的连接类型输入相应的地址。",
+  "mcpServerNamePlaceholder": "MCP Server名称",
+  "mcpServerEnable": "启用服务器",
+  "mcpServerAddressHttpDesc": "HTTP/HTTPS URL地址",
+  "mcpServerAddressWebsocketDesc": "WebSocket URL地址",
+  "mcpServerAddressStdioDesc": "本地命令行命令",
+  "mcpServerAddressGenericDesc": "服务器地址",
+  "mcpServerDeleteConfirm": "确定要删除MCP Server「{name}」吗？",
+  "@mcpServerDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "mcpServerNoConfig": "暂无MCP Server配置",
+  "mcpServerAddHint": "点击右上角+按钮添加第一个MCP Server",
+  "mcpServerDisabled": "已禁用",
+  "mcpServerErrorNameRequired": "请输入服务器名称",
+  "mcpServerErrorAddressRequired": "请输入服务器地址"
 }
