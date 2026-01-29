@@ -344,12 +344,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resetToDefault => 'Reset to Default Settings';
 
   @override
-  String get usageInstructions => 'Usage Instructions';
-
-  @override
-  String get usageInstructionsContent => '• API Type: Select AI service provider (OpenAI, Gemini or DeepSeek). Endpoint and model will be auto-filled after selection\n• API Endpoint: API address of AI service provider. Click help button to view common endpoints\n• API Key: Authentication key obtained from service provider. Please keep it safe\n• Model: AI model name to use. Different endpoints support different models\n• Token Count: Limit the length of single response. Too small may result in incomplete responses\n• Temperature: Higher value means more creative responses. Recommended 0.3-1.0\n• History Conversation: When enabled, AI can remember conversation context for more coherent experience';
-
-  @override
   String get commonApiEndpoints => 'Common API Endpoints';
 
   @override
@@ -1038,5 +1032,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get advancedSettings => 'Advanced';
 
   @override
-  String get advancedSettingsSubtitle => 'Notifications, Import/Export, About';
+  String get advancedSettingsSubtitle => 'Configure app behavior';
+
+  @override
+  String get userProfileSubtitle => 'Personalize your account';
+
+  @override
+  String get platformAndModelSubtitle => 'Configure AI platforms and models';
+
+  @override
+  String get apiTypeSubtitle => 'Set up API connection parameters';
+
+  @override
+  String get modelSettingsSubtitle => 'Adjust model response behavior';
+
+  @override
+  String get historyConversationSubtitle => 'Manage conversation history';
+
+  @override
+  String get toolsSettingsSubtitle => 'Configure external tools';
+
+  @override
+  String get appearanceSubtitle => 'Customize app appearance';
 }

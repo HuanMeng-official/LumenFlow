@@ -344,12 +344,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get resetToDefault => '기본 설정으로 재설정';
 
   @override
-  String get usageInstructions => '사용법';
-
-  @override
-  String get usageInstructionsContent => '• API 유형: AI 서비스 제공업체(OpenAI, Gemini 또는 DeepSeek) 선택. 선택 후 엔드포인트 및 모델 자동 입력됨\n• API 엔드포인트: AI 서비스 제공업체의 API 주소. 도움말 버튼 클릭하여 일반적인 엔드포인트 보기\n• API 키: 서비스 제공업체에서 발급받은 인증 키. 안전하게 보관하세요\n• 모델: 사용할 AI 모델 이름. 다양한 엔드포인트는 서로 다른 모델 지원\n• 토큰 수: 단일 응답 길이 제한. 너무 작으면 불완전한 응답 발생 가능\n• 온도: 값이 높을수록 창의적인 응답. 권장 0.3-1.0\n• 과거 대화: 활성화 시 AI는 대화 맥락 기억하여 더 일관된 경험 제공';
-
-  @override
   String get commonApiEndpoints => '일반적인 API 엔드포인트';
 
   @override
@@ -1032,11 +1026,32 @@ class AppLocalizationsKo extends AppLocalizations {
   String get mcpServerErrorAddressRequired => '서버 주소를 입력하세요';
 
   @override
-  String get aiResponseDisclaimer => '내용은 참고용이며, 주의 깊게 확인하세요';
+  String get aiResponseDisclaimer => '내용은 참조용이며, 주의 깊게 확인하세요';
 
   @override
   String get advancedSettings => '고급';
 
   @override
-  String get advancedSettingsSubtitle => '알림, 가져오기/내보내기, 정보';
+  String get advancedSettingsSubtitle => '앱 동작 설정';
+
+  @override
+  String get userProfileSubtitle => '계정을 개인화';
+
+  @override
+  String get platformAndModelSubtitle => 'AI 플랫폼 및 모델 구성';
+
+  @override
+  String get apiTypeSubtitle => 'API 연결 매개변수 설정';
+
+  @override
+  String get modelSettingsSubtitle => '모델 응답 동작 조정';
+
+  @override
+  String get historyConversationSubtitle => '대화 기록 관리';
+
+  @override
+  String get toolsSettingsSubtitle => '외부 도구 구성';
+
+  @override
+  String get appearanceSubtitle => '앱 모양 사용자 지정';
 }

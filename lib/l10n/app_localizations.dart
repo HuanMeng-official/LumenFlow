@@ -741,18 +741,6 @@ abstract class AppLocalizations {
   /// **'Reset to Default Settings'**
   String get resetToDefault;
 
-  /// No description provided for @usageInstructions.
-  ///
-  /// In en, this message translates to:
-  /// **'Usage Instructions'**
-  String get usageInstructions;
-
-  /// No description provided for @usageInstructionsContent.
-  ///
-  /// In en, this message translates to:
-  /// **'• API Type: Select AI service provider (OpenAI, Gemini or DeepSeek). Endpoint and model will be auto-filled after selection\n• API Endpoint: API address of AI service provider. Click help button to view common endpoints\n• API Key: Authentication key obtained from service provider. Please keep it safe\n• Model: AI model name to use. Different endpoints support different models\n• Token Count: Limit the length of single response. Too small may result in incomplete responses\n• Temperature: Higher value means more creative responses. Recommended 0.3-1.0\n• History Conversation: When enabled, AI can remember conversation context for more coherent experience'**
-  String get usageInstructionsContent;
-
   /// No description provided for @commonApiEndpoints.
   ///
   /// In en, this message translates to:
@@ -1992,8 +1980,50 @@ abstract class AppLocalizations {
   /// No description provided for @advancedSettingsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Notifications, Import/Export, About'**
+  /// **'Configure app behavior'**
   String get advancedSettingsSubtitle;
+
+  /// No description provided for @userProfileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Personalize your account'**
+  String get userProfileSubtitle;
+
+  /// No description provided for @platformAndModelSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure AI platforms and models'**
+  String get platformAndModelSubtitle;
+
+  /// No description provided for @apiTypeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up API connection parameters'**
+  String get apiTypeSubtitle;
+
+  /// No description provided for @modelSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust model response behavior'**
+  String get modelSettingsSubtitle;
+
+  /// No description provided for @historyConversationSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage conversation history'**
+  String get historyConversationSubtitle;
+
+  /// No description provided for @toolsSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure external tools'**
+  String get toolsSettingsSubtitle;
+
+  /// No description provided for @appearanceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Customize app appearance'**
+  String get appearanceSubtitle;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

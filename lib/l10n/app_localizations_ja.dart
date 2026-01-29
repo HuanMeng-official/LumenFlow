@@ -344,12 +344,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get resetToDefault => 'デフォルト設定に戻す';
 
   @override
-  String get usageInstructions => '使用方法';
-
-  @override
-  String get usageInstructionsContent => '• APIタイプ: AIサービスプロバイダー (OpenAI, Gemini, または DeepSeek) を選択します。選択後、エンドポイントとモデルが自動入力されます。\n• APIエンドポイント: AIサービスプロバイダーのAPIアドレスです。ヘルプボタンをクリックして一般的なエンドポイントを表示できます。\n• APIキー: サービスプロバイダーから取得した認証キーです。安全に保管してください。\n• モデル: 使用するAIモデル名です。異なるエンドポイントは異なるモデルをサポートしています。\n• トークン数: 単一応答の長さを制限します。小さすぎると応答が不完全になる可能性があります。\n• 温度: 値が高いほど創造的な応答になります。推奨値: 0.3-1.0\n• 履歴会話: 有効にすると、AIは会話のコンテキストを記憶し、より連続性のある体験を提供します。';
-
-  @override
   String get commonApiEndpoints => 'よく使われるAPIエンドポイント';
 
   @override
@@ -1038,5 +1032,26 @@ class AppLocalizationsJa extends AppLocalizations {
   String get advancedSettings => '詳細';
 
   @override
-  String get advancedSettingsSubtitle => '通知、インポート/エクスポート、について';
+  String get advancedSettingsSubtitle => 'アプリの動作を設定';
+
+  @override
+  String get userProfileSubtitle => 'アカウントをカスタマイズ';
+
+  @override
+  String get platformAndModelSubtitle => 'AI プラットフォームとモデルの設定';
+
+  @override
+  String get apiTypeSubtitle => 'API 接続パラメータの設定';
+
+  @override
+  String get modelSettingsSubtitle => 'モデルの応答動作を調整';
+
+  @override
+  String get historyConversationSubtitle => '会話履歴の管理';
+
+  @override
+  String get toolsSettingsSubtitle => '外部ツールの設定';
+
+  @override
+  String get appearanceSubtitle => 'アプリの外観をカスタマイズ';
 }

@@ -159,8 +159,6 @@
   "selectColorMode": "Select app color mode",
   "others": "Others",
   "resetToDefault": "Reset to Default Settings",
-  "usageInstructions": "Usage Instructions",
-  "usageInstructionsContent": "• API Type: Select AI service provider (OpenAI, Gemini or DeepSeek). Endpoint and model will be auto-filled after selection\n• API Endpoint: API address of AI service provider. Click help button to view common endpoints\n• API Key: Authentication key obtained from service provider. Please keep it safe\n• Model: AI model name to use. Different endpoints support different models\n• Token Count: Limit the length of single response. Too small may result in incomplete responses\n• Temperature: Higher value means more creative responses. Recommended 0.3-1.0\n• History Conversation: When enabled, AI can remember conversation context for more coherent experience",
   "commonApiEndpoints": "Common API Endpoints",
   "commonApiEndpointsContent": "OpenAI: https://api.openai.com/v1\n\nDeepSeek: https://api.deepseek.com\n\nAlibaba Cloud: https://dashscope.aliyuncs.com/api/v1\n\nPlease fill in the corresponding endpoint address based on the AI service provider you use.",
   "commonModels": "Common Models",
@@ -659,5 +657,12 @@
   "mcpServerErrorAddressRequired": "Please enter server address",
   "aiResponseDisclaimer": "Content is for reference only, please verify carefully",
   "advancedSettings": "Advanced",
-  "advancedSettingsSubtitle": "Notifications, Import/Export, About"
+  "advancedSettingsSubtitle": "Configure app behavior",
+  "userProfileSubtitle": "Personalize your account",
+  "platformAndModelSubtitle": "Configure AI platforms and models",
+  "apiTypeSubtitle": "Set up API connection parameters",
+  "modelSettingsSubtitle": "Adjust model response behavior",
+  "historyConversationSubtitle": "Manage conversation history",
+  "toolsSettingsSubtitle": "Configure external tools",
+  "appearanceSubtitle": "Customize app appearance"
 }

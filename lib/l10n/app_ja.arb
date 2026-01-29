@@ -159,8 +159,6 @@
   "selectColorMode": "アプリのカラーモードを選択",
   "others": "その他",
   "resetToDefault": "デフォルト設定に戻す",
-  "usageInstructions": "使用方法",
-  "usageInstructionsContent": "• APIタイプ: AIサービスプロバイダー (OpenAI, Gemini, または DeepSeek) を選択します。選択後、エンドポイントとモデルが自動入力されます。\n• APIエンドポイント: AIサービスプロバイダーのAPIアドレスです。ヘルプボタンをクリックして一般的なエンドポイントを表示できます。\n• APIキー: サービスプロバイダーから取得した認証キーです。安全に保管してください。\n• モデル: 使用するAIモデル名です。異なるエンドポイントは異なるモデルをサポートしています。\n• トークン数: 単一応答の長さを制限します。小さすぎると応答が不完全になる可能性があります。\n• 温度: 値が高いほど創造的な応答になります。推奨値: 0.3-1.0\n• 履歴会話: 有効にすると、AIは会話のコンテキストを記憶し、より連続性のある体験を提供します。",
   "commonApiEndpoints": "よく使われるAPIエンドポイント",
   "commonApiEndpointsContent": "OpenAI: https://api.openai.com/v1\n\nDeepSeek: https://api.deepseek.com\n\nAlibaba Cloud: https://dashscope.aliyuncs.com/api/v1\n\n使用するAIサービスプロバイダーに応じて、対応するエンドポイントアドレスを入力してください。",
   "commonModels": "よく使われるモデル",
@@ -659,5 +657,12 @@
   "mcpServerErrorAddressRequired": "サーバーアドレスを入力してください",
   "aiResponseDisclaimer": "内容は参考のみ、ご注意ください",
   "advancedSettings": "詳細",
-  "advancedSettingsSubtitle": "通知、インポート/エクスポート、について"
+  "advancedSettingsSubtitle": "アプリの動作を設定",
+  "userProfileSubtitle": "アカウントをカスタマイズ",
+  "platformAndModelSubtitle": "AI プラットフォームとモデルの設定",
+  "apiTypeSubtitle": "API 接続パラメータの設定",
+  "modelSettingsSubtitle": "モデルの応答動作を調整",
+  "historyConversationSubtitle": "会話履歴の管理",
+  "toolsSettingsSubtitle": "外部ツールの設定",
+  "appearanceSubtitle": "アプリの外観をカスタマイズ"
 }

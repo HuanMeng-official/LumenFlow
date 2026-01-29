@@ -344,22 +344,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get resetToDefault => '重置为默认设置';
 
   @override
-  String get usageInstructions => '使用说明';
+  String get commonApiEndpoints => '常用 API 端点';
 
   @override
-  String get usageInstructionsContent => '• API格式：选择AI服务提供商（OpenAI、Gemini或DeepSeek），选择后将自动填充端点和模型\n• API端点：AI服务提供商的API地址，点击帮助按钮查看常用端点\n• API密钥：从服务提供商获取的认证密钥，请妥善保管\n• 模型：要使用的AI模型名称，不同端点支持不同模型\n• Token数：限制单次回复的长度，过小可能导致回复不完整\n• 温度：数值越高回复越有创意，建议0.3-1.0\n• 历史对话：开启后AI能记住对话上下文，提供更连贯的体验';
-
-  @override
-  String get commonApiEndpoints => '常用API端点';
-
-  @override
-  String get commonApiEndpointsContent => 'OpenAI: https://api.openai.com/v1\n\nDeepSeek: https://api.deepseek.com\n\n阿里云: https://dashscope.aliyuncs.com/api/v1\n\n请根据您使用的AI服务提供商填写相应的端点地址。';
+  String get commonApiEndpointsContent => 'OpenAI: https://api.openai.com/v1\n\nDeepSeek: https://api.deepseek.com\n\n阿里云: https://dashscope.aliyuncs.com/api/v1\n\n请根据您使用的 AI 服务提供商填写相应的端点地址。';
 
   @override
   String get commonModels => '常用模型';
 
   @override
-  String get commonModelsContent => 'OpenAI:\n• gpt-5\n\nDeepSeek:\n• deepseek-chat\n• deepseek-reasoner\n\n请根据您的API端点选择对应的模型。';
+  String get commonModelsContent => 'OpenAI:\n• gpt-5\n\nDeepSeek:\n• deepseek-chat\n• deepseek-reasoner\n\n请根据您的 API 端点选择相应的模型。';
 
   @override
   String get appInfo => '应用信息';
@@ -1038,5 +1032,26 @@ class AppLocalizationsZh extends AppLocalizations {
   String get advancedSettings => '高级';
 
   @override
-  String get advancedSettingsSubtitle => '通知、导入导出、关于';
+  String get advancedSettingsSubtitle => '设定应用行为';
+
+  @override
+  String get userProfileSubtitle => '个性化您的账户信息';
+
+  @override
+  String get platformAndModelSubtitle => '配置 AI 平台与模型';
+
+  @override
+  String get apiTypeSubtitle => '设置 API 连接参数';
+
+  @override
+  String get modelSettingsSubtitle => '调整模型响应行为';
+
+  @override
+  String get historyConversationSubtitle => '管理对话历史记录';
+
+  @override
+  String get toolsSettingsSubtitle => '配置外部工具';
+
+  @override
+  String get appearanceSubtitle => '自定义应用外观';
 }

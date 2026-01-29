@@ -118,13 +118,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 SettingsNavigationTile(
                   title: l10n.userProfile,
-                  subtitle: l10n.userProfileDesc,
+                  subtitle: l10n.userProfileSubtitle,
                   icon: CupertinoIcons.person_crop_circle,
                   onTap: _openUserProfile,
                 ),
                 SettingsNavigationTile(
                   title: l10n.platformAndModel,
-                  subtitle: l10n.platformAndModelDesc,
+                  subtitle: l10n.platformAndModelSubtitle,
                   icon: CupertinoIcons.cube_box,
                   onTap: _openPlatformSettings,
                 ),
@@ -135,31 +135,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 SettingsNavigationTile(
                   title: l10n.apiType,
-                  subtitle: l10n.apiTypeDesc,
+                  subtitle: l10n.apiTypeSubtitle,
                   icon: CupertinoIcons.cloud,
                   onTap: _openApiSettings,
                 ),
                 SettingsNavigationTile(
                   title: l10n.modelSettings,
-                  subtitle: l10n.modelDesc,
+                  subtitle: l10n.modelSettingsSubtitle,
                   icon: CupertinoIcons.speedometer,
                   onTap: _openModelSettings,
                 ),
                 SettingsNavigationTile(
                   title: l10n.historyConversation,
-                  subtitle: l10n.conversationTitle,
+                  subtitle: l10n.historyConversationSubtitle,
                   icon: CupertinoIcons.chat_bubble_2,
                   onTap: _openConversationSettings,
                 ),
                 SettingsNavigationTile(
                   title: l10n.toolsSettings,
-                  subtitle: l10n.mcpServerUrlDesc,
+                  subtitle: l10n.toolsSettingsSubtitle,
                   icon: CupertinoIcons.wrench,
                   onTap: _openToolsSettings,
                 ),
                 SettingsNavigationTile(
                   title: l10n.appearance,
-                  subtitle: l10n.followSystemDesc,
+                  subtitle: l10n.appearanceSubtitle,
                   icon: CupertinoIcons.paintbrush,
                   onTap: _openAppearanceSettings,
                 ),
@@ -176,39 +176,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
-            Container(
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: CupertinoTheme.of(context).brightness == Brightness.dark
-                    ? CupertinoColors.systemGrey6.darkColor
-                    : CupertinoColors.systemGrey6.color,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.usageInstructions,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    l10n.usageInstructionsContent,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: CupertinoColors.systemGrey,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ],
         ),
       ),
     );
   }
 }
+
