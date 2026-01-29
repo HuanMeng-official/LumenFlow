@@ -656,5 +656,6 @@
   "mcpServerAddHint": "오른쪽 상단의 + 버튼을 눌러 첫 번째 MCP 서버를 추가하세요",
   "mcpServerDisabled": "비활성화됨",
   "mcpServerErrorNameRequired": "서버 이름을 입력하세요",
-  "mcpServerErrorAddressRequired": "서버 주소를 입력하세요"
+  "mcpServerErrorAddressRequired": "서버 주소를 입력하세요",
+  "aiResponseDisclaimer": "내용은 참고용이며, 주의 깊게 확인하세요"
 }

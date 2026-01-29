@@ -656,5 +656,6 @@
   "mcpServerAddHint": "Tap the + button in the top right to add the first MCP Server",
   "mcpServerDisabled": "Disabled",
   "mcpServerErrorNameRequired": "Please enter server name",
-  "mcpServerErrorAddressRequired": "Please enter server address"
+  "mcpServerErrorAddressRequired": "Please enter server address",
+  "aiResponseDisclaimer": "Content is for reference only, please verify carefully"
 }

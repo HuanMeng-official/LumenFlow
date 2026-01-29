@@ -1030,4 +1030,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get mcpServerErrorAddressRequired => '서버 주소를 입력하세요';
+
+  @override
+  String get aiResponseDisclaimer => '내용은 참고용이며, 주의 깊게 확인하세요';
 }

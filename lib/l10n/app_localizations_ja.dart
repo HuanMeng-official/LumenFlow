@@ -1030,4 +1030,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get mcpServerErrorAddressRequired => 'サーバーアドレスを入力してください';
+
+  @override
+  String get aiResponseDisclaimer => '内容は参考のみ、ご注意ください';
 }

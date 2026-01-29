@@ -656,5 +656,6 @@
   "mcpServerAddHint": "右上の+ボタンをタップして、最初のMCPサーバーを追加してください",
   "mcpServerDisabled": "無効",
   "mcpServerErrorNameRequired": "サーバー名を入力してください",
-  "mcpServerErrorAddressRequired": "サーバーアドレスを入力してください"
+  "mcpServerErrorAddressRequired": "サーバーアドレスを入力してください",
+  "aiResponseDisclaimer": "内容は参考のみ、ご注意ください"
 }

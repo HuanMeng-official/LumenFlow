@@ -1030,4 +1030,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get mcpServerErrorAddressRequired => '请输入服务器地址';
+
+  @override
+  String get aiResponseDisclaimer => '内容仅供参考，请仔细甄别';
 }

@@ -1976,6 +1976,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please enter server address'**
   String get mcpServerErrorAddressRequired;
+
+  /// No description provided for @aiResponseDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Content is for reference only, please verify carefully'**
+  String get aiResponseDisclaimer;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

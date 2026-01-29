@@ -656,5 +656,6 @@
   "mcpServerAddHint": "点击右上角+按钮添加第一个MCP Server",
   "mcpServerDisabled": "已禁用",
   "mcpServerErrorNameRequired": "请输入服务器名称",
-  "mcpServerErrorAddressRequired": "请输入服务器地址"
+  "mcpServerErrorAddressRequired": "请输入服务器地址",
+  "aiResponseDisclaimer": "内容仅供参考，请仔细甄别"
 }

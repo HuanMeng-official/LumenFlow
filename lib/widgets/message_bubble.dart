@@ -995,6 +995,20 @@ class _MessageBubbleState extends State<MessageBubble> with AutomaticKeepAliveCl
                         _buildAttachment(attachment, brightness)),
                   ],
                   const SizedBox(height: 4),
+                  if (!widget.message.isUser)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        l10n.aiResponseDisclaimer,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontStyle: FontStyle.italic,
+                          color: brightness == Brightness.dark
+                              ? CupertinoColors.systemGrey.darkColor
+                              : CupertinoColors.systemGrey.color,
+                        ),
+                      ),
+                    ),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
