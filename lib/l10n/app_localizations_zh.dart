@@ -1033,4 +1033,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get aiResponseDisclaimer => '内容仅供参考，请仔细甄别';
+
+  @override
+  String get advancedSettings => '高级';
+
+  @override
+  String get advancedSettingsSubtitle => '通知、导入导出、关于';
 }

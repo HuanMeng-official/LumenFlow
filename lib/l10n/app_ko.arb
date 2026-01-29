@@ -657,5 +657,7 @@
   "mcpServerDisabled": "비활성화됨",
   "mcpServerErrorNameRequired": "서버 이름을 입력하세요",
   "mcpServerErrorAddressRequired": "서버 주소를 입력하세요",
-  "aiResponseDisclaimer": "내용은 참고용이며, 주의 깊게 확인하세요"
+  "aiResponseDisclaimer": "내용은 참고용이며, 주의 깊게 확인하세요",
+  "advancedSettings": "고급",
+  "advancedSettingsSubtitle": "알림, 가져오기/내보내기, 정보"
 }

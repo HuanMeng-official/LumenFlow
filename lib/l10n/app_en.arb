@@ -657,5 +657,7 @@
   "mcpServerDisabled": "Disabled",
   "mcpServerErrorNameRequired": "Please enter server name",
   "mcpServerErrorAddressRequired": "Please enter server address",
-  "aiResponseDisclaimer": "Content is for reference only, please verify carefully"
+  "aiResponseDisclaimer": "Content is for reference only, please verify carefully",
+  "advancedSettings": "Advanced",
+  "advancedSettingsSubtitle": "Notifications, Import/Export, About"
 }

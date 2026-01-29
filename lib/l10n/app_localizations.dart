@@ -1982,6 +1982,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Content is for reference only, please verify carefully'**
   String get aiResponseDisclaimer;
+
+  /// No description provided for @advancedSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced'**
+  String get advancedSettings;
+
+  /// No description provided for @advancedSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications, Import/Export, About'**
+  String get advancedSettingsSubtitle;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

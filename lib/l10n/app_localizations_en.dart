@@ -1033,4 +1033,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiResponseDisclaimer => 'Content is for reference only, please verify carefully';
+
+  @override
+  String get advancedSettings => 'Advanced';
+
+  @override
+  String get advancedSettingsSubtitle => 'Notifications, Import/Export, About';
 }

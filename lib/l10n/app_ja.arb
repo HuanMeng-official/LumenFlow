@@ -657,5 +657,7 @@
   "mcpServerDisabled": "無効",
   "mcpServerErrorNameRequired": "サーバー名を入力してください",
   "mcpServerErrorAddressRequired": "サーバーアドレスを入力してください",
-  "aiResponseDisclaimer": "内容は参考のみ、ご注意ください"
+  "aiResponseDisclaimer": "内容は参考のみ、ご注意ください",
+  "advancedSettings": "詳細",
+  "advancedSettingsSubtitle": "通知、インポート/エクスポート、について"
 }

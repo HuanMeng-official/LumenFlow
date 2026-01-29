@@ -1033,4 +1033,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aiResponseDisclaimer => '内容は参考のみ、ご注意ください';
+
+  @override
+  String get advancedSettings => '詳細';
+
+  @override
+  String get advancedSettingsSubtitle => '通知、インポート/エクスポート、について';
 }
