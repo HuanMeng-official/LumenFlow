@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:sqlite3/sqlite3.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/conversation.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
 import 'dart:async';
+import '../utils/path_utils.dart';
 
 /// 数据库版本（预留用于未来版本升级）
 // const int _dbVersion = 1;
@@ -52,8 +52,10 @@ class ConversationDatabase {
   Future<void> _init() async {
     if (_db != null) return;
 
-    final appDir = await getApplicationDocumentsDirectory();
-    final dbPath = '${appDir.path}/conversations.db';
+    // 迁移旧数据到新位置（如果需要）
+    await PathUtils.migrateOldDataIfNeeded();
+
+    final dbPath = await PathUtils.getDatabasePath();
 
     _db = sqlite3.open(dbPath);
 

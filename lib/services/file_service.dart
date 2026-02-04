@@ -1,20 +1,15 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import '../utils/path_utils.dart';
 import '../models/attachment.dart';
 
 class FileService {
-  static const String _attachmentsDirName = 'attachments';
 
   Future<String> saveAttachment(File file) async {
-    final appDir = await getApplicationDocumentsDirectory();
-    final attachmentsDir = Directory('${appDir.path}/$_attachmentsDirName');
-
-    if (!await attachmentsDir.exists()) {
-      await attachmentsDir.create(recursive: true);
-    }
+    final attachmentsDirPath = await PathUtils.getAttachmentsDirPath();
+    final attachmentsDir = Directory(attachmentsDirPath);
 
     final fileName =
         'attachment_${DateTime.now().millisecondsSinceEpoch}${path.extension(file.path)}';
@@ -103,8 +98,8 @@ class FileService {
   }
 
   Future<void> cleanupOldAttachments({int days = 30}) async {
-    final appDir = await getApplicationDocumentsDirectory();
-    final attachmentsDir = Directory('${appDir.path}/$_attachmentsDirName');
+    final attachmentsDirPath = await PathUtils.getAttachmentsDirPath();
+    final attachmentsDir = Directory(attachmentsDirPath);
 
     if (!await attachmentsDir.exists()) return;
 
@@ -122,8 +117,7 @@ class FileService {
   }
 
   Future<String> getAttachmentsDirPath() async {
-    final appDir = await getApplicationDocumentsDirectory();
-    return '${appDir.path}/$_attachmentsDirName';
+    return await PathUtils.getAttachmentsDirPath();
   }
 
   Future<bool> fileExists(String filePath) async {

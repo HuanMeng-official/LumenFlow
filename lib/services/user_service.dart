@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import '../utils/path_utils.dart';
 import '../models/user_profile.dart';
 
 class UserService {
@@ -28,12 +28,8 @@ class UserService {
   }
 
   Future<String> saveAvatarImage(File imageFile) async {
-    final appDir = await getApplicationDocumentsDirectory();
-    final avatarDir = Directory('${appDir.path}/avatars');
-
-    if (!await avatarDir.exists()) {
-      await avatarDir.create(recursive: true);
-    }
+    final avatarsDirPath = await PathUtils.getAvatarsDirPath();
+    final avatarDir = Directory(avatarsDirPath);
 
     final fileName =
         'avatar_${DateTime.now().millisecondsSinceEpoch}${path.extension(imageFile.path)}';
