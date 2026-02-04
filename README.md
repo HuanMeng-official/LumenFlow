@@ -359,7 +359,9 @@ LumenFlow includes an advanced role-playing system with file-based prompt preset
 
 The application uses SQLite for local data storage, providing high performance and reliability:
 
-- **Location**: Application documents directory (`conversations.db`)
+- **Location**: Platform-specific data directory
+  - Android: Application documents directory (`conversations.db`)
+  - Windows/Linux: User home directory (`.lumenflow/conversations.db`)
 - **Tables**:
   - `conversations`: Stores conversation metadata
   - `messages`: Stores message content and metadata

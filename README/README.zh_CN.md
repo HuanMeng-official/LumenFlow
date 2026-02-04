@@ -359,7 +359,9 @@ LumenFlow 包含一个先进的角色扮演系统，具有基于文件的提示�
 
 应用程序使用 SQLite 进行本地数据存储，提供高性能和可靠性：
 
-- **位置**：应用程序文档目录（`conversations.db`）
+- **位置**：平台特定的数据目录
+  - Android: 应用程序文档目录（`conversations.db`）
+  - Windows/Linux: 用户主目录（`.lumenflow/conversations.db`）
 - **表结构**：
   - `conversations`: 存储对话元数据
   - `messages`: 存储消息内容及元数据
