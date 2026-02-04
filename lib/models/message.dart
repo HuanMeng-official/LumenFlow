@@ -85,8 +85,10 @@ class Message {
 /// - sending: 消息正在发送中（适用于AI响应流式输出）
 /// - sent: 消息已成功发送/接收
 /// - error: 消息发送/接收失败
+/// - stopped: 消息生成被用户手动停止
 enum MessageStatus {
   sending,
   sent,
   error,
+  stopped,
 }

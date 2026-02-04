@@ -77,6 +77,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Timer? _setStateTimer; // 批量setState定时器
   bool _pendingStateUpdate = false; // 是否有待处理的state更新
 
+  // AI生成控制相关变量
+  StreamSubscription<Map<String, dynamic>>? _streamSubscription; // 当前流式响应的订阅
+  bool _isGenerating = false; // 是否正在生成AI回复
+
   @override
   void initState() {
     super.initState();
@@ -109,6 +113,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     // 取消所有定时器
     _saveTimer?.cancel();
     _setStateTimer?.cancel();
+    // 取消流订阅
+    _streamSubscription?.cancel();
+    _streamSubscription = null;
     // 移除生命周期观察者
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -507,76 +514,78 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       final answerBuffer = StringBuffer();
       int receivedChunks = 0;
 
-      await for (final chunk in stream) {
-        receivedChunks++;
-        final type = chunk['type'] as String;
-        final chunkContent = chunk['content'] as String? ?? '';
+      // 使用StreamSubscription替代await for循环，以便可以取消
+      _streamSubscription = stream.listen(
+        (chunk) {
+          // 如果是第一个chunk，设置生成状态
+          if (receivedChunks == 0) {
+            setState(() {
+              _isGenerating = true;
+            });
+          }
 
-        if (type == 'reasoning') {
-          reasoningBuffer.write(chunkContent);
-        } else if (type == 'answer') {
-          answerBuffer.write(chunkContent);
-        } else {
-          // 未知类型，作为答案处理
-          answerBuffer.write(chunkContent);
-        }
+          receivedChunks++;
+          final type = chunk['type'] as String;
+          final chunkContent = chunk['content'] as String? ?? '';
 
-        // 实时更新 Live Update 通知内容
-        if (Platform.isAndroid && _liveUpdateService.isAvailable) {
-          await _liveUpdateService.updateContent(answerBuffer.toString());
-        }
+          if (type == 'reasoning') {
+            reasoningBuffer.write(chunkContent);
+          } else if (type == 'answer') {
+            answerBuffer.write(chunkContent);
+          } else {
+            // 未知类型，作为答案处理
+            answerBuffer.write(chunkContent);
+          }
 
-        // 使用批量setState合并多次更新，减少UI重绘
-        _batchedSetState(() {
-          _messages[aiMessageIndex] = Message(
-            id: aiMessageId,
-            content: answerBuffer.toString(),
-            reasoningContent: reasoningBuffer.toString(),
-            isUser: false,
-            timestamp: _messages[aiMessageIndex].timestamp,
-            status: MessageStatus.sending,
-          );
-        });
-        _scrollToBottom();
-        // 使用防抖保存，避免每次chunk都触发IO操作
-        _debouncedSaveConversation();
-      }
+          // 实时更新 Live Update 通知内容
+          if (Platform.isAndroid && _liveUpdateService.isAvailable) {
+            _liveUpdateService.updateContent(answerBuffer.toString());
+          }
 
-      // 如果没有收到任何chunk，显示错误
-      if (receivedChunks == 0) {
-        // 停止Live Update通知
-        if (Platform.isAndroid && _liveUpdateService.isAvailable) {
-          await _liveUpdateService.stopLiveUpdate();
-        }
-        throw Exception('API未返回任何响应内容');
-      }
-
-      // 流式输出结束，先标记 Live Update 完成
-      if (Platform.isAndroid && _liveUpdateService.isAvailable) {
-        await _liveUpdateService.complete();
-      }
-
-      // 然后更新消息状态
+          // 使用批量setState合并多次更新，减少UI重绘
+          _batchedSetState(() {
+            _messages[aiMessageIndex] = Message(
+              id: aiMessageId,
+              content: answerBuffer.toString(),
+              reasoningContent: reasoningBuffer.toString(),
+              isUser: false,
+              timestamp: _messages[aiMessageIndex].timestamp,
+              status: MessageStatus.sending,
+            );
+          });
+          _scrollToBottom();
+          // 使用防抖保存，避免每次chunk都触发IO操作
+          _debouncedSaveConversation();
+        },
+        onError: (error) {
+          // 处理流错误
+          _handleStreamError(error, aiMessageIndex, aiMessageId, l10n);
+        },
+        onDone: () async {
+          try {
+            // 流式输出结束，处理完成逻辑
+            await _handleStreamCompletion(
+              aiMessageIndex: aiMessageIndex,
+              aiMessageId: aiMessageId,
+              answerBuffer: answerBuffer,
+              reasoningBuffer: reasoningBuffer,
+              receivedChunks: receivedChunks,
+              l10n: l10n,
+            );
+          } catch (e) {
+            // 处理流完成时的错误
+            _handleStreamError(e, aiMessageIndex, aiMessageId, l10n);
+          }
+        },
+        cancelOnError: true,
+      );
+    } catch (e) {
+      // 清理流订阅和生成状态
+      _streamSubscription = null;
       setState(() {
-        _messages[aiMessageIndex] = Message(
-          id: aiMessageId,
-          content: answerBuffer.toString(),
-          reasoningContent: reasoningBuffer.toString(),
-          isUser: false,
-          timestamp: _messages[aiMessageIndex].timestamp,
-          status: MessageStatus.sent,
-        );
+        _isGenerating = false;
       });
 
-      // 发送通知（如果通知已启用且应用不在前台）
-      final notificationEnabled = await _settingsService.getNotificationEnabled();
-      if (notificationEnabled) {
-        await _notificationService.showAIResponseCompleted(
-          answerBuffer.toString(),
-          conversationTitle: _currentTitle,
-        );
-      }
-    } catch (e) {
       // 停止Live Update通知（如果还在运行）
       if (Platform.isAndroid && _liveUpdateService.isAvailable) {
         await _liveUpdateService.stopLiveUpdate();
@@ -603,6 +612,133 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     // 尝试自动生成标题
     await _generateAutoTitle();
+  }
+
+  /// 处理流式响应完成逻辑
+  Future<void> _handleStreamCompletion({
+    required int aiMessageIndex,
+    required String aiMessageId,
+    required StringBuffer answerBuffer,
+    required StringBuffer reasoningBuffer,
+    required int receivedChunks,
+    required AppLocalizations l10n,
+  }) async {
+    // 清理流订阅
+    _streamSubscription = null;
+
+    // 更新生成状态
+    setState(() {
+      _isGenerating = false;
+    });
+
+    // 如果没有收到任何chunk，显示错误
+    if (receivedChunks == 0) {
+      // 停止Live Update通知
+      if (Platform.isAndroid && _liveUpdateService.isAvailable) {
+        await _liveUpdateService.stopLiveUpdate();
+      }
+      // 更新消息状态为错误
+      setState(() {
+        _messages[aiMessageIndex] = Message(
+          id: aiMessageId,
+          content: '${l10n.errorPrefix}: API未返回任何响应内容',
+          reasoningContent: null,
+          isUser: false,
+          timestamp: _messages[aiMessageIndex].timestamp,
+          status: MessageStatus.error,
+        );
+      });
+      return;
+    }
+
+    // 流式输出结束，先标记 Live Update 完成
+    if (Platform.isAndroid && _liveUpdateService.isAvailable) {
+      await _liveUpdateService.complete();
+    }
+
+    // 然后更新消息状态
+    setState(() {
+      _messages[aiMessageIndex] = Message(
+        id: aiMessageId,
+        content: answerBuffer.toString(),
+        reasoningContent: reasoningBuffer.toString(),
+        isUser: false,
+        timestamp: _messages[aiMessageIndex].timestamp,
+        status: MessageStatus.sent,
+      );
+    });
+
+    // 发送通知（如果通知已启用且应用不在前台）
+    final notificationEnabled = await _settingsService.getNotificationEnabled();
+    if (notificationEnabled) {
+      await _notificationService.showAIResponseCompleted(
+        answerBuffer.toString(),
+        conversationTitle: _currentTitle,
+      );
+    }
+  }
+
+  /// 处理流式响应错误
+  void _handleStreamError(dynamic e, int aiMessageIndex, String aiMessageId, AppLocalizations l10n) {
+    // 清理流订阅和生成状态
+    _streamSubscription = null;
+    setState(() {
+      _isGenerating = false;
+    });
+
+    // 停止Live Update通知（如果还在运行）
+    if (Platform.isAndroid && _liveUpdateService.isAvailable) {
+      _liveUpdateService.stopLiveUpdate();
+    }
+
+    debugPrint('AI消息流式响应错误: $e');
+    setState(() {
+      _messages[aiMessageIndex] = Message(
+        id: aiMessageId,
+        content: '${l10n.errorPrefix}: ${e.toString().replaceAll('Exception: ', '')}',
+        reasoningContent: null,
+        isUser: false,
+        timestamp: _messages[aiMessageIndex].timestamp,
+        status: MessageStatus.error,
+      );
+    });
+  }
+
+  /// 停止AI生成
+  void _stopGenerating() {
+    if (_streamSubscription != null) {
+      _streamSubscription!.cancel();
+      _streamSubscription = null;
+
+      // 更新生成状态
+      setState(() {
+        _isGenerating = false;
+      });
+
+      // 停止Live Update通知（如果还在运行）
+      if (Platform.isAndroid && _liveUpdateService.isAvailable) {
+        _liveUpdateService.stopLiveUpdate();
+      }
+
+      // 如果当前有AI消息正在生成，将其标记为已停止
+      for (int i = _messages.length - 1; i >= 0; i--) {
+        if (!_messages[i].isUser && _messages[i].status == MessageStatus.sending) {
+          setState(() {
+            _messages[i] = Message(
+              id: _messages[i].id,
+              content: _messages[i].content,
+              reasoningContent: _messages[i].reasoningContent,
+              isUser: false,
+              timestamp: _messages[i].timestamp,
+              status: MessageStatus.stopped,
+            );
+          });
+          break;
+        }
+      }
+
+      debugPrint('用户手动停止了AI生成');
+    }
   }
 
   /// 显示配置提示对话框
@@ -779,6 +915,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             ),
             ChatInput(
               onSendMessage: (content, attachments) => _sendMessage(content, attachments: attachments),
+              onStopGenerating: _stopGenerating,
               onAttachmentsSelected: _handleAttachmentsSelected,
               enabled: _isConfigured,
               thinkingMode: _thinkingMode,
@@ -790,6 +927,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               presets: _presets,
               onShowModelSelector: _showModelSelector,
               currentModelName: _currentModel,
+              isGenerating: _isGenerating,
             ),
           ],
         ),

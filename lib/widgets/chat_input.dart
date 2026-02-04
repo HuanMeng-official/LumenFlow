@@ -10,6 +10,7 @@ import '../models/prompt_preset.dart';
 
 class ChatInput extends StatefulWidget {
   final Function(String, List<Attachment>) onSendMessage;
+  final Function()? onStopGenerating;
   final Function(List<Attachment>)? onAttachmentsSelected;
   final bool enabled;
   final bool thinkingMode;
@@ -21,10 +22,12 @@ class ChatInput extends StatefulWidget {
   final List<PromptPreset> presets;
   final Function()? onShowModelSelector;
   final String currentModelName;
+  final bool isGenerating;
 
   const ChatInput({
     super.key,
     required this.onSendMessage,
+    this.onStopGenerating,
     this.onAttachmentsSelected,
     this.enabled = true,
     this.thinkingMode = false,
@@ -36,6 +39,7 @@ class ChatInput extends StatefulWidget {
     this.presets = const [],
     this.onShowModelSelector,
     this.currentModelName = '',
+    this.isGenerating = false,
   });
 
   @override
@@ -57,7 +61,12 @@ class _ChatInputState extends State<ChatInput> {
 
   void _onTextChanged() {
     setState(() {
-      _canSend = (_controller.text.trim().isNotEmpty || _attachments.isNotEmpty) && widget.enabled;
+      // 如果正在生成，按钮应该始终可点击（用于停止）
+      if (widget.isGenerating) {
+        _canSend = true;
+      } else {
+        _canSend = (_controller.text.trim().isNotEmpty || _attachments.isNotEmpty) && widget.enabled;
+      }
     });
   }
 
@@ -77,7 +86,7 @@ class _ChatInputState extends State<ChatInput> {
   @override
   void didUpdateWidget(ChatInput oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.enabled != widget.enabled) {
+    if (oldWidget.enabled != widget.enabled || oldWidget.isGenerating != widget.isGenerating) {
       _onTextChanged();
     }
   }
@@ -339,10 +348,18 @@ class _ChatInputState extends State<ChatInput> {
 
   void _sendMessage() {
     if (_canSend) {
-      final attachmentsToSend = List<Attachment>.from(_attachments);
-      widget.onSendMessage(_controller.text, attachmentsToSend);
-      _controller.clear();
-      _updateAttachments([]);
+      if (widget.isGenerating) {
+        // 正在生成时，点击按钮停止生成
+        if (widget.onStopGenerating != null) {
+          widget.onStopGenerating!();
+        }
+      } else {
+        // 正常发送消息
+        final attachmentsToSend = List<Attachment>.from(_attachments);
+        widget.onSendMessage(_controller.text, attachmentsToSend);
+        _controller.clear();
+        _updateAttachments([]);
+      }
     }
   }
 
@@ -574,14 +591,18 @@ class _ChatInputState extends State<ChatInput> {
                   height: 36,
                   decoration: BoxDecoration(
                     color: _canSend
-                        ? CupertinoColors.systemBlue
+                        ? (widget.isGenerating
+                            ? CupertinoColors.systemRed // 生成中显示红色
+                            : CupertinoColors.systemBlue) // 正常发送显示蓝色
                         : (brightness == Brightness.dark
                             ? CupertinoColors.systemGrey5.darkColor
                             : CupertinoColors.systemGrey4),
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: Icon(
-                    CupertinoIcons.arrow_up,
+                    widget.isGenerating
+                        ? CupertinoIcons.stop // 生成中显示停止图标
+                        : CupertinoIcons.arrow_up, // 正常发送显示向上箭头
                     color: _canSend
                         ? CupertinoColors.white
                         : (brightness == Brightness.dark
