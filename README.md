@@ -6,16 +6,17 @@
 
 ## Overview
 
-LumenFlow (Chinese: 流光) is a modern AI chat application built with Flutter that provides a seamless conversational experience across Android and Windows platforms. With support for 10+ AI service providers, SQLite database for local data persistence, and rich multi-modal capabilities, it offers a versatile AI assistant experience.
+LumenFlow (Chinese: 流光) is a modern AI chat application built with Flutter that provides a seamless conversational experience across Android, Windows, and Linux platforms. With support for 10+ AI service providers, SQLite database for local data persistence, and rich multi-modal capabilities, it offers a versatile AI assistant experience.
 
 - **License**: MIT
-- **Platforms**: Android, Windows
+- **Platforms**: Android, Windows, Linux
 - **Languages**: Dart/Flutter
 
 ## Features
 
 ### Core AI Capabilities
 - **10+ AI Platform Support**: OpenAI, Claude, Google Gemini, DeepSeek, SiliconFlow, MiniMax, Zhipu AI, Kimi, LM-Studio (local deployment), and Other (custom OpenAI-compatible APIs)
+- **Provider Pattern Architecture**: Clean abstraction layer for AI providers with unified interface
 - **Multi-AI Platform Management**: Configure and manage multiple AI platforms simultaneously with independent settings, model lists, and platform-specific configurations
 - **Streaming Responses**: Real-time streaming output for responsive chat experience
 - **Thinking Mode**: AI thinking process visualization for supported models
@@ -37,12 +38,14 @@ LumenFlow (Chinese: 流光) is a modern AI chat application built with Flutter t
 - **Internationalization**: Full English, Chinese, Japanese, and Korean language support
 
 ### Technical Features
-- **Local Notifications**: Real-time notification support for important events
-- **Markdown Rendering**: Beautifully formatted AI responses with code block copy functionality
+- **Local Notifications**: Real-time notification support for important events using `flutter_local_notifications`
+- **Markdown Rendering**: Beautifully formatted AI responses with code block copy functionality using `flutter_markdown_plus`
 - **Code Block Copy**: One-click copy functionality for code blocks in AI responses
 - **Message Copy**: One-click copy functionality for entire messages
-- **Performance Optimizations**: Reduced repaints and optimized chat performance
+- **Performance Optimizations**: Reduced repaints and optimized chat performance with debouncing
 - **Retry Mechanism**: Automatic retry with exponential backoff for network errors
+- **Error Handling**: Comprehensive error handling with localized error messages in all supported languages
+- **Database Transactions**: ACID-compliant SQLite operations with foreign key constraints
 
 ## Project Structure
 
@@ -74,7 +77,8 @@ lib/
 │   ├── api_settings_screen.dart       # API settings
 │   ├── appearance_settings_screen.dart # Appearance settings
 │   ├── conversation_settings_screen.dart # Conversation settings
-│   └── model_settings_screen.dart    # Model settings
+│   ├── model_settings_screen.dart    # Model settings
+│   └── advanced_settings_screen.dart # Advanced settings
 ├── services/                 # Business logic and API integration
 │   ├── ai_service.dart       # AI service integration
 │   ├── conversation_service.dart  # Conversation management
@@ -103,7 +107,15 @@ lib/
 └── widgets/                  # Reusable UI components
     ├── avatar_widget.dart    # User avatar display
     ├── chat_input.dart       # Chat input with file attachment
-    └── message_bubble.dart   # Message display bubble
+    ├── message_bubble.dart   # Message display bubble
+    └── settings/             # Settings UI components
+        ├── settings_action_tile.dart
+        ├── settings_dropdown_tile.dart
+        ├── settings_input_tile.dart
+        ├── settings_navigation_tile.dart
+        ├── settings_section.dart
+        ├── settings_slider_tile.dart
+        └── settings_switch_tile.dart
 ```
 
 ## Dependencies
@@ -113,27 +125,27 @@ lib/
 - [cupertino_icons](https://pub.dev/packages/cupertino_icons) - iOS-style icons
 
 ### Networking & Data
-- [http](https://pub.dev/packages/http) - HTTP client for API requests
-- [sqlite3](https://pub.dev/packages/sqlite3) - SQLite database for local storage
-- [shared_preferences](https://pub.dev/packages/shared_preferences) - Legacy persistent storage
+- [http](https://pub.dev/packages/http) ^1.6.0 - HTTP client for API requests
+- [sqlite3](https://pub.dev/packages/sqlite3) ^3.1.4 - SQLite database for local storage with foreign key support
+- [shared_preferences](https://pub.dev/packages/shared_preferences) ^2.5.4 - Legacy persistent storage (for migration)
 
 ### File Handling
-- [image_picker](https://pub.dev/packages/image_picker) - Image selection
-- [file_picker](https://pub.dev/packages/file_picker) - File selection and picking
-- [path_provider](https://pub.dev/packages/path_provider) - Path resolution
-- [path](https://pub.dev/packages/path) - Path manipulation
-- [pdf](https://pub.dev/packages/pdf) - PDF file generation and processing
-- [archive](https://pub.dev/packages/archive) - Archive file (ZIP) creation and extraction
+- [image_picker](https://pub.dev/packages/image_picker) ^1.2.1 - Image selection from gallery/camera
+- [file_picker](https://pub.dev/packages/file_picker) ^10.3.8 - File selection and picking with multiple file support
+- [path_provider](https://pub.dev/packages/path_provider) ^2.1.5 - Platform-specific path resolution
+- [path](https://pub.dev/packages/path) ^1.9.1 - Cross-platform path manipulation
+- [pdf](https://pub.dev/packages/pdf) ^3.11.3 - PDF file generation and processing for export
+- [archive](https://pub.dev/packages/archive) ^4.0.7 - Archive file (ZIP) creation and extraction for data export
 
 ### UI & Internationalization
-- [flutter_markdown_plus](https://pub.dev/packages/flutter_markdown_plus) - Enhanced Markdown rendering with code block copy
-- [flutter_localizations](https://api.flutter.dev/flutter/flutter_localizations/flutter_localizations-library.html) - Flutter localization support
-- [intl](https://pub.dev/packages/intl) - Internationalization and localization
-- [flutter_svg](https://pub.dev/packages/flutter_svg) - SVG image rendering for platform icons
+- [flutter_markdown_plus](https://pub.dev/packages/flutter_markdown_plus) ^1.0.7 - Enhanced Markdown rendering with code block copy support
+- [flutter_localizations](https://api.flutter.dev/flutter/flutter_localizations/flutter_localizations-library.html) - Flutter built-in localization support
+- [intl](https://pub.dev/packages/intl) any - Internationalization and localization with ARB files
+- [flutter_svg](https://pub.dev/packages/flutter_svg) ^2.2.3 - SVG image rendering for platform icons and UI elements
 
 ### Utilities
-- [url_launcher](https://pub.dev/packages/url_launcher) - URL launching support
-- [flutter_local_notifications](https://pub.dev/packages/flutter_local_notifications) - Local notifications
+- [url_launcher](https://pub.dev/packages/url_launcher) ^6.3.2 - URL launching support for external links
+- [flutter_local_notifications](https://pub.dev/packages/flutter_local_notifications) ^19.5.0 - Local notifications for important events
 
 ## Architecture
 
@@ -444,28 +456,51 @@ flutter build apk --split-per-abi
 
 # Build for Windows (Release mode)
 flutter build windows --release
+
+# Build for Linux (Release mode)
+flutter build linux --release
 ```
 
-### Using Build Script
+### Using Build Scripts
 
-Alternatively, use the provided PowerShell build script for Windows:
+The project includes platform-specific build scripts:
 
+**Windows (PowerShell)**:
 ```powershell
-.\build.ps1
+# Build Android APK
+.\build_apk.ps1
+
+# Build Windows EXE
+.\build_exe.ps1
 ```
 
-This script will build both Android APK and Windows EXE packages automatically.
+**Linux (Bash)**:
+```bash
+# Build Linux ELF
+./build_elf.sh
+```
+
+These scripts handle the specific build configurations for each platform.
 
 ## Error Handling
 
-The application includes comprehensive error handling for:
-- Network connectivity issues
-- API errors (invalid keys, rate limits, etc.)
-- Data parsing errors
-- File processing errors
-- Localization errors
+The application includes comprehensive error handling implemented in `AIService._handleError()`:
 
-Errors are displayed to the user through localized UI messages, typically in the chat interface or as alerts. All error messages are available in all supported languages.
+- **Network Errors**: Timeouts, connection failures, socket errors, TLS/SSL handshake failures
+- **API Errors**: Invalid API keys, rate limits, quota exceeded, model not found
+- **Data Errors**: JSON parsing errors, invalid response formats
+- **File Errors**: File size limits, unsupported file types, extraction failures
+- **Database Errors**: SQLite constraints, transaction failures, migration errors
+- **Localization Errors**: Missing translations, format errors
+
+**Error Handling Features**:
+- Localized error messages in all supported languages (English, Chinese, Japanese, Korean)
+- User-friendly error messages that hide technical details
+- Automatic retry with exponential backoff for network errors
+- Graceful degradation when features are unavailable
+- Comprehensive logging for debugging purposes
+
+Errors are displayed to users through localized UI messages in the chat interface or as system alerts.
 
 ## License
 

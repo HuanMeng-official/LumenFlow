@@ -6,16 +6,17 @@
 
 ## 概述
 
-LumenFlow（中文名：流光）是一款使用 Flutter 构建的现代化 AI 聊天应用，在 Android 和 Windows 平台上提供无缝的对话体验。支持 10+ 个 AI 服务提供商，使用 SQLite 数据库进行本地数据持久化，具备丰富的多模态处理能力，提供多功能的 AI 助手体验。
+LumenFlow（中文名：流光）是一款使用 Flutter 构建的现代化 AI 聊天应用，在 Android、Windows 和 Linux 平台上提供无缝的对话体验。支持 10+ 个 AI 服务提供商，使用 SQLite 数据库进行本地数据持久化，具备丰富的多模态处理能力，提供多功能的 AI 助手体验。
 
 - **许可证**: MIT
-- **平台**: Android, Windows
+- **平台**: Android, Windows, Linux
 - **语言**: Dart/Flutter
 
 ## 功能特性
 
 ### 核心 AI 能力
 - **10+ AI 平台支持**: OpenAI、Claude、Google Gemini、DeepSeek、硅基流动、MiniMax、智谱 AI、Kimi、LM-Studio（本地部署）和其他（自定义 OpenAI 兼容 API）
+- **提供者模式架构**: 清晰的 AI 提供者抽象层，提供统一接口
 - **多 AI 平台管理**: 同时配置和管理多个 AI 平台，支持独立的设置、模型列表和平台特定配置
 - **流式响应**: 实时流式输出，提供响应式聊天体验
 - **思考模式**: 支持的模型可视化 AI 思考过程
@@ -37,12 +38,14 @@ LumenFlow（中文名：流光）是一款使用 Flutter 构建的现代化 AI �
 - **国际化**: 完整的英文、中文、日文和韩文语言支持
 
 ### 技术特性
-- **本地通知**: 重要事件的实时通知支持
-- **Markdown 渲染**: 美观格式化的 AI 响应，支持代码块复制功能
+- **本地通知**: 使用 `flutter_local_notifications` 实现重要事件的实时通知支持
+- **Markdown 渲染**: 使用 `flutter_markdown_plus` 实现美观格式化的 AI 响应，支持代码块复制功能
 - **代码块复制**: AI 响应中代码块的一键复制功能
 - **消息复制**: 整个消息的一键复制功能
-- **性能优化**: 减少重绘和优化聊天性能
+- **性能优化**: 减少重绘和优化聊天性能，采用防抖技术
 - **重试机制**: 网络错误的自动重试，采用指数退避策略
+- **错误处理**: 全面的错误处理机制，支持多语言错误消息
+- **数据库事务**: 支持 ACID 兼容的 SQLite 操作，包含外键约束
 
 ## 项目结构
 
@@ -74,7 +77,8 @@ lib/
 │   ├── api_settings_screen.dart       # API 设置
 │   ├── appearance_settings_screen.dart # 外观设置
 │   ├── conversation_settings_screen.dart # 对话设置
-│   └── model_settings_screen.dart    # 模型设置
+│   ├── model_settings_screen.dart    # 模型设置
+│   └── advanced_settings_screen.dart # 高级设置
 ├── services/                 # 业务逻辑和 API 集成
 │   ├── ai_service.dart       # AI 服务集成
 │   ├── conversation_service.dart  # 对话管理
@@ -103,7 +107,15 @@ lib/
 └── widgets/                  # 可重用 UI 组件
     ├── avatar_widget.dart    # 用户头像显示
     ├── chat_input.dart       # 带文件附件的聊天输入框
-    └── message_bubble.dart   # 消息显示气泡
+    ├── message_bubble.dart   # 消息显示气泡
+    └── settings/             # 设置界面 UI 组件
+        ├── settings_action_tile.dart
+        ├── settings_dropdown_tile.dart
+        ├── settings_input_tile.dart
+        ├── settings_navigation_tile.dart
+        ├── settings_section.dart
+        ├── settings_slider_tile.dart
+        └── settings_switch_tile.dart
 ```
 
 ## 依赖项
@@ -113,27 +125,27 @@ lib/
 - [cupertino_icons](https://pub.dev/packages/cupertino_icons) - iOS 风格图标
 
 ### 网络与数据
-- [http](https://pub.dev/packages/http) - 用于 API 请求的 HTTP 客户端
-- [sqlite3](https://pub.dev/packages/sqlite3) - SQLite 数据库用于本地存储
-- [shared_preferences](https://pub.dev/packages/shared_preferences) - 传统持久化存储
+- [http](https://pub.dev/packages/http) ^1.6.0 - 用于 API 请求的 HTTP 客户端
+- [sqlite3](https://pub.dev/packages/sqlite3) ^3.1.4 - SQLite 数据库用于本地存储，支持外键约束
+- [shared_preferences](https://pub.dev/packages/shared_preferences) ^2.5.4 - 传统持久化存储（用于数据迁移）
 
 ### 文件处理
-- [image_picker](https://pub.dev/packages/image_picker) - 图片选择
-- [file_picker](https://pub.dev/packages/file_picker) - 文件选择和拾取
-- [path_provider](https://pub.dev/packages/path_provider) - 路径解析
-- [path](https://pub.dev/packages/path) - 路径操作
-- [pdf](https://pub.dev/packages/pdf) - PDF 文件生成和处理
-- [archive](https://pub.dev/packages/archive) - 压缩文件（ZIP）创建和解压
+- [image_picker](https://pub.dev/packages/image_picker) ^1.2.1 - 从相册/相机选择图片
+- [file_picker](https://pub.dev/packages/file_picker) ^10.3.8 - 文件选择和拾取，支持多文件选择
+- [path_provider](https://pub.dev/packages/path_provider) ^2.1.5 - 平台特定的路径解析
+- [path](https://pub.dev/packages/path) ^1.9.1 - 跨平台路径操作
+- [pdf](https://pub.dev/packages/pdf) ^3.11.3 - PDF 文件生成和处理，用于数据导出
+- [archive](https://pub.dev/packages/archive) ^4.0.7 - 压缩文件（ZIP）创建和解压，用于数据导出
 
 ### UI 与国际化
-- [flutter_markdown_plus](https://pub.dev/packages/flutter_markdown_plus) - 增强的 Markdown 渲染，支持代码块复制
-- [flutter_localizations](https://api.flutter.dev/flutter/flutter_localizations/flutter_localizations-library.html) - Flutter 本地化支持
-- [intl](https://pub.dev/packages/intl) - 国际化和本地化
-- [flutter_svg](https://pub.dev/packages/flutter_svg) - SVG 图像渲染，用于平台图标显示
+- [flutter_markdown_plus](https://pub.dev/packages/flutter_markdown_plus) ^1.0.7 - 增强的 Markdown 渲染，支持代码块复制功能
+- [flutter_localizations](https://api.flutter.dev/flutter/flutter_localizations/flutter_localizations-library.html) - Flutter 内置本地化支持
+- [intl](https://pub.dev/packages/intl) any - 国际化和本地化，使用 ARB 文件格式
+- [flutter_svg](https://pub.dev/packages/flutter_svg) ^2.2.3 - SVG 图像渲染，用于平台图标和 UI 元素显示
 
 ### 工具类
-- [url_launcher](https://pub.dev/packages/url_launcher) - URL 启动支持
-- [flutter_local_notifications](https://pub.dev/packages/flutter_local_notifications) - 本地通知
+- [url_launcher](https://pub.dev/packages/url_launcher) ^6.3.2 - URL 启动支持，用于打开外部链接
+- [flutter_local_notifications](https://pub.dev/packages/flutter_local_notifications) ^19.5.0 - 本地通知，用于重要事件提醒
 
 ## 架构
 
@@ -444,29 +456,51 @@ flutter build apk --split-per-abi
 
 # 为 Windows 构建（发布模式）
 flutter build windows --release
+
+# 为 Linux 构建（发布模式）
+flutter build linux --release
 ```
 
 ### 使用构建脚本
 
-或者，在 Windows 上使用提供的 PowerShell 构建脚本：
+项目包含平台特定的构建脚本：
 
+**Windows (PowerShell)**:
 ```powershell
-.\build.ps1
+# 构建 Android APK
+.\build_apk.ps1
+
+# 构建 Windows EXE
+.\build_exe.ps1
 ```
 
-此脚本将自动构建 Android APK 和 Windows EXE 包。
+**Linux (Bash)**:
+```bash
+# 构建 Linux ELF
+./build_elf.sh
+```
+
+这些脚本处理每个平台的特定构建配置。
 
 ## 错误处理
 
-该应用程序包含以下错误处理：
+该应用程序包含全面的错误处理机制，实现在 `AIService._handleError()` 方法中：
 
-- 网络连接问题
-- API 错误（无效密钥、速率限制等）
-- 数据解析错误
-- 文件处理错误
-- 本地化错误
+- **网络错误**: 超时、连接失败、套接字错误、TLS/SSL 握手失败
+- **API 错误**: 无效的 API 密钥、速率限制、配额超限、模型未找到
+- **数据错误**: JSON 解析错误、无效的响应格式
+- **文件错误**: 文件大小限制、不支持的文件类型、内容提取失败
+- **数据库错误**: SQLite 约束错误、事务失败、迁移错误
+- **本地化错误**: 缺少翻译、格式错误
 
-错误信息会通过本地化的 UI 消息显示给用户，通常在聊天界面或警报中显示。所有错误信息都支持所有支持的语言。
+**错误处理特性**:
+- 所有支持语言（英文、中文、日文、韩文）的本地化错误消息
+- 用户友好的错误消息，隐藏技术细节
+- 网络错误的自动重试，采用指数退避策略
+- 功能不可用时的优雅降级
+- 用于调试目的的全面日志记录
+
+错误信息会通过本地化的 UI 消息显示给用户，通常在聊天界面或系统警报中显示。
 
 ## 许可证
 
