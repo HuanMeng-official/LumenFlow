@@ -553,7 +553,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               status: MessageStatus.sending,
             );
           });
-          _scrollToBottom();
           // 使用防抖保存，避免每次chunk都触发IO操作
           _debouncedSaveConversation();
         },
