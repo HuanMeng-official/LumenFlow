@@ -627,34 +627,6 @@
   "copyFailedTitle": "コピー失敗",
   "copyCode": "コピー",
   "copied": "コピー済み",
-  "toolsSettings": "ツール",
-  "mcpServerSettings": "MCPサーバー",
-  "mcpServerType": "接続タイプ",
-  "mcpServerTypeDesc": "MCPサーバーの接続タイプを選択",
-  "mcpServerUrl": "サーバーアドレス",
-  "mcpServerUrlPlaceholder": "サーバーアドレスまたはコマンドを入力",
-  "mcpServerUrlDesc": "HTTP/WebSocketはURL、stdioはコマンドを使用",
-  "mcpServerHelpTitle": "MCPサーバーについて",
-  "mcpServerHelpContent": "MCP（モデルコンテキストプロトコル）サーバーは、外部ツールやサービスに接続できます。\n\n接続タイプ：\n• HTTP：HTTP/HTTPS URLで接続\n• stdio：標準入出力で接続（ローカルコマンド）\n• WebSocket：WebSocket URLで接続\n\n接続タイプに応じて適切なアドレスを入力してください。",
-  "mcpServerNamePlaceholder": "MCPサーバー名",
-  "mcpServerEnable": "サーバーを有効にする",
-  "mcpServerAddressHttpDesc": "HTTP/HTTPS URLアドレス",
-  "mcpServerAddressWebsocketDesc": "WebSocket URLアドレス",
-  "mcpServerAddressStdioDesc": "ローカルコマンドラインコマンド",
-  "mcpServerAddressGenericDesc": "サーバーアドレス",
-  "mcpServerDeleteConfirm": "MCPサーバー「{name}」を削除してもよろしいですか？",
-  "@mcpServerDeleteConfirm": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "mcpServerNoConfig": "MCPサーバーが構成されていません",
-  "mcpServerAddHint": "右上の+ボタンをタップして、最初のMCPサーバーを追加してください",
-  "mcpServerDisabled": "無効",
-  "mcpServerErrorNameRequired": "サーバー名を入力してください",
-  "mcpServerErrorAddressRequired": "サーバーアドレスを入力してください",
   "aiResponseDisclaimer": "内容は参考のみ、ご注意ください",
   "advancedSettings": "詳細",
   "advancedSettingsSubtitle": "アプリの動作を設定",

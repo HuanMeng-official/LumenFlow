@@ -7,7 +7,6 @@ import 'api_settings_screen.dart';
 import 'model_settings_screen.dart';
 import 'conversation_settings_screen.dart';
 import 'appearance_settings_screen.dart';
-import 'tools_settings_screen.dart';
 import '../widgets/settings/settings_section.dart';
 import '../widgets/settings/settings_navigation_tile.dart';
 
@@ -93,15 +92,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _openToolsSettings() {
-    Navigator.push(
-      context,
-      CupertinoPageRoute(
-        builder: (context) => const ToolsSettingsScreen(),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -150,12 +140,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: l10n.historyConversationSubtitle,
                   icon: CupertinoIcons.chat_bubble_2,
                   onTap: _openConversationSettings,
-                ),
-                SettingsNavigationTile(
-                  title: l10n.toolsSettings,
-                  subtitle: l10n.toolsSettingsSubtitle,
-                  icon: CupertinoIcons.wrench,
-                  onTap: _openToolsSettings,
                 ),
                 SettingsNavigationTile(
                   title: l10n.appearance,

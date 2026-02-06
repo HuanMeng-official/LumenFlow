@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/ai_platform.dart';
-import '../models/mcp_server.dart';
 import 'version_service.dart';
 
 class SettingsService {
@@ -25,8 +24,6 @@ class SettingsService {
   static const String _autoTitleRoundsKey = 'auto_title_rounds';
   static const String _localeKey = 'locale';
   static const String _notificationEnabledKey = 'notification_enabled';
-  // MCP Server配置
-  static const String _mcpServersKey = 'mcp_servers';
   // 多平台配置相关的key
   static const String _platformsKey = 'ai_platforms';
   static const String _currentPlatformIdKey = 'current_platform_id';
@@ -244,8 +241,6 @@ class SettingsService {
     await prefs.setBool(_notificationEnabledKey, enabled);
   }
 
-  // MCP Server相关方法将在后面添加
-
   /// 导出所有设置为JSON格式的Map
   /// 返回包含所有设置键值对的Map
   Future<Map<String, dynamic>> exportSettingsToJson() async {
@@ -272,7 +267,6 @@ class SettingsService {
     settings[_autoTitleRoundsKey] = prefs.getInt(_autoTitleRoundsKey) ?? defaultAutoTitleRounds;
     settings[_localeKey] = prefs.getString(_localeKey) ?? defaultLocale;
     settings[_notificationEnabledKey] = prefs.getBool(_notificationEnabledKey) ?? defaultNotificationEnabled;
-    settings[_mcpServersKey] = prefs.getString(_mcpServersKey);
 
     // 导出平台设置
     settings[_platformsKey] = prefs.getString(_platformsKey);
@@ -362,9 +356,6 @@ class SettingsService {
     }
     if (settings.containsKey(_notificationEnabledKey)) {
       await prefs.setBool(_notificationEnabledKey, settings[_notificationEnabledKey] as bool);
-    }
-    if (settings.containsKey(_mcpServersKey) && settings[_mcpServersKey] != null) {
-      await prefs.setString(_mcpServersKey, settings[_mcpServersKey] as String);
     }
 
     // 导入平台设置
@@ -589,77 +580,5 @@ class SettingsService {
       AIPlatform.createDefaultPlatform('lmstudio'),
       AIPlatform.createDefaultPlatform('other'),
     ];
-  }
-
-  /// 获取所有MCP Server配置
-  Future<List<McpServer>> getMcpServers() async {
-    final prefs = await SharedPreferences.getInstance();
-    final serversJson = prefs.getString(_mcpServersKey);
-
-    if (serversJson == null || serversJson.isEmpty) {
-      // 如果没有保存的配置，返回空列表
-      return [];
-    }
-
-    try {
-      final List<dynamic> decoded = jsonDecode(serversJson);
-      return decoded.map((e) => McpServer.fromJson(e as Map<String, dynamic>)).toList();
-    } catch (e) {
-      // 解析失败，返回空列表
-      debugPrint('解析MCP Server配置失败: $e');
-      return [];
-    }
-  }
-
-  /// 保存所有MCP Server配置
-  Future<void> saveMcpServers(List<McpServer> servers) async {
-    final prefs = await SharedPreferences.getInstance();
-    final serversJson = jsonEncode(servers.map((s) => s.toJson()).toList());
-    await prefs.setString(_mcpServersKey, serversJson);
-  }
-
-  /// 添加或更新一个MCP Server配置
-  Future<void> saveMcpServer(McpServer server) async {
-    final servers = await getMcpServers();
-    final index = servers.indexWhere((s) => s.id == server.id);
-
-    if (index >= 0) {
-      // 更新现有服务器
-      servers[index] = server;
-    } else {
-      // 添加新服务器
-      servers.add(server);
-    }
-
-    await saveMcpServers(servers);
-  }
-
-  /// 删除一个MCP Server配置
-  Future<void> deleteMcpServer(String serverId) async {
-    final servers = await getMcpServers();
-    servers.removeWhere((s) => s.id == serverId);
-    await saveMcpServers(servers);
-  }
-
-  /// 根据ID获取MCP Server配置
-  Future<McpServer?> getMcpServerById(String serverId) async {
-    final servers = await getMcpServers();
-    try {
-      return servers.firstWhere((s) => s.id == serverId);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  /// 获取启用的MCP Server列表
-  Future<List<McpServer>> getEnabledMcpServers() async {
-    final servers = await getMcpServers();
-    return servers.where((s) => s.enabled).toList();
-  }
-
-  /// 检查是否有任何MCP Server已配置
-  Future<bool> hasConfiguredMcpServer() async {
-    final servers = await getMcpServers();
-    return servers.isNotEmpty;
   }
 }
