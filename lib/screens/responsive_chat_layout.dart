@@ -70,7 +70,6 @@ class _ResponsiveChatLayoutState extends State<ResponsiveChatLayout> {
             autoCreateConversation: false,
             // 对话更新时刷新对话列表
             onConversationUpdated: _refreshConversationList,
-            key: ValueKey(_currentConversationId),
           ),
         ),
       ],
@@ -81,7 +80,10 @@ class _ResponsiveChatLayoutState extends State<ResponsiveChatLayout> {
   Widget _buildMobileLayout() {
     // 手机布局下，使用原始的ChatScreen，保持原有的导航逻辑
     // ChatScreen内部通过导航打开ConversationListScreen并处理对话选择
-    return const ChatScreen();
+    // 传递当前对话ID，确保平板/手机切换时对话不丢失
+    return ChatScreen(
+      initialConversationId: _currentConversationId,
+    );
   }
 
   @override

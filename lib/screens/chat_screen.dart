@@ -144,18 +144,35 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       await _createNewConversation();
     } else {
       // 不自动创建对话，显示空状态
-      setState(() {
-        _currentConversation = null;
-        _messages.clear();
-        _currentTitle = '';
-      });
+      if (mounted) {
+        setState(() {
+          _currentConversation = null;
+          _messages.clear();
+          _currentTitle = '';
+        });
+      }
     }
   }
 
   @override
   void dispose() {
-    // 取消所有定时器
+    // 在dispose前立即保存当前对话，确保AI生成内容不丢失
     _saveTimer?.cancel();
+    _saveTimer = null;
+    if (_currentConversation != null && _messages.isNotEmpty) {
+      // 同步保存，确保数据持久化
+      try {
+        final updatedConversation = _currentConversation!.copyWith(
+          messages: List.from(_messages),
+          updatedAt: DateTime.now(),
+        );
+        _conversationService.updateConversation(updatedConversation);
+      } catch (e) {
+        debugPrint('dispose时保存对话失败: $e');
+      }
+    }
+
+    // 取消所有定时器
     _setStateTimer?.cancel();
     // 取消流订阅
     _streamSubscription?.cancel();
@@ -176,6 +193,26 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     // 检查外部对话ID是否变化
     if (widget.initialConversationId != _externalConversationId) {
+      // 在切换对话前，先保存当前对话状态
+      _saveTimer?.cancel();
+      _saveTimer = null;
+      if (_currentConversation != null && _messages.isNotEmpty) {
+        try {
+          final updatedConversation = _currentConversation!.copyWith(
+            messages: List.from(_messages),
+            updatedAt: DateTime.now(),
+          );
+          _conversationService.updateConversation(updatedConversation);
+        } catch (e) {
+          debugPrint('切换对话前保存失败: $e');
+        }
+      }
+
+      // 如果正在生成AI消息，停止生成
+      if (_isGenerating) {
+        _stopGenerating();
+      }
+
       _externalConversationId = widget.initialConversationId;
 
       // 如果外部对话ID不为空，加载对应对话
@@ -186,11 +223,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         _createNewConversation();
       } else {
         // 不自动创建对话，显示空状态
-        setState(() {
-          _currentConversation = null;
-          _messages.clear();
-          _currentTitle = '';
-        });
+        if (mounted) {
+          setState(() {
+            _currentConversation = null;
+            _messages.clear();
+            _currentTitle = '';
+          });
+        }
       }
     }
   }
@@ -303,14 +342,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       }
     }
 
-    setState(() {
-      _currentConversation = fullConversation;
-      _messages
-        ..clear()
-        ..addAll(processedMessages);
-      _currentTitle = fullConversation.title;
-      _autoTitleGenerated = false; // 重置标题生成标志
-    });
+    if (mounted) {
+      setState(() {
+        _currentConversation = fullConversation;
+        _messages
+          ..clear()
+          ..addAll(processedMessages);
+        _currentTitle = fullConversation.title;
+        _autoTitleGenerated = false; // 重置标题生成标志
+      });
+    }
 
     // 保存处理后的对话，确保状态更新持久化
     if (processedMessages.length != fullConversation.messages.length) {
@@ -600,18 +641,20 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final aiMessageId = DateTime.now().millisecondsSinceEpoch.toString();
     var aiMessageIndex = _messages.length;
 
-    setState(() {
-      _messages.add(Message(
-        id: aiMessageId,
-        content: '',
-        reasoningContent: null,
-        isUser: false,
-        timestamp: DateTime.now(),
-        status: MessageStatus.sending,
-      ));
-      _isLoading = false;
-      aiMessageIndex = _messages.length - 1;
-    });
+    if (mounted) {
+      setState(() {
+        _messages.add(Message(
+          id: aiMessageId,
+          content: '',
+          reasoningContent: null,
+          isUser: false,
+          timestamp: DateTime.now(),
+          status: MessageStatus.sending,
+        ));
+        _isLoading = false;
+        aiMessageIndex = _messages.length - 1;
+      });
+    }
     _scrollToBottom();
 
     try {
@@ -696,9 +739,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     } catch (e) {
       // 清理流订阅和生成状态
       _streamSubscription = null;
-      setState(() {
-        _isGenerating = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isGenerating = false;
+        });
+      }
 
       // 停止Live Update通知（如果还在运行）
       if (Platform.isAndroid && _liveUpdateService.isAvailable) {
@@ -707,16 +752,18 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
       debugPrint('AI消息发送错误: $e');
       debugPrint(e.toString());
-      setState(() {
-        _messages[aiMessageIndex] = Message(
-          id: aiMessageId,
-          content: '${l10n.errorPrefix}: ${e.toString().replaceAll('Exception: ', '')}',
-          reasoningContent: null,
-          isUser: false,
-          timestamp: _messages[aiMessageIndex].timestamp,
-          status: MessageStatus.error,
-        );
-      });
+      if (mounted) {
+        setState(() {
+          _messages[aiMessageIndex] = Message(
+            id: aiMessageId,
+            content: '${l10n.errorPrefix}: ${e.toString().replaceAll('Exception: ', '')}',
+            reasoningContent: null,
+            isUser: false,
+            timestamp: _messages[aiMessageIndex].timestamp,
+            status: MessageStatus.error,
+          );
+        });
+      }
     }
 
     // 取消防抖定时器并立即保存，确保最后状态被持久化
@@ -754,16 +801,18 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         await _liveUpdateService.stopLiveUpdate();
       }
       // 更新消息状态为错误
-      setState(() {
-        _messages[aiMessageIndex] = Message(
-          id: aiMessageId,
-          content: '${l10n.errorPrefix}: API未返回任何响应内容',
-          reasoningContent: null,
-          isUser: false,
-          timestamp: _messages[aiMessageIndex].timestamp,
-          status: MessageStatus.error,
-        );
-      });
+      if (mounted) {
+        setState(() {
+          _messages[aiMessageIndex] = Message(
+            id: aiMessageId,
+            content: '${l10n.errorPrefix}: API未返回任何响应内容',
+            reasoningContent: null,
+            isUser: false,
+            timestamp: _messages[aiMessageIndex].timestamp,
+            status: MessageStatus.error,
+          );
+        });
+      }
       return;
     }
 
@@ -773,16 +822,18 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
 
     // 然后更新消息状态
-    setState(() {
-      _messages[aiMessageIndex] = Message(
-        id: aiMessageId,
-        content: answerBuffer.toString(),
-        reasoningContent: reasoningBuffer.toString(),
-        isUser: false,
-        timestamp: _messages[aiMessageIndex].timestamp,
-        status: MessageStatus.sent,
-      );
-    });
+    if (mounted) {
+      setState(() {
+        _messages[aiMessageIndex] = Message(
+          id: aiMessageId,
+          content: answerBuffer.toString(),
+          reasoningContent: reasoningBuffer.toString(),
+          isUser: false,
+          timestamp: _messages[aiMessageIndex].timestamp,
+          status: MessageStatus.sent,
+        );
+      });
+    }
 
     // 发送通知（如果通知已启用且应用不在前台）
     final notificationEnabled = await _settingsService.getNotificationEnabled();
@@ -798,9 +849,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void _handleStreamError(dynamic e, int aiMessageIndex, String aiMessageId, AppLocalizations l10n) {
     // 清理流订阅和生成状态
     _streamSubscription = null;
-    setState(() {
-      _isGenerating = false;
-    });
+    if (mounted) {
+      setState(() {
+        _isGenerating = false;
+      });
+    }
 
     // 停止Live Update通知（如果还在运行）
     if (Platform.isAndroid && _liveUpdateService.isAvailable) {
@@ -808,16 +861,18 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
 
     debugPrint('AI消息流式响应错误: $e');
-    setState(() {
-      _messages[aiMessageIndex] = Message(
-        id: aiMessageId,
-        content: '${l10n.errorPrefix}: ${e.toString().replaceAll('Exception: ', '')}',
-        reasoningContent: null,
-        isUser: false,
-        timestamp: _messages[aiMessageIndex].timestamp,
-        status: MessageStatus.error,
-      );
-    });
+    if (mounted) {
+      setState(() {
+        _messages[aiMessageIndex] = Message(
+          id: aiMessageId,
+          content: '${l10n.errorPrefix}: ${e.toString().replaceAll('Exception: ', '')}',
+          reasoningContent: null,
+          isUser: false,
+          timestamp: _messages[aiMessageIndex].timestamp,
+          status: MessageStatus.error,
+        );
+      });
+    }
   }
 
   /// 停止AI生成
@@ -827,9 +882,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _streamSubscription = null;
 
       // 更新生成状态
-      setState(() {
-        _isGenerating = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isGenerating = false;
+        });
+      }
 
       // 停止Live Update通知（如果还在运行）
       if (Platform.isAndroid && _liveUpdateService.isAvailable) {
@@ -839,16 +896,18 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       // 如果当前有AI消息正在生成，将其标记为已停止
       for (int i = _messages.length - 1; i >= 0; i--) {
         if (!_messages[i].isUser && _messages[i].status == MessageStatus.sending) {
-          setState(() {
-            _messages[i] = Message(
-              id: _messages[i].id,
-              content: _messages[i].content,
-              reasoningContent: _messages[i].reasoningContent,
-              isUser: false,
-              timestamp: _messages[i].timestamp,
-              status: MessageStatus.stopped,
-            );
-          });
+          if (mounted) {
+            setState(() {
+              _messages[i] = Message(
+                id: _messages[i].id,
+                content: _messages[i].content,
+                reasoningContent: _messages[i].reasoningContent,
+                isUser: false,
+                timestamp: _messages[i].timestamp,
+                status: MessageStatus.stopped,
+              );
+            });
+          }
           break;
         }
       }
@@ -952,9 +1011,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             child: Text(l10n.delete),
             onPressed: () async {
               Navigator.pop(context);
-              setState(() {
-                _messages.clear();
-              });
+              if (mounted) {
+                setState(() {
+                  _messages.clear();
+                });
+              }
               await _saveCurrentConversation();
             },
           ),
