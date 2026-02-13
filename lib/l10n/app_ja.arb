@@ -636,5 +636,12 @@
   "modelSettingsSubtitle": "モデルの応答動作を調整",
   "historyConversationSubtitle": "会話履歴の管理",
   "toolsSettingsSubtitle": "外部ツールの設定",
-  "appearanceSubtitle": "アプリの外観をカスタマイズ"
+  "appearanceSubtitle": "アプリの外観をカスタマイズ",
+  "credits": "クレジット",
+  "creditsMainDeveloper": "メイン開発者",
+  "creditsAppImprovementSuggestions": "アプリ改善提案",
+  "creditsAppImprovementAndCode": "アプリ改善及び一部コード",
+  "creditsBugTestingAndCode": "バグテスト及び一部コード",
+  "creditsDescription": "以下の貢献者に感謝申し上げます：",
+  "contributors": "貢献者"
 }

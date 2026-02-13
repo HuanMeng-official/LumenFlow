@@ -636,5 +636,12 @@
   "modelSettingsSubtitle": "调整模型响应行为",
   "historyConversationSubtitle": "管理对话历史记录",
   "toolsSettingsSubtitle": "配置外部工具",
-  "appearanceSubtitle": "自定义应用外观"
+  "appearanceSubtitle": "自定义应用外观",
+  "credits": "鸣谢",
+  "creditsMainDeveloper": "主要开发者",
+  "creditsAppImprovementSuggestions": "应用改进建议",
+  "creditsAppImprovementAndCode": "应用改进及其部分代码",
+  "creditsBugTestingAndCode": "Bug测试及其部分代码",
+  "creditsDescription": "特别感谢以下贡献者提供的宝贵支持：",
+  "contributors": "贡献者"
 }

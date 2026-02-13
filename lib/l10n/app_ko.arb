@@ -636,5 +636,12 @@
   "modelSettingsSubtitle": "모델 응답 동작 조정",
   "historyConversationSubtitle": "대화 기록 관리",
   "toolsSettingsSubtitle": "외부 도구 구성",
-  "appearanceSubtitle": "앱 모양 사용자 지정"
+  "appearanceSubtitle": "앱 모양 사용자 지정",
+  "credits": "크레딧",
+  "creditsMainDeveloper": "메인 개발자",
+  "creditsAppImprovementSuggestions": "앱 개선 제안",
+  "creditsAppImprovementAndCode": "앱 개선 및 일부 코드",
+  "creditsBugTestingAndCode": "버그 테스트 및 일부 코드",
+  "creditsDescription": "다음 기여자들에게 특별한 감사를 드립니다：",
+  "contributors": "기여자"
 }

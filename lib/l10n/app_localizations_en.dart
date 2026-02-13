@@ -989,4 +989,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appearanceSubtitle => 'Customize app appearance';
+
+  @override
+  String get credits => 'Credits';
+
+  @override
+  String get creditsMainDeveloper => 'Main Developer';
+
+  @override
+  String get creditsAppImprovementSuggestions => 'App Improvement Suggestions';
+
+  @override
+  String get creditsAppImprovementAndCode => 'App Improvement and Partial Code';
+
+  @override
+  String get creditsBugTestingAndCode => 'Bug Testing and Partial Code';
+
+  @override
+  String get creditsDescription => 'Special thanks to the following contributors for their invaluable support:';
+
+  @override
+  String get contributors => 'Contributors';
 }

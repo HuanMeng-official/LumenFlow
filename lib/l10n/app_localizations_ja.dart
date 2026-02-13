@@ -989,4 +989,25 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get appearanceSubtitle => 'アプリの外観をカスタマイズ';
+
+  @override
+  String get credits => 'クレジット';
+
+  @override
+  String get creditsMainDeveloper => 'メイン開発者';
+
+  @override
+  String get creditsAppImprovementSuggestions => 'アプリ改善提案';
+
+  @override
+  String get creditsAppImprovementAndCode => 'アプリ改善及び一部コード';
+
+  @override
+  String get creditsBugTestingAndCode => 'バグテスト及び一部コード';
+
+  @override
+  String get creditsDescription => '以下の貢献者に感謝申し上げます：';
+
+  @override
+  String get contributors => '貢献者';
 }

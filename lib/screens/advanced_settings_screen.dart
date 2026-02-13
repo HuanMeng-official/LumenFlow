@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import '../services/settings_service.dart';
 import 'about_screen.dart';
+import 'credits_screen.dart';
 import '../widgets/settings/settings_section.dart';
 import '../widgets/settings/settings_action_tile.dart';
 import '../widgets/settings/settings_switch_tile.dart';
@@ -48,6 +49,15 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
       context,
       CupertinoPageRoute(
         builder: (context) => const AboutScreen(),
+      ),
+    );
+  }
+
+  void _openCredits() {
+    Navigator.push(
+      context,
+      CupertinoPageRoute(
+        builder: (context) => const CreditsScreen(),
       ),
     );
   }
@@ -231,15 +241,23 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
                   icon: CupertinoIcons.arrow_down_doc,
                   title: l10n.exportSettings,
                   onTap: _exportSettings,
-                  isDestructive: false,
                 ),
                 SettingsActionTile(
                   icon: CupertinoIcons.arrow_up_doc,
                   title: l10n.importSettings,
                   onTap: _importSettings,
-                  isDestructive: false,
                 ),
               ],
+            ),
+            SettingsSection(
+              title: l10n.credits,
+              children: [
+                SettingsActionTile(
+                  title: l10n.credits,
+                  icon: CupertinoIcons.heart,
+                  onTap: _openCredits,
+                )
+              ]
             ),
             SettingsSection(
               title: l10n.about,
@@ -248,7 +266,6 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
                   icon: CupertinoIcons.info_circle,
                   title: l10n.about,
                   onTap: _openAbout,
-                  isDestructive: false,
                 ),
               ],
             ),

@@ -1898,6 +1898,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Customize app appearance'**
   String get appearanceSubtitle;
+
+  /// No description provided for @credits.
+  ///
+  /// In en, this message translates to:
+  /// **'Credits'**
+  String get credits;
+
+  /// No description provided for @creditsMainDeveloper.
+  ///
+  /// In en, this message translates to:
+  /// **'Main Developer'**
+  String get creditsMainDeveloper;
+
+  /// No description provided for @creditsAppImprovementSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'App Improvement Suggestions'**
+  String get creditsAppImprovementSuggestions;
+
+  /// No description provided for @creditsAppImprovementAndCode.
+  ///
+  /// In en, this message translates to:
+  /// **'App Improvement and Partial Code'**
+  String get creditsAppImprovementAndCode;
+
+  /// No description provided for @creditsBugTestingAndCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Bug Testing and Partial Code'**
+  String get creditsBugTestingAndCode;
+
+  /// No description provided for @creditsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Special thanks to the following contributors for their invaluable support:'**
+  String get creditsDescription;
+
+  /// No description provided for @contributors.
+  ///
+  /// In en, this message translates to:
+  /// **'Contributors'**
+  String get contributors;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -636,5 +636,12 @@
   "modelSettingsSubtitle": "Adjust model response behavior",
   "historyConversationSubtitle": "Manage conversation history",
   "toolsSettingsSubtitle": "Configure external tools",
-  "appearanceSubtitle": "Customize app appearance"
+  "appearanceSubtitle": "Customize app appearance",
+  "credits": "Credits",
+  "creditsMainDeveloper": "Main Developer",
+  "creditsAppImprovementSuggestions": "App Improvement Suggestions",
+  "creditsAppImprovementAndCode": "App Improvement and Partial Code",
+  "creditsBugTestingAndCode": "Bug Testing and Partial Code",
+  "creditsDescription": "Special thanks to the following contributors for their invaluable support:",
+  "contributors": "Contributors"
 }

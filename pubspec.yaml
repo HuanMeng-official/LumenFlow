@@ -48,5 +48,5 @@ flutter:
     - assets/logo.png
     - assets/collection_code.png
     - assets/platform/
+    - assets/image/
     - pubspec.yaml
-

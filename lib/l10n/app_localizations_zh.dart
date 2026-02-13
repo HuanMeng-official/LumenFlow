@@ -989,4 +989,25 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get appearanceSubtitle => '自定义应用外观';
+
+  @override
+  String get credits => '鸣谢';
+
+  @override
+  String get creditsMainDeveloper => '主要开发者';
+
+  @override
+  String get creditsAppImprovementSuggestions => '应用改进建议';
+
+  @override
+  String get creditsAppImprovementAndCode => '应用改进及其部分代码';
+
+  @override
+  String get creditsBugTestingAndCode => 'Bug测试及其部分代码';
+
+  @override
+  String get creditsDescription => '特别感谢以下贡献者提供的宝贵支持：';
+
+  @override
+  String get contributors => '贡献者';
 }

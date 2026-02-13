@@ -989,4 +989,25 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get appearanceSubtitle => '앱 모양 사용자 지정';
+
+  @override
+  String get credits => '크레딧';
+
+  @override
+  String get creditsMainDeveloper => '메인 개발자';
+
+  @override
+  String get creditsAppImprovementSuggestions => '앱 개선 제안';
+
+  @override
+  String get creditsAppImprovementAndCode => '앱 개선 및 일부 코드';
+
+  @override
+  String get creditsBugTestingAndCode => '버그 테스트 및 일부 코드';
+
+  @override
+  String get creditsDescription => '다음 기여자들에게 특별한 감사를 드립니다：';
+
+  @override
+  String get contributors => '기여자';
 }
