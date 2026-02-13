@@ -76,6 +76,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Timer? _saveTimer; // 防抖保存定时器
   Timer? _setStateTimer; // 批量setState定时器
   bool _pendingStateUpdate = false; // 是否有待处理的state更新
+  bool _isUserScrolling = false; // 用户是否正在手动滚动
+  VoidCallback? _scrollListener; // 滚动监听器
 
   // AI生成控制相关变量
   StreamSubscription<Map<String, dynamic>>? _streamSubscription; // 当前流式响应的订阅
@@ -86,6 +88,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     super.initState();
     // 添加生命周期观察者
     WidgetsBinding.instance.addObserver(this);
+
+    // 监听用户滚动状态
+    _scrollListener = () {
+      _isUserScrolling = _scrollController.position.isScrollingNotifier.value;
+    };
+    _scrollController.addListener(_scrollListener!);
 
     /// 初始化状态
     /// 1. 检查API配置是否完成
@@ -116,6 +124,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     // 取消流订阅
     _streamSubscription?.cancel();
     _streamSubscription = null;
+    // 移除滚动监听器
+    if (_scrollListener != null) {
+      _scrollController.removeListener(_scrollListener!);
+      _scrollListener = null;
+    }
     // 移除生命周期观察者
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -297,9 +310,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   ///
   /// 使用ScrollController滚动到最大滚动位置
   /// 添加平滑动画效果（300毫秒，easeOut曲线）
+  /// 如果用户正在手动滚动，则跳过自动滚动
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
+      if (_scrollController.hasClients && !_isUserScrolling) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 300),
@@ -897,6 +911,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       controller: _scrollController,
                       padding: const EdgeInsets.all(16),
                       itemCount: _messages.length + (_isLoading ? 1 : 0),
+                      physics: const AlwaysScrollableScrollPhysics(),
                       // 性能优化配置
                       addAutomaticKeepAlives: true, // 启用自动保持活动状态
                       addRepaintBoundaries: true,   // 隔离重绘，避免整个列表重绘
