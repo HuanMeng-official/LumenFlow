@@ -1,5 +1,8 @@
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:window_manager/window_manager.dart';
+import 'package:auto_orientation_v2/auto_orientation_v2.dart';
 import 'l10n/app_localizations.dart';
 import 'services/settings_service.dart';
 import 'services/notification_service.dart';
@@ -13,6 +16,23 @@ void main() async {
   // 初始化通知服务
   final notificationService = NotificationService();
   await notificationService.initialize();
+
+  if (Platform.isWindows || Platform.isLinux) {
+    await windowManager.ensureInitialized();
+
+    WindowOptions windowOptions = WindowOptions(
+      size: Size(400, 700),
+      minimumSize: Size(400, 700),
+      center: true,
+      skipTaskbar: false,
+    );
+    windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.show();
+      await windowManager.focus();
+    });
+  } else if (Platform.isAndroid) {
+    AutoOrientation.portraitUpMode();
+  }
 
   // 初始化Live Update服务
   final liveUpdateService = LiveUpdateService();
