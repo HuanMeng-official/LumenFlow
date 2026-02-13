@@ -40,12 +40,13 @@ class AIService {
   /// 获取 AI Provider 实例（工厂方法）
   ///
   /// 根据 API 类型返回对应的 Provider 实例，使用缓存避免重复创建
+  /// 当 API 配置变更时，需要重新创建 Provider 实例
   Future<AIProvider> _getProvider() async {
     final apiType = await _settingsService.getApiType();
 
-    // 如果缓存的 provider 类型匹配，直接返回
+    // 如果缓存的 provider 类型匹配且配置未变化，直接返回
     if (_cachedProvider != null) {
-      if ((apiType == 'gemini' && _cachedProvider is GeminiProvider) ||
+      bool typeMatches = (apiType == 'gemini' && _cachedProvider is GeminiProvider) ||
           (apiType == 'deepseek' && _cachedProvider is DeepSeekProvider) ||
           (apiType == 'claude' && _cachedProvider is ClaudeProvider) ||
           (apiType == 'siliconflow' && _cachedProvider is SiliconFlowProvider) ||
@@ -54,7 +55,12 @@ class AIService {
           (apiType == 'kimi' && _cachedProvider is KimiProvider) ||
           (apiType == 'lmstudio' && _cachedProvider is LMStudioProvider) ||
           (apiType == 'other' && _cachedProvider is OtherProvider) ||
-          (apiType != 'gemini' && apiType != 'deepseek' && apiType != 'claude' && apiType != 'siliconflow' && apiType != 'minimax' && apiType != 'zhipu' && apiType != 'kimi' && apiType != 'lmstudio' && _cachedProvider is OtherProvider)) {
+          (apiType == 'openai' && _cachedProvider is OpenAIProvider);
+
+      // 如果类型匹配，且配置未变更，使用缓存
+      // 注意：这里需要比较配置，但由于 Provider 内部每次都会重新读取设置，
+      // 我们可以简化逻辑，只在类型变化时重建
+      if (typeMatches && _cachedApiType == apiType) {
         return _cachedProvider!;
       }
     }
@@ -81,8 +87,14 @@ class AIService {
     } else {
       _cachedProvider = OpenAIProvider();
     }
+
+    // 记录当前 API 类型，用于缓存比较
+    _cachedApiType = apiType;
     return _cachedProvider!;
   }
+
+  // 缓存的 API 类型，用于检测配置变化
+  String? _cachedApiType;
 
   /// 替换系统提示词中的变量占位符
   ///
