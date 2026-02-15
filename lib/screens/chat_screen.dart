@@ -458,7 +458,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   ///   7. 处理完成和错误状态
   ///   8. 保存对话到本地存储
   Future<void> _sendMessage(String content,
-      {List<Attachment> attachments = const []}) async {
+      {List<Attachment> attachments = const [], bool skipUserMessage = false}) async {
     final l10n = AppLocalizations.of(context)!;
     if (content.trim().isEmpty && attachments.isEmpty) return;
 
@@ -491,26 +491,33 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
     debugPrint('Final presetSystemPrompt to use: ${presetSystemPrompt.isNotEmpty ? "length: ${presetSystemPrompt.length}" : "empty"}');
 
-    final userMessage = Message(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      content: content,
-      isUser: true,
-      timestamp: DateTime.now(),
-      attachments: attachments,
-    );
+    Message? userMessage;
+    if (!skipUserMessage) {
+      userMessage = Message(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        content: content,
+        isUser: true,
+        timestamp: DateTime.now(),
+        attachments: attachments,
+      );
 
-    setState(() {
-      _messages.add(userMessage);
-      _isLoading = true;
-    });
-
-    if (_messages.length == 1 && _currentConversation != null) {
-      final newTitle = Conversation.generateTitle(content);
-      await _conversationService.updateConversationTitle(
-          _currentConversation!.id, newTitle);
       setState(() {
-        _currentTitle = newTitle;
-        _currentConversation = _currentConversation!.copyWith(title: newTitle);
+        _messages.add(userMessage!);
+        _isLoading = true;
+      });
+
+      if (_messages.length == 1 && _currentConversation != null) {
+        final newTitle = Conversation.generateTitle(content);
+        await _conversationService.updateConversationTitle(
+            _currentConversation!.id, newTitle);
+        setState(() {
+          _currentTitle = newTitle;
+          _currentConversation = _currentConversation!.copyWith(title: newTitle);
+        });
+      }
+    } else {
+      setState(() {
+        _isLoading = true;
       });
     }
 
@@ -540,9 +547,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     _scrollToBottom();
 
     try {
-      // 排除最后两条消息（当前用户消息和空的AI消息）作为历史消息
-      final historyMessages = _messages.length >= 2
-          ? _messages.sublist(0, _messages.length - 2)
+      // 计算要排除的消息数量：如果跳过了用户消息，只排除AI消息（1条），否则排除用户和AI消息（2条）
+      final messagesToExclude = skipUserMessage ? 1 : 2;
+      final historyMessages = _messages.length >= messagesToExclude
+          ? _messages.sublist(0, _messages.length - messagesToExclude)
           : <Message>[];
 
       final stream = _aiService.sendMessageStreaming(content, historyMessages,
@@ -778,6 +786,131 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
+  /// 通过消息ID查找消息索引
+  int _findMessageIndexById(String messageId) {
+    for (int i = 0; i < _messages.length; i++) {
+      if (_messages[i].id == messageId) return i;
+    }
+    return -1;
+  }
+
+  /// 编辑用户消息
+  Future<void> _editUserMessage(Message message) async {
+    final l10n = AppLocalizations.of(context)!;
+    final textController = TextEditingController(text: message.content);
+
+    // 显示编辑对话框
+    final editedContent = await showCupertinoDialog<String>(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text(l10n.editMessageDialogTitle),
+        content: CupertinoTextField(
+          controller: textController,
+          placeholder: l10n.editMessageHint,
+          maxLines: 5,
+          minLines: 1,
+          autofocus: true,
+        ),
+        actions: [
+          CupertinoDialogAction(
+            child: Text(l10n.cancel),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          CupertinoDialogAction(
+            child: Text(l10n.confirmEdit),
+            onPressed: () {
+              Navigator.of(context).pop(textController.text.trim());
+            },
+          ),
+        ],
+      ),
+    );
+
+    if (editedContent != null && editedContent.trim().isNotEmpty && editedContent != message.content) {
+      await _resubmitMessage(message, editedContent);
+    }
+  }
+
+  /// 重新提交消息（编辑后或原样重新提交）
+  Future<void> _resubmitMessage(Message message, String newContent) async {
+    // 停止当前正在进行的生成
+    if (_isGenerating) {
+      _stopGenerating();
+    }
+
+    final messageIndex = _findMessageIndexById(message.id);
+    if (messageIndex == -1) {
+      debugPrint('消息未找到: ${message.id}');
+      return;
+    }
+
+    // 更新用户消息内容（如果编辑过）
+    if (newContent != message.content) {
+      setState(() {
+        _messages[messageIndex] = message.copyWith(content: newContent);
+      });
+    }
+
+    // 删除该消息之后的所有消息（包括对应的AI响应）
+    setState(() {
+      _messages.removeRange(messageIndex + 1, _messages.length);
+    });
+
+    // 重新发送消息，保留原始附件，跳过用户消息添加
+    await _sendMessage(newContent, attachments: message.attachments, skipUserMessage: true);
+  }
+
+  /// 重新生成AI响应
+  Future<void> _regenerateAiResponse(Message message) async {
+    final l10n = AppLocalizations.of(context)!;
+
+    // 确认对话框
+    final confirmed = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text(l10n.regenerateResponse),
+        content: Text(l10n.regenerateConfirm),
+        actions: [
+          CupertinoDialogAction(
+            child: Text(l10n.cancel),
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          CupertinoDialogAction(
+            child: Text(l10n.confirm),
+            onPressed: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) {
+      return;
+    }
+
+    // 停止当前正在进行的生成
+    if (_isGenerating) {
+      _stopGenerating();
+    }
+
+    final messageIndex = _findMessageIndexById(message.id);
+    if (messageIndex == -1) {
+      debugPrint('消息未找到: ${message.id}');
+      return;
+    }
+
+    // 删除当前的AI消息
+    setState(() {
+      _messages.removeAt(messageIndex);
+    });
+
+    // 查找前一条用户消息
+    if (messageIndex > 0 && _messages[messageIndex - 1].isUser) {
+      final userMessage = _messages[messageIndex - 1];
+      // 使用前一条用户消息重新发送，保留原始附件，跳过用户消息添加
+      await _sendMessage(userMessage.content, attachments: userMessage.attachments, skipUserMessage: true);
+    }
+  }
+
   /// 显示配置提示对话框
   ///
   /// 当用户尝试发送消息但应用未配置API密钥时显示
@@ -947,6 +1080,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         return MessageBubble(
                           message: _messages[index],
                           userProfile: _userProfile,
+                          onEdit: _editUserMessage,
+                          onRegenerate: _regenerateAiResponse,
+                          onResubmit: (msg) => _resubmitMessage(msg, msg.content),
                         );
                       },
                     ),

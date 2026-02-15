@@ -1010,4 +1010,28 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get contributors => '貢献者';
+
+  @override
+  String get editMessage => 'メッセージを編集';
+
+  @override
+  String get regenerateResponse => '応答を再生成';
+
+  @override
+  String get resubmit => '再送信';
+
+  @override
+  String get editMessageHint => 'メッセージ内容を編集';
+
+  @override
+  String get confirmEdit => '編集を確認';
+
+  @override
+  String get editMessageDialogTitle => 'メッセージ編集';
+
+  @override
+  String get regenerateConfirm => 'このAI応答を再生成しますか？';
+
+  @override
+  String get messageOptions => 'メッセージオプション';
 }

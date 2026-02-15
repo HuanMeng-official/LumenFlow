@@ -1010,4 +1010,28 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get contributors => '贡献者';
+
+  @override
+  String get editMessage => '编辑消息';
+
+  @override
+  String get regenerateResponse => '重新生成响应';
+
+  @override
+  String get resubmit => '重新提交';
+
+  @override
+  String get editMessageHint => '编辑消息内容';
+
+  @override
+  String get confirmEdit => '确认编辑';
+
+  @override
+  String get editMessageDialogTitle => '编辑消息';
+
+  @override
+  String get regenerateConfirm => '重新生成此AI响应？';
+
+  @override
+  String get messageOptions => '消息选项';
 }

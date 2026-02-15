@@ -643,5 +643,13 @@
   "creditsAppImprovementAndCode": "アプリ改善及び一部コード",
   "creditsBugTestingAndCode": "バグテスト及び一部コード",
   "creditsDescription": "以下の貢献者に感謝申し上げます：",
-  "contributors": "貢献者"
+  "contributors": "貢献者",
+  "editMessage": "メッセージを編集",
+  "regenerateResponse": "応答を再生成",
+  "resubmit": "再送信",
+  "editMessageHint": "メッセージ内容を編集",
+  "confirmEdit": "編集を確認",
+  "editMessageDialogTitle": "メッセージ編集",
+  "regenerateConfirm": "このAI応答を再生成しますか？",
+  "messageOptions": "メッセージオプション"
 }

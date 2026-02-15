@@ -1940,6 +1940,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Contributors'**
   String get contributors;
+
+  /// No description provided for @editMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit message'**
+  String get editMessage;
+
+  /// No description provided for @regenerateResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Regenerate response'**
+  String get regenerateResponse;
+
+  /// No description provided for @resubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Resubmit'**
+  String get resubmit;
+
+  /// No description provided for @editMessageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit message content'**
+  String get editMessageHint;
+
+  /// No description provided for @confirmEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm edit'**
+  String get confirmEdit;
+
+  /// No description provided for @editMessageDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit message'**
+  String get editMessageDialogTitle;
+
+  /// No description provided for @regenerateConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Regenerate this AI response?'**
+  String get regenerateConfirm;
+
+  /// No description provided for @messageOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Message options'**
+  String get messageOptions;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -1010,4 +1010,28 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get contributors => '기여자';
+
+  @override
+  String get editMessage => '메시지 편집';
+
+  @override
+  String get regenerateResponse => '응답 다시 생성';
+
+  @override
+  String get resubmit => '다시 제출';
+
+  @override
+  String get editMessageHint => '메시지 내용 편집';
+
+  @override
+  String get confirmEdit => '편집 확인';
+
+  @override
+  String get editMessageDialogTitle => '메시지 편집';
+
+  @override
+  String get regenerateConfirm => '이 AI 응답을 다시 생성할까요？';
+
+  @override
+  String get messageOptions => '메시지 옵션';
 }

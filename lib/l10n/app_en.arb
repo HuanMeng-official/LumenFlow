@@ -643,5 +643,13 @@
   "creditsAppImprovementAndCode": "App Improvement and Partial Code",
   "creditsBugTestingAndCode": "Bug Testing and Partial Code",
   "creditsDescription": "Special thanks to the following contributors for their invaluable support:",
-  "contributors": "Contributors"
+  "contributors": "Contributors",
+  "editMessage": "Edit message",
+  "regenerateResponse": "Regenerate response",
+  "resubmit": "Resubmit",
+  "editMessageHint": "Edit message content",
+  "confirmEdit": "Confirm edit",
+  "editMessageDialogTitle": "Edit message",
+  "regenerateConfirm": "Regenerate this AI response?",
+  "messageOptions": "Message options"
 }

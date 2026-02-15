@@ -643,5 +643,13 @@
   "creditsAppImprovementAndCode": "应用改进及其部分代码",
   "creditsBugTestingAndCode": "Bug测试及其部分代码",
   "creditsDescription": "特别感谢以下贡献者提供的宝贵支持：",
-  "contributors": "贡献者"
+  "contributors": "贡献者",
+  "editMessage": "编辑消息",
+  "regenerateResponse": "重新生成响应",
+  "resubmit": "重新提交",
+  "editMessageHint": "编辑消息内容",
+  "confirmEdit": "确认编辑",
+  "editMessageDialogTitle": "编辑消息",
+  "regenerateConfirm": "重新生成此AI响应？",
+  "messageOptions": "消息选项"
 }

@@ -643,5 +643,13 @@
   "creditsAppImprovementAndCode": "앱 개선 및 일부 코드",
   "creditsBugTestingAndCode": "버그 테스트 및 일부 코드",
   "creditsDescription": "다음 기여자들에게 특별한 감사를 드립니다：",
-  "contributors": "기여자"
+  "contributors": "기여자",
+  "editMessage": "메시지 편집",
+  "regenerateResponse": "응답 다시 생성",
+  "resubmit": "다시 제출",
+  "editMessageHint": "메시지 내용 편집",
+  "confirmEdit": "편집 확인",
+  "editMessageDialogTitle": "메시지 편집",
+  "regenerateConfirm": "이 AI 응답을 다시 생성할까요？",
+  "messageOptions": "메시지 옵션"
 }

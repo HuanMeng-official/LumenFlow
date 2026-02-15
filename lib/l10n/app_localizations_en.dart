@@ -1010,4 +1010,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get contributors => 'Contributors';
+
+  @override
+  String get editMessage => 'Edit message';
+
+  @override
+  String get regenerateResponse => 'Regenerate response';
+
+  @override
+  String get resubmit => 'Resubmit';
+
+  @override
+  String get editMessageHint => 'Edit message content';
+
+  @override
+  String get confirmEdit => 'Confirm edit';
+
+  @override
+  String get editMessageDialogTitle => 'Edit message';
+
+  @override
+  String get regenerateConfirm => 'Regenerate this AI response?';
+
+  @override
+  String get messageOptions => 'Message options';
 }
