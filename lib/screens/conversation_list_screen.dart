@@ -22,6 +22,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
   List<Conversation> _conversations = [];
   String? _currentConversationId;
   bool _isLoading = true;
+  bool _isSelecting = false; // 防止重复选择对话
 
   @override
   void initState() {
@@ -57,14 +58,25 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
   }
 
   Future<void> _selectConversation(Conversation conversation) async {
-    await _conversationService.setCurrentConversationId(conversation.id);
-    setState(() {
-      _currentConversationId = conversation.id;
-    });
-    // 只传递对话 ID，由 ChatScreen 负责加载完整对话
-    widget.onConversationSelected(conversation.id);
-    if (mounted) {
-      Navigator.pop(context);
+    // 防止重复选择
+    if (_isSelecting) {
+      return;
+    }
+
+    _isSelecting = true;
+
+    try {
+      await _conversationService.setCurrentConversationId(conversation.id);
+      setState(() {
+        _currentConversationId = conversation.id;
+      });
+      // 只传递对话 ID，由 ChatScreen 负责加载完整对话
+      widget.onConversationSelected(conversation.id);
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } finally {
+      _isSelecting = false;
     }
   }
 

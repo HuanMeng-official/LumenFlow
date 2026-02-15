@@ -83,6 +83,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   StreamSubscription<Map<String, dynamic>>? _streamSubscription; // 当前流式响应的订阅
   bool _isGenerating = false; // 是否正在生成AI回复
 
+  // 对话加载控制
+  bool _isLoadingConversation = false; // 防止重复加载对话
+
   @override
   void initState() {
     super.initState();
@@ -201,50 +204,68 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   /// 根据对话ID从数据库加载完整对话（包含消息），更新界面状态
   /// 这是所有对话切换操作的唯一入口点
   Future<void> _setCurrentConversation(String conversationId) async {
-    final l10n = AppLocalizations.of(context)!;
-    final fullConversation =
-        await _conversationService.getConversationById(conversationId);
+    // 防止重复加载对话
+    if (_isLoadingConversation) {
+      return;
+    }
 
-    if (!mounted || fullConversation == null) return;
+    // 如果已经是当前对话，且对话不为空，则跳过加载
+    if (_currentConversation?.id == conversationId && _messages.isNotEmpty) {
+      return;
+    }
 
-    // 清理不完整的消息：将状态为sending的AI消息标记为error
-    final processedMessages = <Message>[];
-    for (final message in fullConversation.messages) {
-      if (!message.isUser && message.status == MessageStatus.sending) {
-        // 如果AI消息处于sending状态，说明上次会话可能异常中断
-        // 如果消息内容为空，完全删除该消息；否则标记为error并保留已有内容
-        if (message.content.isEmpty) {
-          // 内容为空，完全删除
-          continue;
-        } else {
-          // 有部分内容，标记为error并添加提示
-          processedMessages.add(message.copyWith(
-            status: MessageStatus.error,
-            content: '${message.content}\n\n[${l10n.responseInterrupted}]',
-          ));
-        }
-      } else {
-        processedMessages.add(message);
+    _isLoadingConversation = true;
+
+    try {
+      final l10n = AppLocalizations.of(context)!;
+      final fullConversation =
+          await _conversationService.getConversationById(conversationId);
+
+      if (!mounted || fullConversation == null) {
+        return;
       }
+
+      // 清理不完整的消息：将状态为sending的AI消息标记为error
+      final processedMessages = <Message>[];
+      for (final message in fullConversation.messages) {
+        if (!message.isUser && message.status == MessageStatus.sending) {
+          // 如果AI消息处于sending状态，说明上次会话可能异常中断
+          // 如果消息内容为空，完全删除该消息；否则标记为error并保留已有内容
+          if (message.content.isEmpty) {
+            // 内容为空，完全删除
+            continue;
+          } else {
+            // 有部分内容，标记为error并添加提示
+            processedMessages.add(message.copyWith(
+              status: MessageStatus.error,
+              content: '${message.content}\n\n[${l10n.responseInterrupted}]',
+            ));
+          }
+        } else {
+          processedMessages.add(message);
+        }
+      }
+
+      setState(() {
+        _currentConversation = fullConversation;
+        _messages
+          ..clear()
+          ..addAll(processedMessages);
+        _currentTitle = fullConversation.title;
+        _autoTitleGenerated = false; // 重置标题生成标志
+      });
+
+      // 保存处理后的对话，确保状态更新持久化
+      if (processedMessages.length != fullConversation.messages.length) {
+        await _conversationService.updateConversation(
+          fullConversation.copyWith(messages: processedMessages),
+        );
+      }
+
+      _scrollToBottom();
+    } finally {
+      _isLoadingConversation = false;
     }
-
-    setState(() {
-      _currentConversation = fullConversation;
-      _messages
-        ..clear()
-        ..addAll(processedMessages);
-      _currentTitle = fullConversation.title;
-      _autoTitleGenerated = false; // 重置标题生成标志
-    });
-
-    // 保存处理后的对话，确保状态更新持久化
-    if (processedMessages.length != fullConversation.messages.length) {
-      await _conversationService.updateConversation(
-        fullConversation.copyWith(messages: processedMessages),
-      );
-    }
-
-    _scrollToBottom();
   }
 
   /// 创建新的对话

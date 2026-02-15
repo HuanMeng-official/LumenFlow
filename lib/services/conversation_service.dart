@@ -145,7 +145,27 @@ class ConversationService {
     // 先检查缓存
     if (_loadedConversationIds.contains(id) && _cachedConversations != null) {
       try {
-        return _cachedConversations!.firstWhere((c) => c.id == id);
+        final cachedConversation = _cachedConversations!.firstWhere((c) => c.id == id);
+        // 如果缓存中的对话消息为空，可能是不完整的缓存，需要从数据库重新加载
+        if (cachedConversation.messages.isEmpty) {
+          // 从数据库加载完整对话
+          final conversation = await _db.getConversationById(id);
+          if (conversation != null) {
+            // 更新缓存
+            if (_cachedConversations != null) {
+              final index = _cachedConversations!.indexWhere((c) => c.id == id);
+              if (index != -1) {
+                _cachedConversations![index] = conversation;
+              } else {
+                _cachedConversations!.add(conversation);
+                _cachedConversations!.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+              }
+            }
+            _loadedConversationIds.add(id);
+          }
+          return conversation;
+        }
+        return cachedConversation;
       } catch (e) {
         // 缓存中找不到，继续从数据库加载
       }
