@@ -1192,6 +1192,10 @@ class _MessageBubbleState extends State<MessageBubble>
                           GestureDetector(
                             onTap: _copyMessageToClipboard,
                             child: Container(
+                              constraints: const BoxConstraints(
+                                minHeight: 14,
+                                maxHeight: 14,
+                              ),
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 6,
                                 vertical: 2,
@@ -1242,6 +1246,7 @@ class _MessageBubbleState extends State<MessageBubble>
                                     l10n.copyMessage,
                                     style: TextStyle(
                                       fontSize: 10,
+                                      height: 1.0,
                                       color: widget.message.isUser
                                           ? CupertinoColors.white
                                           : (brightness == Brightness.dark
@@ -1262,6 +1267,10 @@ class _MessageBubbleState extends State<MessageBubble>
                           GestureDetector(
                             onTap: _showMessageMenu,
                             child: Container(
+                              constraints: const BoxConstraints(
+                                minHeight: 14,
+                                maxHeight: 14,
+                              ),
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 6,
                                 vertical: 2,
