@@ -169,6 +169,10 @@ class LMStudioProvider extends AIProvider {
           .transform(utf8.decoder)
           .transform(const LineSplitter());
 
+      // 缓冲区用于累积流式响应，避免重复
+      final answerBuffer = StringBuffer();
+      final reasoningBuffer = StringBuffer();
+
       final stopwatch = Stopwatch()..start();
       await for (final line in stream) {
         stopwatch.reset();
@@ -189,22 +193,56 @@ class LMStudioProvider extends AIProvider {
             if (type == 'response.output_text.delta') {
               final delta = jsonData['delta'] as String?;
               if (delta != null && delta.isNotEmpty) {
+                answerBuffer.write(delta);
                 yield {'type': 'answer', 'content': delta};
               }
             } else if (type == 'response.output_text.done') {
               final text = jsonData['text'] as String?;
               if (text != null && text.isNotEmpty) {
-                yield {'type': 'answer', 'content': text};
+                final currentAnswer = answerBuffer.toString();
+                if (text != currentAnswer) {
+                  // 如果文本与当前缓冲区内容不同，发送差异部分
+                  if (text.startsWith(currentAnswer)) {
+                    final remaining = text.substring(currentAnswer.length);
+                    if (remaining.isNotEmpty) {
+                      yield {'type': 'answer', 'content': remaining};
+                      answerBuffer.write(remaining);
+                    }
+                  } else {
+                    // 文本与缓冲区内容不匹配，发送整个文本
+                    yield {'type': 'answer', 'content': text};
+                    answerBuffer.clear();
+                    answerBuffer.write(text);
+                  }
+                }
+                // 如果文本与缓冲区内容相同，则跳过，避免重复
               }
             } else if (type == 'response.reasoning.delta') {
               final delta = jsonData['delta'] as String?;
               if (delta != null && delta.isNotEmpty) {
+                reasoningBuffer.write(delta);
                 yield {'type': 'reasoning', 'content': delta};
               }
             } else if (type == 'response.reasoning.done') {
               final text = jsonData['text'] as String?;
               if (text != null && text.isNotEmpty) {
-                yield {'type': 'reasoning', 'content': text};
+                final currentReasoning = reasoningBuffer.toString();
+                if (text != currentReasoning) {
+                  // 如果文本与当前缓冲区内容不同，发送差异部分
+                  if (text.startsWith(currentReasoning)) {
+                    final remaining = text.substring(currentReasoning.length);
+                    if (remaining.isNotEmpty) {
+                      yield {'type': 'reasoning', 'content': remaining};
+                      reasoningBuffer.write(remaining);
+                    }
+                  } else {
+                    // 文本与缓冲区内容不匹配，发送整个文本
+                    yield {'type': 'reasoning', 'content': text};
+                    reasoningBuffer.clear();
+                    reasoningBuffer.write(text);
+                  }
+                }
+                // 如果文本与缓冲区内容相同，则跳过，避免重复
               }
             }
           } catch (e) {
