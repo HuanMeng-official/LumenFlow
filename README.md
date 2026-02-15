@@ -309,7 +309,7 @@ When configuring a new platform, the following default values are used:
   - Kimi：`moonshot-k2`
   - LM-Studio：`local-model`
 - **Temperature**: `0.7`
-- **Max Tokens**: `4096`
+- **Max Tokens**: `8192`
 
 Note: These defaults apply when creating a new platform configuration. You can customize these values for each platform independently.
 

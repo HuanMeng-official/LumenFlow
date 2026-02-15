@@ -124,7 +124,7 @@
   "modelDesc": "例: gpt-5, deepseek-chat",
   "maxTokens": "最大トークン数",
   "maxTokensPlaceholder": "最大トークン数を入力",
-  "maxTokensDesc": "単一応答の長さを制限します。推奨値: 500-8000",
+  "maxTokensDesc": "単一応答の長さを制限します。推奨値: 6000-10000",
   "systemPrompt": "システムプロンプト",
   "systemPromptPlaceholder": "システムプロンプトを入力",
   "systemPromptDesc": "例: 必ず日本語で回答してください",

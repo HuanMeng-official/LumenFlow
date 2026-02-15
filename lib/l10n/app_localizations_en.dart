@@ -258,7 +258,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get maxTokensPlaceholder => 'Enter max tokens';
 
   @override
-  String get maxTokensDesc => 'Limit the length of single response, recommended 500-8000';
+  String get maxTokensDesc => 'Limit the length of single response, recommended 6000-10000';
 
   @override
   String get systemPrompt => 'System Prompt';

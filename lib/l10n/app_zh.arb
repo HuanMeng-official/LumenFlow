@@ -124,7 +124,7 @@
   "modelDesc": "例如: gpt-5, deepseek-chat",
   "maxTokens": "最大Token数",
   "maxTokensPlaceholder": "输入最大Token数",
-  "maxTokensDesc": "限制单次回复的长度，建议500-8000",
+  "maxTokensDesc": "限制单次回复的长度，建议6000-10000",
   "systemPrompt": "System Prompt",
   "systemPromptPlaceholder": "输入 System Prompt",
   "systemPromptDesc": "例如：始终使用中文回答",

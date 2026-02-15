@@ -258,7 +258,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get maxTokensPlaceholder => '최대 토큰 수 입력';
 
   @override
-  String get maxTokensDesc => '단일 응답 길이 제한, 권장값 500-8000';
+  String get maxTokensDesc => '단일 응답 길이 제한, 권장값 6000-10000';
 
   @override
   String get systemPrompt => '시스템 프롬프트';

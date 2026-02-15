@@ -576,7 +576,7 @@ abstract class AppLocalizations {
   /// No description provided for @maxTokensDesc.
   ///
   /// In en, this message translates to:
-  /// **'Limit the length of single response, recommended 500-8000'**
+  /// **'Limit the length of single response, recommended 6000-10000'**
   String get maxTokensDesc;
 
   /// No description provided for @systemPrompt.

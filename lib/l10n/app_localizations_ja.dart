@@ -258,7 +258,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get maxTokensPlaceholder => '最大トークン数を入力';
 
   @override
-  String get maxTokensDesc => '単一応答の長さを制限します。推奨値: 500-8000';
+  String get maxTokensDesc => '単一応答の長さを制限します。推奨値: 6000-10000';
 
   @override
   String get systemPrompt => 'システムプロンプト';

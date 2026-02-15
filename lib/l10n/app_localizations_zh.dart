@@ -258,7 +258,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get maxTokensPlaceholder => '输入最大Token数';
 
   @override
-  String get maxTokensDesc => '限制单次回复的长度，建议500-8000';
+  String get maxTokensDesc => '限制单次回复的长度，建议6000-10000';
 
   @override
   String get systemPrompt => 'System Prompt';

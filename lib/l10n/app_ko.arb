@@ -124,7 +124,7 @@
   "modelDesc": "예: gpt-5, deepseek-chat",
   "maxTokens": "최대 토큰 수",
   "maxTokensPlaceholder": "최대 토큰 수 입력",
-  "maxTokensDesc": "단일 응답 길이 제한, 권장값 500-8000",
+  "maxTokensDesc": "단일 응답 길이 제한, 권장값 6000-10000",
   "systemPrompt": "시스템 프롬프트",
   "systemPromptPlaceholder": "시스템 프롬프트 입력",
   "systemPromptDesc": "예: 항상 한국어로 답변하세요",

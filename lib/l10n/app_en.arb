@@ -124,7 +124,7 @@
   "modelDesc": "e.g.: gpt-5, deepseek-chat",
   "maxTokens": "Max Tokens",
   "maxTokensPlaceholder": "Enter max tokens",
-  "maxTokensDesc": "Limit the length of single response, recommended 500-8000",
+  "maxTokensDesc": "Limit the length of single response, recommended 6000-10000",
   "systemPrompt": "System Prompt",
   "systemPromptPlaceholder": "Enter System Prompt",
   "systemPromptDesc": "e.g.: Always answer in Chinese",
