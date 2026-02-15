@@ -191,6 +191,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _presets = presets;
       _userProfile = userProfile;
     });
+
+    // 加载当前模型
+    await _loadCurrentModel();
   }
 
   /// 设置当前对话（统一的对话加载入口）
