@@ -128,7 +128,7 @@ class AIPlatform {
           id: 'claude',
           name: 'Claude (Anthropic)',
           type: 'claude',
-          endpoint: 'https://api.anthropic.com',
+          endpoint: 'https://api.anthropic.com/v1',
           apiKey: '',
           availableModels: [],
           defaultModel: '',

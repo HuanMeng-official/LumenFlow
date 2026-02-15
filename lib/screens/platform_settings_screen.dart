@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../l10n/app_localizations.dart';
 import '../models/ai_platform.dart';
 import '../services/settings_service.dart';
+import '../providers/claude_provider.dart';
 
 /// 模型与平台配置界面
 ///
@@ -582,9 +583,9 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
   Future<List<String>> _fetchModelsFromApi(AIPlatform platform) async {
     final client = HttpClient();
 
+    // Gemini API
     if (platform.type == 'gemini') {
       try {
-        // URL: https://generativelanguage.googleapis.com/v1beta/models?key=XXX
         var endpoint = platform.endpoint;
         if (endpoint.endsWith('/')) {
           endpoint = endpoint.substring(0, endpoint.length - 1);
@@ -634,7 +635,7 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
       }
     }
 
-    // ZhiPu 使用直接路径
+    // ZhiPu API
     if (platform.type == 'zhipu') {
       try {
         final modelsUrl = '${platform.endpoint}/models';
@@ -652,6 +653,42 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
         if (data is Map && data.containsKey('data')) {
           final modelsData = data['data'] as List;
           return modelsData.map((m) => m['id'] as String).toList();
+        }
+
+        throw Exception('API returned invalid format');
+      } finally {
+        client.close();
+      }
+    }
+
+    // Anthropic API
+    if (platform.type == 'claude') {
+      try {
+        var endpoint = platform.endpoint;
+        if (endpoint.endsWith('/')) {
+          endpoint = endpoint.substring(0, endpoint.length - 1);
+        }
+        final modelsUrl = '$endpoint/models';
+
+        final request = await client.getUrl(Uri.parse(modelsUrl));
+        request.headers.add('X-Api-Key', platform.apiKey);
+        request.headers.add('anthropic-version', ClaudeProvider.anthropicVersion);
+        request.headers.add('Content-Type', 'application/json');
+
+        final response = await request.close();
+        final responseBody = await response.transform(utf8.decoder).join();
+
+        if (response.statusCode != 200) {
+          throw Exception('API returned error: ${response.statusCode}\nURL: $modelsUrl\n$responseBody');
+        }
+
+        final data = jsonDecode(responseBody);
+        if (data is Map && data.containsKey('data')) {
+          final modelsData = data['data'] as List;
+          return modelsData
+              .where((m) => m is Map && m['id'] != null)
+              .map((m) => m['id'] as String)
+              .toList();
         }
 
         throw Exception('API returned invalid format');

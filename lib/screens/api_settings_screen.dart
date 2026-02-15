@@ -60,7 +60,7 @@ class _ApiSettingsScreenState extends State<ApiSettingsScreen> {
       } else if (apiType == 'deepseek') {
         _endpointController.text = 'https://api.deepseek.com';
       } else if (apiType == 'claude') {
-        _endpointController.text = 'https://api.anthropic.com';
+        _endpointController.text = 'https://api.anthropic.com/v1';
       } else if (apiType == 'siliconflow') {
         _endpointController.text = 'https://api.siliconflow.cn/v1';
       } else if (apiType == 'zhipu') {

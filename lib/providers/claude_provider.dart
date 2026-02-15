@@ -74,7 +74,7 @@ class ClaudeProvider extends AIProvider {
             Uri.parse('$apiEndpoint/messages'),
             headers: {
               'Content-Type': 'application/json',
-              'x-api-key': apiKey,
+              'X-Api-Key': apiKey,
               'anthropic-version': anthropicVersion,
             },
             body: jsonEncode(requestBody),
@@ -141,7 +141,7 @@ class ClaudeProvider extends AIProvider {
         Uri.parse('$apiEndpoint/messages'),
       );
       request.headers['Content-Type'] = 'application/json';
-      request.headers['x-api-key'] = apiKey;
+      request.headers['X-Api-Key'] = apiKey;
       request.headers['anthropic-version'] = anthropicVersion;
       request.body = jsonEncode(requestBody);
 
@@ -236,7 +236,7 @@ class ClaudeProvider extends AIProvider {
       Uri.parse('$apiEndpoint/messages'),
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
+        'X-Api-Key': apiKey,
         'anthropic-version': anthropicVersion,
       },
       body: jsonEncode(requestBody),
