@@ -99,6 +99,8 @@ class PromptService {
           id: preset.id,
           name: preset.name,
           description: preset.description,
+          author: preset.author,
+          version: preset.version,
           systemPrompt: systemPrompt,
           icon: preset.icon,
         );

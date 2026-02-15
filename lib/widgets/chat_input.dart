@@ -138,12 +138,30 @@ class _ChatInputState extends State<ChatInput> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          preset.name,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                preset.name,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                preset.author.isNotEmpty ? preset.author : '',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: CupertinoColors.systemGrey,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 2),
                         Text(
@@ -156,6 +174,16 @@ class _ChatInputState extends State<ChatInput> {
                       ],
                     ),
                   ),
+                  const SizedBox(width: 8),
+                  Text(
+                    preset.version.isNotEmpty ? preset.version : 'v1.0',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: CupertinoColors.systemGrey2,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (widget.currentPresetId == preset.id) const SizedBox(width: 8),
                   if (widget.currentPresetId == preset.id)
                     const Icon(
                       CupertinoIcons.checkmark_alt,
@@ -208,6 +236,8 @@ class _ChatInputState extends State<ChatInput> {
         id: '',
         name: l10n.rolePlay,
         description: '',
+        author: '',
+        version: '',
         systemPrompt: '',
       ),
     );

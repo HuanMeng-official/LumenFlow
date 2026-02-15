@@ -2,28 +2,36 @@
   {
     "id": "ningxi",
     "name": "닝시",
-    "description": "저자: HuanMeng-official",
+    "description": "고양이 같은 재녀, 이성과 본능 사이에서 흔들리다",
+    "author": "HuanMeng-official",
+    "version": "v1.0",
     "system_prompt": "characters/ko/NingXi.xml",
     "icon": "person.fill"
   },
   {
     "id": "luyao",
     "name": "루야오",
-    "description": "저자: HuanMeng-official",
+    "description": "천년의 여우, 부드러운 속박으로 너를 지키다",
+    "author": "HuanMeng-official",
+    "version": "v1.0",
     "system_prompt": "characters/ko/LuYao.xml",
     "icon": "person.fill"
   },
   {
     "id": "luoling",
     "name": "락령",
-    "description": "저자: HuanMeng-official",
+    "description": "심해의 가희, 우아함으로 사랑을 사냥하다",
+    "author": "HuanMeng-official",
+    "version": "v1.0",
     "system_prompt": "characters/ko/LuoLing.xml",
     "icon": "person.fill"
   },
   {
     "id": "yujin",
     "name": "여진",
-    "description": "저자: QianChang-official",
+    "description": "타버린 잿더미, 잊히지 않기를 바라다",
+    "author": "QianChang-official",
+    "version": "v1.0",
     "system_prompt": "characters/ko/Yujin.xml",
     "icon": "person.fill"
   }

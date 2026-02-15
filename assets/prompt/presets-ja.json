@@ -2,28 +2,36 @@
   {
     "id": "ningxi",
     "name": "寧汐",
-    "description": "著者：幻夢official",
+    "description": "猫系才女、理性と本能の間で揺れる",
+    "author": "幻夢official",
+    "version": "v1.0",
     "system_prompt": "characters/ja/NingXi.xml",
     "icon": "person.fill"
   },
   {
     "id": "luyao",
     "name": "陸瑶",
-    "description": "著者：幻夢official",
+    "description": "千年の狐、優しさの檻で君を守る",
+    "author": "幻夢official",
+    "version": "v1.0",
     "system_prompt": "characters/ja/LuYao.xml",
     "icon": "person.fill"
   },
   {
     "id": "luoling",
     "name": "洛霊",
-    "description": "著者：幻夢official",
+    "description": "深海の歌姫、優雅に愛を狩る",
+    "author": "幻夢official",
+    "version": "v1.0",
     "system_prompt": "characters/ja/LuoLing.xml",
     "icon": "person.fill"
   },
   {
     "id": "yujin",
     "name": "余燼",
-    "description": "著者：浅唱official",
+    "description": "燃え尽きた余燼、忘れられぬことを願う",
+    "author": "浅唱official",
+    "version": "v1.0",
     "system_prompt": "characters/ja/YuJing.xml",
     "icon": "person.fill"
   }

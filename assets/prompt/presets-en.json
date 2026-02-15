@@ -2,28 +2,36 @@
   {
     "id": "ningxi",
     "name": "NingXi",
-    "description": "Author: HuanMeng-official",
+    "description": "Feline savant, torn between reason and instinct",
+    "author": "HuanMeng-official",
+    "version": "v1.0",
     "system_prompt": "characters/en/NingXi.xml",
     "icon": "person.fill"
   },
   {
     "id": "luyao",
     "name": "LuYao",
-    "description": "Author: HuanMeng-official",
+    "description": "Millennial fox, guarding you in tender captivity",
+    "author": "HuanMeng-official",
+    "version": "v1.0",
     "system_prompt": "characters/en/LuYao.xml",
     "icon": "person.fill"
   },
   {
     "id": "luoling",
     "name": "LuoLing",
-    "description": "Author: HuanMeng-official",
+    "description": "Siren of the deep, hunting love with grace",
+    "author": "HuanMeng-official",
+    "version": "v1.0",
     "system_prompt": "characters/en/LuoLing.xml",
     "icon": "person.fill"
   },
   {
     "id": "yujin",
     "name": "YuJin",
-    "description": "Author: QianChang-official",
+    "description": "Burnt-out ember, begging not to be forgotten",
+    "author": "QianChang-official",
+    "version": "v1.0",
     "system_prompt": "characters/en/YuJin.xml",
     "icon": "person.fill"
   }

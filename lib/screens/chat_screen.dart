@@ -478,7 +478,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
       final preset = _presets.firstWhere(
         (preset) => preset.id == _currentPresetId,
-        orElse: () => PromptPreset(id: '', name: '', description: '', systemPrompt: ''),
+        orElse: () => PromptPreset(id: '', name: '', description: '', author: '', version: '', systemPrompt: ''),
       );
       if (preset.id.isNotEmpty) {
         presetSystemPrompt = preset.systemPrompt;
