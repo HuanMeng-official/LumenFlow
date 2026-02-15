@@ -511,6 +511,13 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
       debugPrint('原模型列表: ${platform.availableModels.length}个');
       debugPrint('新模型列表: ${models.length}个');
       await _settingsService.savePlatform(updatedPlatform);
+
+      // 如果更新的平台是当前平台，同步更新全局模型设置
+      final currentPlatformId = await _settingsService.getCurrentPlatformId();
+      if (platform.id == currentPlatformId && updatedPlatform.defaultModel.isNotEmpty) {
+        await _settingsService.setModel(updatedPlatform.defaultModel);
+      }
+
       await _loadData();
     } else if (result == true && mounted) {
       // 刷新后重新加载
@@ -545,6 +552,13 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
           models,
           newDefaultModel: newDefaultModel,
         );
+
+        // 如果刷新的平台是当前平台，同步更新全局模型设置
+        final currentPlatformId = await _settingsService.getCurrentPlatformId();
+        if (platform.id == currentPlatformId && newDefaultModel != null && newDefaultModel.isNotEmpty) {
+          await _settingsService.setModel(newDefaultModel);
+        }
+
         await _loadData();
         _showSuccess(l10n.modelsRefreshed);
         return models;

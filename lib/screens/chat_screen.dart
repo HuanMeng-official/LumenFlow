@@ -1094,12 +1094,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final currentPlatform = await _settingsService.getCurrentPlatform();
     if (currentPlatform == null) return;
 
-    // 更新当前平台的默认模型
+    // 获取最新的平台数据，确保可用模型列表是最新的
+    final latestPlatform = await _settingsService.getPlatformById(currentPlatform.id);
+    if (latestPlatform == null) return;
+
+    // 更新当前平台的默认模型，保持现有的可用模型列表
     await _settingsService.updatePlatformModels(
       currentPlatform.id,
-      currentPlatform.availableModels, // 保持现有的可用模型列表
+      latestPlatform.availableModels, // 使用最新的可用模型列表
       newDefaultModel: model,
     );
+
+    // 同步更新全局模型设置，确保AIService使用正确的模型
+    await _settingsService.setModel(model);
 
     // 重新加载当前模型
     await _loadCurrentModel();

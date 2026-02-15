@@ -44,7 +44,15 @@ class _ModelSettingsScreenState extends State<ModelSettingsScreen> {
   }
 
   Future<void> _loadSettings() async {
-    final model = await _settingsService.getModel();
+    // 优先使用当前平台的默认模型（如果已配置）
+    final currentPlatform = await _settingsService.getCurrentPlatform();
+    String model;
+    if (currentPlatform != null && currentPlatform.isConfigured && currentPlatform.defaultModel.isNotEmpty) {
+      model = currentPlatform.defaultModel;
+    } else {
+      model = await _settingsService.getModel();
+    }
+
     final temperature = await _settingsService.getTemperature();
     final maxTokens = await _settingsService.getMaxTokens();
     final customPrompt = await _settingsService.getCustomSystemPrompt();
@@ -64,7 +72,19 @@ class _ModelSettingsScreenState extends State<ModelSettingsScreen> {
     });
 
     try {
-      await _settingsService.setModel(_modelController.text.trim());
+      final newModel = _modelController.text.trim();
+      await _settingsService.setModel(newModel);
+
+      // 同步更新当前平台的默认模型（如果已配置）
+      final currentPlatform = await _settingsService.getCurrentPlatform();
+      if (currentPlatform != null && currentPlatform.isConfigured && newModel.isNotEmpty) {
+        await _settingsService.updatePlatformModels(
+          currentPlatform.id,
+          currentPlatform.availableModels,
+          newDefaultModel: newModel,
+        );
+      }
+
       await _settingsService.setTemperature(_temperature);
       await _settingsService.setMaxTokens(
           int.tryParse(_maxTokensController.text) ??
