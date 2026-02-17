@@ -312,7 +312,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get rounds => 'ラウンド';
 
   @override
-  String get appearance => '外観';
+  String get appearance => 'アプリの外観';
 
   @override
   String get followSystem => 'システム設定に従う';

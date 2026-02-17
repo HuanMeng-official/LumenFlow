@@ -142,7 +142,7 @@
   "generateTiming": "生成タイミング",
   "generateTimingDesc": "タイトルを自動生成するまでの会話ラウンド数を設定",
   "rounds": "ラウンド",
-  "appearance": "外観",
+  "appearance": "アプリの外観",
   "followSystem": "システム設定に従う",
   "followSystemDesc": "システムのカラーモードに自動的に従います",
   "appColor": "アプリカラー",

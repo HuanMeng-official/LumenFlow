@@ -684,7 +684,7 @@ abstract class AppLocalizations {
   /// No description provided for @appearance.
   ///
   /// In en, this message translates to:
-  /// **'Appearance'**
+  /// **'APP Appearance'**
   String get appearance;
 
   /// No description provided for @followSystem.

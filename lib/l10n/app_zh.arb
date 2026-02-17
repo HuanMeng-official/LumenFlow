@@ -142,7 +142,7 @@
   "generateTiming": "生成时机",
   "generateTimingDesc": "设置多少轮对话后自动生成标题",
   "rounds": "轮",
-  "appearance": "外观",
+  "appearance": "应用外观",
   "followSystem": "跟随系统设置",
   "followSystemDesc": "自动跟随系统颜色模式",
   "appColor": "应用颜色",

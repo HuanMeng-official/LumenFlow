@@ -142,7 +142,7 @@
   "generateTiming": "Generate Timing",
   "generateTimingDesc": "Set how many rounds of conversation before auto-generating title",
   "rounds": "rounds",
-  "appearance": "Appearance",
+  "appearance": "APP Appearance",
   "followSystem": "Follow System Settings",
   "followSystemDesc": "Automatically follow system color mode",
   "appColor": "App Color",

@@ -312,7 +312,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rounds => 'rounds';
 
   @override
-  String get appearance => 'Appearance';
+  String get appearance => 'APP Appearance';
 
   @override
   String get followSystem => 'Follow System Settings';

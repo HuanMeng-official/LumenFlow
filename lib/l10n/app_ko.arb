@@ -142,7 +142,7 @@
   "generateTiming": "생성 타이밍",
   "generateTimingDesc": "자동 제목 생성 전 대화 라운드 수 설정",
   "rounds": "라운드",
-  "appearance": "테마",
+  "appearance": "애플리케이션 외관",
   "followSystem": "시스템 설정 따르기",
   "followSystemDesc": "자동으로 시스템 색상 모드 따름",
   "appColor": "앱 색상",

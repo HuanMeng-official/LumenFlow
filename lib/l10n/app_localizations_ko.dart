@@ -312,7 +312,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get rounds => '라운드';
 
   @override
-  String get appearance => '테마';
+  String get appearance => '애플리케이션 외관';
 
   @override
   String get followSystem => '시스템 설정 따르기';

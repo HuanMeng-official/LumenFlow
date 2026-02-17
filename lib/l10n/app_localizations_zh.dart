@@ -312,7 +312,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get rounds => '轮';
 
   @override
-  String get appearance => '外观';
+  String get appearance => '应用外观';
 
   @override
   String get followSystem => '跟随系统设置';
