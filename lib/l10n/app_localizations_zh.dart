@@ -1034,4 +1034,86 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get messageOptions => '消息选项';
+
+  @override
+  String get presetManagement => '预设管理';
+
+  @override
+  String get presetManagementSubtitle => '管理内置和用户导入的提示词';
+
+  @override
+  String get builtInPresets => '内置预设';
+
+  @override
+  String get userPresets => '用户预设';
+
+  @override
+  String get noPresetsAvailable => '暂无预设';
+
+  @override
+  String get importXmlHint => '点击右上角 + 按钮导入XML文件';
+
+  @override
+  String get importPresetDialogTitle => '导入预设';
+
+  @override
+  String get presetNamePlaceholder => '预设名称';
+
+  @override
+  String get descriptionPlaceholder => '描述';
+
+  @override
+  String get authorPlaceholder => '作者';
+
+  @override
+  String get importButton => '导入';
+
+  @override
+  String get deletePresetDialogTitle => '删除预设';
+
+  @override
+  String deletePresetConfirm(String presetName) {
+    return '确定要删除预设 \"$presetName\" 吗？';
+  }
+
+  @override
+  String presetDeletedSuccess(String presetName) {
+    return '已删除: $presetName';
+  }
+
+  @override
+  String importFailedError(String error) {
+    return '导入失败: $error';
+  }
+
+  @override
+  String deleteFailedError(String error) {
+    return '删除失败: $error';
+  }
+
+  @override
+  String get filePathError => '无法获取文件路径';
+
+  @override
+  String get authorLabel => '作者:';
+
+  @override
+  String get versionLabel => '版本:';
+
+  @override
+  String get descriptionLabel => '描述:';
+
+  @override
+  String get systemPromptLabel => '系统提示词:';
+
+  @override
+  String get closeButton => '关闭';
+
+  @override
+  String loadPresetsFailed(String error) {
+    return '加载预设失败: $error';
+  }
+
+  @override
+  String get roleCardGeneratorLink => '角色卡生成器';
 }

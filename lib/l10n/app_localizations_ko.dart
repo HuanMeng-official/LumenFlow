@@ -1034,4 +1034,86 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get messageOptions => '메시지 옵션';
+
+  @override
+  String get presetManagement => '프리셋 관리';
+
+  @override
+  String get presetManagementSubtitle => '내장 및 사용자 가져온 프롬프트 관리';
+
+  @override
+  String get builtInPresets => '내장 프리셋';
+
+  @override
+  String get userPresets => '사용자 프리셋';
+
+  @override
+  String get noPresetsAvailable => '사용 가능한 프리셋이 없습니다';
+
+  @override
+  String get importXmlHint => '오른쪽 상단의 + 버튼을 눌러 XML 파일 가져오기';
+
+  @override
+  String get importPresetDialogTitle => '프리셋 가져오기';
+
+  @override
+  String get presetNamePlaceholder => '프리셋 이름';
+
+  @override
+  String get descriptionPlaceholder => '설명';
+
+  @override
+  String get authorPlaceholder => '작성자';
+
+  @override
+  String get importButton => '가져오기';
+
+  @override
+  String get deletePresetDialogTitle => '프리셋 삭제';
+
+  @override
+  String deletePresetConfirm(String presetName) {
+    return '프리셋 \"$presetName\"을(를) 삭제하시겠습니까？';
+  }
+
+  @override
+  String presetDeletedSuccess(String presetName) {
+    return '삭제됨: $presetName';
+  }
+
+  @override
+  String importFailedError(String error) {
+    return '가져오기 실패: $error';
+  }
+
+  @override
+  String deleteFailedError(String error) {
+    return '삭제 실패: $error';
+  }
+
+  @override
+  String get filePathError => '파일 경로를 가져올 수 없습니다';
+
+  @override
+  String get authorLabel => '작성자:';
+
+  @override
+  String get versionLabel => '버전:';
+
+  @override
+  String get descriptionLabel => '설명:';
+
+  @override
+  String get systemPromptLabel => '시스템 프롬프트:';
+
+  @override
+  String get closeButton => '닫기';
+
+  @override
+  String loadPresetsFailed(String error) {
+    return '프리셋 로드 실패: $error';
+  }
+
+  @override
+  String get roleCardGeneratorLink => '롤 카드 생성기';
 }

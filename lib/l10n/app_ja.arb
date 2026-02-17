@@ -651,5 +651,65 @@
   "confirmEdit": "編集を確認",
   "editMessageDialogTitle": "メッセージ編集",
   "regenerateConfirm": "このAI応答を再生成しますか？",
-  "messageOptions": "メッセージオプション"
+  "messageOptions": "メッセージオプション",
+  "presetManagement": "プリセット管理",
+  "presetManagementSubtitle": "組み込みおよびユーザーインポート済みプロンプトの管理",
+  "builtInPresets": "組み込みプリセット",
+  "userPresets": "ユーザープリセット",
+  "noPresetsAvailable": "利用可能なプリセットはありません",
+  "importXmlHint": "右上の + ボタンをタップしてXMLファイルをインポート",
+  "importPresetDialogTitle": "プリセットのインポート",
+  "presetNamePlaceholder": "プリセット名",
+  "descriptionPlaceholder": "説明",
+  "authorPlaceholder": "作者",
+  "importButton": "インポート",
+  "deletePresetDialogTitle": "プリセットの削除",
+  "deletePresetConfirm": "プリセット「{presetName}」を削除してもよろしいですか？",
+  "@deletePresetConfirm": {
+    "placeholders": {
+      "presetName": {
+        "type": "String"
+      }
+    }
+  },
+  "presetDeletedSuccess": "削除済み: {presetName}",
+  "@presetDeletedSuccess": {
+    "placeholders": {
+      "presetName": {
+        "type": "String"
+      }
+    }
+  },
+
+  "importFailedError": "インポート失敗: {error}",
+  "@importFailedError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteFailedError": "削除失敗: {error}",
+  "@deleteFailedError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "filePathError": "ファイルパスを取得できません",
+  "authorLabel": "作者:",
+  "versionLabel": "バージョン:",
+  "descriptionLabel": "説明:",
+  "systemPromptLabel": "システムプロンプト:",
+  "closeButton": "閉じる",
+  "loadPresetsFailed": "プリセットの読み込みに失敗しました: {error}",
+  "@loadPresetsFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "roleCardGeneratorLink": "ロールカードジェネレーター"
 }

@@ -651,5 +651,64 @@
   "confirmEdit": "편집 확인",
   "editMessageDialogTitle": "메시지 편집",
   "regenerateConfirm": "이 AI 응답을 다시 생성할까요？",
-  "messageOptions": "메시지 옵션"
+  "messageOptions": "메시지 옵션",
+  "presetManagement": "프리셋 관리",
+  "presetManagementSubtitle": "내장 및 사용자 가져온 프롬프트 관리",
+  "builtInPresets": "내장 프리셋",
+  "userPresets": "사용자 프리셋",
+  "noPresetsAvailable": "사용 가능한 프리셋이 없습니다",
+  "importXmlHint": "오른쪽 상단의 + 버튼을 눌러 XML 파일 가져오기",
+  "importPresetDialogTitle": "프리셋 가져오기",
+  "presetNamePlaceholder": "프리셋 이름",
+  "descriptionPlaceholder": "설명",
+  "authorPlaceholder": "작성자",
+  "importButton": "가져오기",
+  "deletePresetDialogTitle": "프리셋 삭제",
+  "deletePresetConfirm": "프리셋 \"{presetName}\"을(를) 삭제하시겠습니까？",
+  "@deletePresetConfirm": {
+    "placeholders": {
+      "presetName": {
+        "type": "String"
+      }
+    }
+  },
+  "presetDeletedSuccess": "삭제됨: {presetName}",
+  "@presetDeletedSuccess": {
+    "placeholders": {
+      "presetName": {
+        "type": "String"
+      }
+    }
+  },
+  "importFailedError": "가져오기 실패: {error}",
+  "@importFailedError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteFailedError": "삭제 실패: {error}",
+  "@deleteFailedError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "filePathError": "파일 경로를 가져올 수 없습니다",
+  "authorLabel": "작성자:",
+  "versionLabel": "버전:",
+  "descriptionLabel": "설명:",
+  "systemPromptLabel": "시스템 프롬프트:",
+  "closeButton": "닫기",
+  "loadPresetsFailed": "프리셋 로드 실패: {error}",
+  "@loadPresetsFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "roleCardGeneratorLink": "롤 카드 생성기"
 }

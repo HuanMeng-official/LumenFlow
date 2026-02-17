@@ -651,5 +651,64 @@
   "confirmEdit": "Confirm edit",
   "editMessageDialogTitle": "Edit message",
   "regenerateConfirm": "Regenerate this AI response?",
-  "messageOptions": "Message options"
+  "messageOptions": "Message options",
+  "presetManagement": "Preset Management",
+  "presetManagementSubtitle": "Manage built-in and user-imported prompts",
+  "builtInPresets": "Built-in Presets",
+  "userPresets": "User Presets",
+  "noPresetsAvailable": "No presets available",
+  "importXmlHint": "Tap the + button in the top right to import XML files",
+  "importPresetDialogTitle": "Import Preset",
+  "presetNamePlaceholder": "Preset Name",
+  "descriptionPlaceholder": "Description",
+  "authorPlaceholder": "Author",
+  "importButton": "Import",
+  "deletePresetDialogTitle": "Delete Preset",
+  "deletePresetConfirm": "Are you sure you want to delete preset \"{presetName}\"?",
+  "@deletePresetConfirm": {
+    "placeholders": {
+      "presetName": {
+        "type": "String"
+      }
+    }
+  },
+  "presetDeletedSuccess": "Deleted: {presetName}",
+  "@presetDeletedSuccess": {
+    "placeholders": {
+      "presetName": {
+        "type": "String"
+      }
+    }
+  },
+  "importFailedError": "Import failed: {error}",
+  "@importFailedError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteFailedError": "Delete failed: {error}",
+  "@deleteFailedError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "filePathError": "Unable to get file path",
+  "authorLabel": "Author:",
+  "versionLabel": "Version:",
+  "descriptionLabel": "Description:",
+  "systemPromptLabel": "System Prompt:",
+  "closeButton": "Close",
+  "loadPresetsFailed": "Failed to load presets: {error}",
+  "@loadPresetsFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "roleCardGeneratorLink": "Role Card Generator"
 }

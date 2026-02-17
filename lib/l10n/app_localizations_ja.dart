@@ -1034,4 +1034,86 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get messageOptions => 'メッセージオプション';
+
+  @override
+  String get presetManagement => 'プリセット管理';
+
+  @override
+  String get presetManagementSubtitle => '組み込みおよびユーザーインポート済みプロンプトの管理';
+
+  @override
+  String get builtInPresets => '組み込みプリセット';
+
+  @override
+  String get userPresets => 'ユーザープリセット';
+
+  @override
+  String get noPresetsAvailable => '利用可能なプリセットはありません';
+
+  @override
+  String get importXmlHint => '右上の + ボタンをタップしてXMLファイルをインポート';
+
+  @override
+  String get importPresetDialogTitle => 'プリセットのインポート';
+
+  @override
+  String get presetNamePlaceholder => 'プリセット名';
+
+  @override
+  String get descriptionPlaceholder => '説明';
+
+  @override
+  String get authorPlaceholder => '作者';
+
+  @override
+  String get importButton => 'インポート';
+
+  @override
+  String get deletePresetDialogTitle => 'プリセットの削除';
+
+  @override
+  String deletePresetConfirm(String presetName) {
+    return 'プリセット「$presetName」を削除してもよろしいですか？';
+  }
+
+  @override
+  String presetDeletedSuccess(String presetName) {
+    return '削除済み: $presetName';
+  }
+
+  @override
+  String importFailedError(String error) {
+    return 'インポート失敗: $error';
+  }
+
+  @override
+  String deleteFailedError(String error) {
+    return '削除失敗: $error';
+  }
+
+  @override
+  String get filePathError => 'ファイルパスを取得できません';
+
+  @override
+  String get authorLabel => '作者:';
+
+  @override
+  String get versionLabel => 'バージョン:';
+
+  @override
+  String get descriptionLabel => '説明:';
+
+  @override
+  String get systemPromptLabel => 'システムプロンプト:';
+
+  @override
+  String get closeButton => '閉じる';
+
+  @override
+  String loadPresetsFailed(String error) {
+    return 'プリセットの読み込みに失敗しました: $error';
+  }
+
+  @override
+  String get roleCardGeneratorLink => 'ロールカードジェネレーター';
 }

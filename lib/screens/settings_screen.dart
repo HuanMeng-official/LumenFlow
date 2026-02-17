@@ -7,6 +7,7 @@ import 'api_settings_screen.dart';
 import 'model_settings_screen.dart';
 import 'conversation_settings_screen.dart';
 import 'appearance_settings_screen.dart';
+import 'preset_management_screen.dart';
 import '../widgets/settings/settings_section.dart';
 import '../widgets/settings/settings_navigation_tile.dart';
 
@@ -92,6 +93,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  void _openPresetManagement() async {
+    await Navigator.push(
+      context,
+      CupertinoPageRoute(
+        builder: (context) => const PresetManagementScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -146,6 +156,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: l10n.appearanceSubtitle,
                   icon: CupertinoIcons.paintbrush,
                   onTap: _openAppearanceSettings,
+                ),
+                SettingsNavigationTile(
+                  title: l10n.presetManagement,
+                  subtitle: l10n.presetManagementSubtitle,
+                  icon: CupertinoIcons.doc_text,
+                  onTap: _openPresetManagement,
                 ),
               ],
             ),

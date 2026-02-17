@@ -1988,6 +1988,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Message options'**
   String get messageOptions;
+
+  /// No description provided for @presetManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Preset Management'**
+  String get presetManagement;
+
+  /// No description provided for @presetManagementSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage built-in and user-imported prompts'**
+  String get presetManagementSubtitle;
+
+  /// No description provided for @builtInPresets.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in Presets'**
+  String get builtInPresets;
+
+  /// No description provided for @userPresets.
+  ///
+  /// In en, this message translates to:
+  /// **'User Presets'**
+  String get userPresets;
+
+  /// No description provided for @noPresetsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No presets available'**
+  String get noPresetsAvailable;
+
+  /// No description provided for @importXmlHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the + button in the top right to import XML files'**
+  String get importXmlHint;
+
+  /// No description provided for @importPresetDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Preset'**
+  String get importPresetDialogTitle;
+
+  /// No description provided for @presetNamePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Preset Name'**
+  String get presetNamePlaceholder;
+
+  /// No description provided for @descriptionPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get descriptionPlaceholder;
+
+  /// No description provided for @authorPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Author'**
+  String get authorPlaceholder;
+
+  /// No description provided for @importButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get importButton;
+
+  /// No description provided for @deletePresetDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Preset'**
+  String get deletePresetDialogTitle;
+
+  /// No description provided for @deletePresetConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete preset \"{presetName}\"?'**
+  String deletePresetConfirm(String presetName);
+
+  /// No description provided for @presetDeletedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted: {presetName}'**
+  String presetDeletedSuccess(String presetName);
+
+  /// No description provided for @importFailedError.
+  ///
+  /// In en, this message translates to:
+  /// **'Import failed: {error}'**
+  String importFailedError(String error);
+
+  /// No description provided for @deleteFailedError.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete failed: {error}'**
+  String deleteFailedError(String error);
+
+  /// No description provided for @filePathError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to get file path'**
+  String get filePathError;
+
+  /// No description provided for @authorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Author:'**
+  String get authorLabel;
+
+  /// No description provided for @versionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Version:'**
+  String get versionLabel;
+
+  /// No description provided for @descriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Description:'**
+  String get descriptionLabel;
+
+  /// No description provided for @systemPromptLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'System Prompt:'**
+  String get systemPromptLabel;
+
+  /// No description provided for @closeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get closeButton;
+
+  /// No description provided for @loadPresetsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load presets: {error}'**
+  String loadPresetsFailed(String error);
+
+  /// No description provided for @roleCardGeneratorLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Role Card Generator'**
+  String get roleCardGeneratorLink;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -1034,4 +1034,86 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get messageOptions => 'Message options';
+
+  @override
+  String get presetManagement => 'Preset Management';
+
+  @override
+  String get presetManagementSubtitle => 'Manage built-in and user-imported prompts';
+
+  @override
+  String get builtInPresets => 'Built-in Presets';
+
+  @override
+  String get userPresets => 'User Presets';
+
+  @override
+  String get noPresetsAvailable => 'No presets available';
+
+  @override
+  String get importXmlHint => 'Tap the + button in the top right to import XML files';
+
+  @override
+  String get importPresetDialogTitle => 'Import Preset';
+
+  @override
+  String get presetNamePlaceholder => 'Preset Name';
+
+  @override
+  String get descriptionPlaceholder => 'Description';
+
+  @override
+  String get authorPlaceholder => 'Author';
+
+  @override
+  String get importButton => 'Import';
+
+  @override
+  String get deletePresetDialogTitle => 'Delete Preset';
+
+  @override
+  String deletePresetConfirm(String presetName) {
+    return 'Are you sure you want to delete preset \"$presetName\"?';
+  }
+
+  @override
+  String presetDeletedSuccess(String presetName) {
+    return 'Deleted: $presetName';
+  }
+
+  @override
+  String importFailedError(String error) {
+    return 'Import failed: $error';
+  }
+
+  @override
+  String deleteFailedError(String error) {
+    return 'Delete failed: $error';
+  }
+
+  @override
+  String get filePathError => 'Unable to get file path';
+
+  @override
+  String get authorLabel => 'Author:';
+
+  @override
+  String get versionLabel => 'Version:';
+
+  @override
+  String get descriptionLabel => 'Description:';
+
+  @override
+  String get systemPromptLabel => 'System Prompt:';
+
+  @override
+  String get closeButton => 'Close';
+
+  @override
+  String loadPresetsFailed(String error) {
+    return 'Failed to load presets: $error';
+  }
+
+  @override
+  String get roleCardGeneratorLink => 'Role Card Generator';
 }

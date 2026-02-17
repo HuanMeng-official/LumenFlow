@@ -651,5 +651,64 @@
   "confirmEdit": "确认编辑",
   "editMessageDialogTitle": "编辑消息",
   "regenerateConfirm": "重新生成此AI响应？",
-  "messageOptions": "消息选项"
+  "messageOptions": "消息选项",
+  "presetManagement": "预设管理",
+  "presetManagementSubtitle": "管理内置和用户导入的提示词",
+  "builtInPresets": "内置预设",
+  "userPresets": "用户预设",
+  "noPresetsAvailable": "暂无预设",
+  "importXmlHint": "点击右上角 + 按钮导入XML文件",
+  "importPresetDialogTitle": "导入预设",
+  "presetNamePlaceholder": "预设名称",
+  "descriptionPlaceholder": "描述",
+  "authorPlaceholder": "作者",
+  "importButton": "导入",
+  "deletePresetDialogTitle": "删除预设",
+  "deletePresetConfirm": "确定要删除预设 \"{presetName}\" 吗？",
+  "@deletePresetConfirm": {
+    "placeholders": {
+      "presetName": {
+        "type": "String"
+      }
+    }
+  },
+  "presetDeletedSuccess": "已删除: {presetName}",
+  "@presetDeletedSuccess": {
+    "placeholders": {
+      "presetName": {
+        "type": "String"
+      }
+    }
+  },
+  "importFailedError": "导入失败: {error}",
+  "@importFailedError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteFailedError": "删除失败: {error}",
+  "@deleteFailedError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "filePathError": "无法获取文件路径",
+  "authorLabel": "作者:",
+  "versionLabel": "版本:",
+  "descriptionLabel": "描述:",
+  "systemPromptLabel": "系统提示词:",
+  "closeButton": "关闭",
+  "loadPresetsFailed": "加载预设失败: {error}",
+  "@loadPresetsFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "roleCardGeneratorLink": "角色卡生成器"
 }
