@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LumenFlow Generator</title>
+    <style>
+        :root {
+            --bg-body: #fafafa;
+            --bg-card: #ffffff;
+            --text-primary: #111111;
+            --text-secondary: #666666;
+            --text-tertiary: #999999;
+            --border-light: #eaeaea;
+            --border-hover: #cccccc;
+            --accent: #222222;
+            --accent-hover: #000000;
+            --input-bg: #f7f7f7;
+            --radius: 8px;
+            --shadow: 0 4px 20px rgba(0,0,0,0.04);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-body: #111111;
+                --bg-card: #1c1c1c;
+                --text-primary: #ffffff;
+                --text-secondary: #a0a0a0;
+                --text-tertiary: #666666;
+                --border-light: #2c2c2c;
+                --border-hover: #444444;
+                --accent: #ffffff;
+                --accent-hover: #e0e0e0;
+                --input-bg: #252525;
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 40px 20px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            font-weight: 400;
+        }
+
+        select {
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-light);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        select:hover { border-color: var(--border-hover); }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-group { margin-bottom: 28px; }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .hint {
+            display: block;
+            font-size: 13px;
+            color: var(--text-tertiary);
+            margin-top: -4px;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px 14px;
+            border: 1px solid transparent;
+            background-color: var(--input-bg);
+            border-radius: var(--radius);
+            color: var(--text-primary);
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        input[type="text"]:hover, textarea:hover {
+            background-color: var(--border-light);
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            background-color: var(--bg-card);
+            border-color: var(--border-hover);
+            box-shadow: 0 0 0 2px rgba(0,0,0,0.05);
+            outline: none;
+        }
+
+        .actions {
+            margin-top: 40px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 500;
+            border-radius: var(--radius);
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        button.primary {
+            background-color: var(--accent);
+            color: var(--bg-card);
+        }
+        button.primary:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        button.secondary {
+            background-color: transparent;
+            border: 1px solid var(--border-light);
+            color: var(--text-primary);
+        }
+        button.secondary:hover {
+            border-color: var(--text-secondary);
+            background-color: var(--bg-body);
+        }
+
+        .preview-area {
+            margin-top: 50px;
+            border-top: 1px solid var(--border-light);
+            padding-top: 30px;
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+        
+        .preview-area.active { display: block; }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .preview-header h3 {
+            font-size: 16px;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        pre {
+            background: var(--input-bg);
+            padding: 20px;
+            border-radius: var(--radius);
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 13px;
+            color: var(--text-secondary);
+            overflow-x: auto;
+            white-space: pre-wrap;
+            border: 1px solid var(--border-light);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 24px; }
+            .form-grid { grid-template-columns: 1fr; gap: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1 id="ui-title">LumenFlow Generator</h1>
+            <div class="subtitle">Character Card System</div>
+        </div>
+        <select id="lang-selector" onchange="changeLanguage()">
+            <option value="zh">中文</option>
+            <option value="en">English</option>
+            <option value="ja">日本語</option>
+            <option value="ko">한국어</option>
+        </select>
+    </header>
+
+    <div class="form-grid">
+        <div class="form-group">
+            <label id="lbl-RoleName">角色名</label>
+            <input type="text" id="RoleName">
+        </div>
+        <div class="form-group">
+            <label id="lbl-RoleNameEN">角色英文名 / 拼音</label>
+            <input type="text" id="RoleNameEN">
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <label id="lbl-Identity">角色身份描述</label>
+        <input type="text" id="Identity">
+    </div>
+    <div class="form-group">
+        <label id="lbl-Philosophy">角色核心哲学</label>
+        <input type="text" id="Philosophy">
+    </div>
+
+    <div style="height: 20px;"></div>
+
+    <div class="form-group">
+        <label id="lbl-Personality">人格与心理逻辑</label>
+        <span class="hint" id="hint-Personality">描述角色的性格结构、内在矛盾与行为动机</span>
+        <textarea id="Personality"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label id="lbl-Addressing">称呼与称谓规则</label>
+        <span class="hint" id="hint-Addressing">角色在不同亲密度、情境下对用户的称呼方式</span>
+        <textarea id="Addressing"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label id="lbl-Linguistic">语言风格与表达习惯</label>
+        <span class="hint" id="hint-Linguistic">包括语速、用词、潜台词与修辞偏好</span>
+        <textarea id="Linguistic"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label id="lbl-Behavior">行为叙事与非人特征规则</label>
+        <span class="hint" id="hint-Behavior">通过动作、感官、微表情体现角色特质</span>
+        <textarea id="Behavior"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label id="lbl-Interaction">互动策略与关系推进方式</label>
+        <span class="hint" id="hint-Interaction">角色如何影响、照顾并逐步绑定用户</span>
+        <textarea id="Interaction"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label id="lbl-Example">示例对话 / 场景演示</label>
+        <span class="hint" id="hint-Example">用于展示角色在实际互动中的语气与行为</span>
+        <textarea id="Example"></textarea>
+    </div>
+
+    <div class="form-group" style="margin-top: 40px;">
+        <label id="lbl-OutputFile">输出文件名</label>
+        <div style="position: relative; max-width: 300px;">
+            <input type="text" id="FileName" placeholder="character_card">
+            <span style="position: absolute; right: 14px; top: 12px; color: var(--text-tertiary); font-size: 14px; pointer-events: none;">.xml</span>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button class="primary" onclick="generateXML()" id="btn-Generate">生成 XML</button>
+        <button class="secondary" onclick="downloadFile()" id="btn-Download" style="display:none;">下载文件</button>
+    </div>
+
+    <div id="preview-section" class="preview-area">
+        <div class="preview-header">
+            <h3 id="ui-done">预览</h3>
+            <button class="secondary" onclick="copyToClipboard()" style="font-size: 12px; padding: 6px 12px;">复制内容</button>
+        </div>
+        <pre id="xml-output"></pre>
+    </div>
+</div>
+
+<script>
+    const UI = {
+        zh: {
+            Title: "LumenFlow Generator",
+            RoleName: "角色名",
+            RoleNameEN: "角色英文名 / 拼音",
+            Identity: "角色身份描述",
+            Philosophy: "角色核心哲学",
+            OutputFile: "输出文件名",
+            Personality_L: "人格与心理逻辑",
+            Personality_H: "描述角色的性格结构、内在矛盾与行为动机 (personality_logic)",
+            Addressing_L: "称呼与称谓规则",
+            Addressing_H: "角色在不同亲密度、情境下对用户的称呼方式 (addressing_protocol)",
+            Linguistic_L: "语言风格与表达习惯",
+            Linguistic_H: "包括语速、用词、潜台词与修辞偏好 (linguistic_style)",
+            Behavior_L: "行为叙事与非人特征规则",
+            Behavior_H: "通过动作、感官、微表情体现角色特质 (behavior_narrative_rules)",
+            Interaction_L: "互动策略与关系推进方式",
+            Interaction_H: "角色如何影响、照顾并逐步绑定用户 (interaction_strategy)",
+            Example_L: "示例对话 / 场景演示",
+            Example_H: "用于展示角色在实际互动中的语气与行为 (example_dialogue)",
+            Done: "预览",
+            UserNameLabel: "用户的名字",
+            UserGenderLabel: "用户的性别",
+            BtnGenerate: "生成 XML",
+            BtnDownload: "下载文件"
+        },
+        en: {
+            Title: "LumenFlow Generator",
+            RoleName: "Character Name",
+            RoleNameEN: "English Name",
+            Identity: "Identity",
+            Philosophy: "Core Philosophy",
+            OutputFile: "Filename",
+            Personality_L: "Personality & Logic",
+            Personality_H: "Structure, conflicts, motivations (personality_logic)",
+            Addressing_L: "Addressing Rules",
+            Addressing_H: "How the character addresses the user (addressing_protocol)",
+            Linguistic_L: "Linguistic Style",
+            Linguistic_H: "Rhythm, wording, subtext (linguistic_style)",
+            Behavior_L: "Behavior & Narrative",
+            Behavior_H: "Actions, senses, micro-expressions (behavior_narrative_rules)",
+            Interaction_L: "Interaction Strategy",
+            Interaction_H: "Bonding and influence methods (interaction_strategy)",
+            Example_L: "Dialogue Examples",
+            Example_H: "Tone and behavior demonstration (example_dialogue)",
+            Done: "Preview",
+            UserNameLabel: "User Name",
+            UserGenderLabel: "User Gender",
+            BtnGenerate: "Generate XML",
+            BtnDownload: "Download File"
+        },
+        ja: {
+            Title: "LumenFlow Generator",
+            RoleName: "キャラクター名",
+            RoleNameEN: "英語名 / ローマ字",
+            Identity: "キャラクター設定",
+            Philosophy: "核心哲学",
+            OutputFile: "ファイル名",
+            Personality_L: "人格・心理構造",
+            Personality_H: "性格構造と行動原理 (personality_logic)",
+            Addressing_L: "呼称ルール",
+            Addressing_H: "状況別の呼び方 (addressing_protocol)",
+            Linguistic_L: "話し方・言語スタイル",
+            Linguistic_H: "語調・語彙 (linguistic_style)",
+            Behavior_L: "行動描写・非人特性",
+            Behavior_H: "感覚と動作 (behavior_narrative_rules)",
+            Interaction_L: "交流戦略",
+            Interaction_H: "関係構築方法 (interaction_strategy)",
+            Example_L: "会話例 / シーン",
+            Example_H: "実際の振る舞い (example_dialogue)",
+            Done: "プレビュー",
+            UserNameLabel: "ユーザー名",
+            UserGenderLabel: "性別",
+            BtnGenerate: "XMLを生成",
+            BtnDownload: "ダウンロード"
+        },
+        ko: {
+            Title: "LumenFlow Generator",
+            RoleName: "캐릭터 이름",
+            RoleNameEN: "영문 이름",
+            Identity: "캐릭터 설정",
+            Philosophy: "핵심 철학",
+            OutputFile: "파일 이름",
+            Personality_L: "성격·심리 구조",
+            Personality_H: "성격과 행동 동기 (personality_logic)",
+            Addressing_L: "호칭 규칙",
+            Addressing_H: "상황별 사용자 호칭 (addressing_protocol)",
+            Linguistic_L: "언어 스타일",
+            Linguistic_H: "말투·어휘 (linguistic_style)",
+            Behavior_L: "행동·비인간 특성",
+            Behavior_H: "감각과 동작 (behavior_narrative_rules)",
+            Interaction_L: "상호작용 전략",
+            Interaction_H: "관계 형성 방식 (interaction_strategy)",
+            Example_L: "대화 예시",
+            Example_H: "실제 상호작용 (example_dialogue)",
+            Done: "미리보기",
+            UserNameLabel: "사용자 이름",
+            UserGenderLabel: "사용자 성별",
+            BtnGenerate: "XML 생성",
+            BtnDownload: "다운로드"
+        }
+    };
+
+    let currentLang = 'zh';
+
+    function changeLanguage() {
+        currentLang = document.getElementById('lang-selector').value;
+        const dict = UI[currentLang];
+        
+        document.getElementById('ui-title').innerText = dict.Title;
+        document.getElementById('lbl-RoleName').innerText = dict.RoleName;
+        document.getElementById('lbl-RoleNameEN').innerText = dict.RoleNameEN;
+        document.getElementById('lbl-Identity').innerText = dict.Identity;
+        document.getElementById('lbl-Philosophy').innerText = dict.Philosophy;
+        document.getElementById('lbl-OutputFile').innerText = dict.OutputFile;
+        
+        document.getElementById('lbl-Personality').innerText = dict.Personality_L;
+        document.getElementById('hint-Personality').innerText = dict.Personality_H;
+        document.getElementById('lbl-Addressing').innerText = dict.Addressing_L;
+        document.getElementById('hint-Addressing').innerText = dict.Addressing_H;
+        document.getElementById('lbl-Linguistic').innerText = dict.Linguistic_L;
+        document.getElementById('hint-Linguistic').innerText = dict.Linguistic_H;
+        document.getElementById('lbl-Behavior').innerText = dict.Behavior_L;
+        document.getElementById('hint-Behavior').innerText = dict.Behavior_H;
+        document.getElementById('lbl-Interaction').innerText = dict.Interaction_L;
+        document.getElementById('hint-Interaction').innerText = dict.Interaction_H;
+        document.getElementById('lbl-Example').innerText = dict.Example_L;
+        document.getElementById('hint-Example').innerText = dict.Example_H;
+
+        document.getElementById('ui-done').innerText = dict.Done;
+        document.getElementById('btn-Generate').innerText = dict.BtnGenerate;
+        document.getElementById('btn-Download').innerText = dict.BtnDownload;
+    }
+
+    function formatIndentedBlock(text, indentSpaces = 6) {
+        if (!text) return "";
+        const indent = " ".repeat(indentSpaces);
+        return text.split('\n').map(line => line.trim() === "" ? "" : indent + line).join('\n');
+    }
+
+    function generateXML() {
+        const dict = UI[currentLang];
+        const roleName = document.getElementById('RoleName').value || "Unknown";
+        const roleNameEN = document.getElementById('RoleNameEN').value || "";
+        const identity = document.getElementById('Identity').value || "";
+        const philosophy = document.getElementById('Philosophy').value || "";
+
+        const personality = formatIndentedBlock(document.getElementById('Personality').value);
+        const addressing = formatIndentedBlock(document.getElementById('Addressing').value);
+        const linguistic = formatIndentedBlock(document.getElementById('Linguistic').value);
+        const behavior = formatIndentedBlock(document.getElementById('Behavior').value);
+        const interaction = formatIndentedBlock(document.getElementById('Interaction').value);
+        const example = formatIndentedBlock(document.getElementById('Example').value);
+
+        const xmlContent = `<system_instruction>
+   <mate>
+      <role_name>${roleName}（${roleNameEN}）</role_name>
+      <identity>${identity}</identity>
+      <core_philosophy>${philosophy}</core_philosophy>
+   </mate>
+
+   <personality_logic>
+${personality}
+   </personality_logic>
+
+   <addressing_protocol>
+${addressing}
+   </addressing_protocol>
+
+   <linguistic_style>
+${linguistic}
+   </linguistic_style>
+
+   <behavior_narrative_rules>
+${behavior}
+   </behavior_narrative_rules>
+
+   <interaction_strategy>
+${interaction}
+   </interaction_strategy>
+
+   <user_info>
+      - ${dict.UserNameLabel}: \${userProfile.username}
+      - ${dict.UserGenderLabel}: \${userProfile.gender}
+   </user_info>
+
+   <example_dialogue>
+${example}
+   </example_dialogue>
+</system_instruction>`;
+
+        document.getElementById('xml-output').innerText = xmlContent;
+        document.getElementById('preview-section').classList.add('active');
+        document.getElementById('btn-Download').style.display = 'inline-block';
+        
+        document.getElementById('preview-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function downloadFile() {
+        const content = document.getElementById('xml-output').innerText;
+        let fileName = document.getElementById('FileName').value.trim();
+        if (!fileName) fileName = "character_card";
+        if (!fileName.endsWith('.xml')) fileName += '.xml';
+
+        const blob = new Blob([content], { type: 'text/xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function copyToClipboard() {
+        const text = document.getElementById('xml-output').innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('内容已复制到剪贴板');
+        });
+    }
+
+    changeLanguage();
+</script>
+
+</body>
+</html>

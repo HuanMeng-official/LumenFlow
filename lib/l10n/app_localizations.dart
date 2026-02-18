@@ -2132,6 +2132,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Role Card Generator'**
   String get roleCardGeneratorLink;
+
+  /// No description provided for @httpServerSwitchLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Role Card Generator Server'**
+  String get httpServerSwitchLabel;
+
+  /// No description provided for @httpServerStatusRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Running'**
+  String get httpServerStatusRunning;
+
+  /// No description provided for @httpServerStatusStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped'**
+  String get httpServerStatusStopped;
+
+  /// No description provided for @openGeneratorButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Generator'**
+  String get openGeneratorButton;
+
+  /// No description provided for @httpServerDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Server running on port 5050, serving the role card generator page.'**
+  String get httpServerDescription;
+
+  /// No description provided for @httpServerNotRunningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Server Not Running'**
+  String get httpServerNotRunningTitle;
+
+  /// No description provided for @httpServerNotRunningMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The role card generator server is not running. Do you want to start the server?'**
+  String get httpServerNotRunningMessage;
+
+  /// No description provided for @startServerButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get startServerButton;
+
+  /// No description provided for @httpServerToggleTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle HTTP server status'**
+  String get httpServerToggleTooltip;
+
+  /// No description provided for @openLinkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to open link: {error}'**
+  String openLinkFailed(String error);
+
+  /// No description provided for @httpServerOperationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'HTTP server operation failed: {error}'**
+  String httpServerOperationFailed(String error);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

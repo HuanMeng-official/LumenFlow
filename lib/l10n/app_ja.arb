@@ -711,5 +711,30 @@
       }
     }
   },
-  "roleCardGeneratorLink": "ロールカードジェネレーター"
+  "roleCardGeneratorLink": "ロールカードジェネレーター",
+  "httpServerSwitchLabel": "ロールカードジェネレーターサーバー",
+  "httpServerStatusRunning": "実行中",
+  "httpServerStatusStopped": "停止中",
+  "openGeneratorButton": "ジェネレーターを開く",
+  "httpServerDescription": "サーバーはポート5050で動作し、ロールカードジェネレーターページを提供します。",
+  "httpServerNotRunningTitle": "サーバーが実行されていません",
+  "httpServerNotRunningMessage": "ロールカードジェネレーターサーバーが起動していません。サーバーを起動しますか？",
+  "startServerButton": "起動",
+  "httpServerToggleTooltip": "HTTPサーバーの状態を切り替え",
+  "openLinkFailed": "リンクを開けませんでした: {error}",
+  "@openLinkFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "httpServerOperationFailed": "HTTPサーバー操作に失敗しました: {error}",
+  "@httpServerOperationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

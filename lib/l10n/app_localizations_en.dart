@@ -1116,4 +1116,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get roleCardGeneratorLink => 'Role Card Generator';
+
+  @override
+  String get httpServerSwitchLabel => 'Role Card Generator Server';
+
+  @override
+  String get httpServerStatusRunning => 'Running';
+
+  @override
+  String get httpServerStatusStopped => 'Stopped';
+
+  @override
+  String get openGeneratorButton => 'Open Generator';
+
+  @override
+  String get httpServerDescription => 'Server running on port 5050, serving the role card generator page.';
+
+  @override
+  String get httpServerNotRunningTitle => 'Server Not Running';
+
+  @override
+  String get httpServerNotRunningMessage => 'The role card generator server is not running. Do you want to start the server?';
+
+  @override
+  String get startServerButton => 'Start';
+
+  @override
+  String get httpServerToggleTooltip => 'Toggle HTTP server status';
+
+  @override
+  String openLinkFailed(String error) {
+    return 'Failed to open link: $error';
+  }
+
+  @override
+  String httpServerOperationFailed(String error) {
+    return 'HTTP server operation failed: $error';
+  }
 }

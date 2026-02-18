@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/prompt_service.dart';
+import '../services/http_server_service.dart';
 import '../models/prompt_preset.dart';
 import '../l10n/app_localizations.dart';
 
@@ -19,15 +20,71 @@ class PresetManagementScreen extends StatefulWidget {
 
 class _PresetManagementScreenState extends State<PresetManagementScreen> {
   final PromptService _promptService = PromptService();
+  final HttpServerService _httpServerService = HttpServerService();
+
   List<PromptPreset> _builtInPresets = [];
   List<PromptPreset> _userPresets = [];
   bool _isLoading = true;
   String? _errorMessage;
 
+  // HTTP服务器状态
+  bool _isHttpServerRunning = false;
+  String? _httpServerUrl;
+
   @override
   void initState() {
     super.initState();
     _loadPresets();
+    _initHttpServerState();
+  }
+
+  /// 初始化HTTP服务器状态
+  void _initHttpServerState() {
+    // 设置初始状态
+    _isHttpServerRunning = _httpServerService.isRunning;
+    _httpServerUrl = _httpServerService.serverUrl;
+
+    // 监听状态变化
+    _httpServerService.isRunningNotifier.addListener(_updateHttpServerRunningState);
+    _httpServerService.serverUrlNotifier.addListener(_updateHttpServerUrlState);
+  }
+
+  /// 更新HTTP服务器运行状态
+  void _updateHttpServerRunningState() {
+    if (mounted) {
+      setState(() {
+        _isHttpServerRunning = _httpServerService.isRunningNotifier.value;
+      });
+    }
+  }
+
+  /// 更新HTTP服务器URL状态
+  void _updateHttpServerUrlState() {
+    if (mounted) {
+      setState(() {
+        _httpServerUrl = _httpServerService.serverUrlNotifier.value;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    // 移除监听器
+    _httpServerService.isRunningNotifier.removeListener(_updateHttpServerRunningState);
+    _httpServerService.serverUrlNotifier.removeListener(_updateHttpServerUrlState);
+    super.dispose();
+  }
+
+  /// 切换HTTP服务器状态
+  Future<void> _toggleHttpServer() async {
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      await _httpServerService.toggle();
+    } catch (e) {
+      if (mounted) {
+        _showErrorMessage(l10n.httpServerOperationFailed(e.toString()));
+      }
+    }
   }
 
   /// 加载预设列表
@@ -220,14 +277,48 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
 
   /// 打开角色卡生成器网页
   Future<void> _launchRoleCardGenerator() async {
-    final url = Uri.parse('https://huanmeng-official.github.io/rcg.html');
+    final l10n = AppLocalizations.of(context)!;
+
+    if (!_isHttpServerRunning) {
+      // 服务器未运行，询问是否启动
+      final confirmed = await showCupertinoModalPopup<bool>(
+        context: context,
+        builder: (context) => CupertinoAlertDialog(
+          title: Text(l10n.httpServerNotRunningTitle),
+          content: Text(l10n.httpServerNotRunningMessage),
+          actions: [
+            CupertinoDialogAction(
+              child: Text(l10n.cancel),
+              onPressed: () => Navigator.pop(context, false),
+            ),
+            CupertinoDialogAction(
+              child: Text(l10n.startServerButton),
+              onPressed: () => Navigator.pop(context, true),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed != true) {
+        return; // 用户取消
+      }
+
+      // 启动服务器
+      await _toggleHttpServer();
+
+      // 等待服务器启动
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+
+    // 现在服务器应该运行了，打开URL
+    final url = Uri.parse('http://127.0.0.1:5050/');
     try {
       if (!await launchUrl(url)) {
         throw Exception('Could not launch $url');
       }
     } catch (e) {
       if (mounted) {
-        _showErrorMessage('Failed to open link: $e');
+        _showErrorMessage(l10n.openLinkFailed(e.toString()));
       }
     }
   }
@@ -496,17 +587,77 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
                         ),
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-                        child: GestureDetector(
-                          onTap: _launchRoleCardGenerator,
-                          child: Text(
-                            l10n.roleCardGeneratorLink,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: CupertinoColors.link,
-                              decoration: TextDecoration.underline,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // HTTP服务器开关行
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Transform.scale(
+                                      scale: 0.8,
+                                      child: CupertinoSwitch(
+                                        value: _isHttpServerRunning,
+                                        onChanged: (value) async {
+                                          await _toggleHttpServer();
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          l10n.httpServerSwitchLabel,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                            color: CupertinoTheme.of(context).brightness == Brightness.dark
+                                                ? CupertinoColors.label.darkColor
+                                                : CupertinoColors.label.color,
+                                          ),
+                                        ),
+                                        Text(
+                                          _isHttpServerRunning
+                                              ? (_httpServerUrl ?? l10n.httpServerStatusRunning)
+                                              : l10n.httpServerStatusStopped,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: _isHttpServerRunning
+                                                ? CupertinoColors.systemGreen
+                                                : CupertinoColors.systemRed,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                if (_isHttpServerRunning && _httpServerUrl != null)
+                                  GestureDetector(
+                                    onTap: _launchRoleCardGenerator,
+                                    child: Text(
+                                      l10n.openGeneratorButton,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: CupertinoColors.link,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
-                            textAlign: TextAlign.center,
-                          ),
+                            const SizedBox(height: 12),
+                            // 链接说明
+                            Text(
+                              l10n.httpServerDescription,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],

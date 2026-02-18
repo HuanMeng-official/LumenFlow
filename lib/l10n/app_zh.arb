@@ -710,5 +710,30 @@
       }
     }
   },
-  "roleCardGeneratorLink": "角色卡生成器"
+  "roleCardGeneratorLink": "角色卡生成器",
+  "httpServerSwitchLabel": "角色卡生成器服务器",
+  "httpServerStatusRunning": "运行中",
+  "httpServerStatusStopped": "已停止",
+  "openGeneratorButton": "打开生成器",
+  "httpServerDescription": "服务器运行在端口5050，提供角色卡生成器页面。",
+  "httpServerNotRunningTitle": "服务器未运行",
+  "httpServerNotRunningMessage": "角色卡生成器服务器未启动。是否要启动服务器？",
+  "startServerButton": "启动",
+  "httpServerToggleTooltip": "切换HTTP服务器状态",
+  "openLinkFailed": "打开链接失败: {error}",
+  "@openLinkFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "httpServerOperationFailed": "HTTP服务器操作失败: {error}",
+  "@httpServerOperationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

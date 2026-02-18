@@ -1116,4 +1116,41 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get roleCardGeneratorLink => '角色卡生成器';
+
+  @override
+  String get httpServerSwitchLabel => '角色卡生成器服务器';
+
+  @override
+  String get httpServerStatusRunning => '运行中';
+
+  @override
+  String get httpServerStatusStopped => '已停止';
+
+  @override
+  String get openGeneratorButton => '打开生成器';
+
+  @override
+  String get httpServerDescription => '服务器运行在端口5050，提供角色卡生成器页面。';
+
+  @override
+  String get httpServerNotRunningTitle => '服务器未运行';
+
+  @override
+  String get httpServerNotRunningMessage => '角色卡生成器服务器未启动。是否要启动服务器？';
+
+  @override
+  String get startServerButton => '启动';
+
+  @override
+  String get httpServerToggleTooltip => '切换HTTP服务器状态';
+
+  @override
+  String openLinkFailed(String error) {
+    return '打开链接失败: $error';
+  }
+
+  @override
+  String httpServerOperationFailed(String error) {
+    return 'HTTP服务器操作失败: $error';
+  }
 }

@@ -51,4 +51,5 @@ flutter:
     - assets/collection_code.png
     - assets/platform/
     - assets/image/
+    - assets/gen/generator.html
     - pubspec.yaml

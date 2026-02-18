@@ -710,5 +710,30 @@
       }
     }
   },
-  "roleCardGeneratorLink": "Role Card Generator"
+  "roleCardGeneratorLink": "Role Card Generator",
+  "httpServerSwitchLabel": "Role Card Generator Server",
+  "httpServerStatusRunning": "Running",
+  "httpServerStatusStopped": "Stopped",
+  "openGeneratorButton": "Open Generator",
+  "httpServerDescription": "Server running on port 5050, serving the role card generator page.",
+  "httpServerNotRunningTitle": "Server Not Running",
+  "httpServerNotRunningMessage": "The role card generator server is not running. Do you want to start the server?",
+  "startServerButton": "Start",
+  "httpServerToggleTooltip": "Toggle HTTP server status",
+  "openLinkFailed": "Failed to open link: {error}",
+  "@openLinkFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "httpServerOperationFailed": "HTTP server operation failed: {error}",
+  "@httpServerOperationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

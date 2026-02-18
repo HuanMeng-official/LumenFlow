@@ -1116,4 +1116,41 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get roleCardGeneratorLink => 'ロールカードジェネレーター';
+
+  @override
+  String get httpServerSwitchLabel => 'ロールカードジェネレーターサーバー';
+
+  @override
+  String get httpServerStatusRunning => '実行中';
+
+  @override
+  String get httpServerStatusStopped => '停止中';
+
+  @override
+  String get openGeneratorButton => 'ジェネレーターを開く';
+
+  @override
+  String get httpServerDescription => 'サーバーはポート5050で動作し、ロールカードジェネレーターページを提供します。';
+
+  @override
+  String get httpServerNotRunningTitle => 'サーバーが実行されていません';
+
+  @override
+  String get httpServerNotRunningMessage => 'ロールカードジェネレーターサーバーが起動していません。サーバーを起動しますか？';
+
+  @override
+  String get startServerButton => '起動';
+
+  @override
+  String get httpServerToggleTooltip => 'HTTPサーバーの状態を切り替え';
+
+  @override
+  String openLinkFailed(String error) {
+    return 'リンクを開けませんでした: $error';
+  }
+
+  @override
+  String httpServerOperationFailed(String error) {
+    return 'HTTPサーバー操作に失敗しました: $error';
+  }
 }

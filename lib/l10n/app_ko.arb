@@ -710,5 +710,30 @@
       }
     }
   },
-  "roleCardGeneratorLink": "롤 카드 생성기"
+  "roleCardGeneratorLink": "롤 카드 생성기",
+  "httpServerSwitchLabel": "롤 카드 생성기 서버",
+  "httpServerStatusRunning": "실행 중",
+  "httpServerStatusStopped": "중지됨",
+  "openGeneratorButton": "생성기 열기",
+  "httpServerDescription": "서버가 포트 5050에서 실행되며 롤 카드 생성기 페이지를 제공합니다.",
+  "httpServerNotRunningTitle": "서버가 실행되지 않음",
+  "httpServerNotRunningMessage": "롤 카드 생성기 서버가 실행되지 않습니다. 서버를 시작하시겠습니까?",
+  "startServerButton": "시작",
+  "httpServerToggleTooltip": "HTTP 서버 상태 전환",
+  "openLinkFailed": "링크를 열지 못했습니다: {error}",
+  "@openLinkFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "httpServerOperationFailed": "HTTP 서버 작업 실패: {error}",
+  "@httpServerOperationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

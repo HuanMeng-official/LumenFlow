@@ -1116,4 +1116,41 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get roleCardGeneratorLink => '롤 카드 생성기';
+
+  @override
+  String get httpServerSwitchLabel => '롤 카드 생성기 서버';
+
+  @override
+  String get httpServerStatusRunning => '실행 중';
+
+  @override
+  String get httpServerStatusStopped => '중지됨';
+
+  @override
+  String get openGeneratorButton => '생성기 열기';
+
+  @override
+  String get httpServerDescription => '서버가 포트 5050에서 실행되며 롤 카드 생성기 페이지를 제공합니다.';
+
+  @override
+  String get httpServerNotRunningTitle => '서버가 실행되지 않음';
+
+  @override
+  String get httpServerNotRunningMessage => '롤 카드 생성기 서버가 실행되지 않습니다. 서버를 시작하시겠습니까?';
+
+  @override
+  String get startServerButton => '시작';
+
+  @override
+  String get httpServerToggleTooltip => 'HTTP 서버 상태 전환';
+
+  @override
+  String openLinkFailed(String error) {
+    return '링크를 열지 못했습니다: $error';
+  }
+
+  @override
+  String httpServerOperationFailed(String error) {
+    return 'HTTP 서버 작업 실패: $error';
+  }
 }
