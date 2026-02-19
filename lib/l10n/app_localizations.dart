@@ -489,6 +489,12 @@ abstract class AppLocalizations {
   /// **'LM-Studio API'**
   String get lmsApi;
 
+  /// No description provided for @grokApi.
+  ///
+  /// In en, this message translates to:
+  /// **'Grok API'**
+  String get grokApi;
+
   /// No description provided for @otherApi.
   ///
   /// In en, this message translates to:

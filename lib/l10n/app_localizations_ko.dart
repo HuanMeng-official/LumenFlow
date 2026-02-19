@@ -216,6 +216,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get lmsApi => 'LM-Studio API';
 
   @override
+  String get grokApi => 'Grok API';
+
+  @override
   String get otherApi => 'Other API';
 
   @override

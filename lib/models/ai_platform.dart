@@ -211,6 +211,17 @@ class AIPlatform {
           defaultModel: '',
           icon: 'lmstudio',
         );
+      case 'grok':
+        return AIPlatform(
+          id: 'grok',
+          name: 'Grok (xAI)',
+          type: 'grok',
+          endpoint: 'https://api.x.ai/v1',
+          apiKey: '',
+          availableModels: [],
+          defaultModel: '',
+          icon: 'grok',
+        );
       case 'other':
         return AIPlatform(
           id: 'other',

@@ -69,6 +69,8 @@ class _ApiSettingsScreenState extends State<ApiSettingsScreen> {
         _endpointController.text = 'https://api.moonshot.cn/v1';
       } else if (apiType == 'lmstudio') {
         _endpointController.text = 'http://YOUR_LM-STUDIO_ADDRESS:PORT/v1';
+      } else if (apiType == 'grok') {
+        _endpointController.text = 'https://api.x.ai/v1';
       } else if (apiType == 'other') {
         _endpointController.text = 'https://YOUR_LLM_ADDRESS/v1';
       } else {
@@ -187,6 +189,7 @@ class _ApiSettingsScreenState extends State<ApiSettingsScreen> {
                     'zhipu': l10n.zhipuApi,
                     'kimi': l10n.kimiApi,
                     'lmstudio': l10n.lmsApi,
+                    'grok': l10n.grokApi,
                     'other': l10n.otherApi
                   },
                   subtitle: l10n.apiTypeDesc,

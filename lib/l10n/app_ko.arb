@@ -110,6 +110,7 @@
   "zhipuApi": "ZhipuAI API",
   "kimiApi": "Kimi API",
   "lmsApi": "LM-Studio API",
+  "grokApi": "Grok API",
   "otherApi": "Other API",
   "apiTypeDesc": "AI 서비스 제공업체 선택",
   "apiEndpoint": "API 엔드포인트",

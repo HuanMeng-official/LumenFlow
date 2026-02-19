@@ -41,6 +41,7 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
     'zhipu',
     'kimi',
     'lmstudio',
+    'grok',
     'other',
     // 未来添加新平台在这里添加即可，例如：
     // 'ollama',
@@ -68,7 +69,9 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
     debugPrint('加载平台数据完成: ${platforms.length}个平台');
     for (var i = 0; i < platforms.length; i++) {
       final p = platforms[i];
-      debugPrint('平台[$i]: id=${p.id}, name=${p.name}, 默认模型=${p.defaultModel}, 模型数=${p.availableModels.length}');
+      debugPrint(
+        '平台[$i]: id=${p.id}, name=${p.name}, 默认模型=${p.defaultModel}, 模型数=${p.availableModels.length}',
+      );
     }
 
     setState(() {
@@ -84,8 +87,12 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
     final isEdit = platform != null;
 
     final nameController = TextEditingController(text: platform?.name ?? '');
-    final endpointController = TextEditingController(text: platform?.endpoint ?? '');
-    final apiKeyController = TextEditingController(text: platform?.apiKey ?? '');
+    final endpointController = TextEditingController(
+      text: platform?.endpoint ?? '',
+    );
+    final apiKeyController = TextEditingController(
+      text: platform?.apiKey ?? '',
+    );
     String selectedType = platform?.type ?? 'openai';
 
     final result = await showCupertinoDialog<bool>(
@@ -105,12 +112,13 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
                   SizedBox(
                     height: 70, // 减小高度
                     child: GridView.builder(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 5, // 一行5个图标
-                        mainAxisSpacing: 8, // 减小垂直间距
-                        crossAxisSpacing: 8, // 减小水平间距
-                        childAspectRatio: 1, // 正方形图标
-                      ),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 5, // 一行5个图标
+                            mainAxisSpacing: 8, // 减小垂直间距
+                            crossAxisSpacing: 8, // 减小水平间距
+                            childAspectRatio: 1, // 正方形图标
+                          ),
                       itemCount: _availablePlatformTypes.length,
                       itemBuilder: (context, index) {
                         final type = _availablePlatformTypes[index];
@@ -124,7 +132,9 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
                             setDialogState(() {
                               selectedType = value;
                               endpointController.text =
-                                  AIPlatform.createDefaultPlatform(value).endpoint;
+                                  AIPlatform.createDefaultPlatform(
+                                    value,
+                                  ).endpoint;
                             });
                           },
                         );
@@ -139,7 +149,10 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
                       padding: EdgeInsets.only(left: 8),
                       child: Icon(CupertinoIcons.tag, size: 20),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
                       color: CupertinoColors.systemGrey6,
                       borderRadius: BorderRadius.circular(8),
@@ -153,7 +166,10 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
                       padding: EdgeInsets.only(left: 8),
                       child: Icon(CupertinoIcons.link, size: 20),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
                       color: CupertinoColors.systemGrey6,
                       borderRadius: BorderRadius.circular(8),
@@ -168,7 +184,10 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
                       child: Icon(CupertinoIcons.lock, size: 20),
                     ),
                     obscureText: true,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
                       color: CupertinoColors.systemGrey6,
                       borderRadius: BorderRadius.circular(8),
@@ -208,8 +227,12 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
         type: selectedType,
         endpoint: endpointController.text.trim(),
         apiKey: apiKeyController.text.trim(),
-        availableModels: platform?.availableModels ?? AIPlatform.createDefaultPlatform(selectedType).availableModels,
-        defaultModel: platform?.defaultModel ?? AIPlatform.createDefaultPlatform(selectedType).defaultModel,
+        availableModels:
+            platform?.availableModels ??
+            AIPlatform.createDefaultPlatform(selectedType).availableModels,
+        defaultModel:
+            platform?.defaultModel ??
+            AIPlatform.createDefaultPlatform(selectedType).defaultModel,
         enabled: true,
         lastModelUpdate: platform?.lastModelUpdate,
         icon: selectedType,
@@ -238,18 +261,18 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
         decoration: BoxDecoration(
           color: isSelected
               ? (brightness == Brightness.dark
-                  ? CupertinoColors.activeBlue.darkColor
-                  : CupertinoColors.activeBlue.color)
+                    ? CupertinoColors.activeBlue.darkColor
+                    : CupertinoColors.activeBlue.color)
               : (brightness == Brightness.dark
-                  ? CupertinoColors.systemGrey6.darkColor
-                  : CupertinoColors.systemGrey6.color),
+                    ? CupertinoColors.systemGrey6.darkColor
+                    : CupertinoColors.systemGrey6.color),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isSelected
                 ? CupertinoColors.transparent
                 : (brightness == Brightness.dark
-                    ? CupertinoColors.systemGrey5.darkColor
-                    : CupertinoColors.systemGrey5.color),
+                      ? CupertinoColors.systemGrey5.darkColor
+                      : CupertinoColors.systemGrey5.color),
             width: 1,
           ),
         ),
@@ -262,8 +285,8 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
               isSelected
                   ? CupertinoColors.white
                   : (brightness == Brightness.dark
-                      ? CupertinoColors.label.darkColor
-                      : CupertinoColors.label.color),
+                        ? CupertinoColors.label.darkColor
+                        : CupertinoColors.label.color),
               BlendMode.srcIn,
             ),
           ),
@@ -302,7 +325,10 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(CupertinoIcons.checkmark_circle, color: CupertinoColors.systemGreen),
+                      const Icon(
+                        CupertinoIcons.checkmark_circle,
+                        color: CupertinoColors.systemGreen,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -340,7 +366,10 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
                             child: Text(l10n.add),
                             onPressed: () {
                               if (addController.text.trim().isNotEmpty) {
-                                Navigator.pop(context, addController.text.trim());
+                                Navigator.pop(
+                                  context,
+                                  addController.text.trim(),
+                                );
                               }
                             },
                           ),
@@ -364,7 +393,11 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
                           color: CupertinoColors.activeBlue,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(CupertinoIcons.add, color: CupertinoColors.white, size: 16),
+                        child: const Icon(
+                          CupertinoIcons.add,
+                          color: CupertinoColors.white,
+                          size: 16,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       Text(l10n.addNewModel),
@@ -380,7 +413,11 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(CupertinoIcons.doc_text_search, size: 32, color: CupertinoColors.systemGrey),
+                              const Icon(
+                                CupertinoIcons.doc_text_search,
+                                size: 32,
+                                color: CupertinoColors.systemGrey,
+                              ),
                               const SizedBox(height: 8),
                               Text(l10n.noModelsAvailable),
                             ],
@@ -398,9 +435,16 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
                                 });
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 10,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: isSelected ? CupertinoColors.activeBlue.withValues(alpha: 0.08) : null,
+                                  color: isSelected
+                                      ? CupertinoColors.activeBlue.withValues(
+                                          alpha: 0.08,
+                                        )
+                                      : null,
                                 ),
                                 child: Row(
                                   children: [
@@ -410,51 +454,83 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
                                         border: Border.all(
-                                          color: isSelected ? CupertinoColors.activeBlue : CupertinoColors.systemGrey4,
+                                          color: isSelected
+                                              ? CupertinoColors.activeBlue
+                                              : CupertinoColors.systemGrey4,
                                         ),
                                       ),
                                       child: isSelected
                                           ? const Center(
-                                              child: Icon(CupertinoIcons.check_mark, size: 14, color: CupertinoColors.activeBlue),
+                                              child: Icon(
+                                                CupertinoIcons.check_mark,
+                                                size: 14,
+                                                color:
+                                                    CupertinoColors.activeBlue,
+                                              ),
                                             )
                                           : null,
                                     ),
                                     const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(model),
-                                    ),
+                                    Expanded(child: Text(model)),
                                     CupertinoButton(
                                       padding: EdgeInsets.zero,
                                       minimumSize: const Size(28, 28),
                                       onPressed: () async {
-                                        final confirm = await showCupertinoDialog<bool>(
-                                          context: context,
-                                          builder: (context) => CupertinoAlertDialog(
-                                            title: Text(l10n.deleteModelTitle),
-                                            content: Text(l10n.deleteModelConfirm(model)),
-                                            actions: [
-                                              CupertinoDialogAction(
-                                                child: Text(l10n.cancel),
-                                                onPressed: () => Navigator.pop(context, false),
-                                              ),
-                                              CupertinoDialogAction(
-                                                isDestructiveAction: true,
-                                                child: Text(l10n.delete),
-                                                onPressed: () => Navigator.pop(context, true),
-                                              ),
-                                            ],
-                                          ),
-                                        );
+                                        final confirm =
+                                            await showCupertinoDialog<bool>(
+                                              context: context,
+                                              builder: (context) =>
+                                                  CupertinoAlertDialog(
+                                                    title: Text(
+                                                      l10n.deleteModelTitle,
+                                                    ),
+                                                    content: Text(
+                                                      l10n.deleteModelConfirm(
+                                                        model,
+                                                      ),
+                                                    ),
+                                                    actions: [
+                                                      CupertinoDialogAction(
+                                                        child: Text(
+                                                          l10n.cancel,
+                                                        ),
+                                                        onPressed: () =>
+                                                            Navigator.pop(
+                                                              context,
+                                                              false,
+                                                            ),
+                                                      ),
+                                                      CupertinoDialogAction(
+                                                        isDestructiveAction:
+                                                            true,
+                                                        child: Text(
+                                                          l10n.delete,
+                                                        ),
+                                                        onPressed: () =>
+                                                            Navigator.pop(
+                                                              context,
+                                                              true,
+                                                            ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                            );
                                         if (confirm == true && mounted) {
                                           setDialogState(() {
                                             models.removeAt(index);
                                             if (selectedModel == model) {
-                                              selectedModel = models.isNotEmpty ? models.first : null;
+                                              selectedModel = models.isNotEmpty
+                                                  ? models.first
+                                                  : null;
                                             }
                                           });
                                         }
                                       },
-                                      child: const Icon(CupertinoIcons.delete, size: 20, color: CupertinoColors.systemRed),
+                                      child: const Icon(
+                                        CupertinoIcons.delete,
+                                        size: 20,
+                                        color: CupertinoColors.systemRed,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -476,7 +552,11 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(CupertinoIcons.refresh, size: 16, color: CupertinoColors.activeBlue),
+                  Icon(
+                    CupertinoIcons.refresh,
+                    size: 16,
+                    color: CupertinoColors.activeBlue,
+                  ),
                   const SizedBox(width: 4),
                   Text(l10n.refreshModels),
                 ],
@@ -515,7 +595,8 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
 
       // 如果更新的平台是当前平台，同步更新全局模型设置
       final currentPlatformId = await _settingsService.getCurrentPlatformId();
-      if (platform.id == currentPlatformId && updatedPlatform.defaultModel.isNotEmpty) {
+      if (platform.id == currentPlatformId &&
+          updatedPlatform.defaultModel.isNotEmpty) {
         await _settingsService.setModel(updatedPlatform.defaultModel);
       }
 
@@ -556,7 +637,9 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
 
         // 如果刷新的平台是当前平台，同步更新全局模型设置
         final currentPlatformId = await _settingsService.getCurrentPlatformId();
-        if (platform.id == currentPlatformId && newDefaultModel != null && newDefaultModel.isNotEmpty) {
+        if (platform.id == currentPlatformId &&
+            newDefaultModel != null &&
+            newDefaultModel.isNotEmpty) {
           await _settingsService.setModel(newDefaultModel);
         }
 
@@ -597,7 +680,9 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
         final responseBody = await response.transform(utf8.decoder).join();
 
         if (response.statusCode != 200) {
-          throw Exception('API returned error: ${response.statusCode}\nURL: $modelsUrl\n$responseBody');
+          throw Exception(
+            'API returned error: ${response.statusCode}\nURL: $modelsUrl\n$responseBody',
+          );
         }
 
         final data = jsonDecode(responseBody);
@@ -605,14 +690,14 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
         if (data is Map && data.containsKey('models')) {
           final modelsData = data['models'] as List;
           final excludedPatterns = [
-            'embedding',    // text embedding 模型
-            'imagen',       // image generation 模型
-            'veo',          // video generation 模型
-            '-tts',         // TTS 模型
-            'robotics',     // 机器人专用模型
+            'embedding', // text embedding 模型
+            'imagen', // image generation 模型
+            'veo', // video generation 模型
+            '-tts', // TTS 模型
+            'robotics', // 机器人专用模型
             'computer-use', // 计算机使用专用模型
-            'nano-banana',  // 图像生成模型
-            'aqa',          // Attributed Question Answering
+            'nano-banana', // 图像生成模型
+            'aqa', // Attributed Question Answering
             'deep-research', // 深度研究专用模型
           ];
           return modelsData
@@ -646,7 +731,9 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
         final responseBody = await response.transform(utf8.decoder).join();
 
         if (response.statusCode != 200) {
-          throw Exception('API returned error: ${response.statusCode}\n$responseBody');
+          throw Exception(
+            'API returned error: ${response.statusCode}\n$responseBody',
+          );
         }
 
         final data = jsonDecode(responseBody);
@@ -672,14 +759,19 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
 
         final request = await client.getUrl(Uri.parse(modelsUrl));
         request.headers.add('X-Api-Key', platform.apiKey);
-        request.headers.add('anthropic-version', ClaudeProvider.anthropicVersion);
+        request.headers.add(
+          'anthropic-version',
+          ClaudeProvider.anthropicVersion,
+        );
         request.headers.add('Content-Type', 'application/json');
 
         final response = await request.close();
         final responseBody = await response.transform(utf8.decoder).join();
 
         if (response.statusCode != 200) {
-          throw Exception('API returned error: ${response.statusCode}\nURL: $modelsUrl\n$responseBody');
+          throw Exception(
+            'API returned error: ${response.statusCode}\nURL: $modelsUrl\n$responseBody',
+          );
         }
 
         final data = jsonDecode(responseBody);
@@ -716,7 +808,9 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
       final responseBody = await response.transform(utf8.decoder).join();
 
       if (response.statusCode != 200) {
-        throw Exception('API returned error: ${response.statusCode}\n$responseBody');
+        throw Exception(
+          'API returned error: ${response.statusCode}\n$responseBody',
+        );
       }
 
       final data = jsonDecode(responseBody);
@@ -850,27 +944,34 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
         child: _isLoading
             ? const Center(child: CupertinoActivityIndicator())
             : _platforms.isEmpty
-                ? _buildEmptyState()
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _platforms.length,
-                    itemBuilder: (context, index) {
-                      final platform = _platforms[index];
-                      final isCurrent = platform.id == _currentPlatformId;
-                      final isLoading = _loadingPlatforms.contains(platform.id);
-                      return _buildPlatformCard(platform, isCurrent, isLoading);
-                    },
-                  ),
+            ? _buildEmptyState()
+            : ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: _platforms.length,
+                itemBuilder: (context, index) {
+                  final platform = _platforms[index];
+                  final isCurrent = platform.id == _currentPlatformId;
+                  final isLoading = _loadingPlatforms.contains(platform.id);
+                  return _buildPlatformCard(platform, isCurrent, isLoading);
+                },
+              ),
       ),
     );
   }
 
-  Widget _buildPlatformCard(AIPlatform platform, bool isCurrent, bool isLoading) {
+  Widget _buildPlatformCard(
+    AIPlatform platform,
+    bool isCurrent,
+    bool isLoading,
+  ) {
     final l10n = AppLocalizations.of(context)!;
     final brightness = CupertinoTheme.of(context).brightness;
 
     return GestureDetector(
-      onTap: platform.isConfigured && platform.defaultModel.isNotEmpty && !isCurrent
+      onTap:
+          platform.isConfigured &&
+              platform.defaultModel.isNotEmpty &&
+              !isCurrent
           ? () => _switchPlatform(platform)
           : null,
       child: Container(
@@ -902,13 +1003,18 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
                         platform.name,
                         style: TextStyle(
                           fontSize: 17,
-                          fontWeight: isCurrent ? FontWeight.w600 : FontWeight.normal,
+                          fontWeight: isCurrent
+                              ? FontWeight.w600
+                              : FontWeight.normal,
                         ),
                       ),
                       if (isCurrent) ...[
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: CupertinoColors.activeBlue,
                             borderRadius: BorderRadius.circular(4),
@@ -939,7 +1045,9 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        platform.apiKey.isNotEmpty ? l10n.configured : l10n.notConfigured,
+                        platform.apiKey.isNotEmpty
+                            ? l10n.configured
+                            : l10n.notConfigured,
                         style: TextStyle(
                           fontSize: 13,
                           color: brightness == Brightness.dark
@@ -973,7 +1081,9 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
               CupertinoButton(
                 padding: EdgeInsets.zero,
                 minimumSize: const Size(32, 32),
-                onPressed: isLoading ? null : () => _refreshPlatformModels(platform),
+                onPressed: isLoading
+                    ? null
+                    : () => _refreshPlatformModels(platform),
                 child: isLoading
                     ? const CupertinoActivityIndicator(radius: 8)
                     : const Icon(
@@ -1129,6 +1239,8 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
         return CupertinoIcons.moon_fill;
       case 'lmstudio':
         return CupertinoIcons.building_2_fill;
+      case 'grok':
+        return CupertinoIcons.briefcase_fill;
       case 'other':
         return CupertinoIcons.question_circle;
       default:
@@ -1157,6 +1269,8 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
         return const Color(0xFF6B57FF);
       case 'lmstudio':
         return const Color(0xFF00BFFF);
+      case 'grok':
+        return const Color(0xFF8A2BE2);
       case 'other':
         return const Color(0xFF8E8E93);
       default:
