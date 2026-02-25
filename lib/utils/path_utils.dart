@@ -106,6 +106,14 @@ class PathUtils {
       debugPrint('迁移头像目录: ${oldAvatarsDir.path} -> ${newAvatarsDir.path}');
       await _copyDirectory(oldAvatarsDir, newAvatarsDir);
     }
+
+    // 迁移用户预设目录
+    final oldUserPresetsDir = Directory('${oldAppDir.path}/user_prompts');
+    final newUserPresetsDir = Directory('${newAppDir.path}/user_prompts');
+    if (await oldUserPresetsDir.exists() && !await newUserPresetsDir.exists()) {
+      debugPrint('迁移用户预设目录: ${oldUserPresetsDir.path} -> ${newUserPresetsDir.path}');
+      await _copyDirectory(oldUserPresetsDir, newUserPresetsDir);
+    }
   }
 
   /// 复制目录及其所有内容

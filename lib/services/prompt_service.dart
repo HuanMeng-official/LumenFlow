@@ -3,10 +3,10 @@ import 'dart:math';
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import '../models/prompt_preset.dart';
 import 'settings_service.dart';
+import '../utils/path_utils.dart';
 
 /// 预设提示词服务，负责加载和管理预设提示词
 class PromptService {
@@ -58,8 +58,8 @@ class PromptService {
 
   /// 获取用户预设存储目录
   Future<Directory> _getUserPresetsDirectory() async {
-    final appDocDir = await getApplicationDocumentsDirectory();
-    final userPresetsDir = Directory(path.join(appDocDir.path, 'user_prompts'));
+    final appDataDir = await PathUtils.getAppDataDirectory();
+    final userPresetsDir = Directory(path.join(appDataDir.path, 'user_prompts'));
     if (!await userPresetsDir.exists()) {
       await userPresetsDir.create(recursive: true);
     }
