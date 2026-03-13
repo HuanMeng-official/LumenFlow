@@ -51,7 +51,7 @@ class NotificationService {
       linux: initializationSettingsLinux,
     );
 
-    await _notificationsPlugin.initialize(initializationSettings);
+    await _notificationsPlugin.initialize(settings: initializationSettings);
 
     // Android 上请求通知权限
     if (Platform.isAndroid) {
@@ -130,10 +130,10 @@ class NotificationService {
     );
 
     await _notificationsPlugin.show(
-      1, // 通知ID
-      title, // 标题 - 使用对话标题
-      preview, // 内容 - 使用预览内容
-      notificationDetails,
+      id: 1, // 通知ID
+      title: title, // 标题 - 使用对话标题
+      body: preview, // 内容 - 使用预览内容
+      notificationDetails: notificationDetails,
       payload: content, // 点击时传递完整内容
     );
 
@@ -148,6 +148,6 @@ class NotificationService {
 
   /// 清除指定通知
   Future<void> cancel(int id) async {
-    await _notificationsPlugin.cancel(id);
+    await _notificationsPlugin.cancel(id: id);
   }
 }
