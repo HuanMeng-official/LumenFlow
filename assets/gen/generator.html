@@ -145,6 +145,33 @@
             outline: none;
         }
 
+        details.advanced-options {
+            margin-bottom: 28px;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            background-color: var(--bg-card);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        details.advanced-options summary {
+            padding: 14px 20px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            user-select: none;
+            outline: none;
+            background-color: var(--input-bg);
+            color: var(--text-primary);
+            transition: background-color 0.2s;
+        }
+        details.advanced-options summary:hover {
+            background-color: var(--border-light);
+        }
+        .advanced-options-content {
+            padding: 24px 20px 0 20px;
+            border-top: 1px solid var(--border-light);
+        }
+
         .actions {
             margin-top: 40px;
             display: flex;
@@ -295,6 +322,27 @@
         <textarea id="Interaction"></textarea>
     </div>
 
+    <details class="advanced-options">
+        <summary id="lbl-AdvancedOptions">高级选项 (可选)</summary>
+        <div class="advanced-options-content">
+            <div class="form-group">
+                <label id="lbl-InternalMonologue">内心独白 / 思维链</label>
+                <span class="hint" id="hint-InternalMonologue">强制规范 AI 的思考 (&lt;internal_monologue&gt;)</span>
+                <textarea id="InternalMonologue"></textarea>
+            </div>
+            <div class="form-group">
+                <label id="lbl-EmotionalDepth">情感阈值 / 动态反馈</label>
+                <span class="hint" id="hint-EmotionalDepth">定义当用户表现出冷漠、生气或过度热情时，角色的反应差异 (&lt;emotional_depth&gt;)</span>
+                <textarea id="EmotionalDepth"></textarea>
+            </div>
+            <div class="form-group">
+                <label id="lbl-KnowledgeFilter">知识过滤</label>
+                <span class="hint" id="hint-KnowledgeFilter">规定在处理硬核技术、严肃新闻等话题时的表现方式 (&lt;knowledge_filter&gt;)</span>
+                <textarea id="KnowledgeFilter"></textarea>
+            </div>
+        </div>
+    </details>
+
     <div class="form-group">
         <label id="lbl-Example">示例对话 / 场景演示</label>
         <span class="hint" id="hint-Example">用于展示角色在实际互动中的语气与行为</span>
@@ -342,6 +390,13 @@
             Behavior_H: "通过动作、感官、微表情体现角色特质 (behavior_narrative_rules)",
             Interaction_L: "互动策略与关系推进方式",
             Interaction_H: "角色如何影响、照顾并逐步绑定用户 (interaction_strategy)",
+            AdvancedOptions: "高级选项 (可选)",
+            InternalMonologue_L: "内心独白 / 思维链",
+            InternalMonologue_H: "强制规范 AI 的思考 (internal_monologue)",
+            EmotionalDepth_L: "情感阈值 / 动态反馈",
+            EmotionalDepth_H: "定义当用户表现出冷漠、生气或过度热情时，角色的反应差异 (emotional_depth)",
+            KnowledgeFilter_L: "知识过滤",
+            KnowledgeFilter_H: "规定在处理硬核技术、严肃新闻等话题时的表现方式 (knowledge_filter)",
             Example_L: "示例对话 / 场景演示",
             Example_H: "用于展示角色在实际互动中的语气与行为 (example_dialogue)",
             Done: "预览",
@@ -367,6 +422,13 @@
             Behavior_H: "Actions, senses, micro-expressions (behavior_narrative_rules)",
             Interaction_L: "Interaction Strategy",
             Interaction_H: "Bonding and influence methods (interaction_strategy)",
+            AdvancedOptions: "Advanced Options (Optional)",
+            InternalMonologue_L: "Internal Monologue / Chain of Thought",
+            InternalMonologue_H: "Enforce AI thinking patterns (internal_monologue)",
+            EmotionalDepth_L: "Emotional Depth / Dynamic Feedback",
+            EmotionalDepth_H: "Reaction to user's indifference, anger, or over-enthusiasm (emotional_depth)",
+            KnowledgeFilter_L: "Knowledge Filter",
+            KnowledgeFilter_H: "How to handle hardcore tech, serious news, etc. (knowledge_filter)",
             Example_L: "Dialogue Examples",
             Example_H: "Tone and behavior demonstration (example_dialogue)",
             Done: "Preview",
@@ -392,6 +454,13 @@
             Behavior_H: "感覚と動作 (behavior_narrative_rules)",
             Interaction_L: "交流戦略",
             Interaction_H: "関係構築方法 (interaction_strategy)",
+            AdvancedOptions: "詳細設定 (任意)",
+            InternalMonologue_L: "内なる独白 / 思考プロセス",
+            InternalMonologue_H: "AIの思考パターンを強制 (internal_monologue)",
+            EmotionalDepth_L: "感情の閾値 / 動的フィードバック",
+            EmotionalDepth_H: "ユーザーの無関心、怒り、熱意に対する反応の違い (emotional_depth)",
+            KnowledgeFilter_L: "知識フィルター",
+            KnowledgeFilter_H: "専門的な技術や深刻なニュースなどを扱う際の表現方法 (knowledge_filter)",
             Example_L: "会話例 / シーン",
             Example_H: "実際の振る舞い (example_dialogue)",
             Done: "プレビュー",
@@ -417,6 +486,13 @@
             Behavior_H: "감각과 동작 (behavior_narrative_rules)",
             Interaction_L: "상호작용 전략",
             Interaction_H: "관계 형성 방식 (interaction_strategy)",
+            AdvancedOptions: "고급 설정 (선택)",
+            InternalMonologue_L: "내면의 독백 / 사고 과정",
+            InternalMonologue_H: "AI의 사고 패턴 강제 (internal_monologue)",
+            EmotionalDepth_L: "감정 임계값 / 동적 피드백",
+            EmotionalDepth_H: "사용자의 무관심, 분노 또는 과도한 열정에 대한 반응 차이 (emotional_depth)",
+            KnowledgeFilter_L: "지식 필터",
+            KnowledgeFilter_H: "전문 기술, 심각한 뉴스 등을 다루는 방식 (knowledge_filter)",
             Example_L: "대화 예시",
             Example_H: "실제 상호작용 (example_dialogue)",
             Done: "미리보기",
@@ -450,6 +526,15 @@
         document.getElementById('hint-Behavior').innerText = dict.Behavior_H;
         document.getElementById('lbl-Interaction').innerText = dict.Interaction_L;
         document.getElementById('hint-Interaction').innerText = dict.Interaction_H;
+        
+        document.getElementById('lbl-AdvancedOptions').innerText = dict.AdvancedOptions;
+        document.getElementById('lbl-InternalMonologue').innerText = dict.InternalMonologue_L;
+        document.getElementById('hint-InternalMonologue').innerText = dict.InternalMonologue_H;
+        document.getElementById('lbl-EmotionalDepth').innerText = dict.EmotionalDepth_L;
+        document.getElementById('hint-EmotionalDepth').innerText = dict.EmotionalDepth_H;
+        document.getElementById('lbl-KnowledgeFilter').innerText = dict.KnowledgeFilter_L;
+        document.getElementById('hint-KnowledgeFilter').innerText = dict.KnowledgeFilter_H;
+
         document.getElementById('lbl-Example').innerText = dict.Example_L;
         document.getElementById('hint-Example').innerText = dict.Example_H;
 
@@ -476,6 +561,22 @@
         const linguistic = formatIndentedBlock(document.getElementById('Linguistic').value);
         const behavior = formatIndentedBlock(document.getElementById('Behavior').value);
         const interaction = formatIndentedBlock(document.getElementById('Interaction').value);
+        
+        const internalMonologueRaw = document.getElementById('InternalMonologue').value;
+        const emotionalDepthRaw = document.getElementById('EmotionalDepth').value;
+        const knowledgeFilterRaw = document.getElementById('KnowledgeFilter').value;
+
+        let advancedXML = "";
+        if (internalMonologueRaw.trim() !== "") {
+            advancedXML += `\n   <internal_monologue>\n${formatIndentedBlock(internalMonologueRaw)}\n   </internal_monologue>\n`;
+        }
+        if (emotionalDepthRaw.trim() !== "") {
+            advancedXML += `\n   <emotional_depth>\n${formatIndentedBlock(emotionalDepthRaw)}\n   </emotional_depth>\n`;
+        }
+        if (knowledgeFilterRaw.trim() !== "") {
+            advancedXML += `\n   <knowledge_filter>\n${formatIndentedBlock(knowledgeFilterRaw)}\n   </knowledge_filter>\n`;
+        }
+
         const example = formatIndentedBlock(document.getElementById('Example').value);
 
         const xmlContent = `<system_instruction>
@@ -504,7 +605,7 @@ ${behavior}
    <interaction_strategy>
 ${interaction}
    </interaction_strategy>
-
+${advancedXML}
    <user_info>
       - ${dict.UserNameLabel}: \${userProfile.username}
       - ${dict.UserGenderLabel}: \${userProfile.gender}
