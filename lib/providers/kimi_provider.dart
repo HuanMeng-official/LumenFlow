@@ -71,7 +71,8 @@ class KimiProvider extends AIProvider {
               'model': model,
               'messages': messages,
               'max_tokens': maxTokens,
-              'temperature': temperature,
+              'temperature': _getKimiTemperature(model, temperature, thinkingMode),
+              'thinking': {'type': thinkingMode ? 'enabled' : 'disabled'},
             }),
           ).timeout(connectionTimeout + readTimeout);
 
@@ -127,8 +128,9 @@ class KimiProvider extends AIProvider {
         'model': model,
         'messages': messages,
         'max_tokens': maxTokens,
-        'temperature': temperature,
+        'temperature': _getKimiTemperature(model, temperature, thinkingMode),
         'stream': true,
+        'thinking': {'type': thinkingMode ? 'enabled' : 'disabled'},
       });
 
       final streamedResponse = await client.send(request).timeout(streamingTimeout);
@@ -139,25 +141,66 @@ class KimiProvider extends AIProvider {
         throw _parseError(errorBody, streamedResponse.statusCode, l10n);
       }
 
-      final stream = streamedResponse.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter());
+      // 缓冲区用于累积SSE事件，处理跨chunk的事件分割
+      final sseBuffer = StringBuffer();
 
       final stopwatch = Stopwatch()..start();
-      await for (final line in stream) {
+
+      // 处理SSE流，正确处理跨chunk的事件边界
+      await for (final chunk in streamedResponse.stream.transform(utf8.decoder)) {
         stopwatch.reset();
 
-        if (line.isEmpty) continue;
-        if (line.startsWith('data: ')) {
-          final data = line.substring(6);
-          if (data == '[DONE]') {
+        if (chunk.isEmpty) continue;
+
+        // 将chunk添加到SSE缓冲区
+        sseBuffer.write(chunk);
+        final bufferContent = sseBuffer.toString();
+
+        // 按双换行符分割SSE事件
+        final events = bufferContent.split('\n\n');
+
+        // 如果最后一个事件不完整，保留在缓冲区中
+        sseBuffer.clear();
+        if (!bufferContent.endsWith('\n\n') && events.isNotEmpty) {
+          final lastEvent = events.removeLast();
+          sseBuffer.write(lastEvent);
+          if (!lastEvent.endsWith('\n')) {
+            sseBuffer.write('\n');
+          }
+        }
+
+        // 处理完整的SSE事件
+        for (final event in events) {
+          if (event.trim().isEmpty) continue;
+
+          // 解析SSE事件行
+          final lines = event.split('\n');
+          String? dataLine;
+
+          for (final line in lines) {
+            if (line.startsWith('data: ')) {
+              dataLine = line.substring(6);
+              break;
+            }
+          }
+
+          if (dataLine == null) continue;
+          if (dataLine == '[DONE]') {
             break;
           }
+
           try {
-            final jsonData = jsonDecode(data);
+            final jsonData = jsonDecode(dataLine);
             final delta = jsonData['choices']?[0]?['delta'];
 
             if (delta != null) {
+              // 处理思考模型的推理过程 - Kimi 使用 reasoning_content
+              final reasoningContent = delta['reasoning_content'] as String?;
+              if (reasoningContent != null && reasoningContent.isNotEmpty) {
+                yield {'type': 'reasoning', 'content': reasoningContent};
+              }
+
+              // 处理最终回答
               final content = delta['content'] as String?;
               if (content != null && content.isNotEmpty) {
                 yield {'type': 'answer', 'content': content};
@@ -409,12 +452,24 @@ class KimiProvider extends AIProvider {
     }
 
     final message = firstChoice['message'];
+    // Kimi 使用 reasoning_content 字段存储推理内容
+    final reasoningContent = message['reasoning_content']?.toString().trim() ?? '';
     final content = message['content']?.toString().trim() ?? '';
 
     return {
-      'reasoningContent': '',
+      'reasoningContent': reasoningContent,
       'content': content,
     };
+  }
+
+  /// 获取Kimi模型的温度设置
+  /// 当模型为kimi-k2.5且没开启思考时，温度设置为0.6
+  /// 当模型为kimi-k2.5且开启思考时温度设置为1
+  double _getKimiTemperature(String model, double originalTemperature, bool thinkingMode) {
+    if (model == 'kimi-k2.5') {
+      return thinkingMode ? 1.0 : 0.6;
+    }
+    return originalTemperature;
   }
 
   /// 解析错误
