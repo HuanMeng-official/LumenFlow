@@ -1112,48 +1112,52 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
     final l10n = AppLocalizations.of(context)!;
     final brightness = CupertinoTheme.of(context).brightness;
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const SizedBox(height: 60),
-        Icon(
-          CupertinoIcons.cube_box,
-          size: 80,
-          color: brightness == Brightness.dark
-              ? CupertinoColors.systemGrey.darkColor
-              : CupertinoColors.systemGrey3,
-        ),
-        const SizedBox(height: 24),
-        Text(
-          l10n.noPlatformsConfigured,
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const SizedBox(height: 60),
+          Icon(
+            CupertinoIcons.cube_box,
+            size: 80,
             color: brightness == Brightness.dark
-                ? CupertinoColors.label.darkColor
-                : CupertinoColors.label.color,
+                ? CupertinoColors.systemGrey.darkColor
+                : CupertinoColors.systemGrey3,
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          l10n.addPlatformHint,
-          style: TextStyle(
-            fontSize: 15,
-            color: brightness == Brightness.dark
-                ? CupertinoColors.secondaryLabel.darkColor
-                : CupertinoColors.secondaryLabel.color,
+          const SizedBox(height: 24),
+          Text(
+            l10n.noPlatformsConfigured,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
+              color: brightness == Brightness.dark
+                  ? CupertinoColors.label.darkColor
+                  : CupertinoColors.label.color,
+            ),
           ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 32),
-        CupertinoButton.filled(
-          onPressed: _showPlatformDialog,
-          borderRadius: BorderRadius.circular(12),
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-          child: Text(l10n.addPlatform),
-        ),
-        const SizedBox(height: 20),
-      ],
+          const SizedBox(height: 8),
+          Text(
+            l10n.addPlatformHint,
+            style: TextStyle(
+              fontSize: 15,
+              color: brightness == Brightness.dark
+                  ? CupertinoColors.secondaryLabel.darkColor
+                  : CupertinoColors.secondaryLabel.color,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 32),
+          CupertinoButton.filled(
+            onPressed: _showPlatformDialog,
+            borderRadius: BorderRadius.circular(12),
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+            child: Text(l10n.addPlatform),
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
     );
   }
 
