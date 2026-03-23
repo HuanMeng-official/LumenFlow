@@ -533,56 +533,80 @@ class GeminiProvider extends AIProvider {
           l10n.providerGeminiError(errorMessage, streamedResponse.statusCode));
     }
 
+    // 使用LineSplitter处理SSE流，正确处理事件边界
     final stream = streamedResponse.stream
         .transform(utf8.decoder)
         .transform(const LineSplitter());
+
+    // 缓冲区用于累积SSE事件行
+    final eventLines = <String>[];
 
     final stopwatch = Stopwatch()..start();
     await for (final line in stream) {
       stopwatch.reset();
 
-      if (line.isEmpty) continue;
-      if (line.startsWith('data: ')) {
-        final data = line.substring(6);
-        if (data == '[DONE]') {
-          break;
-        }
-        try {
-          final jsonData = jsonDecode(data);
-          if (jsonData is! Map<String, dynamic>) {
-            continue;
-          }
-          final candidates = jsonData['candidates'];
-          if (candidates is! List || candidates.isEmpty) {
-            continue;
-          }
-          final candidate = candidates[0];
-          if (candidate is! Map<String, dynamic>) {
-            continue;
-          }
-          final content = candidate['content'];
-          if (content is! Map<String, dynamic>) {
-            continue;
-          }
-          final parts = content['parts'];
-          if (parts is! List || parts.isEmpty) {
-            continue;
-          }
-          for (final part in parts) {
-            if (part is! Map<String, dynamic>) continue;
-            final text = part['text'] as String?;
-            if (text == null || text.isEmpty) continue;
-
-            final isThought = part['thought'] == true;
-            if (isThought) {
-              yield {'type': 'reasoning', 'content': text};
-            } else {
-              yield {'type': 'answer', 'content': text};
+      if (line.isEmpty) {
+        // 空行表示SSE事件结束，处理累积的事件行
+        if (eventLines.isNotEmpty) {
+          // 从事件行中提取data:行
+          String? dataLine;
+          for (final eventLine in eventLines) {
+            if (eventLine.startsWith('data: ')) {
+              dataLine = eventLine.substring(6);
+              break;
             }
           }
-        } catch (e) {
-          // 忽略解析错误
+
+          if (dataLine != null && dataLine != '[DONE]') {
+            try {
+              final jsonData = jsonDecode(dataLine);
+              if (jsonData is! Map<String, dynamic>) {
+                eventLines.clear();
+                continue;
+              }
+              final candidates = jsonData['candidates'];
+              if (candidates is! List || candidates.isEmpty) {
+                eventLines.clear();
+                continue;
+              }
+              final candidate = candidates[0];
+              if (candidate is! Map<String, dynamic>) {
+                eventLines.clear();
+                continue;
+              }
+              final content = candidate['content'];
+              if (content is! Map<String, dynamic>) {
+                eventLines.clear();
+                continue;
+              }
+              final parts = content['parts'];
+              if (parts is! List || parts.isEmpty) {
+                eventLines.clear();
+                continue;
+              }
+              for (final part in parts) {
+                if (part is! Map<String, dynamic>) continue;
+                final text = part['text'] as String?;
+                if (text == null || text.isEmpty) continue;
+
+                final isThought = part['thought'] == true;
+                if (isThought) {
+                  yield {'type': 'reasoning', 'content': text};
+                } else {
+                  yield {'type': 'answer', 'content': text};
+                }
+              }
+            } catch (e) {
+              // 忽略解析错误
+            }
+          } else if (dataLine == '[DONE]') {
+            break;
+          }
         }
+        eventLines.clear();
+      } else {
+        // 非空行，添加到当前事件
+        eventLines.add(line);
       }
 
       if (stopwatch.elapsed > streamingTimeout) {
