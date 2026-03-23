@@ -148,22 +148,56 @@ class OtherProvider extends AIProvider {
         throw _parseError(errorBody, streamedResponse.statusCode, l10n);
       }
 
-      final stream = streamedResponse.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter());
+      // 缓冲区用于累积SSE事件，处理跨chunk的事件分割
+      final sseBuffer = StringBuffer();
 
       final stopwatch = Stopwatch()..start();
-      await for (final line in stream) {
+
+      // 处理SSE流，正确处理跨chunk的事件边界
+      await for (final chunk in streamedResponse.stream.transform(utf8.decoder)) {
         stopwatch.reset();
 
-        if (line.isEmpty) continue;
-        if (line.startsWith('data: ')) {
-          final data = line.substring(6);
-          if (data == '[DONE]') {
+        if (chunk.isEmpty) continue;
+
+        // 将chunk添加到SSE缓冲区
+        sseBuffer.write(chunk);
+        final bufferContent = sseBuffer.toString();
+
+        // 按双换行符分割SSE事件
+        final events = bufferContent.split('\n\n');
+
+        // 如果最后一个事件不完整，保留在缓冲区中
+        sseBuffer.clear();
+        if (!bufferContent.endsWith('\n\n') && events.isNotEmpty) {
+          final lastEvent = events.removeLast();
+          sseBuffer.write(lastEvent);
+          if (!lastEvent.endsWith('\n')) {
+            sseBuffer.write('\n');
+          }
+        }
+
+        // 处理完整的SSE事件
+        for (final event in events) {
+          if (event.trim().isEmpty) continue;
+
+          // 解析SSE事件行
+          final lines = event.split('\n');
+          String? dataLine;
+
+          for (final line in lines) {
+            if (line.startsWith('data: ')) {
+              dataLine = line.substring(6);
+              break;
+            }
+          }
+
+          if (dataLine == null) continue;
+          if (dataLine == '[DONE]') {
             break;
           }
+
           try {
-            final jsonData = jsonDecode(data);
+            final jsonData = jsonDecode(dataLine);
             final delta = jsonData['choices']?[0]?['delta'];
 
             if (delta != null) {
