@@ -269,7 +269,7 @@ You can configure multiple platforms and switch between them as needed.
    - Text-only support
 
 6. **MiniMax**
-   - API Endpoint: `https://api.minimax.chat/v1/chat/completions`
+   - API Endpoint: `https://api.minimax.chat/v1/text/chatcompletion_v2`
    - Supported models: MiniMax proprietary models
    - Text-only support
 
@@ -360,6 +360,9 @@ LumenFlow includes an advanced role-playing system with file-based prompt preset
    <linguistic_style>TEXT</linguistic_style>
    <behavior_narrative_rules>TEXT</behavior_narrative_rules>
    <interaction_strategy>TEXT</interaction_strategy>
+   <internal_monologue>TEXT</internal_monologue>
+   <emotional_depth>TEXT</emotional_depth>
+   <knowledge_filter>TEXT</knowledge_filter>
    <user_info>TEXT</user_info>
    <example_dialogue>TEXT</example_dialogue>
 </system_instruction>
