@@ -12,10 +12,6 @@ import '../l10n/app_localizations.dart';
 
 /// MiniMax API Provider 实现
 /// 负责处理与 MiniMax API 的通信
-///
-/// MiniMax API 地址: https://api.minimaxi.com/v1
-///
-/// 实现 OpenAI 兼容格式，支持 reasoning_split 参数将思考过程分离
 class MiniMaxProvider extends AIProvider {
   final SettingsService _settingsService = SettingsService();
   final FileService _fileService = FileService();
@@ -85,12 +81,8 @@ class MiniMaxProvider extends AIProvider {
             };
           }
 
-          debugPrint('MiniMax 请求 URL: $apiEndpoint/chat/completions');
-          debugPrint('MiniMax 请求模型: $model');
-          debugPrint('MiniMax API密钥: ${apiKey.isEmpty ? "(空)" : "${apiKey.substring(0, 8)}..."}');
-
           final response = await client.post(
-            Uri.parse('$apiEndpoint/chat/completions'),
+            Uri.parse('$apiEndpoint/text/chatcompletion_v2'),
             headers: {
               'Content-Type': 'application/json',
               'Authorization': 'Bearer $apiKey',
@@ -162,7 +154,7 @@ class MiniMaxProvider extends AIProvider {
 
       final request = http.Request(
         'POST',
-        Uri.parse('$apiEndpoint/chat/completions'),
+        Uri.parse('$apiEndpoint/text/chatcompletion_v2'),
       );
       request.headers['Content-Type'] = 'application/json';
       request.headers['Authorization'] = 'Bearer $apiKey';
@@ -274,7 +266,7 @@ class MiniMaxProvider extends AIProvider {
     ];
 
     final response = await http.post(
-      Uri.parse('$apiEndpoint/chat/completions'),
+      Uri.parse('$apiEndpoint/text/chatcompletion_v2'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $apiKey',
