@@ -168,26 +168,58 @@ class MiniMaxProvider extends AIProvider {
         throw _parseError(errorBody, streamedResponse.statusCode, l10n);
       }
 
-      final stream = streamedResponse.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter());
-
-      // 用于跟踪已接收的长度（处理重复内容）
+      // 缓冲区用于累积SSE事件，处理跨chunk的事件分割
+      final sseBuffer = StringBuffer();
+      // 用于跟踪已接收的思考内容长度（处理重复内容）
       String reasoningBuffer = '';
-      String textBuffer = '';
 
       final stopwatch = Stopwatch()..start();
-      await for (final line in stream) {
+
+      // 处理SSE流，正确处理跨chunk的事件边界
+      await for (final chunk in streamedResponse.stream.transform(utf8.decoder)) {
         stopwatch.reset();
 
-        if (line.isEmpty) continue;
-        if (line.startsWith('data: ')) {
-          final data = line.substring(6);
-          if (data == '[DONE]') {
+        if (chunk.isEmpty) continue;
+
+        // 将chunk添加到SSE缓冲区
+        sseBuffer.write(chunk);
+        final bufferContent = sseBuffer.toString();
+
+        // 按双换行符分割SSE事件
+        final events = bufferContent.split('\n\n');
+
+        // 如果最后一个事件不完整，保留在缓冲区中
+        sseBuffer.clear();
+        if (!bufferContent.endsWith('\n\n') && events.isNotEmpty) {
+          final lastEvent = events.removeLast();
+          sseBuffer.write(lastEvent);
+          if (!lastEvent.endsWith('\n')) {
+            sseBuffer.write('\n');
+          }
+        }
+
+        // 处理完整的SSE事件
+        for (final event in events) {
+          if (event.trim().isEmpty) continue;
+
+          // 解析SSE事件行
+          final lines = event.split('\n');
+          String? dataLine;
+
+          for (final line in lines) {
+            if (line.startsWith('data: ')) {
+              dataLine = line.substring(6);
+              break;
+            }
+          }
+
+          if (dataLine == null) continue;
+          if (dataLine == '[DONE]') {
             break;
           }
+
           try {
-            final jsonData = jsonDecode(data);
+            final jsonData = jsonDecode(dataLine);
 
             // 处理 MiniMax 的流式响应格式
             final choices = jsonData['choices'] as List?;
@@ -195,18 +227,30 @@ class MiniMaxProvider extends AIProvider {
               final delta = choices[0]['delta'] as Map<String, dynamic>?;
 
               if (delta != null) {
-                // 处理思考过程（reasoning_details）
+                // 处理思考过程
+                // 优先使用 reasoning_content 字段（增量内容）
+                final reasoningContent = delta['reasoning_content'] as String?;
+                if (reasoningContent != null && reasoningContent.isNotEmpty) {
+                  // reasoning_content 是增量内容，直接输出
+                  yield {'type': 'reasoning', 'content': reasoningContent};
+                  // 同时更新 reasoningBuffer 用于 reasoning_details 的完整文本处理
+                  reasoningBuffer += reasoningContent;
+                }
+
+                // 同时处理 reasoning_details 中的完整文本（备用）
                 if (delta.containsKey('reasoning_details')) {
                   final reasoningDetails = delta['reasoning_details'] as List?;
                   if (reasoningDetails != null) {
                     for (final detail in reasoningDetails) {
                       if (detail is Map<String, dynamic> && detail.containsKey('text')) {
                         final reasoningText = detail['text'] as String;
-                        // 只输出新增的内容
-                        final newReasoning = reasoningText.substring(reasoningBuffer.length);
-                        if (newReasoning.isNotEmpty) {
-                          yield {'type': 'reasoning', 'content': newReasoning};
-                          reasoningBuffer = reasoningText;
+                        // 如果 reasoningBuffer 与 reasoningText 不一致，说明有新增内容
+                        if (reasoningBuffer != reasoningText) {
+                          final newReasoning = reasoningText.substring(reasoningBuffer.length);
+                          if (newReasoning.isNotEmpty) {
+                            yield {'type': 'reasoning', 'content': newReasoning};
+                            reasoningBuffer = reasoningText;
+                          }
                         }
                       }
                     }
@@ -214,16 +258,10 @@ class MiniMaxProvider extends AIProvider {
                 }
 
                 // 处理最终回答内容
-                if (delta.containsKey('content') && delta['content'] != null) {
-                  final contentText = delta['content'] as String;
-                  // 只输出新增的内容
-                  final newText = textBuffer.isEmpty
-                      ? contentText
-                      : contentText.substring(textBuffer.length);
-                  if (newText.isNotEmpty) {
-                    yield {'type': 'answer', 'content': newText};
-                    textBuffer = contentText;
-                  }
+                final contentText = delta['content'] as String?;
+                if (contentText != null && contentText.isNotEmpty) {
+                  // content 字段是增量内容，直接输出
+                  yield {'type': 'answer', 'content': contentText};
                 }
               }
             }
