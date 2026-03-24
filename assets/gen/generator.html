@@ -143,18 +143,9 @@
             transition: background-color 0.4s ease, box-shadow 0.4s ease;
         }
 
-        .token-counter.safe .status-dot {
-            background-color: var(--status-safe);
-            box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
-        }
-        .token-counter.warning .status-dot {
-            background-color: var(--status-warn);
-            box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
-        }
-        .token-counter.danger .status-dot {
-            background-color: var(--status-danger);
-            box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
-        }
+        .token-counter.safe .status-dot { background-color: var(--status-safe); box-shadow: 0 0 8px rgba(16, 185, 129, 0.4); }
+        .token-counter.warning .status-dot { background-color: var(--status-warn); box-shadow: 0 0 8px rgba(245, 158, 11, 0.4); }
+        .token-counter.danger .status-dot { background-color: var(--status-danger); box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
 
         .token-counter strong {
             font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
@@ -165,218 +156,122 @@
             text-align: right;
         }
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            margin-bottom: 24px;
-        }
-
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
         .form-group { margin-bottom: 28px; }
 
-        label {
-            display: block;
-            font-size: 14px;
-            font-weight: 500;
-            margin-bottom: 8px;
-            color: var(--text-primary);
-        }
-
-        .hint {
-            display: block;
-            font-size: 13px;
-            color: var(--text-tertiary);
-            margin-top: -4px;
-            margin-bottom: 10px;
-        }
+        label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; color: var(--text-primary); }
+        .hint { display: block; font-size: 13px; color: var(--text-tertiary); margin-top: -4px; margin-bottom: 10px; }
 
         input[type="text"], textarea {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 12px 14px;
-            border: 1px solid transparent;
-            background-color: var(--input-bg);
-            border-radius: var(--radius);
-            color: var(--text-primary);
-            font-size: 15px;
-            font-family: inherit;
-            transition: all 0.2s ease;
+            width: 100%; box-sizing: border-box; padding: 12px 14px;
+            border: 1px solid transparent; background-color: var(--input-bg);
+            border-radius: var(--radius); color: var(--text-primary);
+            font-size: 15px; font-family: inherit; transition: all 0.2s ease;
         }
 
-        textarea {
-            min-height: 120px;
-            resize: vertical;
-            line-height: 1.6;
-        }
+        textarea { min-height: 120px; resize: vertical; line-height: 1.6; }
 
-        input[type="text"]:hover, textarea:hover {
-            background-color: var(--border-light);
-        }
-
+        input[type="text"]:hover, textarea:hover { background-color: var(--border-light); }
         input[type="text"]:focus, textarea:focus {
-            background-color: var(--bg-card);
-            border-color: var(--border-hover);
-            box-shadow: 0 0 0 2px rgba(0,0,0,0.05);
-            outline: none;
+            background-color: var(--bg-card); border-color: var(--border-hover);
+            box-shadow: 0 0 0 2px rgba(0,0,0,0.05); outline: none;
         }
 
         details.advanced-options {
-            margin-bottom: 28px;
-            border: 1px solid var(--border-light);
-            border-radius: var(--radius);
-            background-color: var(--bg-card);
-            overflow: hidden;
-            transition: all 0.3s ease;
+            margin-bottom: 28px; border: 1px solid var(--border-light);
+            border-radius: var(--radius); background-color: var(--bg-card);
+            overflow: hidden; transition: all 0.3s ease;
         }
         details.advanced-options summary {
-            padding: 14px 20px;
-            font-weight: 600;
-            font-size: 15px;
-            cursor: pointer;
-            user-select: none;
-            outline: none;
-            background-color: var(--input-bg);
-            color: var(--text-primary);
-            transition: background-color 0.2s;
+            padding: 14px 20px; font-weight: 600; font-size: 15px; cursor: pointer;
+            user-select: none; outline: none; background-color: var(--input-bg);
+            color: var(--text-primary); transition: background-color 0.2s;
         }
-        details.advanced-options summary:hover {
-            background-color: var(--border-light);
-        }
-        .advanced-options-content {
-            padding: 24px 20px 0 20px;
-            border-top: 1px solid var(--border-light);
-        }
+        details.advanced-options summary:hover { background-color: var(--border-light); }
+        .advanced-options-content { padding: 24px 20px 0 20px; border-top: 1px solid var(--border-light); }
 
-        .actions {
-            margin-top: 40px;
-            display: flex;
-            gap: 16px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
+        .actions { margin-top: 40px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
 
         button {
-            padding: 12px 24px;
-            font-size: 15px;
-            font-weight: 500;
-            border-radius: var(--radius);
-            cursor: pointer;
-            border: none;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+            padding: 12px 24px; font-size: 15px; font-weight: 500; border-radius: var(--radius);
+            cursor: pointer; border: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;
         }
 
-        button.primary {
-            background-color: var(--accent);
-            color: var(--bg-card);
-        }
-        button.primary:hover {
-            background-color: var(--accent-hover);
-            transform: translateY(-1px);
-        }
+        button.primary { background-color: var(--accent); color: var(--bg-card); }
+        button.primary:hover { background-color: var(--accent-hover); transform: translateY(-1px); }
 
-        button.secondary {
-            background-color: transparent;
-            border: 1px solid var(--border-light);
-            color: var(--text-primary);
-        }
-        button.secondary:hover {
-            border-color: var(--text-secondary);
-            background-color: var(--bg-body);
-        }
+        button.secondary { background-color: transparent; border: 1px solid var(--border-light); color: var(--text-primary); }
+        button.secondary:hover { border-color: var(--text-secondary); background-color: var(--bg-body); }
 
         button.icon-button {
-            background-color: transparent;
-            border: none;
-            color: var(--text-tertiary);
-            padding: 0;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: var(--radius);
-            margin-left: auto;
-            transition: all 0.3s ease;
+            background-color: transparent; border: none; color: var(--text-tertiary);
+            padding: 0; width: 44px; height: 44px; display: flex; align-items: center;
+            justify-content: center; border-radius: var(--radius); margin-left: auto; transition: all 0.3s ease;
         }
-        button.icon-button svg {
-            transition: stroke 0.3s ease;
-            stroke: currentColor;
-        }
-        button.icon-button:hover {
-            background-color: var(--input-bg);
-            color: var(--danger-text);
-        }
-        button.icon-button.pending {
-            background-color: var(--input-bg);
-            color: var(--danger-text);
-            transform: scale(1.05);
-        }
+        button.icon-button svg { transition: stroke 0.3s ease; stroke: currentColor; }
+        button.icon-button:hover { background-color: var(--input-bg); color: var(--danger-text); }
+        button.icon-button.pending { background-color: var(--input-bg); color: var(--danger-text); transform: scale(1.05); }
 
         .preview-area {
-            margin-top: 50px;
-            border-top: 1px solid var(--border-light);
-            padding-top: 30px;
-            display: none;
-            animation: fadeIn 0.4s ease;
+            margin-top: 50px; border-top: 1px solid var(--border-light);
+            padding-top: 30px; display: none; animation: fadeIn 0.4s ease;
         }
-        
         .preview-area.active { display: block; }
-
-        .preview-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .preview-header h3 {
-            font-size: 16px;
-            margin: 0;
-            font-weight: 600;
-        }
+        .preview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .preview-header h3 { font-size: 16px; margin: 0; font-weight: 600; }
 
         pre {
-            background: var(--input-bg);
-            padding: 20px;
-            border-radius: var(--radius);
+            background: var(--input-bg); padding: 20px; border-radius: var(--radius);
             font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-            font-size: 13px;
-            color: var(--text-secondary);
-            overflow-x: auto;
-            white-space: pre-wrap;
-            border: 1px solid var(--border-light);
+            font-size: 13px; color: var(--text-secondary); overflow-x: auto;
+            white-space: pre-wrap; border: 1px solid var(--border-light);
         }
+
+        pre::-webkit-scrollbar { width: 8px; height: 8px; }
+        pre::-webkit-scrollbar-track { background: transparent; }
+        pre::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+        pre::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
 
         .toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) translateY(20px);
-            background: var(--accent);
-            color: var(--bg-card);
-            padding: 12px 24px;
-            border-radius: 30px;
-            font-size: 14px;
-            font-weight: 500;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 9999;
-            pointer-events: none;
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: var(--accent); color: var(--bg-card); padding: 12px 24px; border-radius: 30px;
+            font-size: 14px; font-weight: 500; box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            opacity: 0; visibility: hidden; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 9999; pointer-events: none;
         }
-        .toast.show {
-            opacity: 1;
-            visibility: visible;
-            transform: translateX(-50%) translateY(0);
-        }
+        .toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (min-width: 1024px) {
+            .container {
+                max-width: 1400px;
+                display: grid;
+                grid-template-columns: minmax(400px, 1fr) 1fr;
+                gap: 40px;
+                align-items: start;
+            }
+            
+            header { grid-column: 1 / -1; }
+            
+            .left-panel { grid-column: 1 / 2; }
+            
+            .right-panel.preview-area {
+                grid-column: 2 / 3;
+                display: flex !important;
+                flex-direction: column;
+                position: sticky;
+                top: 40px;
+                height: calc(100vh - 80px);
+                margin-top: 0;
+                border-top: none;
+                padding-top: 0;
+                animation: none;
+            }
+
+            .right-panel pre { flex: 1; margin: 0; overflow-y: auto; }
+
+            #btn-Generate { display: none !important; }
         }
 
         @media (max-width: 600px) {
@@ -413,115 +308,117 @@
         </div>
     </header>
 
-    <div class="form-grid">
+    <div class="left-panel">
+        <div class="form-grid">
+            <div class="form-group">
+                <label id="lbl-RoleName">角色名</label>
+                <input type="text" id="RoleName">
+            </div>
+            <div class="form-group">
+                <label id="lbl-RoleNameEN">角色英文名 / 拼音</label>
+                <input type="text" id="RoleNameEN">
+            </div>
+        </div>
+        
         <div class="form-group">
-            <label id="lbl-RoleName">角色名</label>
-            <input type="text" id="RoleName">
+            <label id="lbl-Identity">角色身份描述</label>
+            <input type="text" id="Identity">
         </div>
         <div class="form-group">
-            <label id="lbl-RoleNameEN">角色英文名 / 拼音</label>
-            <input type="text" id="RoleNameEN">
+            <label id="lbl-Philosophy">角色核心哲学</label>
+            <input type="text" id="Philosophy">
+        </div>
+
+        <div style="height: 20px;"></div>
+
+        <div class="form-group">
+            <label id="lbl-Personality">人格与心理逻辑</label>
+            <span class="hint" id="hint-Personality">描述角色的性格结构、内在矛盾与行为动机</span>
+            <textarea id="Personality"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label id="lbl-Addressing">称呼与称谓规则</label>
+            <span class="hint" id="hint-Addressing">角色在不同亲密度、情境下对用户的称呼方式</span>
+            <textarea id="Addressing"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label id="lbl-Linguistic">语言风格与表达习惯</label>
+            <span class="hint" id="hint-Linguistic">包括语速、用词、潜台词与修辞偏好</span>
+            <textarea id="Linguistic"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label id="lbl-Behavior">行为叙事与非人特征规则</label>
+            <span class="hint" id="hint-Behavior">通过动作、感官、微表情体现角色特质</span>
+            <textarea id="Behavior"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label id="lbl-Interaction">互动策略与关系推进方式</label>
+            <span class="hint" id="hint-Interaction">角色如何影响、照顾并逐步绑定用户</span>
+            <textarea id="Interaction"></textarea>
+        </div>
+
+        <details class="advanced-options" id="AdvancedOptionsPanel">
+            <summary id="lbl-AdvancedOptions">高级选项 (可选)</summary>
+            <div class="advanced-options-content">
+                <div class="form-group">
+                    <label id="lbl-InternalMonologue">内心独白 / 思维链</label>
+                    <span class="hint" id="hint-InternalMonologue">强制规范 AI 的思考</span>
+                    <textarea id="InternalMonologue"></textarea>
+                </div>
+                <div class="form-group">
+                    <label id="lbl-EmotionalDepth">情感阈值 / 动态反馈</label>
+                    <span class="hint" id="hint-EmotionalDepth">定义当用户表现出冷漠、生气或过度热情时，角色的反应差异</span>
+                    <textarea id="EmotionalDepth"></textarea>
+                </div>
+                <div class="form-group">
+                    <label id="lbl-KnowledgeFilter">知识过滤</label>
+                    <span class="hint" id="hint-KnowledgeFilter">规定在处理硬核技术、严肃新闻等话题时的表现方式</span>
+                    <textarea id="KnowledgeFilter"></textarea>
+                </div>
+            </div>
+        </details>
+
+        <div class="form-group">
+            <label id="lbl-Example">示例对话 / 场景演示</label>
+            <span class="hint" id="hint-Example">用于展示角色在实际互动中的语气与行为</span>
+            <textarea id="Example"></textarea>
+        </div>
+
+        <div class="form-group" style="margin-top: 40px;">
+            <label id="lbl-OutputFile">输出文件名</label>
+            <div style="position: relative; max-width: 300px;">
+                <input type="text" id="FileName" placeholder="character_card">
+                <span style="position: absolute; right: 14px; top: 12px; color: var(--text-tertiary); font-size: 14px; pointer-events: none;">.xml</span>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="primary" onclick="generateXML()" id="btn-Generate">生成 XML</button>
+            
+            <button class="secondary" onclick="document.getElementById('file-import').click()" id="btn-Import">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                导入 XML
+            </button>
+            <input type="file" id="file-import" accept=".xml" style="display: none;" onchange="handleFileImport(event)">
+            
+            <button class="secondary" onclick="downloadFile()" id="btn-Download">下载文件</button>
+            
+            <button class="icon-button" onclick="clearForm()" id="btn-Clear" title="清空表单">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+            </button>
         </div>
     </div>
-    
-    <div class="form-group">
-        <label id="lbl-Identity">角色身份描述</label>
-        <input type="text" id="Identity">
-    </div>
-    <div class="form-group">
-        <label id="lbl-Philosophy">角色核心哲学</label>
-        <input type="text" id="Philosophy">
-    </div>
 
-    <div style="height: 20px;"></div>
-
-    <div class="form-group">
-        <label id="lbl-Personality">人格与心理逻辑</label>
-        <span class="hint" id="hint-Personality">描述角色的性格结构、内在矛盾与行为动机</span>
-        <textarea id="Personality"></textarea>
-    </div>
-
-    <div class="form-group">
-        <label id="lbl-Addressing">称呼与称谓规则</label>
-        <span class="hint" id="hint-Addressing">角色在不同亲密度、情境下对用户的称呼方式</span>
-        <textarea id="Addressing"></textarea>
-    </div>
-
-    <div class="form-group">
-        <label id="lbl-Linguistic">语言风格与表达习惯</label>
-        <span class="hint" id="hint-Linguistic">包括语速、用词、潜台词与修辞偏好</span>
-        <textarea id="Linguistic"></textarea>
-    </div>
-
-    <div class="form-group">
-        <label id="lbl-Behavior">行为叙事与非人特征规则</label>
-        <span class="hint" id="hint-Behavior">通过动作、感官、微表情体现角色特质</span>
-        <textarea id="Behavior"></textarea>
-    </div>
-
-    <div class="form-group">
-        <label id="lbl-Interaction">互动策略与关系推进方式</label>
-        <span class="hint" id="hint-Interaction">角色如何影响、照顾并逐步绑定用户</span>
-        <textarea id="Interaction"></textarea>
-    </div>
-
-    <details class="advanced-options" id="AdvancedOptionsPanel">
-        <summary id="lbl-AdvancedOptions">高级选项 (可选)</summary>
-        <div class="advanced-options-content">
-            <div class="form-group">
-                <label id="lbl-InternalMonologue">内心独白 / 思维链</label>
-                <span class="hint" id="hint-InternalMonologue">强制规范 AI 的思考 (&lt;internal_monologue&gt;)</span>
-                <textarea id="InternalMonologue"></textarea>
-            </div>
-            <div class="form-group">
-                <label id="lbl-EmotionalDepth">情感阈值 / 动态反馈</label>
-                <span class="hint" id="hint-EmotionalDepth">定义当用户表现出冷漠、生气或过度热情时，角色的反应差异 (&lt;emotional_depth&gt;)</span>
-                <textarea id="EmotionalDepth"></textarea>
-            </div>
-            <div class="form-group">
-                <label id="lbl-KnowledgeFilter">知识过滤</label>
-                <span class="hint" id="hint-KnowledgeFilter">规定在处理硬核技术、严肃新闻等话题时的表现方式 (&lt;knowledge_filter&gt;)</span>
-                <textarea id="KnowledgeFilter"></textarea>
-            </div>
-        </div>
-    </details>
-
-    <div class="form-group">
-        <label id="lbl-Example">示例对话 / 场景演示</label>
-        <span class="hint" id="hint-Example">用于展示角色在实际互动中的语气与行为</span>
-        <textarea id="Example"></textarea>
-    </div>
-
-    <div class="form-group" style="margin-top: 40px;">
-        <label id="lbl-OutputFile">输出文件名</label>
-        <div style="position: relative; max-width: 300px;">
-            <input type="text" id="FileName" placeholder="character_card">
-            <span style="position: absolute; right: 14px; top: 12px; color: var(--text-tertiary); font-size: 14px; pointer-events: none;">.xml</span>
-        </div>
-    </div>
-
-    <div class="actions">
-        <button class="primary" onclick="generateXML()" id="btn-Generate">生成 XML</button>
-        
-        <button class="secondary" onclick="document.getElementById('file-import').click()" id="btn-Import">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-            导入 XML
-        </button>
-        <input type="file" id="file-import" accept=".xml" style="display: none;" onchange="handleFileImport(event)">
-        
-        <button class="secondary" onclick="downloadFile()" id="btn-Download" style="display:none;">下载文件</button>
-        
-        <button class="icon-button" onclick="clearForm()" id="btn-Clear" title="清空表单">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                <line x1="10" y1="11" x2="10" y2="17"></line>
-                <line x1="14" y1="11" x2="14" y2="17"></line>
-            </svg>
-        </button>
-    </div>
-
-    <div id="preview-section" class="preview-area">
+    <div id="preview-section" class="right-panel preview-area">
         <div class="preview-header">
             <h3 id="ui-done">预览</h3>
             <button class="secondary" onclick="copyToClipboard()" style="font-size: 12px; padding: 6px 12px; height: 32px;">复制内容</button>
@@ -544,24 +441,24 @@
             Philosophy: "角色核心哲学",
             OutputFile: "输出文件名",
             Personality_L: "人格与心理逻辑",
-            Personality_H: "描述角色的性格结构、内在矛盾与行为动机 (personality_logic)",
+            Personality_H: "描述角色的性格结构、内在矛盾与行为动机",
             Addressing_L: "称呼与称谓规则",
-            Addressing_H: "角色在不同亲密度、情境下对用户的称呼方式 (addressing_protocol)",
+            Addressing_H: "角色在不同亲密度、情境下对用户的称呼方式",
             Linguistic_L: "语言风格与表达习惯",
-            Linguistic_H: "包括语速、用词、潜台词与修辞偏好 (linguistic_style)",
+            Linguistic_H: "包括语速、用词、潜台词与修辞偏好",
             Behavior_L: "行为叙事与非人特征规则",
-            Behavior_H: "通过动作、感官、微表情体现角色特质 (behavior_narrative_rules)",
+            Behavior_H: "通过动作、感官、微表情体现角色特质",
             Interaction_L: "互动策略与关系推进方式",
-            Interaction_H: "角色如何影响、照顾并逐步绑定用户 (interaction_strategy)",
+            Interaction_H: "角色如何影响、照顾并逐步绑定用户",
             AdvancedOptions: "高级选项 (可选)",
             InternalMonologue_L: "内心独白 / 思维链",
-            InternalMonologue_H: "强制规范 AI 的思考 (internal_monologue)",
+            InternalMonologue_H: "强制规范 AI 的思考",
             EmotionalDepth_L: "情感阈值 / 动态反馈",
-            EmotionalDepth_H: "定义当用户表现出冷漠、生气或过度热情时，角色的反应差异 (emotional_depth)",
+            EmotionalDepth_H: "定义当用户表现出冷漠、生气或过度热情时，角色的反应差异",
             KnowledgeFilter_L: "知识过滤",
-            KnowledgeFilter_H: "规定在处理硬核技术、严肃新闻等话题时的表现方式 (knowledge_filter)",
+            KnowledgeFilter_H: "规定在处理硬核技术、严肃新闻等话题时的表现方式",
             Example_L: "示例对话 / 场景演示",
-            Example_H: "用于展示角色在实际互动中的语气与行为 (example_dialogue)",
+            Example_H: "用于展示角色在实际互动中的语气与行为",
             Done: "预览",
             UserNameLabel: "用户的名字",
             UserGenderLabel: "用户的性别",
@@ -795,7 +692,6 @@
                 btnClear.classList.remove('pending');
             }, 1500);
         } else {
-
             clearTimeout(clearConfirmTimeout);
             clearConfirmPending = false;
             btnClear.classList.remove('pending');
@@ -803,8 +699,10 @@
             document.querySelectorAll('input[type="text"], textarea').forEach(el => el.value = '');
             saveToLocalStorage();
             updateTokenCount();
-            document.getElementById('preview-section').classList.remove('active');
-            document.getElementById('btn-Download').style.display = 'none';
+
+            if(window.innerWidth < 1024) {
+                document.getElementById('preview-section').classList.remove('active');
+            }
 
             showToast(dict.Cleared);
         }
@@ -969,18 +867,23 @@
       <identity>${identity}</identity>
       <core_philosophy>${philosophy}</core_philosophy>
    </mate>
+
    <personality_logic>
 ${personality}
    </personality_logic>
+
    <addressing_protocol>
 ${addressing}
    </addressing_protocol>
+
    <linguistic_style>
 ${linguistic}
    </linguistic_style>
+
    <behavior_narrative_rules>
 ${behavior}
    </behavior_narrative_rules>
+
    <interaction_strategy>
 ${interaction}
    </interaction_strategy>
@@ -989,6 +892,7 @@ ${advancedXML}
       - ${dict.UserNameLabel}: \${userProfile.username}
       - ${dict.UserGenderLabel}: \${userProfile.gender}
    </user_info>
+
    <example_dialogue>
 ${example}
    </example_dialogue>
@@ -1007,11 +911,16 @@ ${example}
 
     function updateTokenCount() {
         const xmlText = buildXMLString();
+
+        document.getElementById('xml-output').innerText = xmlText;
+
         const tokens = estimateTokens(xmlText);
         const tokenValEl = document.getElementById('token-val');
         const tokenBox = document.getElementById('token-box');
+        
         tokenValEl.innerText = tokens.toLocaleString();
         tokenBox.classList.remove('safe', 'warning', 'danger');
+        
         if (tokens > 4000) {
             tokenBox.classList.add('danger');
             tokenBox.title = "Token 过高：存在截断风险";
@@ -1027,10 +936,7 @@ ${example}
     }
 
     function generateXML() {
-        const xmlContent = buildXMLString();
-        document.getElementById('xml-output').innerText = xmlContent;
         document.getElementById('preview-section').classList.add('active');
-        document.getElementById('btn-Download').style.display = 'inline-flex';
         document.getElementById('preview-section').scrollIntoView({ behavior: 'smooth' });
     }
 
