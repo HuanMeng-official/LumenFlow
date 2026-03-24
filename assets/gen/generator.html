@@ -57,6 +57,7 @@
             padding: 40px;
             border-radius: 12px;
             box-shadow: var(--shadow);
+            position: relative;
         }
 
         header {
@@ -251,6 +252,7 @@
             display: flex;
             gap: 16px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         button {
@@ -261,6 +263,9 @@
             cursor: pointer;
             border: none;
             transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
         button.primary {
@@ -294,16 +299,21 @@
             justify-content: center;
             border-radius: var(--radius);
             margin-left: auto;
+            transition: all 0.3s ease;
         }
         button.icon-button svg {
-            transition: stroke 0.2s ease;
+            transition: stroke 0.3s ease;
             stroke: currentColor;
         }
         button.icon-button:hover {
             background-color: var(--input-bg);
             color: var(--danger-text);
         }
-
+        button.icon-button.pending {
+            background-color: var(--input-bg);
+            color: var(--danger-text);
+            transform: scale(1.05);
+        }
 
         .preview-area {
             margin-top: 50px;
@@ -340,6 +350,30 @@
             border: 1px solid var(--border-light);
         }
 
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--accent);
+            color: var(--bg-card);
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 9999;
+            pointer-events: none;
+        }
+        .toast.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -350,6 +384,7 @@
             .form-grid { grid-template-columns: 1fr; gap: 0; }
             .header-controls { flex-direction: column; align-items: stretch; }
             .save-indicator { text-align: right; }
+            button.icon-button { margin-left: 0; }
         }
     </style>
 </head>
@@ -467,7 +502,15 @@
 
     <div class="actions">
         <button class="primary" onclick="generateXML()" id="btn-Generate">生成 XML</button>
+        
+        <button class="secondary" onclick="document.getElementById('file-import').click()" id="btn-Import">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            导入 XML
+        </button>
+        <input type="file" id="file-import" accept=".xml" style="display: none;" onchange="handleFileImport(event)">
+        
         <button class="secondary" onclick="downloadFile()" id="btn-Download" style="display:none;">下载文件</button>
+        
         <button class="icon-button" onclick="clearForm()" id="btn-Clear" title="清空表单">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="3 6 5 6 21 6"></polyline>
@@ -481,11 +524,13 @@
     <div id="preview-section" class="preview-area">
         <div class="preview-header">
             <h3 id="ui-done">预览</h3>
-            <button class="secondary" onclick="copyToClipboard()" style="font-size: 12px; padding: 6px 12px;">复制内容</button>
+            <button class="secondary" onclick="copyToClipboard()" style="font-size: 12px; padding: 6px 12px; height: 32px;">复制内容</button>
         </div>
         <pre id="xml-output"></pre>
     </div>
 </div>
+
+<div id="toast" class="toast"></div>
 
 <script>
     const UI = {
@@ -521,9 +566,14 @@
             UserNameLabel: "用户的名字",
             UserGenderLabel: "用户的性别",
             BtnGenerate: "生成 XML",
+            BtnImport: "导入 XML",
             BtnDownload: "下载文件",
             BtnClear: "清空表单",
-            ConfirmClear: "确定要清空所有内容吗？此操作无法撤销。"
+            ConfirmClear: "再次点击以确认清空表单",
+            Cleared: "表单已清空",
+            ImportSuccess: "成功导入角色设定",
+            ImportError: "解析 XML 失败，请检查文件格式是否正确",
+            Copied: "已复制到剪贴板"
         },
         en: {
             Title: "LumenFlow Generator",
@@ -535,31 +585,36 @@
             Philosophy: "Core Philosophy",
             OutputFile: "Filename",
             Personality_L: "Personality & Logic",
-            Personality_H: "Structure, conflicts, motivations (personality_logic)",
+            Personality_H: "Structure, conflicts, motivations",
             Addressing_L: "Addressing Rules",
-            Addressing_H: "How the character addresses the user (addressing_protocol)",
+            Addressing_H: "How the character addresses the user",
             Linguistic_L: "Linguistic Style",
-            Linguistic_H: "Rhythm, wording, subtext (linguistic_style)",
+            Linguistic_H: "Rhythm, wording, subtext",
             Behavior_L: "Behavior & Narrative",
-            Behavior_H: "Actions, senses, micro-expressions (behavior_narrative_rules)",
+            Behavior_H: "Actions, senses, micro-expressions",
             Interaction_L: "Interaction Strategy",
-            Interaction_H: "Bonding and influence methods (interaction_strategy)",
+            Interaction_H: "Bonding and influence methods",
             AdvancedOptions: "Advanced Options (Optional)",
-            InternalMonologue_L: "Internal Monologue / Chain of Thought",
-            InternalMonologue_H: "Enforce AI thinking patterns (internal_monologue)",
-            EmotionalDepth_L: "Emotional Depth / Dynamic Feedback",
-            EmotionalDepth_H: "Reaction to user's indifference, anger, or over-enthusiasm (emotional_depth)",
+            InternalMonologue_L: "Internal Monologue",
+            InternalMonologue_H: "Enforce AI thinking patterns",
+            EmotionalDepth_L: "Emotional Depth",
+            EmotionalDepth_H: "Reaction to user's indifference or anger",
             KnowledgeFilter_L: "Knowledge Filter",
-            KnowledgeFilter_H: "How to handle hardcore tech, serious news, etc. (knowledge_filter)",
+            KnowledgeFilter_H: "How to handle hardcore tech, serious news",
             Example_L: "Dialogue Examples",
-            Example_H: "Tone and behavior demonstration (example_dialogue)",
+            Example_H: "Tone and behavior demonstration",
             Done: "Preview",
             UserNameLabel: "User Name",
             UserGenderLabel: "User Gender",
             BtnGenerate: "Generate XML",
+            BtnImport: "Import XML",
             BtnDownload: "Download File",
             BtnClear: "Clear Form",
-            ConfirmClear: "Are you sure you want to clear all fields? This cannot be undone."
+            ConfirmClear: "Click again to confirm clearing",
+            Cleared: "Form cleared",
+            ImportSuccess: "Character imported successfully",
+            ImportError: "Failed to parse XML, check file format",
+            Copied: "Copied to clipboard"
         },
         ja: {
             Title: "LumenFlow Generator",
@@ -571,31 +626,36 @@
             Philosophy: "核心哲学",
             OutputFile: "ファイル名",
             Personality_L: "人格・心理構造",
-            Personality_H: "性格構造と行動原理 (personality_logic)",
+            Personality_H: "性格構造と行動原理",
             Addressing_L: "呼称ルール",
-            Addressing_H: "状況別の呼び方 (addressing_protocol)",
+            Addressing_H: "状況別の呼び方",
             Linguistic_L: "話し方・言語スタイル",
-            Linguistic_H: "語調・語彙 (linguistic_style)",
+            Linguistic_H: "語調・語彙",
             Behavior_L: "行動描写・非人特性",
-            Behavior_H: "感覚と動作 (behavior_narrative_rules)",
+            Behavior_H: "感覚と動作",
             Interaction_L: "交流戦略",
-            Interaction_H: "関係構築方法 (interaction_strategy)",
+            Interaction_H: "関係構築方法",
             AdvancedOptions: "詳細設定 (任意)",
-            InternalMonologue_L: "内なる独白 / 思考プロセス",
-            InternalMonologue_H: "AIの思考パターンを強制 (internal_monologue)",
-            EmotionalDepth_L: "感情の閾値 / 動的フィードバック",
-            EmotionalDepth_H: "ユーザーの無関心、怒り、熱意に対する反応の違い (emotional_depth)",
+            InternalMonologue_L: "内なる独白",
+            InternalMonologue_H: "AIの思考パターンを強制",
+            EmotionalDepth_L: "感情の閾値",
+            EmotionalDepth_H: "ユーザーの態度に対する反応",
             KnowledgeFilter_L: "知識フィルター",
-            KnowledgeFilter_H: "専門的な技術や深刻なニュースなどを扱う際の表現方法 (knowledge_filter)",
+            KnowledgeFilter_H: "専門知識の表現方法",
             Example_L: "会話例 / シーン",
-            Example_H: "実際の振る舞い (example_dialogue)",
+            Example_H: "実際の振る舞い",
             Done: "プレビュー",
             UserNameLabel: "ユーザー名",
             UserGenderLabel: "性別",
             BtnGenerate: "XMLを生成",
+            BtnImport: "インポート",
             BtnDownload: "ダウンロード",
             BtnClear: "フォームをクリア",
-            ConfirmClear: "すべての内容をクリアしますか？元に戻すことはできません。"
+            ConfirmClear: "もう一度クリックしてクリアを確認",
+            Cleared: "フォームをクリアしました",
+            ImportSuccess: "キャラクター設定をインポートしました",
+            ImportError: "XMLの解析に失敗しました",
+            Copied: "クリップボードにコピーしました"
         },
         ko: {
             Title: "LumenFlow Generator",
@@ -607,31 +667,36 @@
             Philosophy: "핵심 철학",
             OutputFile: "파일 이름",
             Personality_L: "성격·심리 구조",
-            Personality_H: "성격과 행동 동기 (logic)",
+            Personality_H: "성격과 행동 동기",
             Addressing_L: "호칭 규칙",
-            Addressing_H: "상황별 사용자 호칭 (protocol)",
+            Addressing_H: "상황별 사용자 호칭",
             Linguistic_L: "언어 스타일",
-            Linguistic_H: "말투·어휘 (style)",
+            Linguistic_H: "말투·어휘",
             Behavior_L: "행동·비인간 특성",
-            Behavior_H: "감각과 동작 (rules)",
+            Behavior_H: "감각과 동작",
             Interaction_L: "상호작용 전략",
-            Interaction_H: "관계 형성 방식 (strategy)",
+            Interaction_H: "관계 형성 방식",
             AdvancedOptions: "고급 설정 (선택)",
-            InternalMonologue_L: "내면의 독백 / 사고 과정",
-            InternalMonologue_H: "AI의 사고 패턴 강제 (monologue)",
-            EmotionalDepth_L: "감정 임계값 / 동적 피드백",
-            EmotionalDepth_H: "사용자의 무관심, 분노 또는 과도한 열정에 대한 반응 차이 (depth)",
+            InternalMonologue_L: "내면의 독백",
+            InternalMonologue_H: "AI의 사고 패턴 강제",
+            EmotionalDepth_L: "감정 임계값",
+            EmotionalDepth_H: "사용자의 태도에 대한 반응",
             KnowledgeFilter_L: "지식 필터",
-            KnowledgeFilter_H: "전문 기술, 심각한 뉴스 등을 다루는 방식 (filter)",
+            KnowledgeFilter_H: "전문 지식을 다루는 방식",
             Example_L: "대화 예시",
-            Example_H: "실제 상호작용 (dialogue)",
+            Example_H: "실제 상호작용",
             Done: "미리보기",
             UserNameLabel: "사용자 이름",
             UserGenderLabel: "사용자 성별",
             BtnGenerate: "XML 생성",
+            BtnImport: "가져오기",
             BtnDownload: "다운로드",
             BtnClear: "양식 지우기",
-            ConfirmClear: "모든 내용을 지우시겠습니까? 이 작업은 되돌릴 수 없습니다."
+            ConfirmClear: "다시 클릭하여 양식 지우기 확인",
+            Cleared: "양식이 지워졌습니다",
+            ImportSuccess: "캐릭터 설정을 가져왔습니다",
+            ImportError: "XML 구문 분석 실패",
+            Copied: "클립보드에 복사되었습니다"
         }
     };
 
@@ -640,6 +705,21 @@
     const STORAGE_KEY = 'lumenflow_autosave_data';
     let saveTimeout = null;
     let hideIndicatorTimeout = null;
+    let toastTimeout = null;
+    
+    let clearConfirmPending = false;
+    let clearConfirmTimeout = null;
+
+    function showToast(message) {
+        const toastEl = document.getElementById('toast');
+        toastEl.innerText = message;
+        toastEl.classList.add('show');
+        
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+            toastEl.classList.remove('show');
+        }, 2500);
+    }
 
     function loadFromLocalStorage() {
         try {
@@ -650,7 +730,7 @@
                     document.getElementById('lang-selector').value = data.lang;
                     currentLang = data.lang;
                 }
-                const fields = [
+                const fields =[
                     'RoleName', 'RoleNameEN', 'Identity', 'Philosophy', 
                     'Personality', 'Addressing', 'Linguistic', 'Behavior', 'Interaction',
                     'InternalMonologue', 'EmotionalDepth', 'KnowledgeFilter', 'Example', 'FileName'
@@ -703,12 +783,106 @@
 
     function clearForm() {
         const dict = UI[currentLang];
-        if (confirm(dict.ConfirmClear)) {
+        const btnClear = document.getElementById('btn-Clear');
+
+        if (!clearConfirmPending) {
+            clearConfirmPending = true;
+            btnClear.classList.add('pending');
+            showToast(dict.ConfirmClear);
+            
+            clearConfirmTimeout = setTimeout(() => {
+                clearConfirmPending = false;
+                btnClear.classList.remove('pending');
+            }, 1500);
+        } else {
+
+            clearTimeout(clearConfirmTimeout);
+            clearConfirmPending = false;
+            btnClear.classList.remove('pending');
+
             document.querySelectorAll('input[type="text"], textarea').forEach(el => el.value = '');
             saveToLocalStorage();
             updateTokenCount();
             document.getElementById('preview-section').classList.remove('active');
             document.getElementById('btn-Download').style.display = 'none';
+
+            showToast(dict.Cleared);
+        }
+    }
+
+    function handleFileImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const content = e.target.result;
+            parseAndFillXML(content, file.name);
+            event.target.value = ''; 
+        };
+        reader.readAsText(file);
+    }
+
+    function unindent(text) {
+        if (!text) return "";
+        return text.split('\n').map(line => line.startsWith('      ') ? line.substring(6) : line).join('\n').trim();
+    }
+
+    function parseAndFillXML(xmlString, filename) {
+        try {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+
+            if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
+                throw new Error("Invalid XML format");
+            }
+
+            const getText = (tag) => {
+                const node = xmlDoc.getElementsByTagName(tag)[0];
+                return node ? node.textContent : "";
+            };
+
+            const fullRoleName = getText("role_name").trim();
+            const nameMatch = fullRoleName.match(/^(.*?)(?:（(.*?)）)?$/);
+            if (nameMatch) {
+                document.getElementById('RoleName').value = nameMatch[1].trim();
+                document.getElementById('RoleNameEN').value = nameMatch[2] ? nameMatch[2].trim() : "";
+            } else {
+                document.getElementById('RoleName').value = fullRoleName;
+                document.getElementById('RoleNameEN').value = "";
+            }
+
+            document.getElementById('Identity').value = getText("identity").trim();
+            document.getElementById('Philosophy').value = getText("core_philosophy").trim();
+
+            document.getElementById('Personality').value = unindent(getText("personality_logic"));
+            document.getElementById('Addressing').value = unindent(getText("addressing_protocol"));
+            document.getElementById('Linguistic').value = unindent(getText("linguistic_style"));
+            document.getElementById('Behavior').value = unindent(getText("behavior_narrative_rules"));
+            document.getElementById('Interaction').value = unindent(getText("interaction_strategy"));
+
+            const im = unindent(getText("internal_monologue"));
+            const ed = unindent(getText("emotional_depth"));
+            const kf = unindent(getText("knowledge_filter"));
+
+            document.getElementById('InternalMonologue').value = im;
+            document.getElementById('EmotionalDepth').value = ed;
+            document.getElementById('KnowledgeFilter').value = kf;
+
+            if (im || ed || kf) {
+                document.getElementById('AdvancedOptionsPanel').open = true;
+            }
+
+            document.getElementById('Example').value = unindent(getText("example_dialogue"));
+            document.getElementById('FileName').value = filename.replace(/\.xml$/i, '');
+
+            showToast(UI[currentLang].ImportSuccess);
+            updateTokenCount();
+            saveToLocalStorage();
+
+        } catch (error) {
+            console.error("XML Parsing Error:", error);
+            showToast(UI[currentLang].ImportError);
         }
     }
 
@@ -743,6 +917,10 @@
         document.getElementById('hint-Example').innerText = dict.Example_H;
         document.getElementById('ui-done').innerText = dict.Done;
         document.getElementById('btn-Generate').innerText = dict.BtnGenerate;
+        
+        const importBtn = document.getElementById('btn-Import');
+        importBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg> ` + dict.BtnImport;
+        
         document.getElementById('btn-Download').innerText = dict.BtnDownload;
         document.getElementById('btn-Clear').title = dict.BtnClear;
     }
@@ -787,7 +965,7 @@
         const example = formatIndentedBlock(document.getElementById('Example').value);
         return `<system_instruction>
    <mate>
-      <role_name>${roleName}（${roleNameEN}）</role_name>
+      <role_name>${roleName}${roleNameEN ? '（' + roleNameEN + '）' : ''}</role_name>
       <identity>${identity}</identity>
       <core_philosophy>${philosophy}</core_philosophy>
    </mate>
@@ -852,7 +1030,7 @@ ${example}
         const xmlContent = buildXMLString();
         document.getElementById('xml-output').innerText = xmlContent;
         document.getElementById('preview-section').classList.add('active');
-        document.getElementById('btn-Download').style.display = 'inline-block';
+        document.getElementById('btn-Download').style.display = 'inline-flex';
         document.getElementById('preview-section').scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -874,7 +1052,7 @@ ${example}
     function copyToClipboard() {
         const text = document.getElementById('xml-output').innerText;
         navigator.clipboard.writeText(text).then(() => {
-            alert('内容已复制到剪贴板');
+            showToast(UI[currentLang].Copied);
         });
     }
 
