@@ -332,6 +332,18 @@
         <div style="height: 20px;"></div>
 
         <div class="form-group">
+            <label id="lbl-Worldview">世界观与背景故事</label>
+            <span class="hint" id="hint-Worldview">角色身处的时代、社会背景或过去的经历</span>
+            <textarea id="Worldview"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label id="lbl-Appearance">外貌与特征</label>
+            <span class="hint" id="hint-Appearance">发色、瞳色、穿着打扮、标志性物品等</span>
+            <textarea id="Appearance"></textarea>
+        </div>
+
+        <div class="form-group">
             <label id="lbl-Personality">人格与心理逻辑</label>
             <span class="hint" id="hint-Personality">描述角色的性格结构、内在矛盾与行为动机</span>
             <textarea id="Personality"></textarea>
@@ -378,6 +390,11 @@
                     <label id="lbl-KnowledgeFilter">知识过滤</label>
                     <span class="hint" id="hint-KnowledgeFilter">规定在处理硬核技术、严肃新闻等话题时的表现方式</span>
                     <textarea id="KnowledgeFilter"></textarea>
+                </div>
+                <div class="form-group">
+                    <label id="lbl-NegativeConstraints">绝对禁忌 / 反向提示词</label>
+                    <span class="hint" id="hint-NegativeConstraints">明确告诉 AI 绝对不能做什么</span>
+                    <textarea id="NegativeConstraints"></textarea>
                 </div>
             </div>
         </details>
@@ -440,6 +457,10 @@
             Identity: "角色身份描述",
             Philosophy: "角色核心哲学",
             OutputFile: "输出文件名",
+            Worldview_L: "世界观与背景故事",
+            Worldview_H: "角色身处的时代、社会背景或过去的经历",
+            Appearance_L: "外貌与特征",
+            Appearance_H: "发色、瞳色、穿着打扮、标志性物品等",
             Personality_L: "人格与心理逻辑",
             Personality_H: "描述角色的性格结构、内在矛盾与行为动机",
             Addressing_L: "称呼与称谓规则",
@@ -457,6 +478,8 @@
             EmotionalDepth_H: "定义当用户表现出冷漠、生气或过度热情时，角色的反应差异",
             KnowledgeFilter_L: "知识过滤",
             KnowledgeFilter_H: "规定在处理硬核技术、严肃新闻等话题时的表现方式",
+            NegativeConstraints_L: "绝对禁忌 / 反向提示词",
+            NegativeConstraints_H: "明确告诉 AI 绝对不能做什么",
             Example_L: "示例对话 / 场景演示",
             Example_H: "用于展示角色在实际互动中的语气与行为",
             Done: "预览",
@@ -481,6 +504,10 @@
             Identity: "Identity",
             Philosophy: "Core Philosophy",
             OutputFile: "Filename",
+            Worldview_L: "Worldview & Background",
+            Worldview_H: "Era, social background, or past experiences",
+            Appearance_L: "Appearance & Traits",
+            Appearance_H: "Hair color, eye color, clothing, iconic items, etc.",
             Personality_L: "Personality & Logic",
             Personality_H: "Structure, conflicts, motivations",
             Addressing_L: "Addressing Rules",
@@ -498,6 +525,8 @@
             EmotionalDepth_H: "Reaction to user's indifference or anger",
             KnowledgeFilter_L: "Knowledge Filter",
             KnowledgeFilter_H: "How to handle hardcore tech, serious news",
+            NegativeConstraints_L: "Negative Constraints",
+            NegativeConstraints_H: "What the AI absolutely should NOT do",
             Example_L: "Dialogue Examples",
             Example_H: "Tone and behavior demonstration",
             Done: "Preview",
@@ -522,6 +551,10 @@
             Identity: "キャラクター設定",
             Philosophy: "核心哲学",
             OutputFile: "ファイル名",
+            Worldview_L: "世界観と背景ストーリー",
+            Worldview_H: "キャラクターの時代、社会背景、または過去の経験",
+            Appearance_L: "外見と特徴",
+            Appearance_H: "髪の色、瞳の色、服装、象徴的なアイテムなど",
             Personality_L: "人格・心理構造",
             Personality_H: "性格構造と行動原理",
             Addressing_L: "呼称ルール",
@@ -539,6 +572,8 @@
             EmotionalDepth_H: "ユーザーの態度に対する反応",
             KnowledgeFilter_L: "知識フィルター",
             KnowledgeFilter_H: "専門知識の表現方法",
+            NegativeConstraints_L: "絶対禁忌 / ネガティブプロンプト",
+            NegativeConstraints_H: "AIが絶対にやってはいけないこと",
             Example_L: "会話例 / シーン",
             Example_H: "実際の振る舞い",
             Done: "プレビュー",
@@ -563,6 +598,10 @@
             Identity: "캐릭터 설정",
             Philosophy: "핵심 철학",
             OutputFile: "파일 이름",
+            Worldview_L: "세계관 및 배경 이야기",
+            Worldview_H: "캐릭터의 시대, 사회적 배경 또는 과거 경험",
+            Appearance_L: "외모 및 특징",
+            Appearance_H: "머리색, 눈동자색, 복장, 상징적인 아이템 등",
             Personality_L: "성격·심리 구조",
             Personality_H: "성격과 행동 동기",
             Addressing_L: "호칭 규칙",
@@ -580,6 +619,8 @@
             EmotionalDepth_H: "사용자의 태도에 대한 반응",
             KnowledgeFilter_L: "지식 필터",
             KnowledgeFilter_H: "전문 지식을 다루는 방식",
+            NegativeConstraints_L: "절대 금기 / 네거티브 프롬프트",
+            NegativeConstraints_H: "AI가 절대 해서는 안 되는 것",
             Example_L: "대화 예시",
             Example_H: "실제 상호작용",
             Done: "미리보기",
@@ -629,15 +670,17 @@
                 }
                 const fields =[
                     'RoleName', 'RoleNameEN', 'Identity', 'Philosophy', 
+                    'Worldview', 'Appearance',
                     'Personality', 'Addressing', 'Linguistic', 'Behavior', 'Interaction',
-                    'InternalMonologue', 'EmotionalDepth', 'KnowledgeFilter', 'Example', 'FileName'
+                    'InternalMonologue', 'EmotionalDepth', 'KnowledgeFilter', 'NegativeConstraints',
+                    'Example', 'FileName'
                 ];
                 fields.forEach(field => {
                     if (data[field] !== undefined) {
                         document.getElementById(field).value = data[field];
                     }
                 });
-                if (data.InternalMonologue || data.EmotionalDepth || data.KnowledgeFilter) {
+                if (data.InternalMonologue || data.EmotionalDepth || data.KnowledgeFilter || data.NegativeConstraints) {
                     document.getElementById('AdvancedOptionsPanel').open = true;
                 }
             }
@@ -653,6 +696,8 @@
             RoleNameEN: document.getElementById('RoleNameEN').value,
             Identity: document.getElementById('Identity').value,
             Philosophy: document.getElementById('Philosophy').value,
+            Worldview: document.getElementById('Worldview').value,
+            Appearance: document.getElementById('Appearance').value,
             Personality: document.getElementById('Personality').value,
             Addressing: document.getElementById('Addressing').value,
             Linguistic: document.getElementById('Linguistic').value,
@@ -661,6 +706,7 @@
             InternalMonologue: document.getElementById('InternalMonologue').value,
             EmotionalDepth: document.getElementById('EmotionalDepth').value,
             KnowledgeFilter: document.getElementById('KnowledgeFilter').value,
+            NegativeConstraints: document.getElementById('NegativeConstraints').value,
             Example: document.getElementById('Example').value,
             FileName: document.getElementById('FileName').value
         };
@@ -753,6 +799,9 @@
             document.getElementById('Identity').value = getText("identity").trim();
             document.getElementById('Philosophy').value = getText("core_philosophy").trim();
 
+            document.getElementById('Worldview').value = unindent(getText("worldview_background"));
+            document.getElementById('Appearance').value = unindent(getText("appearance_traits"));
+            
             document.getElementById('Personality').value = unindent(getText("personality_logic"));
             document.getElementById('Addressing').value = unindent(getText("addressing_protocol"));
             document.getElementById('Linguistic').value = unindent(getText("linguistic_style"));
@@ -762,12 +811,14 @@
             const im = unindent(getText("internal_monologue"));
             const ed = unindent(getText("emotional_depth"));
             const kf = unindent(getText("knowledge_filter"));
+            const nc = unindent(getText("negative_constraints"));
 
             document.getElementById('InternalMonologue').value = im;
             document.getElementById('EmotionalDepth').value = ed;
             document.getElementById('KnowledgeFilter').value = kf;
+            document.getElementById('NegativeConstraints').value = nc;
 
-            if (im || ed || kf) {
+            if (im || ed || kf || nc) {
                 document.getElementById('AdvancedOptionsPanel').open = true;
             }
 
@@ -794,6 +845,10 @@
         document.getElementById('lbl-Identity').innerText = dict.Identity;
         document.getElementById('lbl-Philosophy').innerText = dict.Philosophy;
         document.getElementById('lbl-OutputFile').innerText = dict.OutputFile;
+        document.getElementById('lbl-Worldview').innerText = dict.Worldview_L;
+        document.getElementById('hint-Worldview').innerText = dict.Worldview_H;
+        document.getElementById('lbl-Appearance').innerText = dict.Appearance_L;
+        document.getElementById('hint-Appearance').innerText = dict.Appearance_H;
         document.getElementById('lbl-Personality').innerText = dict.Personality_L;
         document.getElementById('hint-Personality').innerText = dict.Personality_H;
         document.getElementById('lbl-Addressing').innerText = dict.Addressing_L;
@@ -811,6 +866,8 @@
         document.getElementById('hint-EmotionalDepth').innerText = dict.EmotionalDepth_H;
         document.getElementById('lbl-KnowledgeFilter').innerText = dict.KnowledgeFilter_L;
         document.getElementById('hint-KnowledgeFilter').innerText = dict.KnowledgeFilter_H;
+        document.getElementById('lbl-NegativeConstraints').innerText = dict.NegativeConstraints_L;
+        document.getElementById('hint-NegativeConstraints').innerText = dict.NegativeConstraints_H;
         document.getElementById('lbl-Example').innerText = dict.Example_L;
         document.getElementById('hint-Example').innerText = dict.Example_H;
         document.getElementById('ui-done').innerText = dict.Done;
@@ -842,6 +899,8 @@
         const roleNameEN = document.getElementById('RoleNameEN').value || "";
         const identity = document.getElementById('Identity').value || "";
         const philosophy = document.getElementById('Philosophy').value || "";
+        const worldview = formatIndentedBlock(document.getElementById('Worldview').value);
+        const appearance = formatIndentedBlock(document.getElementById('Appearance').value);
         const personality = formatIndentedBlock(document.getElementById('Personality').value);
         const addressing = formatIndentedBlock(document.getElementById('Addressing').value);
         const linguistic = formatIndentedBlock(document.getElementById('Linguistic').value);
@@ -850,6 +909,8 @@
         const internalMonologueRaw = document.getElementById('InternalMonologue').value;
         const emotionalDepthRaw = document.getElementById('EmotionalDepth').value;
         const knowledgeFilterRaw = document.getElementById('KnowledgeFilter').value;
+        const negativeConstraintsRaw = document.getElementById('NegativeConstraints').value;
+        
         let advancedXML = "";
         if (internalMonologueRaw.trim() !== "") {
             advancedXML += `\n   <internal_monologue>\n${formatIndentedBlock(internalMonologueRaw)}\n   </internal_monologue>\n`;
@@ -860,6 +921,10 @@
         if (knowledgeFilterRaw.trim() !== "") {
             advancedXML += `\n   <knowledge_filter>\n${formatIndentedBlock(knowledgeFilterRaw)}\n   </knowledge_filter>\n`;
         }
+        if (negativeConstraintsRaw.trim() !== "") {
+            advancedXML += `\n   <negative_constraints>\n${formatIndentedBlock(negativeConstraintsRaw)}\n   </negative_constraints>\n`;
+        }
+        
         const example = formatIndentedBlock(document.getElementById('Example').value);
         return `<system_instruction>
    <mate>
@@ -867,6 +932,14 @@
       <identity>${identity}</identity>
       <core_philosophy>${philosophy}</core_philosophy>
    </mate>
+
+   <worldview_background>
+${worldview}
+   </worldview_background>
+
+   <appearance_traits>
+${appearance}
+   </appearance_traits>
 
    <personality_logic>
 ${personality}
