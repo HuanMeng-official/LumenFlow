@@ -495,6 +495,12 @@ abstract class AppLocalizations {
   /// **'Grok API'**
   String get grokApi;
 
+  /// No description provided for @openrouterApi.
+  ///
+  /// In en, this message translates to:
+  /// **'OpenRouter API'**
+  String get openrouterApi;
+
   /// No description provided for @otherApi.
   ///
   /// In en, this message translates to:

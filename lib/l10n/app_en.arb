@@ -111,6 +111,7 @@
   "kimiApi": "Kimi API",
   "lmsApi": "LM-Studio API",
   "grokApi": "Grok API",
+  "openrouterApi": "OpenRouter API",
   "otherApi": "Other API",
   "apiTypeDesc": "Select AI service provider",
   "apiEndpoint": "API Endpoint",

@@ -222,6 +222,17 @@ class AIPlatform {
           defaultModel: '',
           icon: 'grok',
         );
+      case 'openrouter':
+        return AIPlatform(
+          id: 'openrouter',
+          name: 'OpenRouter',
+          type: 'openrouter',
+          endpoint: 'https://openrouter.ai/api/v1',
+          apiKey: '',
+          availableModels: [],
+          defaultModel: '',
+          icon: 'openrouter',
+        );
       case 'other':
         return AIPlatform(
           id: 'other',

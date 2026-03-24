@@ -16,6 +16,7 @@ import '../providers/kimi_provider.dart';
 import '../providers/lmstudio_provider.dart';
 import '../providers/other_provider.dart';
 import '../providers/grok_provider.dart';
+import '../providers/openrouter_provider.dart';
 import '../l10n/app_localizations.dart';
 
 /// AI服务类，负责处理与AI模型的通信
@@ -57,7 +58,8 @@ class AIService {
           (apiType == 'lmstudio' && _cachedProvider is LMStudioProvider) ||
           (apiType == 'other' && _cachedProvider is OtherProvider) ||
           (apiType == 'openai' && _cachedProvider is OpenAIProvider) ||
-          (apiType == 'grok' && _cachedProvider is GrokProvider);
+          (apiType == 'grok' && _cachedProvider is GrokProvider) ||
+          (apiType == 'openrouter' && _cachedProvider is OpenRouterProvider);
 
       // 如果类型匹配，且配置未变更，使用缓存
       // 注意：这里需要比较配置，但由于 Provider 内部每次都会重新读取设置，
@@ -88,6 +90,8 @@ class AIService {
       _cachedProvider = OtherProvider();
     } else if (apiType == 'grok') {
       _cachedProvider = GrokProvider();
+    } else if (apiType == 'openrouter') {
+      _cachedProvider = OpenRouterProvider();
     } else {
       _cachedProvider = OpenAIProvider();
     }

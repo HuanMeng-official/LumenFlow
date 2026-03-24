@@ -219,6 +219,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get grokApi => 'Grok API';
 
   @override
+  String get openrouterApi => 'OpenRouter API';
+
+  @override
   String get otherApi => 'Other API';
 
   @override

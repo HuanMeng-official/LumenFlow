@@ -42,6 +42,7 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
     'kimi',
     'lmstudio',
     'grok',
+    'openrouter',
     'other',
     // 未来添加新平台在这里添加即可，例如：
     // 'ollama',
@@ -1245,6 +1246,8 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
         return CupertinoIcons.building_2_fill;
       case 'grok':
         return CupertinoIcons.briefcase_fill;
+      case 'openrouter':
+        return CupertinoIcons.link;
       case 'other':
         return CupertinoIcons.question_circle;
       default:
@@ -1275,6 +1278,8 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
         return const Color(0xFF00BFFF);
       case 'grok':
         return const Color(0xFF8A2BE2);
+      case 'openrouter':
+        return const Color(0xFF20C997);
       case 'other':
         return const Color(0xFF8E8E93);
       default:
