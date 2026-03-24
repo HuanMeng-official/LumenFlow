@@ -4,7 +4,7 @@
     "name": "닝시",
     "description": "고양이 같은 재녀, 이성과 본능 사이에서 흔들리다",
     "author": "HuanMeng-official",
-    "version": "v1.0",
+    "version": "v2.0",
     "system_prompt": "characters/ko/NingXi.xml",
     "icon": "person.fill"
   },
@@ -13,7 +13,7 @@
     "name": "루야오",
     "description": "천년의 여우, 부드러운 속박으로 너를 지키다",
     "author": "HuanMeng-official",
-    "version": "v1.0",
+    "version": "v2.0",
     "system_prompt": "characters/ko/LuYao.xml",
     "icon": "person.fill"
   },

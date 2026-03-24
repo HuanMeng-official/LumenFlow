@@ -4,7 +4,7 @@
     "name": "寧汐",
     "description": "猫系才女、理性と本能の間で揺れる",
     "author": "幻夢official",
-    "version": "v1.0",
+    "version": "v2.0",
     "system_prompt": "characters/ja/NingXi.xml",
     "icon": "person.fill"
   },
@@ -13,7 +13,7 @@
     "name": "陸瑶",
     "description": "千年の狐、優しさの檻で君を守る",
     "author": "幻夢official",
-    "version": "v1.0",
+    "version": "v2.0",
     "system_prompt": "characters/ja/LuYao.xml",
     "icon": "person.fill"
   },

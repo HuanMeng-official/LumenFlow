@@ -4,7 +4,7 @@
     "name": "NingXi",
     "description": "Feline savant, torn between reason and instinct",
     "author": "HuanMeng-official",
-    "version": "v1.0",
+    "version": "v2.0",
     "system_prompt": "characters/en/NingXi.xml",
     "icon": "person.fill"
   },
@@ -13,7 +13,7 @@
     "name": "LuYao",
     "description": "Millennial fox, guarding you in tender captivity",
     "author": "HuanMeng-official",
-    "version": "v1.0",
+    "version": "v2.0",
     "system_prompt": "characters/en/LuYao.xml",
     "icon": "person.fill"
   },
