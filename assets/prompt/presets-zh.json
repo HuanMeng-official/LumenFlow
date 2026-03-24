@@ -18,15 +18,6 @@
     "icon": "person.fill"
   },
   {
-    "id": "luoling",
-    "name": "洛灵",
-    "description": "深海歌姬，以优雅为刃狩猎所爱",
-    "author": "幻梦official",
-    "version": "v1.0",
-    "system_prompt": "characters/zh/LuoLing.xml",
-    "icon": "person.fill"
-  },
-  {
     "id": "yujin",
     "name": "余烬",
     "description": "燃尽之人，唯求不被时光遗忘",
