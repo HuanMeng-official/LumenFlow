@@ -18,6 +18,10 @@
             --input-bg: #f7f7f7;
             --radius: 8px;
             --shadow: 0 4px 20px rgba(0,0,0,0.04);
+            --status-safe: #10b981;
+            --status-warn: #f59e0b;
+            --status-danger: #ef4444;
+            --danger-text: #e74c3c;
         }
 
         @media (prefers-color-scheme: dark) {
@@ -32,6 +36,7 @@
                 --accent: #ffffff;
                 --accent-hover: #e0e0e0;
                 --input-bg: #252525;
+                --danger-text: #ff6b6b;
             }
         }
 
@@ -77,8 +82,28 @@
             font-weight: 400;
         }
 
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .save-indicator {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            opacity: 0;
+            transform: translateY(2px);
+            transition: all 0.4s ease;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .save-indicator.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
         select {
-            font-size: 14px;
+            font-size: 13px;
             padding: 8px 12px;
             border-radius: var(--radius);
             border: 1px solid var(--border-light);
@@ -86,9 +111,58 @@
             color: var(--text-primary);
             cursor: pointer;
             outline: none;
-            transition: border-color 0.2s;
+            transition: all 0.2s;
+            height: 36px;
         }
         select:hover { border-color: var(--border-hover); }
+
+        .token-counter {
+            height: 36px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 14px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            font-size: 13px;
+            color: var(--text-secondary);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            user-select: none;
+        }
+        
+        .token-counter:hover { border-color: var(--border-hover); }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--status-safe);
+            transition: background-color 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        .token-counter.safe .status-dot {
+            background-color: var(--status-safe);
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+        }
+        .token-counter.warning .status-dot {
+            background-color: var(--status-warn);
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+        }
+        .token-counter.danger .status-dot {
+            background-color: var(--status-danger);
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+        }
+
+        .token-counter strong {
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
+            min-width: 44px;
+            text-align: right;
+        }
 
         .form-grid {
             display: grid;
@@ -208,6 +282,29 @@
             background-color: var(--bg-body);
         }
 
+        button.icon-button {
+            background-color: transparent;
+            border: none;
+            color: var(--text-tertiary);
+            padding: 0;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius);
+            margin-left: auto;
+        }
+        button.icon-button svg {
+            transition: stroke 0.2s ease;
+            stroke: currentColor;
+        }
+        button.icon-button:hover {
+            background-color: var(--input-bg);
+            color: var(--danger-text);
+        }
+
+
         .preview-area {
             margin-top: 50px;
             border-top: 1px solid var(--border-light);
@@ -251,6 +348,8 @@
         @media (max-width: 600px) {
             .container { padding: 24px; }
             .form-grid { grid-template-columns: 1fr; gap: 0; }
+            .header-controls { flex-direction: column; align-items: stretch; }
+            .save-indicator { text-align: right; }
         }
     </style>
 </head>
@@ -262,12 +361,21 @@
             <h1 id="ui-title">LumenFlow Generator</h1>
             <div class="subtitle">Character Card System</div>
         </div>
-        <select id="lang-selector" onchange="changeLanguage()">
-            <option value="zh">中文</option>
-            <option value="en">English</option>
-            <option value="ja">日本語</option>
-            <option value="ko">한국어</option>
-        </select>
+        <div class="header-controls">
+            <span class="save-indicator" id="save-indicator">已自动保存</span>
+            
+            <div class="token-counter safe" id="token-box" title="Token 长度估算 (健康)">
+                <div class="status-dot"></div>
+                <span id="lbl-TokenCount">Tokens</span>
+                <strong id="token-val">0</strong>
+            </div>
+            <select id="lang-selector" onchange="handleLangChange()">
+                <option value="zh">中文</option>
+                <option value="en">English</option>
+                <option value="ja">日本語</option>
+                <option value="ko">한국어</option>
+            </select>
+        </div>
     </header>
 
     <div class="form-grid">
@@ -322,7 +430,7 @@
         <textarea id="Interaction"></textarea>
     </div>
 
-    <details class="advanced-options">
+    <details class="advanced-options" id="AdvancedOptionsPanel">
         <summary id="lbl-AdvancedOptions">高级选项 (可选)</summary>
         <div class="advanced-options-content">
             <div class="form-group">
@@ -360,6 +468,14 @@
     <div class="actions">
         <button class="primary" onclick="generateXML()" id="btn-Generate">生成 XML</button>
         <button class="secondary" onclick="downloadFile()" id="btn-Download" style="display:none;">下载文件</button>
+        <button class="icon-button" onclick="clearForm()" id="btn-Clear" title="清空表单">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+        </button>
     </div>
 
     <div id="preview-section" class="preview-area">
@@ -375,6 +491,8 @@
     const UI = {
         zh: {
             Title: "LumenFlow Generator",
+            TokenCount: "Tokens",
+            AutoSaved: "已自动保存",
             RoleName: "角色名",
             RoleNameEN: "角色英文名 / 拼音",
             Identity: "角色身份描述",
@@ -403,10 +521,14 @@
             UserNameLabel: "用户的名字",
             UserGenderLabel: "用户的性别",
             BtnGenerate: "生成 XML",
-            BtnDownload: "下载文件"
+            BtnDownload: "下载文件",
+            BtnClear: "清空表单",
+            ConfirmClear: "确定要清空所有内容吗？此操作无法撤销。"
         },
         en: {
             Title: "LumenFlow Generator",
+            TokenCount: "Tokens",
+            AutoSaved: "Auto-saved",
             RoleName: "Character Name",
             RoleNameEN: "English Name",
             Identity: "Identity",
@@ -435,10 +557,14 @@
             UserNameLabel: "User Name",
             UserGenderLabel: "User Gender",
             BtnGenerate: "Generate XML",
-            BtnDownload: "Download File"
+            BtnDownload: "Download File",
+            BtnClear: "Clear Form",
+            ConfirmClear: "Are you sure you want to clear all fields? This cannot be undone."
         },
         ja: {
             Title: "LumenFlow Generator",
+            TokenCount: "Tokens",
+            AutoSaved: "自動保存しました",
             RoleName: "キャラクター名",
             RoleNameEN: "英語名 / ローマ字",
             Identity: "キャラクター設定",
@@ -467,55 +593,135 @@
             UserNameLabel: "ユーザー名",
             UserGenderLabel: "性別",
             BtnGenerate: "XMLを生成",
-            BtnDownload: "ダウンロード"
+            BtnDownload: "ダウンロード",
+            BtnClear: "フォームをクリア",
+            ConfirmClear: "すべての内容をクリアしますか？元に戻すことはできません。"
         },
         ko: {
             Title: "LumenFlow Generator",
+            TokenCount: "Tokens",
+            AutoSaved: "자동 저장됨",
             RoleName: "캐릭터 이름",
             RoleNameEN: "영문 이름",
             Identity: "캐릭터 설정",
             Philosophy: "핵심 철학",
             OutputFile: "파일 이름",
             Personality_L: "성격·심리 구조",
-            Personality_H: "성격과 행동 동기 (personality_logic)",
+            Personality_H: "성격과 행동 동기 (logic)",
             Addressing_L: "호칭 규칙",
-            Addressing_H: "상황별 사용자 호칭 (addressing_protocol)",
+            Addressing_H: "상황별 사용자 호칭 (protocol)",
             Linguistic_L: "언어 스타일",
-            Linguistic_H: "말투·어휘 (linguistic_style)",
+            Linguistic_H: "말투·어휘 (style)",
             Behavior_L: "행동·비인간 특성",
-            Behavior_H: "감각과 동작 (behavior_narrative_rules)",
+            Behavior_H: "감각과 동작 (rules)",
             Interaction_L: "상호작용 전략",
-            Interaction_H: "관계 형성 방식 (interaction_strategy)",
+            Interaction_H: "관계 형성 방식 (strategy)",
             AdvancedOptions: "고급 설정 (선택)",
             InternalMonologue_L: "내면의 독백 / 사고 과정",
-            InternalMonologue_H: "AI의 사고 패턴 강제 (internal_monologue)",
+            InternalMonologue_H: "AI의 사고 패턴 강제 (monologue)",
             EmotionalDepth_L: "감정 임계값 / 동적 피드백",
-            EmotionalDepth_H: "사용자의 무관심, 분노 또는 과도한 열정에 대한 반응 차이 (emotional_depth)",
+            EmotionalDepth_H: "사용자의 무관심, 분노 또는 과도한 열정에 대한 반응 차이 (depth)",
             KnowledgeFilter_L: "지식 필터",
-            KnowledgeFilter_H: "전문 기술, 심각한 뉴스 등을 다루는 방식 (knowledge_filter)",
+            KnowledgeFilter_H: "전문 기술, 심각한 뉴스 등을 다루는 방식 (filter)",
             Example_L: "대화 예시",
-            Example_H: "실제 상호작용 (example_dialogue)",
+            Example_H: "실제 상호작용 (dialogue)",
             Done: "미리보기",
             UserNameLabel: "사용자 이름",
             UserGenderLabel: "사용자 성별",
             BtnGenerate: "XML 생성",
-            BtnDownload: "다운로드"
+            BtnDownload: "다운로드",
+            BtnClear: "양식 지우기",
+            ConfirmClear: "모든 내용을 지우시겠습니까? 이 작업은 되돌릴 수 없습니다."
         }
     };
 
     let currentLang = 'zh';
 
-    function changeLanguage() {
-        currentLang = document.getElementById('lang-selector').value;
+    const STORAGE_KEY = 'lumenflow_autosave_data';
+    let saveTimeout = null;
+    let hideIndicatorTimeout = null;
+
+    function loadFromLocalStorage() {
+        try {
+            const savedData = localStorage.getItem(STORAGE_KEY);
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                if (data.lang) {
+                    document.getElementById('lang-selector').value = data.lang;
+                    currentLang = data.lang;
+                }
+                const fields = [
+                    'RoleName', 'RoleNameEN', 'Identity', 'Philosophy', 
+                    'Personality', 'Addressing', 'Linguistic', 'Behavior', 'Interaction',
+                    'InternalMonologue', 'EmotionalDepth', 'KnowledgeFilter', 'Example', 'FileName'
+                ];
+                fields.forEach(field => {
+                    if (data[field] !== undefined) {
+                        document.getElementById(field).value = data[field];
+                    }
+                });
+                if (data.InternalMonologue || data.EmotionalDepth || data.KnowledgeFilter) {
+                    document.getElementById('AdvancedOptionsPanel').open = true;
+                }
+            }
+        } catch (e) {
+            console.error("Failed to load local storage data:", e);
+        }
+    }
+
+    function saveToLocalStorage() {
+        const data = {
+            lang: document.getElementById('lang-selector').value,
+            RoleName: document.getElementById('RoleName').value,
+            RoleNameEN: document.getElementById('RoleNameEN').value,
+            Identity: document.getElementById('Identity').value,
+            Philosophy: document.getElementById('Philosophy').value,
+            Personality: document.getElementById('Personality').value,
+            Addressing: document.getElementById('Addressing').value,
+            Linguistic: document.getElementById('Linguistic').value,
+            Behavior: document.getElementById('Behavior').value,
+            Interaction: document.getElementById('Interaction').value,
+            InternalMonologue: document.getElementById('InternalMonologue').value,
+            EmotionalDepth: document.getElementById('EmotionalDepth').value,
+            KnowledgeFilter: document.getElementById('KnowledgeFilter').value,
+            Example: document.getElementById('Example').value,
+            FileName: document.getElementById('FileName').value
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        const indicator = document.getElementById('save-indicator');
+        indicator.classList.add('show');
+        clearTimeout(hideIndicatorTimeout);
+        hideIndicatorTimeout = setTimeout(() => {
+            indicator.classList.remove('show');
+        }, 2000);
+    }
+
+    function triggerAutoSave() {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(saveToLocalStorage, 1500);
+    }
+
+    function clearForm() {
         const dict = UI[currentLang];
-        
+        if (confirm(dict.ConfirmClear)) {
+            document.querySelectorAll('input[type="text"], textarea').forEach(el => el.value = '');
+            saveToLocalStorage();
+            updateTokenCount();
+            document.getElementById('preview-section').classList.remove('active');
+            document.getElementById('btn-Download').style.display = 'none';
+        }
+    }
+
+    function applyLanguageUI() {
+        const dict = UI[currentLang];
         document.getElementById('ui-title').innerText = dict.Title;
+        document.getElementById('lbl-TokenCount').innerText = dict.TokenCount;
+        document.getElementById('save-indicator').innerText = dict.AutoSaved;
         document.getElementById('lbl-RoleName').innerText = dict.RoleName;
         document.getElementById('lbl-RoleNameEN').innerText = dict.RoleNameEN;
         document.getElementById('lbl-Identity').innerText = dict.Identity;
         document.getElementById('lbl-Philosophy').innerText = dict.Philosophy;
         document.getElementById('lbl-OutputFile').innerText = dict.OutputFile;
-        
         document.getElementById('lbl-Personality').innerText = dict.Personality_L;
         document.getElementById('hint-Personality').innerText = dict.Personality_H;
         document.getElementById('lbl-Addressing').innerText = dict.Addressing_L;
@@ -526,7 +732,6 @@
         document.getElementById('hint-Behavior').innerText = dict.Behavior_H;
         document.getElementById('lbl-Interaction').innerText = dict.Interaction_L;
         document.getElementById('hint-Interaction').innerText = dict.Interaction_H;
-        
         document.getElementById('lbl-AdvancedOptions').innerText = dict.AdvancedOptions;
         document.getElementById('lbl-InternalMonologue').innerText = dict.InternalMonologue_L;
         document.getElementById('hint-InternalMonologue').innerText = dict.InternalMonologue_H;
@@ -534,13 +739,19 @@
         document.getElementById('hint-EmotionalDepth').innerText = dict.EmotionalDepth_H;
         document.getElementById('lbl-KnowledgeFilter').innerText = dict.KnowledgeFilter_L;
         document.getElementById('hint-KnowledgeFilter').innerText = dict.KnowledgeFilter_H;
-
         document.getElementById('lbl-Example').innerText = dict.Example_L;
         document.getElementById('hint-Example').innerText = dict.Example_H;
-
         document.getElementById('ui-done').innerText = dict.Done;
         document.getElementById('btn-Generate').innerText = dict.BtnGenerate;
         document.getElementById('btn-Download').innerText = dict.BtnDownload;
+        document.getElementById('btn-Clear').title = dict.BtnClear;
+    }
+
+    function handleLangChange() {
+        currentLang = document.getElementById('lang-selector').value;
+        applyLanguageUI();
+        updateTokenCount();
+        triggerAutoSave();
     }
 
     function formatIndentedBlock(text, indentSpaces = 6) {
@@ -549,23 +760,20 @@
         return text.split('\n').map(line => line.trim() === "" ? "" : indent + line).join('\n');
     }
 
-    function generateXML() {
+    function buildXMLString() {
         const dict = UI[currentLang];
         const roleName = document.getElementById('RoleName').value || "Unknown";
         const roleNameEN = document.getElementById('RoleNameEN').value || "";
         const identity = document.getElementById('Identity').value || "";
         const philosophy = document.getElementById('Philosophy').value || "";
-
         const personality = formatIndentedBlock(document.getElementById('Personality').value);
         const addressing = formatIndentedBlock(document.getElementById('Addressing').value);
         const linguistic = formatIndentedBlock(document.getElementById('Linguistic').value);
         const behavior = formatIndentedBlock(document.getElementById('Behavior').value);
         const interaction = formatIndentedBlock(document.getElementById('Interaction').value);
-        
         const internalMonologueRaw = document.getElementById('InternalMonologue').value;
         const emotionalDepthRaw = document.getElementById('EmotionalDepth').value;
         const knowledgeFilterRaw = document.getElementById('KnowledgeFilter').value;
-
         let advancedXML = "";
         if (internalMonologueRaw.trim() !== "") {
             advancedXML += `\n   <internal_monologue>\n${formatIndentedBlock(internalMonologueRaw)}\n   </internal_monologue>\n`;
@@ -576,32 +784,25 @@
         if (knowledgeFilterRaw.trim() !== "") {
             advancedXML += `\n   <knowledge_filter>\n${formatIndentedBlock(knowledgeFilterRaw)}\n   </knowledge_filter>\n`;
         }
-
         const example = formatIndentedBlock(document.getElementById('Example').value);
-
-        const xmlContent = `<system_instruction>
+        return `<system_instruction>
    <mate>
       <role_name>${roleName}（${roleNameEN}）</role_name>
       <identity>${identity}</identity>
       <core_philosophy>${philosophy}</core_philosophy>
    </mate>
-
    <personality_logic>
 ${personality}
    </personality_logic>
-
    <addressing_protocol>
 ${addressing}
    </addressing_protocol>
-
    <linguistic_style>
 ${linguistic}
    </linguistic_style>
-
    <behavior_narrative_rules>
 ${behavior}
    </behavior_narrative_rules>
-
    <interaction_strategy>
 ${interaction}
    </interaction_strategy>
@@ -610,16 +811,48 @@ ${advancedXML}
       - ${dict.UserNameLabel}: \${userProfile.username}
       - ${dict.UserGenderLabel}: \${userProfile.gender}
    </user_info>
-
    <example_dialogue>
 ${example}
    </example_dialogue>
 </system_instruction>`;
+    }
 
+    function estimateTokens(text) {
+        if (!text) return 0;
+        const cjkRegex = /[\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/g;
+        const cjkMatch = text.match(cjkRegex);
+        const cjkCount = cjkMatch ? cjkMatch.length : 0;
+        const nonCjkText = text.replace(cjkRegex, '');
+        const nonCjkCount = Math.ceil(nonCjkText.length / 4);
+        return Math.ceil(cjkCount * 1.5) + nonCjkCount;
+    }
+
+    function updateTokenCount() {
+        const xmlText = buildXMLString();
+        const tokens = estimateTokens(xmlText);
+        const tokenValEl = document.getElementById('token-val');
+        const tokenBox = document.getElementById('token-box');
+        tokenValEl.innerText = tokens.toLocaleString();
+        tokenBox.classList.remove('safe', 'warning', 'danger');
+        if (tokens > 4000) {
+            tokenBox.classList.add('danger');
+            tokenBox.title = "Token 过高：存在截断风险";
+        } else if (tokens > 2000) {
+            tokenBox.classList.add('warning');
+            tokenBox.title = "Token 适中：常规模型可良好处理";
+        } else {
+            tokenBox.title = "Token 健康：优秀的控制长度";
+            if(tokens > 200) {
+                tokenBox.classList.add('safe');
+            }
+        }
+    }
+
+    function generateXML() {
+        const xmlContent = buildXMLString();
         document.getElementById('xml-output').innerText = xmlContent;
         document.getElementById('preview-section').classList.add('active');
         document.getElementById('btn-Download').style.display = 'inline-block';
-        
         document.getElementById('preview-section').scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -628,7 +861,6 @@ ${example}
         let fileName = document.getElementById('FileName').value.trim();
         if (!fileName) fileName = "character_card";
         if (!fileName.endsWith('.xml')) fileName += '.xml';
-
         const blob = new Blob([content], { type: 'text/xml;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -646,7 +878,19 @@ ${example}
         });
     }
 
-    changeLanguage();
+    function init() {
+        loadFromLocalStorage();
+        document.querySelectorAll('input, textarea').forEach(element => {
+            element.addEventListener('input', () => {
+                updateTokenCount();
+                triggerAutoSave();
+            });
+        });
+        applyLanguageUI();
+        updateTokenCount();
+    }
+
+    init();
 </script>
 
 </body>
