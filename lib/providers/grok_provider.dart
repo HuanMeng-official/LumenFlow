@@ -11,7 +11,7 @@ import '../services/settings_service.dart';
 import '../l10n/app_localizations.dart';
 
 /// Grok API Provider 实现
-/// 基于 OpenAI 兼容的聊天补全 API，支持推理和视觉功能
+/// 基于 X AI Responses API，支持流式传输
 class GrokProvider extends AIProvider {
   final SettingsService _settingsService = SettingsService();
   final FileService _fileService = FileService();
@@ -48,7 +48,15 @@ class GrokProvider extends AIProvider {
           final historyContextLength =
               await _settingsService.getHistoryContextLength();
 
-          final messages = await _buildMessages(
+          // 构建请求体
+          final requestBody = <String, dynamic>{
+            'model': model,
+            'max_output_tokens': maxTokens,
+            'temperature': temperature,
+          };
+
+          // 构建input字段（消息数组）
+          final input = await _buildInput(
             message: message,
             chatHistory: chatHistory,
             attachments: attachments,
@@ -56,25 +64,11 @@ class GrokProvider extends AIProvider {
             enableHistory: enableHistory,
             historyContextLength: historyContextLength,
             l10n: l10n,
-            model: model,
           );
-
-          // 构建请求体
-          final requestBody = <String, dynamic>{
-            'model': model,
-            'messages': messages,
-            'max_tokens': maxTokens,
-            'temperature': temperature,
-            'top_p': 0.7,
-          };
-
-          // 添加推理配置（仅当模型支持且启用思考模式时）
-          if (thinkingMode) {
-            requestBody['reasoning_effort'] = 'low';
-          }
+          requestBody['input'] = input;
 
           final response = await client.post(
-            Uri.parse('$apiEndpoint/chat/completions'),
+            Uri.parse('$apiEndpoint/responses'),
             headers: {
               'Content-Type': 'application/json',
               'Authorization': 'Bearer $apiKey',
@@ -118,7 +112,16 @@ class GrokProvider extends AIProvider {
       final historyContextLength =
           await _settingsService.getHistoryContextLength();
 
-      final messages = await _buildMessages(
+      // 构建响应API的请求体
+      final requestBody = <String, dynamic>{
+        'model': model,
+        'max_output_tokens': maxTokens,
+        'temperature': temperature,
+        'stream': true,
+      };
+
+      // 构建input字段
+      final input = await _buildInput(
         message: message,
         chatHistory: chatHistory,
         attachments: attachments,
@@ -126,31 +129,15 @@ class GrokProvider extends AIProvider {
         enableHistory: enableHistory,
         historyContextLength: historyContextLength,
         l10n: l10n,
-        model: model,
       );
+      requestBody['input'] = input;
 
       final request = http.Request(
         'POST',
-        Uri.parse('$apiEndpoint/chat/completions'),
+        Uri.parse('$apiEndpoint/responses'),
       );
       request.headers['Content-Type'] = 'application/json';
       request.headers['Authorization'] = 'Bearer $apiKey';
-
-      // 构建请求体
-      final requestBody = <String, dynamic>{
-        'model': model,
-        'messages': messages,
-        'max_tokens': maxTokens,
-        'temperature': temperature,
-        'stream': true,
-        'top_p': 0.7,
-      };
-
-      // 添加推理配置
-      if (thinkingMode) {
-        requestBody['reasoning_effort'] = 'low';
-      }
-
       request.body = jsonEncode(requestBody);
 
       final streamedResponse = await client.send(request).timeout(streamingTimeout);
@@ -161,35 +148,115 @@ class GrokProvider extends AIProvider {
         throw _parseError(errorBody, streamedResponse.statusCode, l10n);
       }
 
-      final stream = streamedResponse.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter());
+      // 缓冲区用于累积SSE事件，处理跨chunk的事件分割
+      final sseBuffer = StringBuffer();
+      // 缓冲区用于累积流式响应，避免重复
+      final answerBuffer = StringBuffer();
+      final reasoningBuffer = StringBuffer();
 
       final stopwatch = Stopwatch()..start();
-      await for (final line in stream) {
+
+      // 处理SSE流，正确处理跨chunk的事件边界
+      await for (final chunk in streamedResponse.stream.transform(utf8.decoder)) {
         stopwatch.reset();
 
-        if (line.isEmpty) continue;
-        if (line.startsWith('data: ')) {
-          final data = line.substring(6);
-          if (data == '[DONE]') {
+        if (chunk.isEmpty) continue;
+
+        // 将chunk添加到SSE缓冲区
+        sseBuffer.write(chunk);
+        final bufferContent = sseBuffer.toString();
+
+        // 按双换行符分割SSE事件
+        final events = bufferContent.split('\n\n');
+
+        // 如果最后一个事件不完整，保留在缓冲区中
+        sseBuffer.clear();
+        if (!bufferContent.endsWith('\n\n') && events.isNotEmpty) {
+          final lastEvent = events.removeLast();
+          sseBuffer.write(lastEvent);
+          if (!lastEvent.endsWith('\n')) {
+            sseBuffer.write('\n');
+          }
+        }
+
+        // 处理完整的SSE事件
+        for (final event in events) {
+          if (event.trim().isEmpty) continue;
+
+          // 解析SSE事件行
+          final lines = event.split('\n');
+          String? dataLine;
+
+          for (final line in lines) {
+            if (line.startsWith('data: ')) {
+              dataLine = line.substring(6);
+              break;
+            }
+          }
+
+          if (dataLine == null) continue;
+          if (dataLine == '[DONE]') {
             break;
           }
+
           try {
-            final jsonData = jsonDecode(data);
-            final delta = jsonData['choices']?[0]?['delta'];
+            final jsonData = jsonDecode(dataLine);
+            final type = jsonData['type'] as String?;
 
-            if (delta != null) {
-              // 处理推理内容（Grok 使用 reasoning_content 字段）
-              final reasoningContent = delta['reasoning_content'] as String?;
-              if (reasoningContent != null && reasoningContent.isNotEmpty) {
-                yield {'type': 'reasoning', 'content': reasoningContent};
+            // 处理响应API的流式事件
+            if (type == 'response.output_text.delta') {
+              final delta = jsonData['delta'] as String?;
+              if (delta != null && delta.isNotEmpty) {
+                answerBuffer.write(delta);
+                yield {'type': 'answer', 'content': delta};
               }
-
-              // 处理最终回答
-              final content = delta['content'] as String?;
-              if (content != null && content.isNotEmpty) {
-                yield {'type': 'answer', 'content': content};
+            } else if (type == 'response.output_text.done') {
+              final text = jsonData['text'] as String?;
+              if (text != null && text.isNotEmpty) {
+                final currentAnswer = answerBuffer.toString();
+                if (text != currentAnswer) {
+                  // 如果文本与当前缓冲区内容不同，发送差异部分
+                  if (text.startsWith(currentAnswer)) {
+                    final remaining = text.substring(currentAnswer.length);
+                    if (remaining.isNotEmpty) {
+                      yield {'type': 'answer', 'content': remaining};
+                      answerBuffer.write(remaining);
+                    }
+                  } else {
+                    // 文本与缓冲区内容不匹配，发送整个文本
+                    yield {'type': 'answer', 'content': text};
+                    answerBuffer.clear();
+                    answerBuffer.write(text);
+                  }
+                }
+                // 如果文本与缓冲区内容相同，则跳过，避免重复
+              }
+            } else if (type == 'response.reasoning_text.delta') {
+              final delta = jsonData['delta'] as String?;
+              if (delta != null && delta.isNotEmpty) {
+                reasoningBuffer.write(delta);
+                yield {'type': 'reasoning', 'content': delta};
+              }
+            } else if (type == 'response.reasoning_text.done') {
+              final text = jsonData['text'] as String?;
+              if (text != null && text.isNotEmpty) {
+                final currentReasoning = reasoningBuffer.toString();
+                if (text != currentReasoning) {
+                  // 如果文本与当前缓冲区内容不同，发送差异部分
+                  if (text.startsWith(currentReasoning)) {
+                    final remaining = text.substring(currentReasoning.length);
+                    if (remaining.isNotEmpty) {
+                      yield {'type': 'reasoning', 'content': remaining};
+                      reasoningBuffer.write(remaining);
+                    }
+                  } else {
+                    // 文本与缓冲区内容不匹配，发送整个文本
+                    yield {'type': 'reasoning', 'content': text};
+                    reasoningBuffer.clear();
+                    reasoningBuffer.write(text);
+                  }
+                }
+                // 如果文本与缓冲区内容相同，则跳过，避免重复
               }
             }
           } catch (e) {
@@ -219,35 +286,42 @@ class GrokProvider extends AIProvider {
       return '$role: ${msg.content.trim()}';
     }).join('\n');
 
-    final requestMessages = [
-      {
-        'role': 'system',
-        'content': l10n.providerTitleGenSystemPrompt
-      },
-      {
-        'role': 'user',
-        'content': l10n.providerTitleGenUserPrompt(conversationSummary)
-      }
-    ];
+    // 构建响应API请求
+    final requestBody = <String, dynamic>{
+      'model': model,
+      'instructions': l10n.providerTitleGenSystemPrompt,
+      'input': l10n.providerTitleGenUserPrompt(conversationSummary),
+      'max_output_tokens': 50,
+      'temperature': 0.3,
+    };
 
     final response = await http.post(
-      Uri.parse('$apiEndpoint/chat/completions'),
+      Uri.parse('$apiEndpoint/responses'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $apiKey',
       },
-      body: jsonEncode({
-        'model': model,
-        'messages': requestMessages,
-        'max_tokens': 50,
-        'temperature': 0.3,
-        'top_p': 0.7,
-      }),
+      body: jsonEncode(requestBody),
     );
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      var title = data['choices'][0]['message']['content']?.toString().trim() ?? '';
+
+      // 从响应API格式中提取标题
+      var title = '';
+      final output = data['output'] as List?;
+      if (output != null && output.isNotEmpty) {
+        final firstOutput = output[0] as Map<String, dynamic>?;
+        if (firstOutput != null && firstOutput['type'] == 'message') {
+          final contentList = firstOutput['content'] as List?;
+          if (contentList != null && contentList.isNotEmpty) {
+            final firstContent = contentList[0] as Map<String, dynamic>?;
+            if (firstContent != null && firstContent['type'] == 'output_text') {
+              title = firstContent['text']?.toString().trim() ?? '';
+            }
+          }
+        }
+      }
 
       // 移除可能的引号
       if (title.startsWith('"') || title.startsWith('\'') || title.startsWith('|')) {
@@ -272,8 +346,8 @@ class GrokProvider extends AIProvider {
     }
   }
 
-  /// 构建消息列表
-  Future<List<Map<String, dynamic>>> _buildMessages({
+  /// 构建响应API的input字段
+  Future<dynamic> _buildInput({
     required String message,
     required List<Message> chatHistory,
     required List<Attachment> attachments,
@@ -281,8 +355,8 @@ class GrokProvider extends AIProvider {
     required bool enableHistory,
     required int historyContextLength,
     required AppLocalizations l10n,
-    required String model,
   }) async {
+    // 构建消息数组
     final messages = <Map<String, dynamic>>[];
 
     // 添加系统提示词
@@ -307,26 +381,31 @@ class GrokProvider extends AIProvider {
           .toList();
 
       for (final historyMsg in recentHistory) {
+        final role = historyMsg.isUser ? 'user' : 'assistant';
+        final content = historyMsg.content;
+
         messages.add({
-          'role': historyMsg.isUser ? 'user' : 'assistant',
-          'content': historyMsg.content,
+          'role': role,
+          'content': content,
         });
       }
     }
 
     // 添加当前用户消息
-    final userMessageContent = await _buildMessageContent(message, attachments, l10n, model);
+    final userMessageContent = await _buildMessageContent(message, attachments, l10n);
     messages.add({
       'role': 'user',
       'content': userMessageContent,
     });
 
+    // 如果只有系统消息和用户消息，返回数组
     return messages;
   }
 
+
   /// 构建消息内容（处理附件）
   Future<dynamic> _buildMessageContent(
-      String message, List<Attachment> attachments, AppLocalizations l10n, String model) async {
+      String message, List<Attachment> attachments, AppLocalizations l10n) async {
     if (attachments.isEmpty) {
       return message;
     }
@@ -340,7 +419,8 @@ class GrokProvider extends AIProvider {
     final contentParts = <Map<String, dynamic>>[];
 
     if (message.isNotEmpty) {
-      contentParts.add({'type': 'text', 'text': message});
+      // 响应API使用 input_text 类型
+      contentParts.add({'type': 'input_text', 'text': message});
     }
 
     for (final attachment in attachments) {
@@ -348,7 +428,7 @@ class GrokProvider extends AIProvider {
         if (attachment.filePath == null ||
             !await _fileService.fileExists(attachment.filePath!)) {
           contentParts.add(
-              {'type': 'text', 'text': l10n.providerFileNotFound(attachment.fileName)});
+              {'type': 'input_text', 'text': l10n.providerFileNotFound(attachment.fileName)});
           continue;
         }
 
@@ -358,7 +438,7 @@ class GrokProvider extends AIProvider {
 
         if (fileSize > AIProvider.maxFileSizeForBase64) {
           contentParts.add({
-            'type': 'text',
+            'type': 'input_text',
             'text': l10n.providerFileTooLarge(attachment.fileName, formatFileSize(fileSize))
           });
           continue;
@@ -370,12 +450,12 @@ class GrokProvider extends AIProvider {
             final dataUrl =
                 await _fileService.getFileDataUrl(file, attachment.mimeType);
             contentParts.add({
-              'type': 'image_url',
+              'type': 'input_image',
               'image_url': {'url': dataUrl}
             });
           } catch (e) {
             contentParts.add({
-              'type': 'text',
+              'type': 'input_text',
               'text': l10n.providerFileProcessError(attachment.fileName, e.toString())
             });
           }
@@ -385,7 +465,7 @@ class GrokProvider extends AIProvider {
             try {
               final content = await _fileService.readTextFile(file);
               contentParts.add({
-                'type': 'text',
+                'type': 'input_text',
                 'text': l10n.providerFileContent(
                   attachment.fileName,
                   formatFileSize(fileSize),
@@ -394,7 +474,7 @@ class GrokProvider extends AIProvider {
               });
             } catch (e) {
               contentParts.add({
-                'type': 'text',
+                'type': 'input_text',
                 'text': l10n.providerAttachmentCannotRead(
                   attachment.fileName,
                   formatFileSize(fileSize),
@@ -404,7 +484,7 @@ class GrokProvider extends AIProvider {
             }
           } else {
             contentParts.add({
-              'type': 'text',
+              'type': 'input_text',
               'text': l10n.providerAttachmentInfo(
                 attachment.fileName,
                 formatFileSize(fileSize),
@@ -415,11 +495,11 @@ class GrokProvider extends AIProvider {
         }
       } catch (e) {
         contentParts.add(
-            {'type': 'text', 'text': l10n.providerFileProcessError(attachment.fileName, e.toString())});
+            {'type': 'input_text', 'text': l10n.providerFileProcessError(attachment.fileName, e.toString())});
       }
     }
 
-    if (contentParts.length == 1 && contentParts[0]['type'] == 'text') {
+    if (contentParts.length == 1 && contentParts[0]['type'] == 'input_text') {
       return contentParts[0]['text'] as String;
     }
 
@@ -429,26 +509,52 @@ class GrokProvider extends AIProvider {
   /// 解析响应
   Map<String, dynamic> _parseResponse(String responseBody, AppLocalizations l10n) {
     final data = jsonDecode(responseBody);
-    if (data is! Map<String, dynamic> ||
-        data['choices'] == null ||
-        (data['choices'] as List).isEmpty) {
-      throw Exception(l10n.providerInvalidResponseFormat);
+
+    // 处理响应API格式
+    if (data is Map<String, dynamic> && data['object'] == 'response') {
+      final output = data['output'] as List?;
+      String reasoningContent = '';
+      String content = '';
+
+      if (output != null) {
+        for (final item in output) {
+          if (item is! Map<String, dynamic>) continue;
+
+          final type = item['type'] as String?;
+          if (type == 'message') {
+            final contentList = item['content'] as List?;
+            if (contentList != null) {
+              for (final contentItem in contentList) {
+                if (contentItem is Map<String, dynamic> &&
+                    contentItem['type'] == 'output_text') {
+                  final text = contentItem['text'] as String?;
+                  if (text != null && text.isNotEmpty) {
+                    content += (content.isNotEmpty ? '\n' : '') + text;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // 检查是否有推理内容
+      final reasoning = data['reasoning'] as Map<String, dynamic>?;
+      if (reasoning != null) {
+        final summary = reasoning['summary'] as String?;
+        if (summary != null && summary.isNotEmpty) {
+          reasoningContent = summary;
+        }
+      }
+
+      return {
+        'reasoningContent': reasoningContent.trim(),
+        'content': content.trim(),
+      };
     }
 
-    final firstChoice = data['choices'][0];
-    if (firstChoice['message'] == null) {
-      throw Exception(l10n.providerMissingMessageField);
-    }
-
-    final message = firstChoice['message'];
-    // Grok 使用 reasoning_content 字段存储推理内容
-    final reasoningContent = message['reasoning_content']?.toString().trim() ?? '';
-    final content = message['content']?.toString().trim() ?? '';
-
-    return {
-      'reasoningContent': reasoningContent,
-      'content': content,
-    };
+    // 如果格式不符合预期，抛出异常
+    throw Exception(l10n.providerInvalidResponseFormat);
   }
 
   /// 解析错误
