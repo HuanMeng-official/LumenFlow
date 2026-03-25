@@ -29,24 +29,19 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
   bool _isLoading = true;
   final Set<String> _loadingPlatforms = {};
 
-  /// 可用的平台类型列表
-  /// 添加新平台时只需在此列表中添加类型名称
   static const List<String> _availablePlatformTypes = [
     'openai',
-    'claude',
-    'deepseek',
     'gemini',
-    'siliconflow',
-    'minimax',
-    'zhipu',
-    'kimi',
-    'lmstudio',
+    'claude',
     'grok',
+    'deepseek',
+    'kimi',
+    'zhipu',
+    'minimax',
+    'siliconflow',
     'openrouter',
+    'lmstudio',
     'other',
-    // 未来添加新平台在这里添加即可，例如：
-    // 'ollama',
-    // 'perplexity',
   ];
 
   @override
