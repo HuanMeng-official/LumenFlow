@@ -1156,7 +1156,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get currentTime => '当前时间：';
+  String get currentTime => '以下是当前时间，非用户提问不要主动说出时间：';
 
   @override
   String httpServerOperationFailed(String error) {

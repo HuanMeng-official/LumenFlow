@@ -731,7 +731,7 @@
       }
     }
   },
-  "currentTime": "現在時刻：",
+  "currentTime": "以下は現在の時刻です。ユーザーが尋ねない限り、積極的に時刻を述べないでください：",
   "httpServerOperationFailed": "HTTPサーバー操作に失敗しました: {error}",
   "@httpServerOperationFailed": {
     "placeholders": {

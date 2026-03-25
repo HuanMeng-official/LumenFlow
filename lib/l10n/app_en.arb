@@ -730,7 +730,7 @@
       }
     }
   },
-  "currentTime": "Current time:",
+  "currentTime": "The following is the current time; do not proactively state the time unless the user asks:",
   "httpServerOperationFailed": "HTTP server operation failed: {error}",
   "@httpServerOperationFailed": {
     "placeholders": {

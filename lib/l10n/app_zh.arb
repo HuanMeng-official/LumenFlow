@@ -730,7 +730,7 @@
       }
     }
   },
-  "currentTime": "当前时间：",
+  "currentTime": "以下是当前时间，非用户提问不要主动说出时间：",
   "httpServerOperationFailed": "HTTP服务器操作失败: {error}",
   "@httpServerOperationFailed": {
     "placeholders": {

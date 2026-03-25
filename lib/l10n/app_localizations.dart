@@ -2208,7 +2208,7 @@ abstract class AppLocalizations {
   /// No description provided for @currentTime.
   ///
   /// In en, this message translates to:
-  /// **'Current time:'**
+  /// **'The following is the current time; do not proactively state the time unless the user asks:'**
   String get currentTime;
 
   /// No description provided for @httpServerOperationFailed.

@@ -1156,7 +1156,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get currentTime => '현재 시간：';
+  String get currentTime => '다음은 현재 시간입니다; 사용자가 묻지 않는 한 시간을 적극적으로 말하지 마세요：';
 
   @override
   String httpServerOperationFailed(String error) {

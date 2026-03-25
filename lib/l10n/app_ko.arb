@@ -730,7 +730,7 @@
       }
     }
   },
-  "currentTime": "현재 시간：",
+  "currentTime": "다음은 현재 시간입니다; 사용자가 묻지 않는 한 시간을 적극적으로 말하지 마세요：",
   "httpServerOperationFailed": "HTTP 서버 작업 실패: {error}",
   "@httpServerOperationFailed": {
     "placeholders": {

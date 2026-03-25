@@ -1156,7 +1156,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get currentTime => '現在時刻：';
+  String get currentTime => '以下は現在の時刻です。ユーザーが尋ねない限り、積極的に時刻を述べないでください：';
 
   @override
   String httpServerOperationFailed(String error) {

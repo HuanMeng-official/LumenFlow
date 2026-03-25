@@ -1156,7 +1156,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get currentTime => 'Current time:';
+  String get currentTime => 'The following is the current time; do not proactively state the time unless the user asks:';
 
   @override
   String httpServerOperationFailed(String error) {
