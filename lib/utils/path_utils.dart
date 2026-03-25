@@ -64,6 +64,16 @@ class PathUtils {
     return avatarsDir.path;
   }
 
+  /// 获取背景图片目录路径
+  static Future<String> getBackgroundsDirPath() async {
+    final appDir = await getAppDataDirectory();
+    final backgroundsDir = Directory('${appDir.path}/backgrounds');
+    if (!await backgroundsDir.exists()) {
+      await backgroundsDir.create(recursive: true);
+    }
+    return backgroundsDir.path;
+  }
+
   /// 迁移旧数据到新位置（如果需要）
   ///
   /// 检查旧的应用文档目录中是否存在数据文件，如果存在且新位置不存在，
@@ -113,6 +123,14 @@ class PathUtils {
     if (await oldUserPresetsDir.exists() && !await newUserPresetsDir.exists()) {
       debugPrint('迁移用户预设目录: ${oldUserPresetsDir.path} -> ${newUserPresetsDir.path}');
       await _copyDirectory(oldUserPresetsDir, newUserPresetsDir);
+    }
+
+    // 迁移背景图片目录
+    final oldBackgroundsDir = Directory('${oldAppDir.path}/backgrounds');
+    final newBackgroundsDir = Directory('${newAppDir.path}/backgrounds');
+    if (await oldBackgroundsDir.exists() && !await newBackgroundsDir.exists()) {
+      debugPrint('迁移背景图片目录: ${oldBackgroundsDir.path} -> ${newBackgroundsDir.path}');
+      await _copyDirectory(oldBackgroundsDir, newBackgroundsDir);
     }
   }
 

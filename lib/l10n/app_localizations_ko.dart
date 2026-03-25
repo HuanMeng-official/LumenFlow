@@ -1162,4 +1162,37 @@ class AppLocalizationsKo extends AppLocalizations {
   String httpServerOperationFailed(String error) {
     return 'HTTP 서버 작업 실패: $error';
   }
+
+  @override
+  String get chatBackground => '채팅 배경';
+
+  @override
+  String get selectBackgroundImage => '배경 이미지 선택';
+
+  @override
+  String get changeBackgroundImage => '배경 이미지 변경';
+
+  @override
+  String get selectBackgroundImageDesc => '채팅 배경으로 이미지 선택';
+
+  @override
+  String get currentBackgroundImage => '배경 이미지가 설정됨';
+
+  @override
+  String get clear => '지우기';
+
+  @override
+  String get backgroundOpacity => '배경 투명도';
+
+  @override
+  String get backgroundOpacityDesc => '배경 이미지 투명도 조정';
+
+  @override
+  String get selectImageFailed => '이미지 선택 실패';
+
+  @override
+  String get clearBackgroundImage => '배경 이미지 지우기';
+
+  @override
+  String get clearBackgroundImageConfirm => '배경 이미지를 지우시겠습니까?';
 }

@@ -1162,4 +1162,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String httpServerOperationFailed(String error) {
     return 'HTTP server operation failed: $error';
   }
+
+  @override
+  String get chatBackground => 'Chat Background';
+
+  @override
+  String get selectBackgroundImage => 'Select Background Image';
+
+  @override
+  String get changeBackgroundImage => 'Change Background Image';
+
+  @override
+  String get selectBackgroundImageDesc => 'Select an image as chat background';
+
+  @override
+  String get currentBackgroundImage => 'Background image set';
+
+  @override
+  String get clear => 'Clear';
+
+  @override
+  String get backgroundOpacity => 'Background Opacity';
+
+  @override
+  String get backgroundOpacityDesc => 'Adjust background image transparency';
+
+  @override
+  String get selectImageFailed => 'Failed to select image';
+
+  @override
+  String get clearBackgroundImage => 'Clear Background Image';
+
+  @override
+  String get clearBackgroundImageConfirm => 'Are you sure you want to clear the background image?';
 }

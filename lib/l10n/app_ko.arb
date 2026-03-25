@@ -738,5 +738,16 @@
         "type": "String"
       }
     }
-  }
+  },
+  "chatBackground": "채팅 배경",
+  "selectBackgroundImage": "배경 이미지 선택",
+  "changeBackgroundImage": "배경 이미지 변경",
+  "selectBackgroundImageDesc": "채팅 배경으로 이미지 선택",
+  "currentBackgroundImage": "배경 이미지가 설정됨",
+  "clear": "지우기",
+  "backgroundOpacity": "배경 투명도",
+  "backgroundOpacityDesc": "배경 이미지 투명도 조정",
+  "selectImageFailed": "이미지 선택 실패",
+  "clearBackgroundImage": "배경 이미지 지우기",
+  "clearBackgroundImageConfirm": "배경 이미지를 지우시겠습니까?"
 }

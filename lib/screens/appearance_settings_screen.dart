@@ -1,9 +1,14 @@
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
+import 'package:image_picker/image_picker.dart';
 import '../l10n/app_localizations.dart';
 import '../services/settings_service.dart';
 import '../utils/app_theme.dart';
+import '../utils/path_utils.dart';
 import '../widgets/settings/settings_section.dart';
 import '../widgets/settings/settings_switch_tile.dart';
+import '../widgets/settings/settings_action_tile.dart';
+import '../widgets/settings/settings_slider_tile.dart';
 
 /// 外观设置页面
 ///
@@ -29,6 +34,9 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen>
   bool _followSystemTheme = SettingsService.defaultFollowSystemTheme;
   String _appTheme = SettingsService.defaultAppTheme;
   String _locale = SettingsService.defaultLocale;
+  // 聊天背景设置
+  String _backgroundImagePath = SettingsService.defaultBackgroundImagePath;
+  double _backgroundImageOpacity = SettingsService.defaultBackgroundImageOpacity;
 
   @override
   void initState() {
@@ -56,11 +64,15 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen>
     final followSystemTheme = await _settingsService.getFollowSystemTheme();
     final appTheme = await _settingsService.getAppTheme();
     final locale = await _settingsService.getLocale();
+    final backgroundImagePath = await _settingsService.getBackgroundImagePath();
+    final backgroundImageOpacity = await _settingsService.getBackgroundImageOpacity();
 
     setState(() {
       _followSystemTheme = followSystemTheme;
       _appTheme = appTheme;
       _locale = locale;
+      _backgroundImagePath = backgroundImagePath;
+      _backgroundImageOpacity = backgroundImageOpacity;
       _isLoading = false;
     });
   }
@@ -125,6 +137,138 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen>
     );
   }
 
+  Future<void> _onBackgroundOpacityChanged(double value) async {
+    setState(() {
+      _backgroundImageOpacity = value;
+    });
+    await _settingsService.setBackgroundImageOpacity(value);
+  }
+
+  // 同步包装函数，用于Widget回调
+
+  void _handleSelectBackgroundImage() {
+    _selectBackgroundImage();
+  }
+
+  void _handleClearBackgroundImage() {
+    _clearBackgroundImage();
+  }
+
+  void _handleBackgroundOpacityChanged(double value) {
+    _onBackgroundOpacityChanged(value);
+  }
+
+  Future<void> _selectBackgroundImage() async {
+    final l10n = AppLocalizations.of(context)!;
+    final ImagePicker picker = ImagePicker();
+
+    try {
+      // 从图库选择图片
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (image != null && mounted) {
+        // 生成唯一文件名
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+        final random = DateTime.now().microsecondsSinceEpoch % 10000;
+        final extension = image.path.split('.').last.toLowerCase();
+        final filename = 'background_${timestamp}_$random.$extension';
+
+        // 获取背景图片目录
+        final backgroundsDirPath = await PathUtils.getBackgroundsDirPath();
+        final newFilePath = '$backgroundsDirPath/$filename';
+
+        // 复制文件到应用目录
+        final sourceFile = File(image.path);
+        final targetFile = File(newFilePath);
+        await sourceFile.copy(targetFile.path);
+
+        // 删除旧的背景图片（如果有）
+        if (_backgroundImagePath.isNotEmpty && _backgroundImagePath != newFilePath) {
+          final oldFile = File(_backgroundImagePath);
+          if (await oldFile.exists()) {
+            try {
+              await oldFile.delete();
+            } catch (e) {
+              // 忽略删除错误
+            }
+          }
+        }
+
+        // 更新设置
+        setState(() {
+          _backgroundImagePath = newFilePath;
+        });
+        await _settingsService.setBackgroundImagePath(newFilePath);
+
+      }
+    } catch (e) {
+      if (mounted) {
+        showCupertinoDialog(
+          context: context,
+          builder: (context) => CupertinoAlertDialog(
+            title: Text(l10n.error),
+            content: Text(l10n.selectImageFailed),
+            actions: [
+              CupertinoDialogAction(
+                child: Text(l10n.ok),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _clearBackgroundImage() async {
+    final l10n = AppLocalizations.of(context)!;
+
+    // 显示确认对话框
+    final confirmed = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text(l10n.clearBackgroundImage),
+        content: Text(l10n.clearBackgroundImageConfirm),
+        actions: [
+          CupertinoDialogAction(
+            child: Text(l10n.cancel),
+            onPressed: () => Navigator.pop(context, false),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            child: Text(l10n.delete),
+            onPressed: () => Navigator.pop(context, true),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      // 删除文件
+      if (_backgroundImagePath.isNotEmpty) {
+        final file = File(_backgroundImagePath);
+        if (await file.exists()) {
+          try {
+            await file.delete();
+          } catch (e) {
+            // 忽略删除错误
+          }
+        }
+      }
+
+      // 清除设置
+      setState(() {
+        _backgroundImagePath = SettingsService.defaultBackgroundImagePath;
+      });
+      await _settingsService.setBackgroundImagePath(SettingsService.defaultBackgroundImagePath);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -185,6 +329,39 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen>
                   value: _locale,
                   subtitle: l10n.selectInterfaceLanguage,
                   onChanged: _onLocaleChanged,
+                ),
+              ],
+            ),
+            SettingsSection(
+              title: l10n.chatBackground,
+              children: [
+                SettingsActionTile(
+                  title: _backgroundImagePath.isEmpty
+                      ? l10n.selectBackgroundImage
+                      : l10n.changeBackgroundImage,
+                  subtitle: _backgroundImagePath.isEmpty
+                      ? l10n.selectBackgroundImageDesc
+                      : l10n.currentBackgroundImage,
+                  icon: CupertinoIcons.photo,
+                  onTap: _handleSelectBackgroundImage,
+                  trailing: _backgroundImagePath.isNotEmpty
+                      ? CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: _handleClearBackgroundImage,
+                          child: Text(l10n.clear),
+                        )
+                      : null,
+                ),
+                SettingsSliderTile(
+                  title: l10n.backgroundOpacity,
+                  value: _backgroundImageOpacity,
+                  min: 0.0,
+                  max: 1.0,
+                  divisions: 20,
+                  decimalPlaces: 2,
+                  subtitle: l10n.backgroundOpacityDesc,
+                  showValueInRow: true,
+                  onChanged: _handleBackgroundOpacityChanged,
                 ),
               ],
             ),

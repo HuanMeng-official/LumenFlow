@@ -1162,4 +1162,37 @@ class AppLocalizationsJa extends AppLocalizations {
   String httpServerOperationFailed(String error) {
     return 'HTTPサーバー操作に失敗しました: $error';
   }
+
+  @override
+  String get chatBackground => 'チャット背景';
+
+  @override
+  String get selectBackgroundImage => '背景画像を選択';
+
+  @override
+  String get changeBackgroundImage => '背景画像を変更';
+
+  @override
+  String get selectBackgroundImageDesc => 'チャット背景として画像を選択';
+
+  @override
+  String get currentBackgroundImage => '背景画像が設定されています';
+
+  @override
+  String get clear => 'クリア';
+
+  @override
+  String get backgroundOpacity => '背景の透明度';
+
+  @override
+  String get backgroundOpacityDesc => '背景画像の透明度を調整';
+
+  @override
+  String get selectImageFailed => '画像の選択に失敗しました';
+
+  @override
+  String get clearBackgroundImage => '背景画像をクリア';
+
+  @override
+  String get clearBackgroundImageConfirm => '背景画像をクリアしてもよろしいですか？';
 }

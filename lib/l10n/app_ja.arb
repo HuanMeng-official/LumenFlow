@@ -739,5 +739,16 @@
         "type": "String"
       }
     }
-  }
+  },
+  "chatBackground": "チャット背景",
+  "selectBackgroundImage": "背景画像を選択",
+  "changeBackgroundImage": "背景画像を変更",
+  "selectBackgroundImageDesc": "チャット背景として画像を選択",
+  "currentBackgroundImage": "背景画像が設定されています",
+  "clear": "クリア",
+  "backgroundOpacity": "背景の透明度",
+  "backgroundOpacityDesc": "背景画像の透明度を調整",
+  "selectImageFailed": "画像の選択に失敗しました",
+  "clearBackgroundImage": "背景画像をクリア",
+  "clearBackgroundImageConfirm": "背景画像をクリアしてもよろしいですか？"
 }

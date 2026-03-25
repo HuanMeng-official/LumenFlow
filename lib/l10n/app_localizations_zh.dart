@@ -1162,4 +1162,37 @@ class AppLocalizationsZh extends AppLocalizations {
   String httpServerOperationFailed(String error) {
     return 'HTTP服务器操作失败: $error';
   }
+
+  @override
+  String get chatBackground => '聊天背景';
+
+  @override
+  String get selectBackgroundImage => '选择背景图片';
+
+  @override
+  String get changeBackgroundImage => '更改背景图片';
+
+  @override
+  String get selectBackgroundImageDesc => '选择一张图片作为聊天背景';
+
+  @override
+  String get currentBackgroundImage => '已设置背景图片';
+
+  @override
+  String get clear => '清除';
+
+  @override
+  String get backgroundOpacity => '背景透明度';
+
+  @override
+  String get backgroundOpacityDesc => '调整背景图片的透明度';
+
+  @override
+  String get selectImageFailed => '选择图片失败';
+
+  @override
+  String get clearBackgroundImage => '清除背景图片';
+
+  @override
+  String get clearBackgroundImageConfirm => '确定要清除背景图片吗？';
 }

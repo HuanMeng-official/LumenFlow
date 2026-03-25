@@ -73,6 +73,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   bool _autoTitleGenerated = false; // 是否已经自动生成过标题
   String _currentModel = ''; // 当前选中的模型
   UserProfile? _userProfile; // 全局用户信息，预加载避免每个气泡重复加载
+
+  // 聊天背景设置
+  String _backgroundImagePath = SettingsService.defaultBackgroundImagePath;
+  double _backgroundImageOpacity = SettingsService.defaultBackgroundImageOpacity;
+
   Timer? _saveTimer; // 防抖保存定时器
   Timer? _setStateTimer; // 批量setState定时器
   bool _pendingStateUpdate = false; // 是否有待处理的state更新
@@ -163,6 +168,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     super.didChangeDependencies();
     // 只处理依赖变化（Theme / Provider / Locale），不重建业务数据
     _loadCurrentModel();
+    _loadBackgroundSettings();
   }
 
   /// 检查应用配置状态
@@ -178,6 +184,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final presets = await _promptService.loadPresets();
     // 预加载用户头像，避免每个消息气泡重复加载
     final userProfile = await _userService.getUserProfile();
+    // 加载聊天背景设置
+    final backgroundImagePath = await _settingsService.getBackgroundImagePath();
+    final backgroundImageOpacity = await _settingsService.getBackgroundImageOpacity();
     // 调试日志：检查加载的预设
     debugPrint('Loaded ${presets.length} preset(s)');
     for (final preset in presets) {
@@ -193,6 +202,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _currentPresetId = currentPresetId;
       _presets = presets;
       _userProfile = userProfile;
+      _backgroundImagePath = backgroundImagePath;
+      _backgroundImageOpacity = backgroundImageOpacity;
     });
 
     // 加载当前模型
@@ -1035,76 +1046,93 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           ],
         ),
       ),
-      child: SafeArea(
-        child: Column(
-          children: [
-            if (!_isConfigured)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                color: CupertinoColors.systemYellow.withValues(alpha: 0.2),
-                child: Row(
-                  children: [
-                    const Icon(
-                      CupertinoIcons.exclamationmark_triangle,
-                      color: CupertinoColors.systemOrange,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(l10n.pleaseConfigureAPI),
-                    ),
-                    CupertinoButton(
-                      padding: EdgeInsets.zero,
-                      onPressed: _openSettings,
-                      child: Text(l10n.settingsButton),
-                    ),
-                  ],
+      child: Stack(
+        children: [
+          // 背景层
+          if (_backgroundImagePath.isNotEmpty)
+            Positioned.fill(
+              child: Opacity(
+                opacity: _backgroundImageOpacity,
+                child: Image.file(
+                  File(_backgroundImagePath),
+                  fit: BoxFit.cover,
                 ),
               ),
-            Expanded(
-              child: _messages.isEmpty
-                  ? _buildEmptyState()
-                  : ListView.builder(
-                      controller: _scrollController,
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _messages.length + (_isLoading ? 1 : 0),
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      // 性能优化配置
-                      addAutomaticKeepAlives: true, // 启用自动保持活动状态
-                      addRepaintBoundaries: true,   // 隔离重绘，避免整个列表重绘
-                      cacheExtent: 500,              // 预渲染屏幕外 500 像素的消息
-                      itemBuilder: (context, index) {
-                        if (index == _messages.length && _isLoading) {
-                          return const TypingIndicator();
-                        }
-                        return MessageBubble(
-                          message: _messages[index],
-                          userProfile: _userProfile,
-                          onEdit: _editUserMessage,
-                          onRegenerate: _regenerateAiResponse,
-                          onResubmit: (msg) => _resubmitMessage(msg, msg.content),
-                        );
-                      },
+            ),
+
+          // 原有界面层
+          SafeArea(
+            child: Column(
+              children: [
+                if (!_isConfigured)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    color: CupertinoColors.systemYellow.withValues(alpha: 0.2),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          CupertinoIcons.exclamationmark_triangle,
+                          color: CupertinoColors.systemOrange,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(l10n.pleaseConfigureAPI),
+                        ),
+                        CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: _openSettings,
+                          child: Text(l10n.settingsButton),
+                        ),
+                      ],
                     ),
+                  ),
+                Expanded(
+                  child: _messages.isEmpty
+                      ? _buildEmptyState()
+                      : ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _messages.length + (_isLoading ? 1 : 0),
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          // 性能优化配置
+                          addAutomaticKeepAlives: true, // 启用自动保持活动状态
+                          addRepaintBoundaries: true,   // 隔离重绘，避免整个列表重绘
+                          cacheExtent: 500,              // 预渲染屏幕外 500 像素的消息
+                          itemBuilder: (context, index) {
+                            if (index == _messages.length && _isLoading) {
+                              return const TypingIndicator();
+                            }
+                            return MessageBubble(
+                              message: _messages[index],
+                              userProfile: _userProfile,
+                              onEdit: _editUserMessage,
+                              onRegenerate: _regenerateAiResponse,
+                              onResubmit: (msg) => _resubmitMessage(msg, msg.content),
+                            );
+                          },
+                        ),
+                ),
+                ChatInput(
+                  onSendMessage: (content, attachments) => _sendMessage(content, attachments: attachments),
+                  onStopGenerating: _stopGenerating,
+                  onAttachmentsSelected: _handleAttachmentsSelected,
+                  enabled: _isConfigured,
+                  thinkingMode: _thinkingMode,
+                  onThinkingModeChanged: _handleThinkingModeChanged,
+                  promptPresetEnabled: _promptPresetEnabled,
+                  onPromptPresetEnabledChanged: _handlePromptPresetEnabledChanged,
+                  currentPresetId: _currentPresetId,
+                  onPresetSelected: _handlePresetSelected,
+                  presets: _presets,
+                  onShowModelSelector: _showModelSelector,
+                  currentModelName: _currentModel,
+                  isGenerating: _isGenerating,
+                ),
+              ],
             ),
-            ChatInput(
-              onSendMessage: (content, attachments) => _sendMessage(content, attachments: attachments),
-              onStopGenerating: _stopGenerating,
-              onAttachmentsSelected: _handleAttachmentsSelected,
-              enabled: _isConfigured,
-              thinkingMode: _thinkingMode,
-              onThinkingModeChanged: _handleThinkingModeChanged,
-              promptPresetEnabled: _promptPresetEnabled,
-              onPromptPresetEnabledChanged: _handlePromptPresetEnabledChanged,
-              currentPresetId: _currentPresetId,
-              onPresetSelected: _handlePresetSelected,
-              presets: _presets,
-              onShowModelSelector: _showModelSelector,
-              currentModelName: _currentModel,
-              isGenerating: _isGenerating,
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -1148,6 +1176,18 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       final oldModel = await _settingsService.getModel();
       setState(() {
         _currentModel = oldModel;
+      });
+    }
+  }
+
+  /// 加载聊天背景设置
+  Future<void> _loadBackgroundSettings() async {
+    final backgroundImagePath = await _settingsService.getBackgroundImagePath();
+    final backgroundImageOpacity = await _settingsService.getBackgroundImageOpacity();
+    if (mounted) {
+      setState(() {
+        _backgroundImagePath = backgroundImagePath;
+        _backgroundImageOpacity = backgroundImageOpacity;
       });
     }
   }

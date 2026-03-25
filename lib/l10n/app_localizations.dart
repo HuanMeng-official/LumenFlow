@@ -2216,6 +2216,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'HTTP server operation failed: {error}'**
   String httpServerOperationFailed(String error);
+
+  /// No description provided for @chatBackground.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat Background'**
+  String get chatBackground;
+
+  /// No description provided for @selectBackgroundImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Background Image'**
+  String get selectBackgroundImage;
+
+  /// No description provided for @changeBackgroundImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Background Image'**
+  String get changeBackgroundImage;
+
+  /// No description provided for @selectBackgroundImageDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Select an image as chat background'**
+  String get selectBackgroundImageDesc;
+
+  /// No description provided for @currentBackgroundImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Background image set'**
+  String get currentBackgroundImage;
+
+  /// No description provided for @clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clear;
+
+  /// No description provided for @backgroundOpacity.
+  ///
+  /// In en, this message translates to:
+  /// **'Background Opacity'**
+  String get backgroundOpacity;
+
+  /// No description provided for @backgroundOpacityDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust background image transparency'**
+  String get backgroundOpacityDesc;
+
+  /// No description provided for @selectImageFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to select image'**
+  String get selectImageFailed;
+
+  /// No description provided for @clearBackgroundImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Background Image'**
+  String get clearBackgroundImage;
+
+  /// No description provided for @clearBackgroundImageConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to clear the background image?'**
+  String get clearBackgroundImageConfirm;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

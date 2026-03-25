@@ -738,5 +738,16 @@
         "type": "String"
       }
     }
-  }
+  },
+  "chatBackground": "Chat Background",
+  "selectBackgroundImage": "Select Background Image",
+  "changeBackgroundImage": "Change Background Image",
+  "selectBackgroundImageDesc": "Select an image as chat background",
+  "currentBackgroundImage": "Background image set",
+  "clear": "Clear",
+  "backgroundOpacity": "Background Opacity",
+  "backgroundOpacityDesc": "Adjust background image transparency",
+  "selectImageFailed": "Failed to select image",
+  "clearBackgroundImage": "Clear Background Image",
+  "clearBackgroundImageConfirm": "Are you sure you want to clear the background image?"
 }

@@ -24,6 +24,10 @@ class SettingsService {
   static const String _autoTitleRoundsKey = 'auto_title_rounds';
   static const String _localeKey = 'locale';
   static const String _notificationEnabledKey = 'notification_enabled';
+  // 聊天背景设置相关的key
+  static const String _backgroundImagePathKey = 'background_image_path';
+  static const String _backgroundImageOpacityKey = 'background_image_opacity';
+  static const String _backgroundImageEnabledKey = 'background_image_enabled';
   // 多平台配置相关的key
   static const String _platformsKey = 'ai_platforms';
   static const String _currentPlatformIdKey = 'current_platform_id';
@@ -39,6 +43,10 @@ class SettingsService {
   static const int defaultAutoTitleRounds = 3;
   static const String defaultLocale = 'zh';
   static const bool defaultNotificationEnabled = true;
+  // 聊天背景设置默认值
+  static const String defaultBackgroundImagePath = '';
+  static const double defaultBackgroundImageOpacity = 0.15;
+  static const bool defaultBackgroundImageEnabled = false;
 
   static const String defaultEndpoint = 'https://api.openai.com/v1';
   static const String defaultModel = 'gpt-5';
@@ -241,6 +249,36 @@ class SettingsService {
     await prefs.setBool(_notificationEnabledKey, enabled);
   }
 
+  Future<String> getBackgroundImagePath() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_backgroundImagePathKey) ?? defaultBackgroundImagePath;
+  }
+
+  Future<void> setBackgroundImagePath(String path) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_backgroundImagePathKey, path);
+  }
+
+  Future<double> getBackgroundImageOpacity() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getDouble(_backgroundImageOpacityKey) ?? defaultBackgroundImageOpacity;
+  }
+
+  Future<void> setBackgroundImageOpacity(double opacity) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_backgroundImageOpacityKey, opacity);
+  }
+
+  Future<bool> getBackgroundImageEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_backgroundImageEnabledKey) ?? defaultBackgroundImageEnabled;
+  }
+
+  Future<void> setBackgroundImageEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_backgroundImageEnabledKey, enabled);
+  }
+
   /// 导出所有设置为JSON格式的Map
   /// 返回包含所有设置键值对的Map
   Future<Map<String, dynamic>> exportSettingsToJson() async {
@@ -279,6 +317,12 @@ class SettingsService {
     settings[_localeKey] = prefs.getString(_localeKey) ?? defaultLocale;
     settings[_notificationEnabledKey] =
         prefs.getBool(_notificationEnabledKey) ?? defaultNotificationEnabled;
+    settings[_backgroundImagePathKey] =
+        prefs.getString(_backgroundImagePathKey) ?? defaultBackgroundImagePath;
+    settings[_backgroundImageOpacityKey] =
+        prefs.getDouble(_backgroundImageOpacityKey) ?? defaultBackgroundImageOpacity;
+    settings[_backgroundImageEnabledKey] =
+        prefs.getBool(_backgroundImageEnabledKey) ?? defaultBackgroundImageEnabled;
 
     // 导出平台设置
     settings[_platformsKey] = prefs.getString(_platformsKey);
@@ -404,6 +448,24 @@ class SettingsService {
       await prefs.setBool(
         _notificationEnabledKey,
         settings[_notificationEnabledKey] as bool,
+      );
+    }
+    if (settings.containsKey(_backgroundImagePathKey)) {
+      await prefs.setString(
+        _backgroundImagePathKey,
+        settings[_backgroundImagePathKey] as String,
+      );
+    }
+    if (settings.containsKey(_backgroundImageOpacityKey)) {
+      await prefs.setDouble(
+        _backgroundImageOpacityKey,
+        (settings[_backgroundImageOpacityKey] as num).toDouble(),
+      );
+    }
+    if (settings.containsKey(_backgroundImageEnabledKey)) {
+      await prefs.setBool(
+        _backgroundImageEnabledKey,
+        settings[_backgroundImageEnabledKey] as bool,
       );
     }
 
