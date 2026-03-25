@@ -749,5 +749,8 @@
   "backgroundOpacityDesc": "调整背景图片的透明度",
   "selectImageFailed": "选择图片失败",
   "clearBackgroundImage": "清除背景图片",
-  "clearBackgroundImageConfirm": "确定要清除背景图片吗？"
+  "clearBackgroundImageConfirm": "确定要清除背景图片吗？",
+  "birthday": "生日",
+  "birthdayHint": "选择您的生日日期",
+  "selectBirthday": "选择生日"
 }

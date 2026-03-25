@@ -19,6 +19,7 @@ import '../providers/grok_provider.dart';
 import '../providers/openrouter_provider.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/time_utils.dart';
+import 'package:intl/intl.dart';
 
 /// AI服务类，负责处理与AI模型的通信
 /// 支持文本对话、文件附件处理、流式输出等功能
@@ -119,6 +120,13 @@ class AIService {
     } else {
       // 如果性别为空，替换为空字符串
       result = result.replaceAll('\${userProfile.gender}', '');
+    }
+    if (userProfile.birthday != null) {
+      final formattedDate = DateFormat.yMMMd().format(userProfile.birthday!);
+      result = result.replaceAll('\${userProfile.birthday}', formattedDate);
+    } else {
+      // 如果生日为空，替换为空字符串
+      result = result.replaceAll('\${userProfile.birthday}', '');
     }
     return result;
   }

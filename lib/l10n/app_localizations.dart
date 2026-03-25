@@ -2282,6 +2282,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Are you sure you want to clear the background image?'**
   String get clearBackgroundImageConfirm;
+
+  /// No description provided for @birthday.
+  ///
+  /// In en, this message translates to:
+  /// **'Birthday'**
+  String get birthday;
+
+  /// No description provided for @birthdayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select your birthday date'**
+  String get birthdayHint;
+
+  /// No description provided for @selectBirthday.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Birthday'**
+  String get selectBirthday;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

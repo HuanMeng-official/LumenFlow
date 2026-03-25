@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import '../l10n/app_localizations.dart';
 import '../models/user_profile.dart';
 import '../services/user_service.dart';
@@ -23,6 +24,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   UserProfile? _userProfile;
   String? _gender;
+  DateTime? _birthday;
   bool _isLoading = true;
 
   final List<String> _emojiAvatars = [
@@ -78,6 +80,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       _userProfile = profile;
       _usernameController.text = profile.username;
       _gender = profile.gender;
+      _birthday = profile.birthday;
       _isLoading = false;
     });
   }
@@ -111,6 +114,93 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         _userProfile = updatedProfile;
       });
     }
+  }
+
+  /// 实时保存生日变更
+  Future<void> _onBirthdayChanged(DateTime? newDate) async {
+    if (newDate == _birthday) return;
+
+    setState(() {
+      _birthday = newDate;
+    });
+
+    if (_userProfile != null) {
+      final updatedProfile = _userProfile!.copyWith(birthday: newDate);
+      await _userService.saveUserProfile(updatedProfile);
+      setState(() {
+        _userProfile = updatedProfile;
+      });
+    }
+  }
+
+  /// 显示日期选择器
+  Future<void> _showBirthdayPicker() async {
+    final DateTime initialDate = _birthday ?? DateTime.now().subtract(const Duration(days: 18 * 365));
+    final DateTime firstDate = DateTime(1900);
+    final DateTime lastDate = DateTime.now();
+
+    await showCupertinoModalPopup<void>(
+      context: context,
+      builder: (BuildContext context) {
+        final brightness = CupertinoTheme.of(context).brightness;
+        return Container(
+          height: 300,
+          color: brightness == Brightness.dark
+              ? CupertinoColors.systemBackground.darkColor
+              : CupertinoColors.systemBackground.color,
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: brightness == Brightness.dark
+                          ? CupertinoColors.systemGrey4.darkColor
+                          : CupertinoColors.systemGrey4.color,
+                      width: 0.5,
+                    ),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CupertinoButton(
+                      child: Text(AppLocalizations.of(context)!.cancel),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    Text(
+                      AppLocalizations.of(context)!.selectBirthday,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    CupertinoButton(
+                      child: Text(AppLocalizations.of(context)!.confirm),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: CupertinoDatePicker(
+                  mode: CupertinoDatePickerMode.date,
+                  initialDateTime: initialDate,
+                  minimumDate: firstDate,
+                  maximumDate: lastDate,
+                  onDateTimeChanged: (DateTime newDate) {
+                    _onBirthdayChanged(newDate);
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   /// 实时保存并更新头像
@@ -255,6 +345,93 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                   Icon(
                     CupertinoIcons.chevron_down,
+                    size: 18,
+                    color: isEnabled
+                        ? (brightness == Brightness.dark
+                            ? CupertinoColors.systemGrey.darkColor
+                            : CupertinoColors.systemGrey)
+                        : (brightness == Brightness.dark
+                            ? CupertinoColors.tertiaryLabel.darkColor
+                            : CupertinoColors.tertiaryLabel.color),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBirthdayTile(
+    String title, {
+    required DateTime? value,
+    String? subtitle,
+    VoidCallback? onPressed,
+  }) {
+    final brightness = CupertinoTheme.of(context).brightness;
+    final isEnabled = onPressed != null;
+    final formattedDate = value != null ? DateFormat.yMMMd().format(value) : '';
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          if (subtitle != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 13,
+                color: brightness == Brightness.dark
+                    ? CupertinoColors.systemGrey.darkColor
+                    : CupertinoColors.systemGrey,
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: onPressed,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isEnabled
+                    ? (CupertinoTheme.of(context).brightness == Brightness.dark
+                        ? CupertinoColors.systemGrey6.darkColor
+                        : CupertinoColors.systemGrey6.color)
+                    : (CupertinoTheme.of(context).brightness == Brightness.dark
+                        ? CupertinoColors.tertiarySystemFill.darkColor
+                        : CupertinoColors.tertiarySystemFill.color),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    formattedDate.isNotEmpty ? formattedDate : AppLocalizations.of(context)!.selectBirthday,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: isEnabled
+                          ? (brightness == Brightness.dark
+                              ? CupertinoColors.label.darkColor
+                              : CupertinoColors.label.color)
+                          : (brightness == Brightness.dark
+                              ? CupertinoColors.tertiaryLabel.darkColor
+                              : CupertinoColors.tertiaryLabel.color),
+                    ),
+                  ),
+                  Icon(
+                    CupertinoIcons.calendar,
                     size: 18,
                     color: isEnabled
                         ? (brightness == Brightness.dark
@@ -647,6 +824,28 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 },
                 subtitle: l10n.genderHint,
                 onChanged: _onGenderChanged,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: brightness == Brightness.dark
+                    ? CupertinoColors.systemBackground.darkColor
+                    : CupertinoColors.systemBackground.color,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: brightness == Brightness.dark
+                      ? CupertinoColors.systemGrey4.darkColor
+                      : CupertinoColors.systemGrey4.color,
+                  width: 0.5,
+                ),
+              ),
+              child: _buildBirthdayTile(
+                l10n.birthday,
+                value: _birthday,
+                subtitle: l10n.birthdayHint,
+                onPressed: _showBirthdayPicker,
               ),
             ),
             Container(

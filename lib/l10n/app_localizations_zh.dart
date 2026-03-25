@@ -1195,4 +1195,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get clearBackgroundImageConfirm => '确定要清除背景图片吗？';
+
+  @override
+  String get birthday => '生日';
+
+  @override
+  String get birthdayHint => '选择您的生日日期';
+
+  @override
+  String get selectBirthday => '选择生日';
 }

@@ -1195,4 +1195,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clearBackgroundImageConfirm => 'Are you sure you want to clear the background image?';
+
+  @override
+  String get birthday => 'Birthday';
+
+  @override
+  String get birthdayHint => 'Select your birthday date';
+
+  @override
+  String get selectBirthday => 'Select Birthday';
 }

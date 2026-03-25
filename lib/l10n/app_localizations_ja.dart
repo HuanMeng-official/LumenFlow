@@ -1195,4 +1195,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get clearBackgroundImageConfirm => '背景画像をクリアしてもよろしいですか？';
+
+  @override
+  String get birthday => '誕生日';
+
+  @override
+  String get birthdayHint => '誕生日を選択してください';
+
+  @override
+  String get selectBirthday => '誕生日を選択';
 }

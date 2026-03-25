@@ -749,5 +749,8 @@
   "backgroundOpacityDesc": "Adjust background image transparency",
   "selectImageFailed": "Failed to select image",
   "clearBackgroundImage": "Clear Background Image",
-  "clearBackgroundImageConfirm": "Are you sure you want to clear the background image?"
+  "clearBackgroundImageConfirm": "Are you sure you want to clear the background image?",
+  "birthday": "Birthday",
+  "birthdayHint": "Select your birthday date",
+  "selectBirthday": "Select Birthday"
 }

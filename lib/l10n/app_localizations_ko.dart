@@ -1195,4 +1195,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get clearBackgroundImageConfirm => '배경 이미지를 지우시겠습니까?';
+
+  @override
+  String get birthday => '생일';
+
+  @override
+  String get birthdayHint => '생일을 선택해 주세요';
+
+  @override
+  String get selectBirthday => '생일 선택';
 }

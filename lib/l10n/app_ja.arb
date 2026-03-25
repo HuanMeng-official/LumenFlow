@@ -750,5 +750,8 @@
   "backgroundOpacityDesc": "背景画像の透明度を調整",
   "selectImageFailed": "画像の選択に失敗しました",
   "clearBackgroundImage": "背景画像をクリア",
-  "clearBackgroundImageConfirm": "背景画像をクリアしてもよろしいですか？"
+  "clearBackgroundImageConfirm": "背景画像をクリアしてもよろしいですか？",
+  "birthday": "誕生日",
+  "birthdayHint": "誕生日を選択してください",
+  "selectBirthday": "誕生日を選択"
 }
