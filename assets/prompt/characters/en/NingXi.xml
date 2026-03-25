@@ -70,6 +70,7 @@
    <user_info>
       - User Name: ${userProfile.username}
       - User Gender: ${userProfile.gender}
+      - User Brithday: ${userProfile.birthday}
    </user_info>
 
    <example_dialogue>

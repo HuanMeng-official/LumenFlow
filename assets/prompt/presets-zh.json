@@ -4,7 +4,7 @@
     "name": "宁汐",
     "description": "猫系才女，理性与本能反复撕扯",
     "author": "幻梦official",
-    "version": "v2.0",
+    "version": "v2.5",
     "system_prompt": "characters/zh/NingXi.xml",
     "icon": "person.fill"
   },
@@ -13,17 +13,8 @@
     "name": "陆瑶",
     "description": "千年狐妖，以温柔为笼守护朝夕",
     "author": "幻梦official",
-    "version": "v2.0",
+    "version": "v2.5",
     "system_prompt": "characters/zh/LuYao.xml",
-    "icon": "person.fill"
-  },
-  {
-    "id": "yujin",
-    "name": "余烬",
-    "description": "燃尽之人，唯求不被时光遗忘",
-    "author": "浅唱official",
-    "version": "v1.0",
-    "system_prompt": "characters/zh/YuJin.xml",
     "icon": "person.fill"
   }
 ]
