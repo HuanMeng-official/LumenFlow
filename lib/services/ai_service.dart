@@ -18,6 +18,7 @@ import '../providers/other_provider.dart';
 import '../providers/grok_provider.dart';
 import '../providers/openrouter_provider.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/time_utils.dart';
 
 /// AI服务类，负责处理与AI模型的通信
 /// 支持文本对话、文件附件处理、流式输出等功能
@@ -176,9 +177,13 @@ class AIService {
     final maxTokens = await _settingsService.getMaxTokens();
     final systemPrompt = await _buildSystemPrompt(presetSystemPrompt, l10n);
 
+    // 添加当前时间信息到用户消息
+    final currentTime = TimeUtils.now();
+    final messageWithTime = '$message\n\n${l10n.currentTime}$currentTime';
+
     try {
       return await provider.sendMessage(
-        message: message,
+        message: messageWithTime,
         chatHistory: chatHistory,
         attachments: attachments,
         systemPrompt: systemPrompt,
@@ -222,9 +227,13 @@ class AIService {
     final maxTokens = await _settingsService.getMaxTokens();
     final systemPrompt = await _buildSystemPrompt(presetSystemPrompt, l10n);
 
+    // 添加当前时间信息到用户消息
+    final currentTime = TimeUtils.now();
+    final messageWithTime = '$message\n\n${l10n.currentTime}$currentTime';
+
     try {
       yield* provider.sendMessageStreaming(
-        message: message,
+        message: messageWithTime,
         chatHistory: chatHistory,
         attachments: attachments,
         systemPrompt: systemPrompt,

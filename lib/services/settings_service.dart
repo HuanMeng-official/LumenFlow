@@ -43,7 +43,7 @@ class SettingsService {
   static const String defaultEndpoint = 'https://api.openai.com/v1';
   static const String defaultModel = 'gpt-5';
   static const double defaultTemperature = 0.7;
-  static const int defaultMaxTokens = 32768;
+  static const int defaultMaxTokens = 8192;
   static const bool defaultEnableHistory = true;
   static const int defaultHistoryContextLength = 100;
 
@@ -248,29 +248,42 @@ class SettingsService {
     final Map<String, dynamic> settings = {};
 
     // 收集所有设置键值对
-    settings[_apiEndpointKey] = prefs.getString(_apiEndpointKey) ?? defaultEndpoint;
+    settings[_apiEndpointKey] =
+        prefs.getString(_apiEndpointKey) ?? defaultEndpoint;
     settings[_apiKeyKey] = prefs.getString(_apiKeyKey) ?? '';
     settings[_modelKey] = prefs.getString(_modelKey) ?? defaultModel;
-    settings[_temperatureKey] = prefs.getDouble(_temperatureKey) ?? defaultTemperature;
+    settings[_temperatureKey] =
+        prefs.getDouble(_temperatureKey) ?? defaultTemperature;
     settings[_maxTokensKey] = prefs.getInt(_maxTokensKey) ?? defaultMaxTokens;
-    settings[_enableHistoryKey] = prefs.getBool(_enableHistoryKey) ?? defaultEnableHistory;
-    settings[_historyContextLengthKey] = prefs.getInt(_historyContextLengthKey) ?? defaultHistoryContextLength;
-    settings[_customSystemPromptKey] = prefs.getString(_customSystemPromptKey) ?? defaultCustomSystemPrompt;
+    settings[_enableHistoryKey] =
+        prefs.getBool(_enableHistoryKey) ?? defaultEnableHistory;
+    settings[_historyContextLengthKey] =
+        prefs.getInt(_historyContextLengthKey) ?? defaultHistoryContextLength;
+    settings[_customSystemPromptKey] =
+        prefs.getString(_customSystemPromptKey) ?? defaultCustomSystemPrompt;
     settings[_apiTypeKey] = prefs.getString(_apiTypeKey) ?? defaultApiType;
     settings[_darkModeKey] = prefs.getBool(_darkModeKey) ?? defaultDarkMode;
-    settings[_followSystemThemeKey] = prefs.getBool(_followSystemThemeKey) ?? defaultFollowSystemTheme;
+    settings[_followSystemThemeKey] =
+        prefs.getBool(_followSystemThemeKey) ?? defaultFollowSystemTheme;
     settings[_appThemeKey] = prefs.getString(_appThemeKey) ?? defaultAppTheme;
-    settings[_thinkingModeKey] = prefs.getBool(_thinkingModeKey) ?? defaultThinkingMode;
-    settings[_promptPresetEnabledKey] = prefs.getBool(_promptPresetEnabledKey) ?? defaultPromptPresetEnabled;
-    settings[_promptPresetIdKey] = prefs.getString(_promptPresetIdKey) ?? defaultPromptPresetId;
-    settings[_autoTitleEnabledKey] = prefs.getBool(_autoTitleEnabledKey) ?? defaultAutoTitleEnabled;
-    settings[_autoTitleRoundsKey] = prefs.getInt(_autoTitleRoundsKey) ?? defaultAutoTitleRounds;
+    settings[_thinkingModeKey] =
+        prefs.getBool(_thinkingModeKey) ?? defaultThinkingMode;
+    settings[_promptPresetEnabledKey] =
+        prefs.getBool(_promptPresetEnabledKey) ?? defaultPromptPresetEnabled;
+    settings[_promptPresetIdKey] =
+        prefs.getString(_promptPresetIdKey) ?? defaultPromptPresetId;
+    settings[_autoTitleEnabledKey] =
+        prefs.getBool(_autoTitleEnabledKey) ?? defaultAutoTitleEnabled;
+    settings[_autoTitleRoundsKey] =
+        prefs.getInt(_autoTitleRoundsKey) ?? defaultAutoTitleRounds;
     settings[_localeKey] = prefs.getString(_localeKey) ?? defaultLocale;
-    settings[_notificationEnabledKey] = prefs.getBool(_notificationEnabledKey) ?? defaultNotificationEnabled;
+    settings[_notificationEnabledKey] =
+        prefs.getBool(_notificationEnabledKey) ?? defaultNotificationEnabled;
 
     // 导出平台设置
     settings[_platformsKey] = prefs.getString(_platformsKey);
-    settings[_currentPlatformIdKey] = prefs.getString(_currentPlatformIdKey) ?? 'openai';
+    settings[_currentPlatformIdKey] =
+        prefs.getString(_currentPlatformIdKey) ?? 'openai';
 
     return settings;
   }
@@ -296,12 +309,18 @@ class SettingsService {
   /// 从JSON Map导入设置
   /// [settings] 包含设置键值对的Map
   /// [overwrite] 是否覆盖现有设置，默认为true
-  Future<void> importSettingsFromJson(Map<String, dynamic> settings, {bool overwrite = true}) async {
+  Future<void> importSettingsFromJson(
+    Map<String, dynamic> settings, {
+    bool overwrite = true,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
 
     // 只导入存在的键值对
     if (settings.containsKey(_apiEndpointKey)) {
-      await prefs.setString(_apiEndpointKey, settings[_apiEndpointKey] as String);
+      await prefs.setString(
+        _apiEndpointKey,
+        settings[_apiEndpointKey] as String,
+      );
     }
     if (settings.containsKey(_apiKeyKey)) {
       await prefs.setString(_apiKeyKey, settings[_apiKeyKey] as String);
@@ -310,19 +329,31 @@ class SettingsService {
       await prefs.setString(_modelKey, settings[_modelKey] as String);
     }
     if (settings.containsKey(_temperatureKey)) {
-      await prefs.setDouble(_temperatureKey, (settings[_temperatureKey] as num).toDouble());
+      await prefs.setDouble(
+        _temperatureKey,
+        (settings[_temperatureKey] as num).toDouble(),
+      );
     }
     if (settings.containsKey(_maxTokensKey)) {
       await prefs.setInt(_maxTokensKey, settings[_maxTokensKey] as int);
     }
     if (settings.containsKey(_enableHistoryKey)) {
-      await prefs.setBool(_enableHistoryKey, settings[_enableHistoryKey] as bool);
+      await prefs.setBool(
+        _enableHistoryKey,
+        settings[_enableHistoryKey] as bool,
+      );
     }
     if (settings.containsKey(_historyContextLengthKey)) {
-      await prefs.setInt(_historyContextLengthKey, settings[_historyContextLengthKey] as int);
+      await prefs.setInt(
+        _historyContextLengthKey,
+        settings[_historyContextLengthKey] as int,
+      );
     }
     if (settings.containsKey(_customSystemPromptKey)) {
-      await prefs.setString(_customSystemPromptKey, settings[_customSystemPromptKey] as String);
+      await prefs.setString(
+        _customSystemPromptKey,
+        settings[_customSystemPromptKey] as String,
+      );
     }
     if (settings.containsKey(_apiTypeKey)) {
       await prefs.setString(_apiTypeKey, settings[_apiTypeKey] as String);
@@ -331,7 +362,10 @@ class SettingsService {
       await prefs.setBool(_darkModeKey, settings[_darkModeKey] as bool);
     }
     if (settings.containsKey(_followSystemThemeKey)) {
-      await prefs.setBool(_followSystemThemeKey, settings[_followSystemThemeKey] as bool);
+      await prefs.setBool(
+        _followSystemThemeKey,
+        settings[_followSystemThemeKey] as bool,
+      );
     }
     if (settings.containsKey(_appThemeKey)) {
       await prefs.setString(_appThemeKey, settings[_appThemeKey] as String);
@@ -340,42 +374,65 @@ class SettingsService {
       await prefs.setBool(_thinkingModeKey, settings[_thinkingModeKey] as bool);
     }
     if (settings.containsKey(_promptPresetEnabledKey)) {
-      await prefs.setBool(_promptPresetEnabledKey, settings[_promptPresetEnabledKey] as bool);
+      await prefs.setBool(
+        _promptPresetEnabledKey,
+        settings[_promptPresetEnabledKey] as bool,
+      );
     }
     if (settings.containsKey(_promptPresetIdKey)) {
-      await prefs.setString(_promptPresetIdKey, settings[_promptPresetIdKey] as String);
+      await prefs.setString(
+        _promptPresetIdKey,
+        settings[_promptPresetIdKey] as String,
+      );
     }
     if (settings.containsKey(_autoTitleEnabledKey)) {
-      await prefs.setBool(_autoTitleEnabledKey, settings[_autoTitleEnabledKey] as bool);
+      await prefs.setBool(
+        _autoTitleEnabledKey,
+        settings[_autoTitleEnabledKey] as bool,
+      );
     }
     if (settings.containsKey(_autoTitleRoundsKey)) {
-      await prefs.setInt(_autoTitleRoundsKey, settings[_autoTitleRoundsKey] as int);
+      await prefs.setInt(
+        _autoTitleRoundsKey,
+        settings[_autoTitleRoundsKey] as int,
+      );
     }
     if (settings.containsKey(_localeKey)) {
       await prefs.setString(_localeKey, settings[_localeKey] as String);
     }
     if (settings.containsKey(_notificationEnabledKey)) {
-      await prefs.setBool(_notificationEnabledKey, settings[_notificationEnabledKey] as bool);
+      await prefs.setBool(
+        _notificationEnabledKey,
+        settings[_notificationEnabledKey] as bool,
+      );
     }
 
     // 导入平台设置
-    if (settings.containsKey(_platformsKey) && settings[_platformsKey] != null) {
+    if (settings.containsKey(_platformsKey) &&
+        settings[_platformsKey] != null) {
       await prefs.setString(_platformsKey, settings[_platformsKey] as String);
     }
     if (settings.containsKey(_currentPlatformIdKey)) {
-      await prefs.setString(_currentPlatformIdKey, settings[_currentPlatformIdKey] as String);
+      await prefs.setString(
+        _currentPlatformIdKey,
+        settings[_currentPlatformIdKey] as String,
+      );
     }
   }
 
   /// 从Lumenflow格式或旧JSON格式导入设置
   /// [data] 可以是Lumenflow格式（包含元数据）或旧JSON格式
   /// [overwrite] 是否覆盖现有设置，默认为true
-  Future<void> importSettingsFromLumenflow(Map<String, dynamic> data, {bool overwrite = true}) async {
+  Future<void> importSettingsFromLumenflow(
+    Map<String, dynamic> data, {
+    bool overwrite = true,
+  }) async {
     Map<String, dynamic> settings;
 
     if (data.containsKey('_format') && data['_format'] == _lumenflowFormat) {
       // 提取settings字段
-      if (data.containsKey('settings') && data['settings'] is Map<String, dynamic>) {
+      if (data.containsKey('settings') &&
+          data['settings'] is Map<String, dynamic>) {
         settings = data['settings'] as Map<String, dynamic>;
       } else {
         throw FormatException('无效的Lumenflow格式：缺少settings字段');
@@ -400,7 +457,9 @@ class SettingsService {
 
     try {
       final List<dynamic> decoded = jsonDecode(platformsJson);
-      return decoded.map((e) => AIPlatform.fromJson(e as Map<String, dynamic>)).toList();
+      return decoded
+          .map((e) => AIPlatform.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (e) {
       // 解析失败，返回默认列表
       return _getDefaultPlatforms();
@@ -419,13 +478,17 @@ class SettingsService {
     final platforms = await getPlatforms();
     final index = platforms.indexWhere((p) => p.id == platform.id);
 
-    debugPrint('保存平台: id=${platform.id}, name=${platform.name}, defaultModel=${platform.defaultModel}');
+    debugPrint(
+      '保存平台: id=${platform.id}, name=${platform.name}, defaultModel=${platform.defaultModel}',
+    );
     debugPrint('找到索引: $index, 总平台数: ${platforms.length}');
 
     if (index >= 0) {
       // 更新现有平台
       debugPrint('更新现有平台: ${platforms[index].name} -> ${platform.name}');
-      debugPrint('原默认模型: ${platforms[index].defaultModel}, 新默认模型: ${platform.defaultModel}');
+      debugPrint(
+        '原默认模型: ${platforms[index].defaultModel}, 新默认模型: ${platform.defaultModel}',
+      );
       platforms[index] = platform;
     } else {
       // 添加新平台

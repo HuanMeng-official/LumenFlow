@@ -1156,6 +1156,9 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get currentTime => '現在時刻：';
+
+  @override
   String httpServerOperationFailed(String error) {
     return 'HTTPサーバー操作に失敗しました: $error';
   }

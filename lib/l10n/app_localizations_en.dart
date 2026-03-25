@@ -1156,6 +1156,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get currentTime => 'Current time:';
+
+  @override
   String httpServerOperationFailed(String error) {
     return 'HTTP server operation failed: $error';
   }

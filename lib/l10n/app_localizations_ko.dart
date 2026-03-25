@@ -1156,6 +1156,9 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get currentTime => '현재 시간：';
+
+  @override
   String httpServerOperationFailed(String error) {
     return 'HTTP 서버 작업 실패: $error';
   }

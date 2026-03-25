@@ -731,6 +731,7 @@
       }
     }
   },
+  "currentTime": "現在時刻：",
   "httpServerOperationFailed": "HTTPサーバー操作に失敗しました: {error}",
   "@httpServerOperationFailed": {
     "placeholders": {

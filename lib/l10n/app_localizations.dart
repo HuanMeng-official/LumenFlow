@@ -2205,6 +2205,12 @@ abstract class AppLocalizations {
   /// **'Failed to open link: {error}'**
   String openLinkFailed(String error);
 
+  /// No description provided for @currentTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Current time:'**
+  String get currentTime;
+
   /// No description provided for @httpServerOperationFailed.
   ///
   /// In en, this message translates to:
