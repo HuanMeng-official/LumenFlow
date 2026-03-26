@@ -695,15 +695,16 @@ class SettingsService {
   List<AIPlatform> _getDefaultPlatforms() {
     return [
       AIPlatform.createDefaultPlatform('openai'),
-      AIPlatform.createDefaultPlatform('claude'),
-      AIPlatform.createDefaultPlatform('deepseek'),
       AIPlatform.createDefaultPlatform('gemini'),
-      AIPlatform.createDefaultPlatform('siliconflow'),
-      AIPlatform.createDefaultPlatform('minimax'),
-      AIPlatform.createDefaultPlatform('zhipu'),
-      AIPlatform.createDefaultPlatform('kimi'),
-      AIPlatform.createDefaultPlatform('lmstudio'),
+      AIPlatform.createDefaultPlatform('claude'),
       AIPlatform.createDefaultPlatform('grok'),
+      AIPlatform.createDefaultPlatform('deepseek'),
+      AIPlatform.createDefaultPlatform('kimi'),
+      AIPlatform.createDefaultPlatform('zhipu'),
+      AIPlatform.createDefaultPlatform('minimax'),
+      AIPlatform.createDefaultPlatform('siliconflow'),
+      AIPlatform.createDefaultPlatform('openrouter'),
+      AIPlatform.createDefaultPlatform('lmstudio'),
       AIPlatform.createDefaultPlatform('other'),
     ];
   }
