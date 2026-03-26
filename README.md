@@ -1,12 +1,14 @@
 # LumenFlow
 
-> A cross-platform AI chat application built with Flutter, supporting 10+ AI platforms with SQLite-based local storage and comprehensive conversation management.
+**Version: 2.4.0**
+
+> A cross-platform AI chat application built with Flutter, supporting 12+ AI platforms with SQLite-based local storage and comprehensive conversation management.
 
 [English Version](./README.md) | [中文版本](./README/README.zh_CN.md)
 
 ## Overview
 
-LumenFlow (Chinese: 流光) is a modern AI chat application built with Flutter that provides a seamless conversational experience across Android, Windows, and Linux platforms. With support for 10+ AI service providers, SQLite database for local data persistence, and rich multi-modal capabilities, it offers a versatile AI assistant experience.
+LumenFlow (Chinese: 流光) is a modern AI chat application built with Flutter that provides a seamless conversational experience across Android, Windows, and Linux platforms. With support for 12+ AI service providers, SQLite database for local data persistence, and rich multi-modal capabilities, it offers a versatile AI assistant experience.
 
 - **License**: MIT
 - **Platforms**: Android, Windows, Linux
@@ -15,7 +17,7 @@ LumenFlow (Chinese: 流光) is a modern AI chat application built with Flutter t
 ## Features
 
 ### Core AI Capabilities
-- **10+ AI Platform Support**: OpenAI, Claude, Google Gemini, DeepSeek, SiliconFlow, MiniMax, Zhipu AI, Kimi, LM-Studio (local deployment), and Other (custom OpenAI-compatible APIs)
+- **12+ AI Platform Support**: OpenAI, Claude, Google Gemini, DeepSeek, SiliconFlow, MiniMax, Zhipu AI, Kimi, LM-Studio (local deployment), Grok, OpenRouter, and Other (custom OpenAI-compatible APIs)
 - **Provider Pattern Architecture**: Clean abstraction layer for AI providers with unified interface
 - **Multi-AI Platform Management**: Configure and manage multiple AI platforms simultaneously with independent settings, model lists, and platform-specific configurations
 - **Streaming Responses**: Real-time streaming output for responsive chat experience
@@ -31,7 +33,8 @@ LumenFlow (Chinese: 流光) is a modern AI chat application built with Flutter t
 ### User Experience
 - **Multi-Modal Support**: Process images, videos, and audio files with vision capabilities
 - **File Attachments**: Upload and extract content from various file types
-- **User Profiles**: Personalized settings with avatar and username customization
+- **User Profiles**: Personalized settings with avatar, username, gender, and birthday customization
+- **Role Card Generator**: Built-in web-based character card generator for creating detailed AI personas
 - **Prompt Preset System**: Pre-configured role-playing prompts with rich character settings
 - **Multi-Language Presets**: Automatic language-specific preset loading based on interface language
 - **Theme Management**: Support for light/dark theme switching with system theme following
@@ -89,7 +92,8 @@ lib/
 │   ├── prompt_service.dart   # Prompt preset management
 │   ├── notification_service.dart # Notification service
 │   ├── version_service.dart  # Version information management
-│   └── live_update_service.dart # Live update service
+│   ├── live_update_service.dart # Live update service
+│   └── http_server_service.dart # HTTP server for character card generator
 ├── providers/                # AI provider implementations
 │   ├── ai_provider.dart     # Abstract base class
 │   ├── openai_provider.dart # OpenAI implementation
@@ -101,6 +105,8 @@ lib/
 │   ├── zhipu_provider.dart    # Zhipu AI implementation
 │   ├── kimi_provider.dart     # Kimi implementation
 │   ├── lmstudio_provider.dart # LM-Studio (local) implementation
+│   ├── grok_provider.dart     # Grok (xAI) implementation
+│   ├── openrouter_provider.dart # OpenRouter implementation
 │   └── other_provider.dart    # Other (OpenAI-compatible) implementation
 ├── utils/                    # Utility classes
 │   └── app_theme.dart        # Application theme management
@@ -179,6 +185,7 @@ The application follows a layered architecture pattern:
 - `NotificationService`: Handles local notifications
 - `VersionService`: Version information management
 - `LiveUpdateService`: Real-time application updates
+- `HttpServerService`: Embedded HTTP server for web-based character card generator
 
 ### AI Providers
 
@@ -194,6 +201,8 @@ The application uses a provider-based architecture for AI integration:
 - `ZhipuProvider`: Implementation for Zhipu AI API
 - `KimiProvider`: Implementation for Kimi API
 - `LMStudioProvider`: Implementation for LM-Studio (local deployment) with OpenAI Responses API
+- `GrokProvider`: Implementation for Grok (xAI) API with multi-modal support
+- `OpenRouterProvider`: Implementation for OpenRouter API with multi-provider model access
 - `OtherProvider`: Implementation for OpenAI-compatible APIs (custom endpoints)
 
 This architecture allows for easy addition of new AI providers while maintaining a consistent interface across all providers.
@@ -284,11 +293,21 @@ You can configure multiple platforms and switch between them as needed.
    - Text-only support with long context capabilities
 
 9. **LM-Studio (Local)**
-   - API Endpoint: Custom local endpoint (default: `http://localhost:1234/v1`)
+   - API Endpoint: Custom local endpoint (default: `http://localhost:1234/v1/responses`)
    - Supported models: Local LLMs hosted via LM-Studio
    - Uses OpenAI Responses API format
 
-10. **Other (Custom API)**
+10. **Grok (xAI)**
+    - API Endpoint: `https://api.x.ai/v1/responses`
+    - Supported models: Grok models
+    - Multi-modal support with thinking mode capability
+
+11. **OpenRouter**
+    - API Endpoint: `https://openrouter.ai/api/v1/responses`
+    - Supported models: Various models from multiple providers
+    - OpenAI-compatible API format
+
+12. **Other (Custom API)**
     - API Endpoint: `https://URL/v1/chat/completions`
     - Supported models: User-defined model list
     - OpenAI chat completions format compatibility
