@@ -74,8 +74,6 @@ class OpenRouterProvider extends AIProvider {
           // 添加推理配置
           if (thinkingMode) {
             requestBody['reasoning'] = {'effort': 'medium', 'summary': 'auto', 'enabled': true};
-          } else {
-            requestBody['reasoning'] = {'enabled': false};
           }
 
           final response = await client.post(
@@ -150,8 +148,6 @@ class OpenRouterProvider extends AIProvider {
       // 添加推理配置
       if (thinkingMode) {
         requestBody['reasoning'] = {'effort': 'medium', 'summary': 'auto', 'enabled': true};
-      } else {
-        requestBody['reasoning'] = {'enabled': false};
       }
 
       final request = http.Request(
