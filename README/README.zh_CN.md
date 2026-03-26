@@ -1,4 +1,4 @@
-# LumenFlow
+![LumenFlow](./img/cover.png)
 
 > 基于 Flutter 构建的跨平台 AI 聊天应用，支持 12+ 个 AI 平台，采用 SQLite 本地存储和全面的对话管理功能。
 

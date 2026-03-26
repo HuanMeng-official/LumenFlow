@@ -1,4 +1,4 @@
-# LumenFlow
+![LumenFlow](./README/img/cover.png)
 
 **Version: 2.4.0**
 
