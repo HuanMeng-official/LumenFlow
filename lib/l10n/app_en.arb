@@ -113,6 +113,7 @@
   "grokApi": "Grok API",
   "openrouterApi": "OpenRouter API",
   "otherApi": "Other API",
+  "mimoApi": "XiaoMi MiMo API",
   "apiTypeDesc": "Select AI service provider",
   "apiEndpoint": "API Endpoint",
   "apiEndpointPlaceholder": "Enter API endpoint URL",

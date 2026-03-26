@@ -507,6 +507,12 @@ abstract class AppLocalizations {
   /// **'Other API'**
   String get otherApi;
 
+  /// No description provided for @mimoApi.
+  ///
+  /// In en, this message translates to:
+  /// **'XiaoMi MiMo API'**
+  String get mimoApi;
+
   /// No description provided for @apiTypeDesc.
   ///
   /// In en, this message translates to:

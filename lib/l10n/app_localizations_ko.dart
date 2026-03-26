@@ -225,6 +225,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get otherApi => 'Other API';
 
   @override
+  String get mimoApi => 'XiaoMi MiMo API';
+
+  @override
   String get apiTypeDesc => 'AI 서비스 제공업체 선택';
 
   @override

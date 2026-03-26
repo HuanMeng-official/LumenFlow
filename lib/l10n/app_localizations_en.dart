@@ -225,6 +225,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get otherApi => 'Other API';
 
   @override
+  String get mimoApi => 'XiaoMi MiMo API';
+
+  @override
   String get apiTypeDesc => 'Select AI service provider';
 
   @override

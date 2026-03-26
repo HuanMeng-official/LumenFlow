@@ -17,6 +17,7 @@ import '../providers/lmstudio_provider.dart';
 import '../providers/other_provider.dart';
 import '../providers/grok_provider.dart';
 import '../providers/openrouter_provider.dart';
+import '../providers/xiaomimimo_provider.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/time_utils.dart';
 import 'package:intl/intl.dart';
@@ -61,6 +62,7 @@ class AIService {
           (apiType == 'other' && _cachedProvider is OtherProvider) ||
           (apiType == 'openai' && _cachedProvider is OpenAIProvider) ||
           (apiType == 'grok' && _cachedProvider is GrokProvider) ||
+          (apiType == 'xiaomimimo' && _cachedProvider is XiaoMiMiMoProvider) ||
           (apiType == 'openrouter' && _cachedProvider is OpenRouterProvider);
 
       // 如果类型匹配，且配置未变更，使用缓存
@@ -94,6 +96,8 @@ class AIService {
       _cachedProvider = GrokProvider();
     } else if (apiType == 'openrouter') {
       _cachedProvider = OpenRouterProvider();
+    } else if (apiType == 'xiaomimimo') {
+      _cachedProvider = XiaoMiMiMoProvider();
     } else {
       _cachedProvider = OpenAIProvider();
     }

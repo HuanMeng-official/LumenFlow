@@ -38,6 +38,7 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
     'kimi',
     'zhipu',
     'minimax',
+    'xiaomimimo',
     'siliconflow',
     'openrouter',
     'lmstudio',
@@ -1245,6 +1246,8 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
         return CupertinoIcons.link;
       case 'other':
         return CupertinoIcons.question_circle;
+      case 'xiaomimimo':
+        return CupertinoIcons.smiley_fill;
       default:
         return CupertinoIcons.cube_box;
     }
@@ -1277,6 +1280,8 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
         return const Color(0xFF20C997);
       case 'other':
         return const Color(0xFF8E8E93);
+      case 'xiaomimimo':
+        return const Color(0xFFFF6F61);
       default:
         return CupertinoColors.systemBlue;
     }

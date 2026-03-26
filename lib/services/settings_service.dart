@@ -702,6 +702,7 @@ class SettingsService {
       AIPlatform.createDefaultPlatform('kimi'),
       AIPlatform.createDefaultPlatform('zhipu'),
       AIPlatform.createDefaultPlatform('minimax'),
+      AIPlatform.createDefaultPlatform('xiaomimimo'),
       AIPlatform.createDefaultPlatform('siliconflow'),
       AIPlatform.createDefaultPlatform('openrouter'),
       AIPlatform.createDefaultPlatform('lmstudio'),

@@ -73,6 +73,8 @@ class _ApiSettingsScreenState extends State<ApiSettingsScreen> {
         _endpointController.text = 'https://api.x.ai/v1';
       } else if (apiType == 'openrouter') {
         _endpointController.text = 'https://openrouter.ai/api/v1';
+      } else if (apiType == 'xiaomimimo') {
+        _endpointController.text = 'https://api.xiaomimimo.com/v1';
       } else if (apiType == 'other') {
         _endpointController.text = 'https://YOUR_LLM_ADDRESS/v1';
       } else {
@@ -190,6 +192,7 @@ class _ApiSettingsScreenState extends State<ApiSettingsScreen> {
                     'kimi': l10n.kimiApi,
                     'zhipu': l10n.zhipuApi,
                     'minimax': l10n.minimaxApi,
+                    'xiaomimimo': l10n.mimoApi,
                     'siliconflow': l10n.siliconflowApi,
                     'openrouter': l10n.openrouterApi,
                     'lmstudio': l10n.lmsApi,

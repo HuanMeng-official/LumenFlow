@@ -233,6 +233,17 @@ class AIPlatform {
           defaultModel: '',
           icon: 'openrouter',
         );
+      case 'xiaomimimo':
+        return AIPlatform(
+          id: 'xiaomimimo',
+          name: 'XiaoMi MiMo',
+          type: 'xiaomimimo',
+          endpoint: 'https://api.xiaomimimo.com/v1',
+          apiKey: '',
+          availableModels: [],
+          defaultModel: '',
+          icon: 'xiaomimimo',
+        );
       case 'other':
         return AIPlatform(
           id: 'other',
