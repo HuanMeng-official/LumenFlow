@@ -1,7 +1,5 @@
 ![LumenFlow](./README/img/cover.png)
 
-**Version: 2.4.0**
-
 > A cross-platform AI chat application built with Flutter, supporting 12+ AI platforms with SQLite-based local storage and comprehensive conversation management.
 
 [English Version](./README.md) | [中文版本](./README/README.zh_CN.md)
