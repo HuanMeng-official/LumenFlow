@@ -1207,4 +1207,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get selectBirthday => 'Select Birthday';
+
+  @override
+  String get toolManagement => 'Tool Management';
+
+  @override
+  String get promptTools => 'Tools';
+
+  @override
+  String get addTimeToPrompt => 'Time';
+
+  @override
+  String get addTimeToPromptDesc => 'Get time';
 }

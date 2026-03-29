@@ -188,14 +188,16 @@ class AIService {
     final temperature = await _settingsService.getTemperature();
     final maxTokens = await _settingsService.getMaxTokens();
     final systemPrompt = await _buildSystemPrompt(presetSystemPrompt, l10n);
+    final addTimeToPrompt = await _settingsService.getAddTimeToPrompt();
 
-    // 添加当前时间信息到用户消息
-    final currentTime = TimeUtils.now();
-    final messageWithTime = '$message\n\n${l10n.currentTime}$currentTime';
+    // 根据设置决定是否添加当前时间信息到用户消息
+    final messageToSend = addTimeToPrompt
+        ? '$message\n\n${l10n.currentTime}${TimeUtils.now()}'
+        : message;
 
     try {
       return await provider.sendMessage(
-        message: messageWithTime,
+        message: messageToSend,
         chatHistory: chatHistory,
         attachments: attachments,
         systemPrompt: systemPrompt,
@@ -238,14 +240,16 @@ class AIService {
     final temperature = await _settingsService.getTemperature();
     final maxTokens = await _settingsService.getMaxTokens();
     final systemPrompt = await _buildSystemPrompt(presetSystemPrompt, l10n);
+    final addTimeToPrompt = await _settingsService.getAddTimeToPrompt();
 
-    // 添加当前时间信息到用户消息
-    final currentTime = TimeUtils.now();
-    final messageWithTime = '$message\n\n${l10n.currentTime}$currentTime';
+    // 根据设置决定是否添加当前时间信息到用户消息
+    final messageToSend = addTimeToPrompt
+        ? '$message\n\n${l10n.currentTime}${TimeUtils.now()}'
+        : message;
 
     try {
       yield* provider.sendMessageStreaming(
-        message: messageWithTime,
+        message: messageToSend,
         chatHistory: chatHistory,
         attachments: attachments,
         systemPrompt: systemPrompt,

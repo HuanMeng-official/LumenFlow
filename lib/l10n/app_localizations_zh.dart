@@ -1207,4 +1207,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get selectBirthday => '选择生日';
+
+  @override
+  String get toolManagement => '工具管理';
+
+  @override
+  String get promptTools => '工具';
+
+  @override
+  String get addTimeToPrompt => '时间';
+
+  @override
+  String get addTimeToPromptDesc => '获取时间';
 }

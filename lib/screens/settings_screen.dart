@@ -8,19 +8,13 @@ import 'model_settings_screen.dart';
 import 'conversation_settings_screen.dart';
 import 'appearance_settings_screen.dart';
 import 'preset_management_screen.dart';
+import 'tool_management_screen.dart';
 import '../widgets/settings/settings_section.dart';
 import '../widgets/settings/settings_navigation_tile.dart';
 
 /// 应用主设置界面
 ///
 /// 各类设置的汇总页面，提供导航到具体设置页面：
-/// - 用户信息
-/// - 平台和模型配置
-/// - API设置
-/// - 模型设置
-/// - 对话设置
-/// - 外观设置
-/// - 数据导入导出
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -102,6 +96,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  void _openToolManagement() async {
+    await Navigator.push(
+      context,
+      CupertinoPageRoute(
+        builder: (context) => const ToolManagementScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -162,6 +165,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: l10n.presetManagementSubtitle,
                   icon: CupertinoIcons.doc_text,
                   onTap: _openPresetManagement,
+                ),
+                SettingsNavigationTile(
+                  title: l10n.toolManagement,
+                  subtitle: l10n.toolsSettingsSubtitle,
+                  icon: CupertinoIcons.wrench,
+                  onTap: _openToolManagement,
                 ),
               ],
             ),

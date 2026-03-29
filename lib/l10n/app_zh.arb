@@ -753,5 +753,9 @@
   "clearBackgroundImageConfirm": "确定要清除背景图片吗？",
   "birthday": "生日",
   "birthdayHint": "选择您的生日日期",
-  "selectBirthday": "选择生日"
+  "selectBirthday": "选择生日",
+  "toolManagement": "工具管理",
+  "promptTools": "工具",
+  "addTimeToPrompt": "时间",
+  "addTimeToPromptDesc": "获取时间"
 }

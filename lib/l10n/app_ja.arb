@@ -754,5 +754,9 @@
   "clearBackgroundImageConfirm": "背景画像をクリアしてもよろしいですか？",
   "birthday": "誕生日",
   "birthdayHint": "誕生日を選択してください",
-  "selectBirthday": "誕生日を選択"
+  "selectBirthday": "誕生日を選択",
+  "toolManagement": "ツール管理",
+  "promptTools": "プロンプトツール",
+  "addTimeToPrompt": "時間",
+  "addTimeToPromptDesc": "時間を取得する"
 }

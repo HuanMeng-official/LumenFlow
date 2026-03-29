@@ -28,6 +28,8 @@ class SettingsService {
   static const String _backgroundImagePathKey = 'background_image_path';
   static const String _backgroundImageOpacityKey = 'background_image_opacity';
   static const String _backgroundImageEnabledKey = 'background_image_enabled';
+  // 工具管理相关的key
+  static const String _addTimeToPromptKey = 'add_time_to_prompt';
   // 多平台配置相关的key
   static const String _platformsKey = 'ai_platforms';
   static const String _currentPlatformIdKey = 'current_platform_id';
@@ -47,6 +49,8 @@ class SettingsService {
   static const String defaultBackgroundImagePath = '';
   static const double defaultBackgroundImageOpacity = 0.15;
   static const bool defaultBackgroundImageEnabled = false;
+  // 工具管理默认值
+  static const bool defaultAddTimeToPrompt = true;
 
   static const String defaultEndpoint = 'https://api.openai.com/v1';
   static const String defaultModel = 'gpt-5';
@@ -279,6 +283,16 @@ class SettingsService {
     await prefs.setBool(_backgroundImageEnabledKey, enabled);
   }
 
+  Future<bool> getAddTimeToPrompt() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_addTimeToPromptKey) ?? defaultAddTimeToPrompt;
+  }
+
+  Future<void> setAddTimeToPrompt(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_addTimeToPromptKey, enabled);
+  }
+
   /// 导出所有设置为JSON格式的Map
   /// 返回包含所有设置键值对的Map
   Future<Map<String, dynamic>> exportSettingsToJson() async {
@@ -317,6 +331,8 @@ class SettingsService {
     settings[_localeKey] = prefs.getString(_localeKey) ?? defaultLocale;
     settings[_notificationEnabledKey] =
         prefs.getBool(_notificationEnabledKey) ?? defaultNotificationEnabled;
+    settings[_addTimeToPromptKey] =
+        prefs.getBool(_addTimeToPromptKey) ?? defaultAddTimeToPrompt;
     settings[_backgroundImagePathKey] =
         prefs.getString(_backgroundImagePathKey) ?? defaultBackgroundImagePath;
     settings[_backgroundImageOpacityKey] =
@@ -448,6 +464,12 @@ class SettingsService {
       await prefs.setBool(
         _notificationEnabledKey,
         settings[_notificationEnabledKey] as bool,
+      );
+    }
+    if (settings.containsKey(_addTimeToPromptKey)) {
+      await prefs.setBool(
+        _addTimeToPromptKey,
+        settings[_addTimeToPromptKey] as bool,
       );
     }
     if (settings.containsKey(_backgroundImagePathKey)) {

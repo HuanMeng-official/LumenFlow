@@ -753,5 +753,9 @@
   "clearBackgroundImageConfirm": "Are you sure you want to clear the background image?",
   "birthday": "Birthday",
   "birthdayHint": "Select your birthday date",
-  "selectBirthday": "Select Birthday"
+  "selectBirthday": "Select Birthday",
+  "toolManagement": "Tool Management",
+  "promptTools": "Tools",
+  "addTimeToPrompt": "Time",
+  "addTimeToPromptDesc": "Get time"
 }

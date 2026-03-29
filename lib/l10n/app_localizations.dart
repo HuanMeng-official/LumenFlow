@@ -2306,6 +2306,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select Birthday'**
   String get selectBirthday;
+
+  /// No description provided for @toolManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Tool Management'**
+  String get toolManagement;
+
+  /// No description provided for @promptTools.
+  ///
+  /// In en, this message translates to:
+  /// **'Tools'**
+  String get promptTools;
+
+  /// No description provided for @addTimeToPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get addTimeToPrompt;
+
+  /// No description provided for @addTimeToPromptDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Get time'**
+  String get addTimeToPromptDesc;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

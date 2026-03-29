@@ -1207,4 +1207,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get selectBirthday => '誕生日を選択';
+
+  @override
+  String get toolManagement => 'ツール管理';
+
+  @override
+  String get promptTools => 'プロンプトツール';
+
+  @override
+  String get addTimeToPrompt => '時間';
+
+  @override
+  String get addTimeToPromptDesc => '時間を取得する';
 }

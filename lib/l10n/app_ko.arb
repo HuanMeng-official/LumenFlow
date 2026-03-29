@@ -753,5 +753,9 @@
   "clearBackgroundImageConfirm": "배경 이미지를 지우시겠습니까?",
   "birthday": "생일",
   "birthdayHint": "생일을 선택해 주세요",
-  "selectBirthday": "생일 선택"
+  "selectBirthday": "생일 선택",
+  "toolManagement": "도구 관리",
+  "promptTools": "도구",
+  "addTimeToPrompt": "시간",
+  "addTimeToPromptDesc": "시간 가져오기"
 }

@@ -1207,4 +1207,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get selectBirthday => '생일 선택';
+
+  @override
+  String get toolManagement => '도구 관리';
+
+  @override
+  String get promptTools => '도구';
+
+  @override
+  String get addTimeToPrompt => '시간';
+
+  @override
+  String get addTimeToPromptDesc => '시간 가져오기';
 }
