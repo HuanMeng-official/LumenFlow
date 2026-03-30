@@ -553,6 +553,7 @@ class _LanguageDropdownTile extends StatelessWidget {
 
     final options = {
       'zh': '简体中文',
+      'lzh': '文言',
       'en': 'English',
       'ja': '日本語',
       'ko': '한국어',

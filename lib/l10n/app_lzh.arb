@@ -1,0 +1,761 @@
+{
+  "@@locale": "lzh",
+  "appTitle": "流光",
+  "appSubtitle": "與靈犀對談",
+  "chat": "對談",
+  "settings": "規度",
+  "about": "本末",
+  "conversations": "對談舊錄",
+  "newConversation": "新闢一局",
+  "noConversations": "尚無對談之錄",
+  "createNewConversation": "新闢一局對談",
+  "aiAssistant": "靈犀佐使",
+  "startChatting": "且與靈犀開言！",
+  "pleaseConfigureAPI": "祈先設樞機方可開言",
+  "settingsButton": "規度",
+  "needConfiguration": "尚待規度",
+  "configureAPIPrompt": "祈先於規度中設樞機渡口與符節",
+  "cancel": "罷休",
+  "confirm": "允定",
+  "save": "存錄",
+  "delete": "芟除",
+  "edit": "修訂",
+  "ok": "善",
+  "goToSettings": "往赴規度",
+  "clearConversation": "滌除此談",
+  "clearConversationConfirm": "確欲滌除此局之悉數言語乎？",
+  "deleteConversation": "芟除此談",
+  "deleteConversationConfirm": "確欲芟除「{title}」乎？覆水難收。",
+  "@deleteConversationConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "editConversationTitle": "修訂談名",
+  "enterConversationTitle": "賜題談名",
+  "saveSuccess": "存錄已妥",
+  "settingsSaved": "規度已存",
+  "saveFailed": "存錄未果",
+  "saveError": "存錄生乖謬: {error}",
+  "@saveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "resetSettings": "返本歸元",
+  "resetSettingsConfirm": "確欲返本歸元乎？諸般規度皆將消散。",
+  "exportSettings": "謄錄規度",
+  "exportSuccess": "謄錄已妥",
+  "exportLocation": "規度已謄於{location}之中：\n{path}",
+  "@exportLocation": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      },
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "exportFailed": "謄錄未果",
+  "exportError": "謄錄生乖謬: {error}\n\n祈察有否藏書之權，且觀庫房尚有隙地否。",
+  "@exportError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "importSettings": "匯入規度",
+  "importSettingsConfirm": "此舉將覆故有之規度，確欲匯入乎？",
+  "importSuccess": "匯入已妥",
+  "settingsImported": "規度匯入無恙。",
+  "importFailed": "匯入未果",
+  "importError": "匯入生乖謬: {error}",
+  "@importError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "error": "乖謬",
+  "responseInterrupted": "回話中絕，本器恐已星散",
+  "yesterday": "昨日",
+  "daysAgo": "{days}日前",
+  "@daysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "editTitle": "修訂題名",
+  "deleteConversation2": "芟除此談",
+  "userInfo": "閣下生平",
+  "userProfile": "容貌名諱",
+  "userProfileDesc": "設小像與尊號",
+  "basicSettings": "根本規度",
+  "apiType": "樞機法式",
+  "openaiApi": "OpenAI 樞機",
+  "geminiApi": "Gemini 樞機",
+  "deepseekApi": "DeepSeek 樞機",
+  "claudeApi": "Claude 樞機",
+  "siliconflowApi": "SiliconFlow 樞機",
+  "minimaxApi": "MiniMax 樞機",
+  "zhipuApi": "智譜 樞機",
+  "kimiApi": "Kimi 樞機",
+  "lmsApi": "LM-Studio 樞機",
+  "grokApi": "Grok 樞機",
+  "openrouterApi": "OpenRouter 樞機",
+  "otherApi": "他邦樞機",
+  "mimoApi": "小米 MiMo 樞機",
+  "apiTypeDesc": "擇靈犀之門戶",
+  "apiEndpoint": "樞機渡口",
+  "apiEndpointPlaceholder": "賜下樞機渡口之址",
+  "apiEndpointDesc": "如: https://api.openai.com/v1",
+  "apiKey": "樞機符節",
+  "apiKeyPlaceholder": "賜下樞機符節",
+  "apiKeyDesc": "自靈犀門戶求得之勘合符節",
+  "modelSettings": "法象規度",
+  "model": "法象",
+  "modelPlaceholder": "賜下法象之名",
+  "modelDesc": "如: gpt-5, deepseek-chat",
+  "maxTokens": "至多言數",
+  "maxTokensPlaceholder": "賜下至多言數",
+  "maxTokensDesc": "限其單次回話之長，宜在六千至萬言之間",
+  "systemPrompt": "開宗明義",
+  "systemPromptPlaceholder": "賜下開宗明義之言",
+  "systemPromptDesc": "如：恆以文言對答",
+  "temperature": "性情之烈",
+  "temperatureDesc": "馭其變幻之度，自零至二，愈高則言辭愈奇",
+  "historyConversation": "前塵舊錄",
+  "enableHistory": "通曉前塵",
+  "enableHistoryDesc": "啓之則靈犀不忘前言，對答自能貫通",
+  "historyRounds": "追溯前塵之數",
+  "historyRoundsPlaceholder": "賜下追溯之回數",
+  "historyRoundsDesc": "靈犀所記前言之回數，宜五至二十回，過甚恐越言數之限",
+  "conversationTitle": "對談題名",
+  "autoGenerateTitle": "自擬題名",
+  "autoGenerateTitleDesc": "對談數回，靈犀自度其意以擬題",
+  "generateTiming": "擬題時機",
+  "generateTimingDesc": "定數回之後自擬題名",
+  "rounds": "回",
+  "appearance": "外觀容止",
+  "followSystem": "隨順天時",
+  "followSystemDesc": "自隨天時明暗之化",
+  "appColor": "本器設色",
+  "lightMode": "晝明之色",
+  "darkMode": "夜闇之色",
+  "followSystemSetting": "依循中樞（{mode}）",
+  "@followSystemSetting": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "selectColorMode": "擇本器之明暗",
+  "others": "雜項",
+  "resetToDefault": "返本歸元",
+  "commonApiEndpoints": "常見樞機渡口",
+  "commonApiEndpointsContent": "OpenAI: https://api.openai.com/v1\n\nDeepSeek: https://api.deepseek.com\n\n阿里雲: https://dashscope.aliyuncs.com/api/v1\n\n祈察閣下所用之靈犀門戶，填其相應渡口。",
+  "commonModels": "常見法象",
+  "commonModelsContent": "OpenAI:\n• gpt-5\n\nDeepSeek:\n• deepseek-chat\n• deepseek-reasoner\n\n祈察渡口以擇相應法象。",
+  "appInfo": "本器綱要",
+  "version": "修次",
+  "buildDate": "鳩工之日",
+  "developer": "營造匠人",
+  "features": "妙用諸端",
+  "intelligentConversation": "慧心清言",
+  "intelligentConversationDesc": "可與諸般法象作雅言之會",
+  "fileProcessing": "案牘披閱",
+  "fileProcessingDesc": "能納丹青、卷宗諸般文檔",
+  "historyRecords": "起居舊錄",
+  "historyRecordsDesc": "自存對語往來，通曉前言後語",
+  "customSettings": "隨心規度",
+  "customSettingsDesc": "樞機、設色、諸般巧思皆可自專",
+  "licenses": "開源文牒",
+  "sponsor": "賜金",
+  "sponsorDesc": "若覺此器堪用，幸掃符籙賜金以助營造",
+  "copyright": "© 2026 幻夢official",
+  "copyrightNotice": "此器徒供講學格物之用",
+  "copyrightTerms": "啟刃前祈遵諸門戶樞機之條陳",
+  "profileSaved": "閣下生平已存錄",
+  "saveProfileError": "存錄生平生乖謬: {error}",
+  "@saveProfileError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pickAvatarFailed": "擇小像未果",
+  "takePhotoFailed": "寫真未果",
+  "selectEmojiAvatar": "擇面譜作小像",
+  "selectAvatar": "擇小像",
+  "selectFromGallery": "自畫苑中擇取",
+  "takePhoto": "對鏡寫真",
+  "selectEmoji": "擇面譜",
+  "tapToChangeAvatar": "輕觸易貌",
+  "username": "尊號",
+  "usernameHint": "靈犀將以此名相稱",
+  "enterYourUsername": "賜下尊號",
+  "gender": "性別",
+  "genderHint": "定閣下之性別",
+  "male": "男",
+  "female": "女",
+  "selectGender": "定性別",
+  "aboutUserProfile": "生平敘略",
+  "aboutUserProfileContent": "• 小像：可擇畫像或面譜，示於對談之卷首\n• 尊號：靈犀對答時以此相稱\n• 諸般底細皆藏於本地，不登聞於雲端",
+  "selectPresetRole": "擇定先哲",
+  "selectPresetRoleMessage": "擇一預設身分，以定其開宗明義",
+  "closePresetMode": "罷免身分",
+  "continueAction": "賡續",
+  "deepThinking": "冥思苦索",
+  "rolePlay": "優孟衣冠",
+  "language": "雅言",
+  "interfaceLanguage": "器物之語",
+  "selectInterfaceLanguage": "擇此器所用之語",
+  "thinkChain": "推演之理",
+  "expandChain": "觀其推演之跡",
+  "downloadDirectory": "拓本之所",
+  "externalStorageDirectory": "外庫",
+  "appDocumentsDirectory": "本器書閣",
+  "imagePreview": "畫軸先觀",
+  "unableToLoadImage": "畫軸難舒",
+  "errorPrefix": "謬矣",
+  "fileTooLarge": "案牘過厚",
+  "fileTooLargeMessage": "所奉案牘厚計{size}，已越{limit}之制。祈以薄紙輕簡之。",
+  "@fileTooLargeMessage": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "fileTooLargeWarning": "案牘過厚之誡",
+  "fileTooLargeWarningMessage": "下列案牘逾越{limit}之制，恐難披閱：\n\n{files}\n\n確欲強遞乎？",
+  "@fileTooLargeWarningMessage": {
+    "placeholders": {
+      "limit": {
+        "type": "String"
+      },
+      "files": {
+        "type": "String"
+      }
+    }
+  },
+  "noValidFiles": "無實文",
+  "noValidFilesMessage": "未得隻字片紙，祈再試之。",
+  "selectFileFailed": "擇案牘未果",
+  "selectFileFailedMessage": "乖謬：{error}",
+  "@selectFileFailedMessage": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "user": "閣下",
+  "ai": "靈犀",
+  "unknownError": "無名之謬",
+  "attachmentInfo": "隨附: {fileName} ({fileSize}, {mimeType})",
+  "@attachmentInfo": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      },
+      "mimeType": {
+        "type": "String"
+      }
+    }
+  },
+  "attachmentCannotRead": " - 字跡莫辨",
+  "unknownMimeType": "無名之卷",
+  "multimediaNotSupported": "\n誡：DeepSeek 弗識丹青、幻影、聲樂諸般雅玩",
+  "responseBlocked": "言辭犯忌，為守關者所阻",
+  "apiError": "樞機之謬: {message} (勘合碼: {statusCode})",
+  "@apiError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "configureApiKeyFirst": "祈先於規度中賜下樞機符節",
+  "selectModelFirst": "祈先擇定一法象",
+  "messageInputPlaceholder": "落筆於此...",
+  "configureApiSettingsFirst": "祈先定樞機之規度",
+  "baseSystemPrompt": "爾當於對答間以「{username}」呼之，並以中原雅言相復。",
+  "@baseSystemPrompt": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "requestTimeout": "晷漏已盡：門戶良久無音，祈察靈犀綱或少待再試。乖謬之詳: {error}",
+  "@requestTimeout": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "networkConnectionFailed": "千里傳音未遂：難通門戶，祈察靈犀綱。乖謬之詳: {error}",
+  "@networkConnectionFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "securityConnectionFailed": "勘合未遂：關防驗印未果，祈察曆法時辰。乖謬之詳: {error}",
+  "@securityConnectionFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionError": "津渡之阻：靈犀綱有恙，祈察之。乖謬之詳: {error}",
+  "@connectionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "httpProtocolError": "禮節之謬：傳書被拒，祈少待再試。乖謬之詳: {error}",
+  "@httpProtocolError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "networkCommunicationFailed": "傳書未遂: {error}",
+  "@networkCommunicationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "providerFileNotFound": "案牘 {fileName} 杳然無蹤或已焚毀",
+  "@providerFileNotFound": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "providerFileTooLarge": "案牘 {fileName} ({fileSize}) 過厚，難以披閱",
+  "@providerFileTooLarge": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      }
+    }
+  },
+  "providerFileProcessError": "披閱 {fileName} 時生乖謬: {error}",
+  "@providerFileProcessError": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "providerFileContent": "案牘: {fileName} ({fileSize})\n文理:\n{content}",
+  "@providerFileContent": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      },
+      "content": {
+        "type": "String"
+      }
+    }
+  },
+  "providerAttachmentCannotRead": "隨附: {fileName} ({fileSize}, {mimeType}) - 字跡莫辨",
+  "@providerAttachmentCannotRead": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      },
+      "mimeType": {
+        "type": "String"
+      }
+    }
+  },
+  "providerAttachmentInfo": "隨附: {fileName} ({fileSize}, {mimeType})",
+  "@providerAttachmentInfo": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      },
+      "mimeType": {
+        "type": "String"
+      }
+    }
+  },
+  "providerTotalSizeExceeded": "隨附總計已逾{limit}MB之制",
+  "@providerTotalSizeExceeded": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "providerInvalidResponseFormat": "門戶傳書，不合體式",
+  "providerMissingMessageField": "門戶傳書，缺失片言隻語（message）",
+  "providerInvalidResponseFormatWithCode": "樞機之謬: 傳書不合體式 (勘合碼: {statusCode})",
+  "@providerInvalidResponseFormatWithCode": {
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "providerApiError": "樞機之謬: {message} (勘合碼: {statusCode})",
+  "@providerApiError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "providerStreamingTimeout": "傳書逾時：過{seconds}息未見新辭",
+  "@providerStreamingTimeout": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "providerUnknownError": "無名之謬",
+  "providerUser": "閣下",
+  "providerAi": "靈犀",
+  "providerTitleGenSystemPrompt": "循閣下之言及對談之本末，擬一中原雅言之題，止於十五字。單賜題名，勿加匡廓雜飾。",
+  "providerTitleGenUserPrompt": "祈觀此番對答而擬一短題：\n\n{conversationSummary}",
+  "@providerTitleGenUserPrompt": {
+    "placeholders": {
+      "conversationSummary": {
+        "type": "String"
+      }
+    }
+  },
+  "providerMultimediaNotSupported": "\n誡：DeepSeek 弗識丹青、幻影、聲樂諸般雅玩",
+  "providerGeminiInvalidResponse": "Gemini 門戶傳書，不合體式",
+  "providerGeminiMissingCandidates": "Gemini 門戶傳書，缺 candidates 之目",
+  "providerGeminiInvalidFormat": "Gemini 傳書，不合體式",
+  "providerGeminiError": "Gemini 樞機之謬: {message} (勘合碼: {statusCode})",
+  "@providerGeminiError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "providerGeminiStreamingTimeout": "Gemini 傳書逾時：過{seconds}息未見新辭",
+  "@providerGeminiStreamingTimeout": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "providerGeminiInvalidFormatWithCode": "Gemini 樞機之謬: 傳書不合體式 (勘合碼: {statusCode})",
+  "@providerGeminiInvalidFormatWithCode": {
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "providerResponseBlocked": "言辭犯忌，為守關者所阻",
+  "platformAndModel": "門戶與法象",
+  "platformAndModelDesc": "總理諸邦靈犀門戶與法象之規度",
+  "addPlatform": "廣開門戶",
+  "editPlatform": "修訂門戶",
+  "platformType": "門戶之屬",
+  "platformNamePlaceholder": "門戶之名",
+  "endpointPlaceholder": "樞機渡口之址",
+  "apiKeyPlaceholder": "樞機符節",
+  "configured": "已設",
+  "notConfigured": "未設",
+  "models": "尊法象",
+  "available": "堪用",
+  "current": "當下",
+  "currentModel": "當下法象",
+  "manageModels": "總理法象",
+  "refreshModels": "點閱法象",
+  "noModelsAvailable": "尚無堪用之法象",
+  "noModelSelected": "未擇法象",
+  "modelsRefreshed": "法象之錄已點閱",
+  "refreshModelsError": "點閱未果: {error}",
+  "@refreshModelsError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletePlatform": "裁撤門戶",
+  "deletePlatformConfirm": "確欲裁撤門戶「{name}」乎？",
+  "@deletePlatformConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "switchToPlatform": "移步此門",
+  "switchedToPlatform": "已移步至 {name}",
+  "@switchedToPlatform": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addModelTitle": "添置法象",
+  "modelNamePh": "法象之名",
+  "addModelBtn": "添置",
+  "deleteModelTitle": "裁撤法象",
+  "deleteModelConfirm": "確欲裁撤法象「{model}」乎？",
+  "@deleteModelConfirm": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteModelBtn": "裁撤所選",
+  "selectModelToDelete": "祈先擇定欲裁之法象",
+  "add": "添置",
+  "delete": "裁撤",
+  "addNewModel": "新置法象",
+  "clickAddToCreate": "點擊上方「+」以添法象",
+  "noPlatformsConfigured": "尚未定立門戶之規度",
+  "addPlatformHint": "點擊右首「+」以開闢首個靈犀門戶",
+  "exportConversation": "謄錄對談",
+  "exportFormat": "謄錄之式",
+  "exportFormatTxt": "素書 (.txt)",
+  "exportFormatJson": "樞機文 (.json)",
+  "exportFormatLumenflow": "流光卷 (.lumenflow)",
+  "exportFormatPdf": "拓片 (.pdf)",
+  "exportConversationSuccess": "對談謄錄無恙",
+  "exportConversationFailed": "對談謄錄未果",
+  "exportConversationError": "謄錄生乖謬: {error}",
+  "@exportConversationError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "exportConversationTitle": "談名: ",
+  "exportCreatedTime": "開局之時: ",
+  "exportUpdatedTime": "絕筆之時: ",
+  "exportMessageCount": "言辭之數: ",
+  "exportReasoningProcess": "[推演之跡]",
+  "exportAttachments": "[隨附: {count}宗]",
+  "@exportAttachments": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportBytes": "字節",
+  "exportConversationNotFound": "對談杳無蹤跡",
+  "exportThinkingProcess": "推演之跡",
+  "exportAttachmentsLabel": "隨附",
+  "notificationSettings": "飛報規度",
+  "enableNotification": "啓用飛報",
+  "enableNotificationDesc": "靈犀回覆已畢，即遣飛報相聞",
+  "dataManagement": "經籍總理",
+  "liveUpdateAIResponse": "回話",
+  "languageChanged": "雅言已易",
+  "restartAppToApplyLanguage": "雅言既易，須重啟本器方能踐行",
+  "loading": "正展卷...",
+  "copyMessage": "抄錄此言",
+  "copySuccess": "已抄入袖中",
+  "copyFailed": "抄錄未果",
+  "copyError": "抄錄生乖謬: {error}",
+  "@copyError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "copySuccessTitle": "抄錄妥當",
+  "copyFailedTitle": "抄錄未果",
+  "copyCode": "摹寫",
+  "copied": "已抄錄",
+  "aiResponseDisclaimer": "幻神之言，聊備一格，祈明察秋毫",
+  "advancedSettings": "玄妙",
+  "advancedSettingsSubtitle": "定本器之樞要",
+  "userProfileSubtitle": "點染閣下之儀容",
+  "platformAndModelSubtitle": "佈置門戶與法象",
+  "apiTypeSubtitle": "定樞機之度",
+  "modelSettingsSubtitle": "調法象之性情",
+  "historyConversationSubtitle": "總理前塵往事",
+  "toolsSettingsSubtitle": "置辦外邦奇巧",
+  "appearanceSubtitle": "裁本器之衣冠",
+  "credits": "芳名錄",
+  "creditsMainDeveloper": "首功匠人",
+  "creditsAppImprovementSuggestions": "建言獻策",
+  "creditsAppImprovementAndCode": "修繕與添磚加瓦",
+  "creditsBugTestingAndCode": "捉蟲與修葺",
+  "creditsDescription": "多賴下述高賢鼎力襄助：",
+  "contributors": "眾善知識",
+  "editMessage": "修訂前言",
+  "regenerateResponse": "重請靈犀",
+  "resubmit": "重遞",
+  "editMessageHint": "修訂言辭",
+  "confirmEdit": "允定修訂",
+  "editMessageDialogTitle": "點竄言辭",
+  "regenerateConfirm": "確欲重求靈犀之言乎？",
+  "messageOptions": "言辭之度",
+  "presetManagement": "錦囊總理",
+  "presetManagementSubtitle": "總理本器及閣下所納之錦囊",
+  "builtInPresets": "本器錦囊",
+  "userPresets": "閣下錦囊",
+  "noPresetsAvailable": "尚無錦囊",
+  "importXmlHint": "點擊右首「+」以納入XML卷宗",
+  "importPresetDialogTitle": "納入錦囊",
+  "presetNamePlaceholder": "錦囊之名",
+  "descriptionPlaceholder": "敘略",
+  "authorPlaceholder": "撰稿人",
+  "importButton": "納入",
+  "deletePresetDialogTitle": "焚毀錦囊",
+  "deletePresetConfirm": "確欲焚毀錦囊「{presetName}」乎？",
+  "@deletePresetConfirm": {
+    "placeholders": {
+      "presetName": {
+        "type": "String"
+      }
+    }
+  },
+  "presetDeletedSuccess": "已焚毀: {presetName}",
+  "@presetDeletedSuccess": {
+    "placeholders": {
+      "presetName": {
+        "type": "String"
+      }
+    }
+  },
+  "importFailedError": "納入未果: {error}",
+  "@importFailedError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteFailedError": "焚毀未果: {error}",
+  "@deleteFailedError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "filePathError": "無從尋覓卷宗之跡",
+  "authorLabel": "撰稿人:",
+  "versionLabel": "修次:",
+  "descriptionLabel": "敘略:",
+  "systemPromptLabel": "開宗明義之言:",
+  "closeButton": "合卷",
+  "loadPresetsFailed": "請出錦囊未果: {error}",
+  "@loadPresetsFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "roleCardGeneratorLink": "名帖坊",
+  "httpServerSwitchLabel": "名帖坊主事",
+  "httpServerStatusRunning": "當值",
+  "httpServerStatusStopped": "歇息",
+  "openGeneratorButton": "叩開作坊",
+  "httpServerDescription": "主事安札於五零五零之所，以奉名帖作坊。",
+  "httpServerNotRunningTitle": "主事未昇座",
+  "httpServerNotRunningMessage": "名帖坊主事未曾昇座。確欲請其當值乎？",
+  "startServerButton": "昇座",
+  "httpServerToggleTooltip": "易主事之行止",
+  "openLinkFailed": "叩關未果: {error}",
+  "@openLinkFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "currentTime": "此乃當下之辰光，苟無客官相詢，休要多口：",
+  "httpServerOperationFailed": "主事行止生乖謬: {error}",
+  "@httpServerOperationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "chatBackground": "畫屏",
+  "selectBackgroundImage": "擇丹青作屏",
+  "changeBackgroundImage": "易畫屏",
+  "selectBackgroundImageDesc": "擇一丹青以為對談之畫屏",
+  "currentBackgroundImage": "畫屏已設",
+  "clear": "滌除",
+  "backgroundOpacity": "畫屏明隱",
+  "backgroundOpacityDesc": "調畫屏之明暗隱現",
+  "selectImageFailed": "擇丹青未果",
+  "clearBackgroundImage": "撤去畫屏",
+  "clearBackgroundImageConfirm": "確欲撤去畫屏乎？",
+  "birthday": "生辰",
+  "birthdayHint": "定閣下之生辰八字",
+  "selectBirthday": "擇生辰",
+  "toolManagement": "奇巧總理",
+  "promptTools": "奇巧",
+  "addTimeToPrompt": "時辰",
+  "addTimeToPromptDesc": "觀天象知時辰"
+}

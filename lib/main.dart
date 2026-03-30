@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:lumen_flow/l10n/fallback_localizations.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:auto_orientation_v2/auto_orientation_v2.dart';
 import 'l10n/app_localizations.dart';
@@ -118,6 +119,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           title: '流光',
           localizationsDelegates: const [
             AppLocalizations.delegate,
+
+            FallbackMaterialLocalizationsDelegate(),
+            FallbackCupertinoLocalizationsDelegate(),
+
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
@@ -127,6 +132,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             Locale('ja'),
             Locale('ko'),
             Locale('zh'),
+            Locale('lzh'),
           ],
           locale: _locale,
           theme: CupertinoThemeData(
