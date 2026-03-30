@@ -19,7 +19,7 @@ import '../providers/grok_provider.dart';
 import '../providers/openrouter_provider.dart';
 import '../providers/xiaomimimo_provider.dart';
 import '../l10n/app_localizations.dart';
-import '../utils/time_utils.dart';
+import '../utils/ai_tools/time_utils.dart';
 import 'package:intl/intl.dart';
 
 /// AI服务类，负责处理与AI模型的通信
