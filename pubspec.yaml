@@ -48,3 +48,4 @@ flutter:
     - assets/platform/
     - assets/image/
     - assets/gen/generator.html
+    - pubspec.yaml
