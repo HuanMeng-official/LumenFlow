@@ -12,7 +12,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get appTitle => '流光';
 
   @override
-  String get appSubtitle => 'Chat With Your AI';
+  String get appSubtitle => '对话，与独属于你的AI一起';
 
   @override
   String get chat => '对话';

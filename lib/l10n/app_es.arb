@@ -1,0 +1,761 @@
+{
+  "@@locale": "es",
+  "appTitle": "LumenFlow",
+  "appSubtitle": "Chatea con tu IA",
+  "chat": "Chat",
+  "settings": "Ajustes",
+  "about": "Acerca de",
+  "conversations": "Conversaciones",
+  "newConversation": "Nueva conversación",
+  "noConversations": "Sin conversaciones aún",
+  "createNewConversation": "Crear nueva conversación",
+  "aiAssistant": "Asistente IA",
+  "startChatting": "¡Empieza a chatear con la IA!",
+  "pleaseConfigureAPI": "Configura los ajustes de la API para empezar a chatear",
+  "settingsButton": "Ajustes",
+  "needConfiguration": "Configuración requerida",
+  "configureAPIPrompt": "Configura el punto de acceso y la clave API en los ajustes",
+  "cancel": "Cancelar",
+  "confirm": "Confirmar",
+  "save": "Guardar",
+  "delete": "Eliminar",
+  "edit": "Editar",
+  "ok": "Aceptar",
+  "goToSettings": "Ir a Ajustes",
+  "clearConversation": "Limpiar conversación actual",
+  "clearConversationConfirm": "¿Estás seguro de que quieres borrar todos los mensajes de la conversación actual?",
+  "deleteConversation": "Eliminar conversación",
+  "deleteConversationConfirm": "¿Estás seguro de que quieres eliminar la conversación \"{title}\"? Esta acción no se puede deshacer.",
+  "@deleteConversationConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "editConversationTitle": "Editar título de la conversación",
+  "enterConversationTitle": "Introduce el título de la conversación",
+  "saveSuccess": "Guardado con éxito",
+  "settingsSaved": "Los ajustes han sido guardados",
+  "saveFailed": "Error al guardar",
+  "saveError": "Error al guardar los ajustes: {error}",
+  "@saveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "resetSettings": "Restablecer ajustes",
+  "resetSettingsConfirm": "¿Estás seguro de que quieres restaurar los ajustes por defecto? Esto borrará todas las configuraciones actuales.",
+  "exportSettings": "Exportar ajustes",
+  "exportSuccess": "Exportación exitosa",
+  "exportLocation": "Los ajustes se han exportado con éxito a {location}:\n{path}",
+  "@exportLocation": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      },
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "exportFailed": "Error al exportar",
+  "exportError": "Error al exportar los ajustes: {error}\n\nAsegúrate de que la aplicación tenga permisos de almacenamiento y comprueba el espacio disponible.",
+  "@exportError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "importSettings": "Importar ajustes",
+  "importSettingsConfirm": "Esto sobrescribirá los ajustes actuales. ¿Estás seguro de que quieres importar?",
+  "importSuccess": "Importación exitosa",
+  "settingsImported": "Los ajustes se han importado con éxito.",
+  "importFailed": "Error al importar",
+  "importError": "Error al importar los ajustes: {error}",
+  "@importError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "error": "Error",
+  "responseInterrupted": "Respuesta interrumpida, la aplicación podría haber salido inesperadamente",
+  "yesterday": "Ayer",
+  "daysAgo": "Hace {days} días",
+  "@daysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "editTitle": "Editar título",
+  "deleteConversation2": "Eliminar conversación",
+  "userInfo": "Información de usuario",
+  "userProfile": "Perfil de usuario",
+  "userProfileDesc": "Establecer avatar y nombre de usuario",
+  "basicSettings": "Ajustes básicos",
+  "apiType": "Tipo de API",
+  "openaiApi": "OpenAI API",
+  "geminiApi": "Gemini API",
+  "deepseekApi": "DeepSeek API",
+  "claudeApi": "Claude API",
+  "siliconflowApi": "SiliconFlow API",
+  "minimaxApi": "MiniMax API",
+  "zhipuApi": "ZhipuAI API",
+  "kimiApi": "Kimi API",
+  "lmsApi": "LM-Studio API",
+  "grokApi": "Grok API",
+  "openrouterApi": "OpenRouter API",
+  "otherApi": "Otra API",
+  "mimoApi": "XiaoMi MiMo API",
+  "apiTypeDesc": "Seleccionar proveedor de servicios de IA",
+  "apiEndpoint": "Punto de acceso API",
+  "apiEndpointPlaceholder": "Introduce la URL del punto de acceso API",
+  "apiEndpointDesc": "ej: https://api.openai.com/v1",
+  "apiKey": "Clave API",
+  "apiKeyPlaceholder": "Introduce la clave API",
+  "apiKeyDesc": "Clave de autenticación obtenida del proveedor de servicios de IA",
+  "modelSettings": "Ajustes del modelo",
+  "model": "Modelo",
+  "modelPlaceholder": "Introduce el nombre del modelo",
+  "modelDesc": "ej: gpt-4o, deepseek-chat",
+  "maxTokens": "Tokens máximos",
+  "maxTokensPlaceholder": "Introduce los tokens máximos",
+  "maxTokensDesc": "Limita la longitud de una sola respuesta, recomendado 6000-10000",
+  "systemPrompt": "Mensaje del sistema",
+  "systemPromptPlaceholder": "Introduce el mensaje del sistema",
+  "systemPromptDesc": "ej: Responde siempre en español",
+  "temperature": "Temperatura",
+  "temperatureDesc": "Controla la aleatoriedad de la respuesta, 0.0-2.0, valores altos significan respuestas más creativas",
+  "historyConversation": "Historial de conversación",
+  "enableHistory": "Habilitar historial",
+  "enableHistoryDesc": "Cuando está activo, la IA recordará el contexto de la conversación anterior para dar respuestas coherentes",
+  "historyRounds": "Rondas de historial",
+  "historyRoundsPlaceholder": "Introduce el número de rondas",
+  "historyRoundsDesc": "Número de rondas que la IA recuerda, recomendado 5-20. Demasiadas pueden exceder el límite de tokens",
+  "conversationTitle": "Título de la conversación",
+  "autoGenerateTitle": "Generar título automáticamente",
+  "autoGenerateTitleDesc": "Tras varias rondas, la IA generará automáticamente un título basado en el contenido",
+  "generateTiming": "Momento de generación",
+  "generateTimingDesc": "Establece cuántas rondas de conversación deben pasar antes de generar el título",
+  "rounds": "rondas",
+  "appearance": "Apariencia de la APP",
+  "followSystem": "Seguir sistema",
+  "followSystemDesc": "Seguir automáticamente el modo de color del sistema",
+  "appColor": "Color de la aplicación",
+  "lightMode": "Modo claro",
+  "darkMode": "Modo oscuro",
+  "followSystemSetting": "Siguiendo sistema ({mode})",
+  "@followSystemSetting": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "selectColorMode": "Seleccionar modo de color",
+  "others": "Otros",
+  "resetToDefault": "Restablecer valores por defecto",
+  "commonApiEndpoints": "Puntos de acceso comunes",
+  "commonApiEndpointsContent": "OpenAI: https://api.openai.com/v1\n\nDeepSeek: https://api.deepseek.com\n\nAlibaba Cloud: https://dashscope.aliyuncs.com/api/v1\n\nRellena la dirección correspondiente según el proveedor que utilices.",
+  "commonModels": "Modelos comunes",
+  "commonModelsContent": "OpenAI:\n• gpt-4o\n\nDeepSeek:\n• deepseek-chat\n• deepseek-reasoner\n\nSelecciona el modelo correspondiente según tu punto de acceso API.",
+  "appInfo": "Información de la aplicación",
+  "version": "Versión",
+  "buildDate": "Fecha de compilación",
+  "developer": "Desarrollador",
+  "features": "Funcionalidades",
+  "intelligentConversation": "Conversación inteligente",
+  "intelligentConversationDesc": "Soporta conversaciones en lenguaje natural con varios modelos de IA",
+  "fileProcessing": "Procesamiento de archivos",
+  "fileProcessingDesc": "Soporta la subida de múltiples formatos de archivo como imágenes y documentos",
+  "historyRecords": "Registros de historial",
+  "historyRecordsDesc": "Guarda automáticamente el historial con memoria de contexto",
+  "customSettings": "Ajustes personalizados",
+  "customSettingsDesc": "Configura parámetros de API, temas y opciones personalizadas de forma flexible",
+  "licenses": "Licencias",
+  "sponsor": "Patrocinar",
+  "sponsorDesc": "Si esta aplicación te resulta útil, escanea el código para patrocinar y apoyar el desarrollo",
+  "copyright": "© 2026 幻梦official",
+  "copyrightNotice": "Esta aplicación es solo para fines de aprendizaje e investigación",
+  "copyrightTerms": "Asegúrate de cumplir con los términos de servicio de la API antes de usarla",
+  "profileSaved": "Perfil de usuario guardado",
+  "saveProfileError": "Error al guardar el perfil: {error}",
+  "@saveProfileError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pickAvatarFailed": "Error al elegir avatar",
+  "takePhotoFailed": "Error al tomar foto",
+  "selectEmojiAvatar": "Seleccionar emoji de avatar",
+  "selectAvatar": "Seleccionar avatar",
+  "selectFromGallery": "Seleccionar de la galería",
+  "takePhoto": "Tomar foto",
+  "selectEmoji": "Seleccionar emoji",
+  "tapToChangeAvatar": "Toca para cambiar el avatar",
+  "username": "Nombre de usuario",
+  "usernameHint": "La IA usará este nombre para dirigirse a ti",
+  "enterYourUsername": "Introduce tu nombre de usuario",
+  "gender": "Género",
+  "genderHint": "Selecciona tu género",
+  "male": "Masculino",
+  "female": "Femenino",
+  "selectGender": "Seleccionar género",
+  "aboutUserProfile": "Acerca del perfil de usuario",
+  "aboutUserProfileContent": "• Avatar: Elige una foto o emoji como avatar, se mostrará en el chat\n• Nombre: La IA usará este nombre en las conversaciones\n• Toda la información se guarda localmente, nunca se sube al servidor",
+  "selectPresetRole": "Seleccionar rol predefinido",
+  "selectPresetRoleMessage": "Selecciona un rol para aplicar el mensaje del sistema correspondiente",
+  "closePresetMode": "Cerrar modo predefinido",
+  "continueAction": "Continuar",
+  "deepThinking": "Pensamiento profundo",
+  "rolePlay": "Juego de rol",
+  "language": "Idioma",
+  "interfaceLanguage": "Idioma de la interfaz",
+  "selectInterfaceLanguage": "Seleccionar idioma de la aplicación",
+  "thinkChain": "Cadena de pensamiento",
+  "expandChain": "Ver proceso de razonamiento",
+  "downloadDirectory": "Directorio de descargas",
+  "externalStorageDirectory": "Directorio de almacenamiento externo",
+  "appDocumentsDirectory": "Directorio de documentos de la app",
+  "imagePreview": "Vista previa de imagen",
+  "unableToLoadImage": "No se pudo cargar la imagen",
+  "errorPrefix": "Error",
+  "fileTooLarge": "Archivo demasiado grande",
+  "fileTooLargeMessage": "El tamaño total de los archivos ({size}) excede el límite de {limit}. Selecciona archivos más pequeños.",
+  "@fileTooLargeMessage": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "fileTooLargeWarning": "Aviso de archivo grande",
+  "fileTooLargeWarningMessage": "Los siguientes archivos exceden el límite de {limit} y podrían no procesarse correctamente:\n\n{files}\n\n¿Continuar subida?",
+  "@fileTooLargeWarningMessage": {
+    "placeholders": {
+      "limit": {
+        "type": "String"
+      },
+      "files": {
+        "type": "String"
+      }
+    }
+  },
+  "noValidFiles": "Sin archivos válidos",
+  "noValidFilesMessage": "No se procesó ningún archivo con éxito. Inténtalo de nuevo.",
+  "selectFileFailed": "Error al seleccionar archivo",
+  "selectFileFailedMessage": "Error: {error}",
+  "@selectFileFailedMessage": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "user": "Usuario",
+  "ai": "IA",
+  "unknownError": "Error desconocido",
+  "attachmentInfo": "Adjunto: {fileName} ({fileSize}, {mimeType})",
+  "@attachmentInfo": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      },
+      "mimeType": {
+        "type": "String"
+      }
+    }
+  },
+  "attachmentCannotRead": " - No se puede leer el contenido",
+  "unknownMimeType": "Tipo desconocido",
+  "multimediaNotSupported": "\nNota: DeepSeek no soporta el procesamiento de archivos multimedia como imágenes, videos o audio",
+  "responseBlocked": "Respuesta bloqueada por el filtro de seguridad",
+  "apiError": "Error de API: {message} (Código: {statusCode})",
+  "@apiError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "configureApiKeyFirst": "Configura la clave API en los ajustes primero",
+  "selectModelFirst": "Selecciona un modelo primero",
+  "messageInputPlaceholder": "Escribe un mensaje...",
+  "configureApiSettingsFirst": "Configura los ajustes de la API primero",
+  "baseSystemPrompt": "\"{username}\" es el nombre del usuario, úsalo apropiadamente en la conversación y responde en español",
+  "@baseSystemPrompt": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "requestTimeout": "Tiempo de espera agotado: El servidor tardó demasiado en responder. Revisa tu conexión. Error: {error}",
+  "@requestTimeout": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "networkConnectionFailed": "Error de conexión: No se pudo conectar al servidor. Error: {error}",
+  "@networkConnectionFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "securityConnectionFailed": "Error de conexión segura: Fallo en el saludo SSL/TLS. Revisa la hora del sistema. Error: {error}",
+  "@securityConnectionFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionError": "Error de conexión: Problema de red. Error: {error}",
+  "@connectionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "httpProtocolError": "Error de protocolo HTTP: Fallo al procesar la solicitud. Error: {error}",
+  "@httpProtocolError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "networkCommunicationFailed": "Fallo en la comunicación de red: {error}",
+  "@networkCommunicationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "providerFileNotFound": "El archivo {fileName} no existe o ha sido eliminado",
+  "@providerFileNotFound": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "providerFileTooLarge": "El archivo {fileName} ({fileSize}) es demasiado grande para procesarlo",
+  "@providerFileTooLarge": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      }
+    }
+  },
+  "providerFileProcessError": "Error al procesar el archivo {fileName}: {error}",
+  "@providerFileProcessError": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "providerFileContent": "Archivo: {fileName} ({fileSize})\nContenido:\n{content}",
+  "@providerFileContent": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      },
+      "content": {
+        "type": "String"
+      }
+    }
+  },
+  "providerAttachmentCannotRead": "Adjunto: {fileName} ({fileSize}, {mimeType}) - No se puede leer el contenido",
+  "@providerAttachmentCannotRead": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      },
+      "mimeType": {
+        "type": "String"
+      }
+    }
+  },
+  "providerAttachmentInfo": "Adjunto: {fileName} ({fileSize}, {mimeType})",
+  "@providerAttachmentInfo": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "fileSize": {
+        "type": "String"
+      },
+      "mimeType": {
+        "type": "String"
+      }
+    }
+  },
+  "providerTotalSizeExceeded": "El tamaño total de los adjuntos excede el límite de {limit}MB",
+  "@providerTotalSizeExceeded": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "providerInvalidResponseFormat": "La API devolvió un formato de respuesta inválido",
+  "providerMissingMessageField": "Falta el campo de mensaje en la respuesta de la API",
+  "providerInvalidResponseFormatWithCode": "Error API: Formato de respuesta inválido (Código: {statusCode})",
+  "@providerInvalidResponseFormatWithCode": {
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "providerApiError": "Error API: {message} (Código: {statusCode})",
+  "@providerApiError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "providerStreamingTimeout": "Tiempo de espera en streaming agotado: No se han recibido datos durante {seconds} segundos",
+  "@providerStreamingTimeout": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "providerUnknownError": "Error desconocido",
+  "providerUser": "Usuario",
+  "providerAi": "IA",
+  "providerTitleGenSystemPrompt": "Genera un título en español corto y preciso basado en el idioma del usuario y el contenido de la conversación. Máximo 15 palabras. Solo devuelve el título, sin comillas ni formato adicional.",
+  "providerTitleGenUserPrompt": "Por favor, genera un título corto en español basado en el contenido de la conversación:\n\n{conversationSummary}",
+  "@providerTitleGenUserPrompt": {
+    "placeholders": {
+      "conversationSummary": {
+        "type": "String"
+      }
+    }
+  },
+  "providerMultimediaNotSupported": "\nNota: DeepSeek no soporta el procesamiento de archivos multimedia",
+  "providerGeminiInvalidResponse": "La API de Gemini devolvió un formato de respuesta inválido",
+  "providerGeminiMissingCandidates": "Falta el campo 'candidates' en la respuesta de la API de Gemini",
+  "providerGeminiInvalidFormat": "Formato de respuesta de Gemini inválido",
+  "providerGeminiError": "Error de la API de Gemini: {message} (Código: {statusCode})",
+  "@providerGeminiError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "providerGeminiStreamingTimeout": "Tiempo de espera agotado en Gemini: No se han recibido datos durante {seconds} segundos",
+  "@providerGeminiStreamingTimeout": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "providerGeminiInvalidFormatWithCode": "Error Gemini: Formato de respuesta inválido (Código: {statusCode})",
+  "@providerGeminiInvalidFormatWithCode": {
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "providerResponseBlocked": "Respuesta bloqueada por el filtro de seguridad",
+  "platformAndModel": "Plataformas y Modelos",
+  "platformAndModelDesc": "Gestionar plataformas de IA y configuraciones de modelos",
+  "addPlatform": "Añadir plataforma",
+  "editPlatform": "Editar plataforma",
+  "platformType": "Tipo de plataforma",
+  "platformNamePlaceholder": "Nombre de la plataforma",
+  "endpointPlaceholder": "URL del punto de acceso",
+  "apiKeyPlaceholder": "Clave API",
+  "configured": "Configurado",
+  "notConfigured": "No configurado",
+  "models": "modelos",
+  "available": "Disponible",
+  "current": "Actual",
+  "currentModel": "Modelo actual",
+  "manageModels": "Gestionar modelos",
+  "refreshModels": "Actualizar lista",
+  "noModelsAvailable": "No hay modelos disponibles",
+  "noModelSelected": "Ningún modelo seleccionado",
+  "modelsRefreshed": "Lista de modelos actualizada",
+  "refreshModelsError": "Error al actualizar modelos: {error}",
+  "@refreshModelsError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletePlatform": "Eliminar plataforma",
+  "deletePlatformConfirm": "¿Estás seguro de que quieres eliminar la plataforma \"{name}\"?",
+  "@deletePlatformConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "switchToPlatform": "Cambiar a esta plataforma",
+  "switchedToPlatform": "Cambiado a {name}",
+  "@switchedToPlatform": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addModelTitle": "Añadir modelo",
+  "modelNamePh": "Nombre del modelo",
+  "addModelBtn": "Añadir",
+  "deleteModelTitle": "Eliminar modelo",
+  "deleteModelConfirm": "¿Estás seguro de que quieres eliminar el modelo \"{model}\"?",
+  "@deleteModelConfirm": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteModelBtn": "Eliminar seleccionado",
+  "selectModelToDelete": "Selecciona un modelo para eliminar primero",
+  "add": "Añadir",
+  "delete": "Eliminar",
+  "addNewModel": "Añadir nuevo modelo",
+  "clickAddToCreate": "Toca el botón + para añadir un modelo",
+  "noPlatformsConfigured": "No hay plataformas configuradas",
+  "addPlatformHint": "Toca el botón + en la esquina superior derecha para añadir tu primera plataforma de IA",
+  "exportConversation": "Exportar conversación",
+  "exportFormat": "Formato de exportación",
+  "exportFormatTxt": "Texto plano (.txt)",
+  "exportFormatJson": "JSON (.json)",
+  "exportFormatLumenflow": "Lumenflow (.lumenflow)",
+  "exportFormatPdf": "PDF (.pdf)",
+  "exportConversationSuccess": "Conversación exportada con éxito",
+  "exportConversationFailed": "Fallo al exportar conversación",
+  "exportConversationError": "Error al exportar la conversación: {error}",
+  "@exportConversationError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "exportConversationTitle": "Título: ",
+  "exportCreatedTime": "Creado el: ",
+  "exportUpdatedTime": "Actualizado el: ",
+  "exportMessageCount": "Recuento de mensajes: ",
+  "exportReasoningProcess": "[Proceso de razonamiento]",
+  "exportAttachments": "[Adjuntos: {count}]",
+  "@exportAttachments": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportBytes": "bytes",
+  "exportConversationNotFound": "Conversación no encontrada",
+  "exportThinkingProcess": "Proceso de pensamiento",
+  "exportAttachmentsLabel": "Adjuntos",
+  "notificationSettings": "Notificaciones",
+  "enableNotification": "Habilitar notificaciones",
+  "enableNotificationDesc": "Recibir notificación cuando se complete la respuesta de la IA",
+  "dataManagement": "Gestión de datos",
+  "liveUpdateAIResponse": "Respuesta",
+  "languageChanged": "Idioma cambiado",
+  "restartAppToApplyLanguage": "Por favor, reinicia la aplicación para aplicar el cambio de idioma",
+  "loading": "Cargando",
+  "copyMessage": "Copiar mensaje",
+  "copySuccess": "Copiado al portapapeles",
+  "copyFailed": "Fallo al copiar",
+  "copyError": "Error al copiar: {error}",
+  "@copyError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "copySuccessTitle": "Copiado con éxito",
+  "copyFailedTitle": "Fallo al copiar",
+  "copyCode": "Copiar",
+  "copied": "Copiado",
+  "aiResponseDisclaimer": "El contenido es solo de referencia, verifíquelo cuidadosamente",
+  "advancedSettings": "Avanzado",
+  "advancedSettingsSubtitle": "Configurar comportamiento de la app",
+  "userProfileSubtitle": "Personaliza tu cuenta",
+  "platformAndModelSubtitle": "Configura plataformas y modelos de IA",
+  "apiTypeSubtitle": "Ajustes de conexión de la API",
+  "modelSettingsSubtitle": "Ajusta el comportamiento de respuesta",
+  "historyConversationSubtitle": "Gestionar historial de chats",
+  "toolsSettingsSubtitle": "Configurar herramientas externas",
+  "appearanceSubtitle": "Personaliza la apariencia",
+  "credits": "Créditos",
+  "creditsMainDeveloper": "Desarrollador principal",
+  "creditsAppImprovementSuggestions": "Sugerencias de mejora",
+  "creditsAppImprovementAndCode": "Mejoras y código parcial",
+  "creditsBugTestingAndCode": "Pruebas de errores y código parcial",
+  "creditsDescription": "Agradecimientos especiales a los siguientes colaboradores por su inestimable apoyo:",
+  "contributors": "Colaboradores",
+  "editMessage": "Editar mensaje",
+  "regenerateResponse": "Regenerar respuesta",
+  "resubmit": "Reenviar",
+  "editMessageHint": "Editar contenido del mensaje",
+  "confirmEdit": "Confirmar edición",
+  "editMessageDialogTitle": "Editar mensaje",
+  "regenerateConfirm": "¿Regenerar esta respuesta de la IA?",
+  "messageOptions": "Opciones del mensaje",
+  "presetManagement": "Gestión de ajustes predefinidos",
+  "presetManagementSubtitle": "Gestionar prompts internos e importados",
+  "builtInPresets": "Predefinidos",
+  "userPresets": "Ajustes de usuario",
+  "noPresetsAvailable": "No hay ajustes disponibles",
+  "importXmlHint": "Toca + en la esquina superior derecha para importar archivos XML",
+  "importPresetDialogTitle": "Importar ajuste",
+  "presetNamePlaceholder": "Nombre del ajuste",
+  "descriptionPlaceholder": "Descripción",
+  "authorPlaceholder": "Autor",
+  "importButton": "Importar",
+  "deletePresetDialogTitle": "Eliminar ajuste",
+  "deletePresetConfirm": "¿Estás seguro de que quieres eliminar el ajuste \"{presetName}\"?",
+  "@deletePresetConfirm": {
+    "placeholders": {
+      "presetName": {
+        "type": "String"
+      }
+    }
+  },
+  "presetDeletedSuccess": "Eliminado: {presetName}",
+  "@presetDeletedSuccess": {
+    "placeholders": {
+      "presetName": {
+        "type": "String"
+      }
+    }
+  },
+  "importFailedError": "Fallo al importar: {error}",
+  "@importFailedError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteFailedError": "Fallo al eliminar: {error}",
+  "@deleteFailedError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "filePathError": "No se pudo obtener la ruta del archivo",
+  "authorLabel": "Autor:",
+  "versionLabel": "Versión:",
+  "descriptionLabel": "Descripción:",
+  "systemPromptLabel": "Mensaje del sistema:",
+  "closeButton": "Cerrar",
+  "loadPresetsFailed": "Fallo al cargar ajustes: {error}",
+  "@loadPresetsFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "roleCardGeneratorLink": "Generador de cartas de rol",
+  "httpServerSwitchLabel": "Servidor del generador",
+  "httpServerStatusRunning": "En ejecución",
+  "httpServerStatusStopped": "Detenido",
+  "openGeneratorButton": "Abrir generador",
+  "httpServerDescription": "Servidor en el puerto 5050 para el generador de cartas de rol.",
+  "httpServerNotRunningTitle": "Servidor detenido",
+  "httpServerNotRunningMessage": "El servidor del generador no está activo. ¿Deseas iniciarlo?",
+  "startServerButton": "Iniciar",
+  "httpServerToggleTooltip": "Alternar estado del servidor HTTP",
+  "openLinkFailed": "Error al abrir el enlace: {error}",
+  "@openLinkFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "currentTime": "La siguiente es la hora actual; no la menciones a menos que el usuario lo pregunte:",
+  "httpServerOperationFailed": "Fallo en el servidor HTTP: {error}",
+  "@httpServerOperationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "chatBackground": "Fondo de chat",
+  "selectBackgroundImage": "Seleccionar fondo",
+  "changeBackgroundImage": "Cambiar fondo",
+  "selectBackgroundImageDesc": "Elige una imagen para el fondo del chat",
+  "currentBackgroundImage": "Imagen de fondo establecida",
+  "clear": "Limpiar",
+  "backgroundOpacity": "Opacidad del fondo",
+  "backgroundOpacityDesc": "Ajusta la transparencia de la imagen de fondo",
+  "selectImageFailed": "Fallo al seleccionar imagen",
+  "clearBackgroundImage": "Quitar fondo",
+  "clearBackgroundImageConfirm": "¿Estás seguro de que quieres quitar la imagen de fondo?",
+  "birthday": "Cumpleaños",
+  "birthdayHint": "Selecciona tu fecha de nacimiento",
+  "selectBirthday": "Seleccionar fecha",
+  "toolManagement": "Gestión de herramientas",
+  "promptTools": "Herramientas",
+  "addTimeToPrompt": "Hora",
+  "addTimeToPromptDesc": "Obtener hora actual"
+}

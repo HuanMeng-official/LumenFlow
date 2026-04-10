@@ -133,6 +133,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             Locale('ko'),
             Locale('zh'),
             Locale('lzh'),
+            Locale('es'),
           ],
           locale: _locale,
           theme: CupertinoThemeData(
