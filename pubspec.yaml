@@ -38,11 +38,7 @@ flutter:
   uses-material-design: true
   generate: true
   assets:
-    - assets/prompt/presets-en.json
-    - assets/prompt/presets-zh.json
-    - assets/prompt/presets-ja.json
-    - assets/prompt/presets-ko.json
-    - assets/prompt/characters/
+    - assets/prompt/
     - assets/prompt/characters/zh/
     - assets/prompt/characters/en/
     - assets/prompt/characters/ja/
@@ -52,4 +48,3 @@ flutter:
     - assets/platform/
     - assets/image/
     - assets/gen/generator.html
-    - pubspec.yaml
