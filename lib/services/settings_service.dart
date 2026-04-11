@@ -57,7 +57,7 @@ class SettingsService {
   static const double defaultTemperature = 0.7;
   static const int defaultMaxTokens = 8192;
   static const bool defaultEnableHistory = true;
-  static const int defaultHistoryContextLength = 100;
+  static const int defaultHistoryContextLength = 30;
 
   static const String _lumenflowFormat = 'lumenflow';
   static const String _lumenflowVersion = '1.0';
