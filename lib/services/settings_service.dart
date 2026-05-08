@@ -24,6 +24,7 @@ class SettingsService {
   static const String _autoTitleRoundsKey = 'auto_title_rounds';
   static const String _localeKey = 'locale';
   static const String _notificationEnabledKey = 'notification_enabled';
+  static const String _liveUpdateEnabledKey = 'live_update_enabled';
   // 聊天背景设置相关的key
   static const String _backgroundImagePathKey = 'background_image_path';
   static const String _backgroundImageOpacityKey = 'background_image_opacity';
@@ -45,6 +46,7 @@ class SettingsService {
   static const int defaultAutoTitleRounds = 3;
   static const String defaultLocale = 'zh';
   static const bool defaultNotificationEnabled = true;
+  static const bool defaultLiveUpdateEnabled = true;
   // 聊天背景设置默认值
   static const String defaultBackgroundImagePath = '';
   static const double defaultBackgroundImageOpacity = 0.15;
@@ -253,6 +255,16 @@ class SettingsService {
     await prefs.setBool(_notificationEnabledKey, enabled);
   }
 
+  Future<bool> getLiveUpdateEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_liveUpdateEnabledKey) ?? defaultLiveUpdateEnabled;
+  }
+
+  Future<void> setLiveUpdateEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_liveUpdateEnabledKey, enabled);
+  }
+
   Future<String> getBackgroundImagePath() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_backgroundImagePathKey) ?? defaultBackgroundImagePath;
@@ -331,6 +343,8 @@ class SettingsService {
     settings[_localeKey] = prefs.getString(_localeKey) ?? defaultLocale;
     settings[_notificationEnabledKey] =
         prefs.getBool(_notificationEnabledKey) ?? defaultNotificationEnabled;
+    settings[_liveUpdateEnabledKey] =
+        prefs.getBool(_liveUpdateEnabledKey) ?? defaultLiveUpdateEnabled;
     settings[_addTimeToPromptKey] =
         prefs.getBool(_addTimeToPromptKey) ?? defaultAddTimeToPrompt;
     settings[_backgroundImagePathKey] =
@@ -464,6 +478,12 @@ class SettingsService {
       await prefs.setBool(
         _notificationEnabledKey,
         settings[_notificationEnabledKey] as bool,
+      );
+    }
+    if (settings.containsKey(_liveUpdateEnabledKey)) {
+      await prefs.setBool(
+        _liveUpdateEnabledKey,
+        settings[_liveUpdateEnabledKey] as bool,
       );
     }
     if (settings.containsKey(_addTimeToPromptKey)) {

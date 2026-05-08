@@ -935,6 +935,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get liveUpdateAIResponse => 'レスポンス';
 
   @override
+  String get enableLiveUpdate => 'ライブアップデート';
+
+  @override
+  String get enableLiveUpdateDesc => 'AI返信中にAndroid 16のライブアップデート通知を表示';
+
+  @override
   String get languageChanged => '言語が変更されました';
 
   @override

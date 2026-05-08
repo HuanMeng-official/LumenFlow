@@ -935,6 +935,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get liveUpdateAIResponse => '응답';
 
   @override
+  String get enableLiveUpdate => '실시간 업데이트';
+
+  @override
+  String get enableLiveUpdateDesc => 'AI 응답 중 Android 16 실시간 업데이트 알림 표시';
+
+  @override
   String get languageChanged => '언어가 변경됨';
 
   @override

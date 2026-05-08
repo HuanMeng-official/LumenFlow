@@ -21,18 +21,21 @@ class AdvancedSettingsScreen extends StatefulWidget {
 class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
   final SettingsService _settingsService = SettingsService();
   bool _notificationEnabled = true;
+  bool _liveUpdateEnabled = true;
 
   @override
   void initState() {
     super.initState();
-    _loadNotificationSetting();
+    _loadSettings();
   }
 
-  Future<void> _loadNotificationSetting() async {
-    final enabled = await _settingsService.getNotificationEnabled();
+  Future<void> _loadSettings() async {
+    final notificationEnabled = await _settingsService.getNotificationEnabled();
+    final liveUpdateEnabled = await _settingsService.getLiveUpdateEnabled();
     if (mounted) {
       setState(() {
-        _notificationEnabled = enabled;
+        _notificationEnabled = notificationEnabled;
+        _liveUpdateEnabled = liveUpdateEnabled;
       });
     }
   }
@@ -41,6 +44,13 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
     await _settingsService.setNotificationEnabled(value);
     setState(() {
       _notificationEnabled = value;
+    });
+  }
+
+  void _handleLiveUpdateChanged(bool value) async {
+    await _settingsService.setLiveUpdateEnabled(value);
+    setState(() {
+      _liveUpdateEnabled = value;
     });
   }
 
@@ -231,6 +241,12 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
                   subtitle: l10n.enableNotificationDesc,
                   value: _notificationEnabled,
                   onChanged: _handleNotificationChanged,
+                ),
+                SettingsSwitchTile(
+                  title: l10n.enableLiveUpdate,
+                  subtitle: l10n.enableLiveUpdateDesc,
+                  value: _liveUpdateEnabled,
+                  onChanged: _handleLiveUpdateChanged,
                 ),
               ],
             ),

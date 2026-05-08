@@ -935,6 +935,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get liveUpdateAIResponse => 'Response';
 
   @override
+  String get enableLiveUpdate => 'Live Update';
+
+  @override
+  String get enableLiveUpdateDesc => 'Show Android 16 live update notification during AI response';
+
+  @override
   String get languageChanged => 'Language Changed';
 
   @override

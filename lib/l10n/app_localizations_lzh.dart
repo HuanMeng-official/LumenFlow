@@ -935,6 +935,12 @@ class AppLocalizationsLzh extends AppLocalizations {
   String get liveUpdateAIResponse => '回話';
 
   @override
+  String get enableLiveUpdate => '即時更新';
+
+  @override
+  String get enableLiveUpdateDesc => 'AI對答間，示Android 16即時更新之飛報';
+
+  @override
   String get languageChanged => '雅言已易';
 
   @override

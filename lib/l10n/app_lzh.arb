@@ -612,6 +612,8 @@
   "enableNotificationDesc": "靈犀回覆已畢，即遣飛報相聞",
   "dataManagement": "經籍總理",
   "liveUpdateAIResponse": "回話",
+  "enableLiveUpdate": "即時更新",
+  "enableLiveUpdateDesc": "AI對答間，示Android 16即時更新之飛報",
   "languageChanged": "雅言已易",
   "restartAppToApplyLanguage": "雅言既易，須重啟本器方能踐行",
   "loading": "正展卷...",

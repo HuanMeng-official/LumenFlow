@@ -612,6 +612,8 @@
   "enableNotificationDesc": "Recibir notificación cuando se complete la respuesta de la IA",
   "dataManagement": "Gestión de datos",
   "liveUpdateAIResponse": "Respuesta",
+  "enableLiveUpdate": "Live Update",
+  "enableLiveUpdateDesc": "Mostrar notificación de Android 16 en vivo durante la respuesta de IA",
   "languageChanged": "Idioma cambiado",
   "restartAppToApplyLanguage": "Por favor, reinicia la aplicación para aplicar el cambio de idioma",
   "loading": "Cargando",

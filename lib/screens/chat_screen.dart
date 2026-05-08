@@ -65,6 +65,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   bool _isLoading = false;
   bool _isConfigured = false;
   bool _thinkingMode = false;
+  bool _liveUpdateEnabled = true;
   bool _promptPresetEnabled = false;
   String _currentPresetId = '';
   List<PromptPreset> _presets = [];
@@ -179,6 +180,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Future<void> _checkConfiguration() async {
     final configured = await _settingsService.isConfigured();
     final thinkingMode = await _settingsService.getThinkingMode();
+    final liveUpdateEnabled = await _settingsService.getLiveUpdateEnabled();
     final promptPresetEnabled = await _settingsService.getPromptPresetEnabled();
     final currentPresetId = await _settingsService.getPromptPresetId();
     final presets = await _promptService.loadPresets();
@@ -198,6 +200,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     setState(() {
       _isConfigured = configured;
       _thinkingMode = thinkingMode;
+      _liveUpdateEnabled = liveUpdateEnabled;
       _promptPresetEnabled = promptPresetEnabled;
       _currentPresetId = currentPresetId;
       _presets = presets;
@@ -536,7 +539,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     await _saveCurrentConversation();
 
     // 启动Android 16 Live Update通知（如果可用）
-    if (Platform.isAndroid && _liveUpdateService.isAvailable) {
+    if (Platform.isAndroid && _liveUpdateService.isAvailable && _liveUpdateEnabled) {
       await _liveUpdateService.startLiveUpdate(title: l10n.liveUpdateAIResponse);
     }
 
@@ -595,7 +598,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           }
 
           // 实时更新 Live Update 通知内容
-          if (Platform.isAndroid && _liveUpdateService.isAvailable) {
+          if (Platform.isAndroid && _liveUpdateService.isAvailable && _liveUpdateEnabled) {
             _liveUpdateService.updateContent(answerBuffer.toString());
           }
 
@@ -643,7 +646,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       });
 
       // 停止Live Update通知（如果还在运行）
-      if (Platform.isAndroid && _liveUpdateService.isAvailable) {
+      if (Platform.isAndroid && _liveUpdateService.isAvailable && _liveUpdateEnabled) {
         await _liveUpdateService.stopLiveUpdate();
       }
 
@@ -690,7 +693,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     // 如果没有收到任何chunk，显示错误
     if (receivedChunks == 0) {
       // 停止Live Update通知
-      if (Platform.isAndroid && _liveUpdateService.isAvailable) {
+      if (Platform.isAndroid && _liveUpdateService.isAvailable && _liveUpdateEnabled) {
         await _liveUpdateService.stopLiveUpdate();
       }
       // 更新消息状态为错误
@@ -708,7 +711,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
 
     // 流式输出结束，先标记 Live Update 完成
-    if (Platform.isAndroid && _liveUpdateService.isAvailable) {
+    if (Platform.isAndroid && _liveUpdateService.isAvailable && _liveUpdateEnabled) {
       await _liveUpdateService.complete();
     }
 
@@ -743,7 +746,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     });
 
     // 停止Live Update通知（如果还在运行）
-    if (Platform.isAndroid && _liveUpdateService.isAvailable) {
+    if (Platform.isAndroid && _liveUpdateService.isAvailable && _liveUpdateEnabled) {
       _liveUpdateService.stopLiveUpdate();
     }
 
@@ -772,7 +775,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       });
 
       // 停止Live Update通知（如果还在运行）
-      if (Platform.isAndroid && _liveUpdateService.isAvailable) {
+      if (Platform.isAndroid && _liveUpdateService.isAvailable && _liveUpdateEnabled) {
         _liveUpdateService.stopLiveUpdate();
       }
 

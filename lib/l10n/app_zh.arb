@@ -612,6 +612,8 @@
   "enableNotificationDesc": "在AI回复完成时收到通知提醒",
   "dataManagement": "数据管理",
   "liveUpdateAIResponse": "回复",
+  "enableLiveUpdate": "实时更新",
+  "enableLiveUpdateDesc": "在AI回复期间显示Android 16实时更新通知",
   "languageChanged": "语言已更改",
   "restartAppToApplyLanguage": "语言更改需要重启应用才能生效",
   "loading": "加载中",

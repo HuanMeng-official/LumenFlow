@@ -1795,6 +1795,18 @@ abstract class AppLocalizations {
   /// **'Response'**
   String get liveUpdateAIResponse;
 
+  /// No description provided for @enableLiveUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Live Update'**
+  String get enableLiveUpdate;
+
+  /// No description provided for @enableLiveUpdateDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Android 16 live update notification during AI response'**
+  String get enableLiveUpdateDesc;
+
   /// No description provided for @languageChanged.
   ///
   /// In en, this message translates to:

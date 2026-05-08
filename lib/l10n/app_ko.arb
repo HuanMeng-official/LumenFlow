@@ -612,6 +612,8 @@
   "enableNotificationDesc": "AI 응답 완료 시 알림 받기",
   "dataManagement": "데이터 관리",
   "liveUpdateAIResponse": "응답",
+  "enableLiveUpdate": "실시간 업데이트",
+  "enableLiveUpdateDesc": "AI 응답 중 Android 16 실시간 업데이트 알림 표시",
   "languageChanged": "언어가 변경됨",
   "restartAppToApplyLanguage": "언어 변경 사항을 적용하려면 앱을 다시 시작하세요",
   "loading": "로드 중",
