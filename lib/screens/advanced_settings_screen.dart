@@ -242,12 +242,13 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
                   value: _notificationEnabled,
                   onChanged: _handleNotificationChanged,
                 ),
-                SettingsSwitchTile(
-                  title: l10n.enableLiveUpdate,
-                  subtitle: l10n.enableLiveUpdateDesc,
-                  value: _liveUpdateEnabled,
-                  onChanged: _handleLiveUpdateChanged,
-                ),
+                if (Platform.isAndroid)
+                  SettingsSwitchTile(
+                    title: l10n.enableLiveUpdate,
+                    subtitle: l10n.enableLiveUpdateDesc,
+                    value: _liveUpdateEnabled,
+                    onChanged: _handleLiveUpdateChanged,
+                  ),
               ],
             ),
             SettingsSection(
