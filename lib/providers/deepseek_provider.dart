@@ -67,7 +67,10 @@ class DeepSeekProvider extends AIProvider {
               'messages': messages,
               'max_tokens': maxTokens,
               'temperature': temperature,
-              if (thinkingMode) 'thinking': {'type': 'enabled'},
+              if (thinkingMode) 'reasoning_effort': 'high',
+              'thinking': thinkingMode
+                  ? {'type': 'enabled'}
+                  : {'type': 'disabled'},
             }),
           ).timeout(connectionTimeout + readTimeout);
 
@@ -129,7 +132,10 @@ class DeepSeekProvider extends AIProvider {
         'max_tokens': maxTokens,
         'temperature': temperature,
         'stream': true,
-        if (thinkingMode) 'thinking': {'type': 'enabled'},
+        if (thinkingMode) 'reasoning_effort': 'high',
+        'thinking': thinkingMode
+            ? {'type': 'enabled'}
+            : {'type': 'disabled'},
       });
 
       final streamedResponse = await client.send(request).timeout(streamingTimeout);
