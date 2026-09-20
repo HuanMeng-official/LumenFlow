@@ -364,11 +364,11 @@ LumenFlow 包含一个先进的角色扮演系统，具有基于文件的提示�
 ##### character.xml 结构示例
 ```xml
 <system_instruction>
-   <mate>
+   <meta>
       <role_name>NAME</role_name>
       <identity>TEXT</identity>
       <core_philosophy>TEXT</core_philosophy>
-   </mate>
+   </meta>
    <personality_logic>TEXT</personality_logic>
    <addressing_protocol>TEXT</addressing_protocol>
    <linguistic_style>TEXT</linguistic_style>
