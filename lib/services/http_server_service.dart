@@ -36,7 +36,7 @@ class HttpServerService {
 
     try {
       // 创建HTTP服务器
-      _server = await HttpServer.bind(InternetAddress.anyIPv4, _port);
+      _server = await HttpServer.bind(InternetAddress.loopbackIPv4, _port);
       _isRunning = true;
       _serverUrl = 'http://localhost:$_port';
 
