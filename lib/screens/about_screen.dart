@@ -43,7 +43,7 @@ class _AboutScreenState extends State<AboutScreen> {
           future: _versionInfo,
           builder: (context, snapshot) {
             final version = snapshot.data?['version'] ?? '1.0.5';
-            final buildDate = snapshot.data?['buildDate'] ?? '2025-12-18';
+            final buildDate = snapshot.data?['buildDate'] ?? '';
 
             return ListView(
               children: [
