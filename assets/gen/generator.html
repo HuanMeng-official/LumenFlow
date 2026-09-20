@@ -170,6 +170,7 @@
         }
 
         textarea { min-height: 120px; resize: vertical; line-height: 1.6; }
+        textarea.compact { min-height: 52px; }
 
         input[type="text"]:hover, textarea:hover { background-color: var(--border-light); }
         input[type="text"]:focus, textarea:focus {
@@ -322,11 +323,11 @@
         
         <div class="form-group">
             <label id="lbl-Identity">角色身份描述</label>
-            <input type="text" id="Identity">
+            <textarea id="Identity" class="compact"></textarea>
         </div>
         <div class="form-group">
             <label id="lbl-Philosophy">角色核心哲学</label>
-            <input type="text" id="Philosophy">
+            <textarea id="Philosophy" class="compact"></textarea>
         </div>
 
         <div style="height: 20px;"></div>
@@ -773,7 +774,27 @@
 
     function unindent(text) {
         if (!text) return "";
-        return text.split('\n').map(line => line.startsWith('      ') ? line.substring(6) : line).join('\n').trim();
+        const lines = text.split('\n');
+        const indents = lines
+            .filter(line => line.trim() !== "")
+            .map(line => line.match(/^[ \t]*/)[0].length);
+        const margin = indents.length ? Math.min(...indents) : 0;
+        return lines.map(line => line.trim() === "" ? "" : line.substring(margin)).join('\n').trim();
+    }
+
+    function findSectionParents(xmlDoc) {
+        const root = xmlDoc.documentElement;
+        if (!root || root.tagName !== "system_instruction") return null;
+        const mate = Array.from(root.children).find(el => el.tagName === "mate");
+        return mate ? [mate, root] : [root];
+    }
+
+    function readInnerMarkup(node) {
+        return Array.from(node.childNodes).map(child => {
+            if (child.nodeType === Node.ELEMENT_NODE) return new XMLSerializer().serializeToString(child);
+            if (child.nodeType === Node.TEXT_NODE || child.nodeType === Node.CDATA_SECTION_NODE) return child.nodeValue;
+            return "";
+        }).join("");
     }
 
     function parseAndFillXML(xmlString, filename) {
@@ -785,12 +806,20 @@
                 throw new Error("Invalid XML format");
             }
 
+            const sectionParents = findSectionParents(xmlDoc);
+            if (!sectionParents) {
+                throw new Error("Root element is not <system_instruction>");
+            }
+
             const getText = (tag) => {
-                const node = xmlDoc.getElementsByTagName(tag)[0];
-                return node ? node.textContent : "";
+                for (const parent of sectionParents) {
+                    const node = Array.from(parent.children).find(el => el.tagName === tag);
+                    if (node) return readInnerMarkup(node);
+                }
+                return "";
             };
 
-            const fullRoleName = getText("role_name").trim();
+            const fullRoleName = getText("role_name").replace(/\s+/g, " ").trim();
             const nameMatch = fullRoleName.match(/^(.*?)(?:（(.*?)）)?$/);
             if (nameMatch) {
                 document.getElementById('RoleName').value = nameMatch[1].trim();
@@ -800,8 +829,8 @@
                 document.getElementById('RoleNameEN').value = "";
             }
 
-            document.getElementById('Identity').value = getText("identity").trim();
-            document.getElementById('Philosophy').value = getText("core_philosophy").trim();
+            document.getElementById('Identity').value = unindent(getText("identity"));
+            document.getElementById('Philosophy').value = unindent(getText("core_philosophy"));
 
             document.getElementById('Worldview').value = unindent(getText("worldview_background"));
             document.getElementById('Appearance').value = unindent(getText("appearance_traits"));
@@ -930,11 +959,18 @@
         }
         
         const example = formatIndentedBlock(document.getElementById('Example').value);
+        const mateField = (tag, value) => {
+            const text = value.trim();
+            if (text === "") return `      <${tag}></${tag}>`;
+            if (!text.includes('\n')) return `      <${tag}>${text}</${tag}>`;
+            return `      <${tag}>\n${formatIndentedBlock(text, 9)}\n      </${tag}>`;
+        };
+
         return `<system_instruction>
    <mate>
-      <role_name>${roleName}${roleNameEN ? '（' + roleNameEN + '）' : ''}</role_name>
-      <identity>${identity}</identity>
-      <core_philosophy>${philosophy}</core_philosophy>
+${mateField('role_name', roleName + (roleNameEN ? '（' + roleNameEN + '）' : ''))}
+${mateField('identity', identity)}
+${mateField('core_philosophy', philosophy)}
    </mate>
 
    <worldview_background>
