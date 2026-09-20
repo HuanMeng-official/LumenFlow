@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'ai_provider.dart';
+import 'http_provider_base.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
 import '../services/file_service.dart';
@@ -11,19 +12,9 @@ import '../services/settings_service.dart';
 import '../l10n/app_localizations.dart';
 
 /// Xiaomi MiMo API Provider 实现
-class XiaoMiMiMoProvider extends AIProvider {
+class XiaoMiMiMoProvider extends HttpProviderBase {
   final SettingsService _settingsService = SettingsService();
   final FileService _fileService = FileService();
-
-  /// 超时配置
-  static const Duration connectionTimeout = Duration(seconds: 30);
-  static const Duration readTimeout = Duration(seconds: 60);
-  static const Duration streamingTimeout = Duration(minutes: 5);
-
-  /// 重试配置
-  static const int maxRetries = 3;
-  static const int retryBaseDelayMs = 1000;
-  static const int retryMaxDelayMs = 10000;
 
   @override
   Future<Map<String, dynamic>> sendMessage({
@@ -36,9 +27,9 @@ class XiaoMiMiMoProvider extends AIProvider {
     bool thinkingMode = false,
     required AppLocalizations l10n,
   }) async {
-    return await _executeWithRetry<Map<String, dynamic>>(
+    return await executeWithRetry<Map<String, dynamic>>(
       () async {
-        final client = _createHttpClient();
+        final client = createHttpClient();
         try {
           final apiEndpoint = await _settingsService.getApiEndpoint();
           final apiKey = await _settingsService.getApiKey();
@@ -75,7 +66,7 @@ class XiaoMiMiMoProvider extends AIProvider {
           if (response.statusCode == 200) {
             return _parseResponse(response.body, l10n);
           } else {
-            throw _parseError(response.body, response.statusCode, l10n);
+            throw parseError(response.body, response.statusCode, l10n);
           }
         } finally {
           client.close();
@@ -99,7 +90,7 @@ class XiaoMiMiMoProvider extends AIProvider {
     bool thinkingMode = false,
     required AppLocalizations l10n,
   }) async* {
-    final client = _createHttpClient();
+    final client = createHttpClient();
     try {
       final apiEndpoint = await _settingsService.getApiEndpoint();
       final apiKey = await _settingsService.getApiKey();
@@ -138,7 +129,7 @@ class XiaoMiMiMoProvider extends AIProvider {
       if (streamedResponse.statusCode != 200) {
         final errorBody =
             await streamedResponse.stream.transform(utf8.decoder).join();
-        throw _parseError(errorBody, streamedResponse.statusCode, l10n);
+        throw parseError(errorBody, streamedResponse.statusCode, l10n);
       }
 
       // 缓冲区用于累积SSE事件，处理跨chunk的事件分割
@@ -279,12 +270,7 @@ class XiaoMiMiMoProvider extends AIProvider {
       }
       return title;
     } else {
-      final errorBody = response.body;
-      final errorData = jsonDecode(errorBody);
-      final errorMessage = errorData['error']?['message']?.toString() ??
-          errorData['message']?.toString() ??
-          l10n.providerUnknownError;
-      return Future.error(Exception(l10n.providerApiError(errorMessage, response.statusCode)));
+      throw parseError(response.body, response.statusCode, l10n);
     }
   }
 
@@ -465,93 +451,4 @@ class XiaoMiMiMoProvider extends AIProvider {
     };
   }
 
-  /// 解析错误
-  Exception _parseError(String responseBody, int statusCode, AppLocalizations l10n) {
-    final errorData = jsonDecode(responseBody);
-    if (errorData is! Map<String, dynamic>) {
-      return Exception(l10n.providerInvalidResponseFormatWithCode(statusCode));
-    }
-
-    final errorMessage = errorData['error']?['message']?.toString() ??
-        errorData['message']?.toString() ??
-        l10n.providerUnknownError;
-    return Exception(l10n.providerApiError(errorMessage, statusCode));
-  }
-
-  /// 创建HTTP客户端
-  http.Client _createHttpClient() {
-    return http.Client();
-  }
-
-  /// 判断错误是否可重试
-  bool _isRetryableError(dynamic error, int? statusCode) {
-    if (error is SocketException ||
-        error is TimeoutException ||
-        error is TlsException ||
-        error is HttpException ||
-        error.toString().contains('Connection') ||
-        error.toString().contains('timeout') ||
-        error.toString().contains('socket') ||
-        error.toString().contains('handshake')) {
-      return true;
-    }
-
-    if (statusCode != null && statusCode >= 500 && statusCode < 600) {
-      return true;
-    }
-
-    if (statusCode == 429) {
-      return true;
-    }
-
-    return false;
-  }
-
-  /// 计算重试延迟时间（指数退避）
-  int _calculateRetryDelay(int retryCount) {
-    final delay = retryBaseDelayMs * (1 << retryCount);
-    return delay > retryMaxDelayMs ? retryMaxDelayMs : delay;
-  }
-
-  /// 带重试的执行函数
-  Future<T> _executeWithRetry<T>(
-    Future<T> Function() execute, {
-    void Function(dynamic error, int retryCount, int delayMs)? onRetry,
-    required AppLocalizations l10n,
-  }) async {
-    int attempt = 0;
-    dynamic lastError;
-    int? lastStatusCode;
-
-    while (attempt <= maxRetries) {
-      try {
-        return await execute();
-      } catch (error) {
-        lastError = error;
-
-        if (error is http.Response) {
-          lastStatusCode = error.statusCode;
-        } else if (error.toString().contains('statusCode')) {
-          final match = RegExp(r'statusCode[:\s]*(\d+)').firstMatch(error.toString());
-          if (match != null) {
-            lastStatusCode = int.tryParse(match.group(1)!);
-          }
-        }
-
-        if (attempt < maxRetries && _isRetryableError(error, lastStatusCode)) {
-          final delayMs = _calculateRetryDelay(attempt);
-          if (onRetry != null) {
-            onRetry(error, attempt + 1, delayMs);
-          }
-          await Future.delayed(Duration(milliseconds: delayMs));
-          attempt++;
-          continue;
-        }
-
-        rethrow;
-      }
-    }
-
-    throw lastError ?? Exception(l10n.providerUnknownError);
-  }
 }

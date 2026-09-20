@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'ai_provider.dart';
+import 'http_provider_base.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
 import '../services/file_service.dart';
@@ -12,20 +13,9 @@ import '../l10n/app_localizations.dart';
 
 /// Google Gemini API Provider 实现
 /// 负责处理与 Google Gemini API 的通信
-class GeminiProvider extends AIProvider {
+class GeminiProvider extends HttpProviderBase {
   final SettingsService _settingsService = SettingsService();
   final FileService _fileService = FileService();
-
-  /// 超时配置
-  static const Duration connectionTimeout = Duration(seconds: 30);
-  static const Duration readTimeout = Duration(seconds: 60);
-  static const Duration streamingTimeout = Duration(minutes: 5);
-
-  /// 重试配置
-  static const int maxRetries = 3;
-  static const int retryBaseDelayMs = 1000;
-  static const int retryMaxDelayMs = 10000;
-
 
   @override
   Future<Map<String, dynamic>> sendMessage({
@@ -38,9 +28,9 @@ class GeminiProvider extends AIProvider {
     bool thinkingMode = false,
     required AppLocalizations l10n,
   }) async {
-    return await _executeWithRetry<Map<String, dynamic>>(
+    return await executeWithRetry<Map<String, dynamic>>(
       () async {
-        final client = _createHttpClient();
+        final client = createHttpClient();
         try {
           final apiEndpoint = await _settingsService.getApiEndpoint();
           final apiKey = await _settingsService.getApiKey();
@@ -97,7 +87,7 @@ class GeminiProvider extends AIProvider {
     bool thinkingMode = false,
     required AppLocalizations l10n,
   }) async* {
-    final client = _createHttpClient();
+    final client = createHttpClient();
     try {
       final apiEndpoint = await _settingsService.getApiEndpoint();
       final apiKey = await _settingsService.getApiKey();
@@ -217,10 +207,16 @@ class GeminiProvider extends AIProvider {
 
       throw Exception(l10n.providerGeminiInvalidFormat);
     } else {
-      final errorData = jsonDecode(response.body);
-      final errorMessage = errorData['error']?['message']?.toString() ??
-          errorData['message']?.toString() ??
-          l10n.providerUnknownError;
+      // 响应体可能不是 JSON（网关错误页、限流页等），退回展示原始报文
+      String errorMessage = response.body;
+      try {
+        final errorData = jsonDecode(response.body);
+        errorMessage = errorData['error']?['message']?.toString() ??
+            errorData['message']?.toString() ??
+            l10n.providerUnknownError;
+      } catch (_) {
+        // 忽略解析失败，使用原始响应体
+      }
       throw Exception(l10n.providerGeminiError(errorMessage, response.statusCode));
     }
   }
@@ -652,80 +648,4 @@ class GeminiProvider extends AIProvider {
     return url;
   }
 
-  /// 创建HTTP客户端
-  http.Client _createHttpClient() {
-    return http.Client();
-  }
-
-  /// 判断错误是否可重试
-  bool _isRetryableError(dynamic error, int? statusCode) {
-    if (error is SocketException ||
-        error is TimeoutException ||
-        error is TlsException ||
-        error is HttpException ||
-        error.toString().contains('Connection') ||
-        error.toString().contains('timeout') ||
-        error.toString().contains('socket') ||
-        error.toString().contains('handshake')) {
-      return true;
-    }
-
-    if (statusCode != null && statusCode >= 500 && statusCode < 600) {
-      return true;
-    }
-
-    if (statusCode == 429) {
-      return true;
-    }
-
-    return false;
-  }
-
-  /// 计算重试延迟时间（指数退避）
-  int _calculateRetryDelay(int retryCount) {
-    final delay = retryBaseDelayMs * (1 << retryCount);
-    return delay > retryMaxDelayMs ? retryMaxDelayMs : delay;
-  }
-
-  /// 带重试的执行函数
-  Future<T> _executeWithRetry<T>(
-    Future<T> Function() execute, {
-    void Function(dynamic error, int retryCount, int delayMs)? onRetry,
-    required AppLocalizations l10n,
-  }) async {
-    int attempt = 0;
-    dynamic lastError;
-    int? lastStatusCode;
-
-    while (attempt <= maxRetries) {
-      try {
-        return await execute();
-      } catch (error) {
-        lastError = error;
-
-        if (error is http.Response) {
-          lastStatusCode = error.statusCode;
-        } else if (error.toString().contains('statusCode')) {
-          final match = RegExp(r'statusCode[:\s]*(\d+)').firstMatch(error.toString());
-          if (match != null) {
-            lastStatusCode = int.tryParse(match.group(1)!);
-          }
-        }
-
-        if (attempt < maxRetries && _isRetryableError(error, lastStatusCode)) {
-          final delayMs = _calculateRetryDelay(attempt);
-          if (onRetry != null) {
-            onRetry(error, attempt + 1, delayMs);
-          }
-          await Future.delayed(Duration(milliseconds: delayMs));
-          attempt++;
-          continue;
-        }
-
-        rethrow;
-      }
-    }
-
-    throw lastError ?? Exception(l10n.providerUnknownError);
-  }
 }
