@@ -484,9 +484,10 @@
             Example_L: "示例对话 / 场景演示",
             Example_H: "用于展示角色在实际互动中的语气与行为",
             Done: "预览",
+            UserInfoSeparator: ": ",
             UserNameLabel: "用户的名字",
             UserGenderLabel: "用户的性别",
-            UserBrithdayLabel: "用户的生日",
+            UserBirthdayLabel: "用户的生日",
             BtnGenerate: "生成 XML",
             BtnImport: "导入 XML",
             BtnDownload: "下载文件",
@@ -495,6 +496,13 @@
             Cleared: "表单已清空",
             ImportSuccess: "成功导入角色设定",
             ImportError: "解析 XML 失败，请检查文件格式是否正确",
+            ImportErrEmpty: "文件是空的，没有可解析的内容",
+            ImportErrSyntax: "XML 语法错误，请检查标签是否正确闭合",
+            ImportErrRoot: "根标签是 <{tag}>，不是 <system_instruction>，无法导入",
+            ImportErrNoSections: "没有找到任何可导入的段落（标签名需与生成器一致）",
+            ImportSuccessIgnored: "成功导入角色设定（忽略 {n} 个段落：{list}）",
+            ExportInvalid: "生成的 XML 不合法：字段里有未转义的 < 或未闭合的标签，请改成 &lt; 后重试",
+            ListSep: "、",
             Copied: "已复制到剪贴板"
         },
         en: {
@@ -532,9 +540,10 @@
             Example_L: "Dialogue Examples",
             Example_H: "Tone and behavior demonstration",
             Done: "Preview",
+            UserInfoSeparator: ": ",
             UserNameLabel: "User Name",
             UserGenderLabel: "User Gender",
-            UserBrithdayLabel: "User Birthday",
+            UserBirthdayLabel: "User Birthday",
             BtnGenerate: "Generate XML",
             BtnImport: "Import XML",
             BtnDownload: "Download File",
@@ -543,6 +552,13 @@
             Cleared: "Form cleared",
             ImportSuccess: "Character imported successfully",
             ImportError: "Failed to parse XML, check file format",
+            ImportErrEmpty: "File is empty, nothing to parse",
+            ImportErrSyntax: "XML syntax error, check that all tags are closed",
+            ImportErrRoot: "Root element is <{tag}>, not <system_instruction>",
+            ImportErrNoSections: "No importable section found (tag names must match the generator)",
+            ImportSuccessIgnored: "Imported (ignored {n} section(s): {list})",
+            ExportInvalid: "Generated XML is invalid: a field contains an unescaped < or an unclosed tag. Replace it with &lt; and retry.",
+            ListSep: ", ",
             Copied: "Copied to clipboard"
         },
         ja: {
@@ -580,9 +596,10 @@
             Example_L: "会話例 / シーン",
             Example_H: "実際の振る舞い",
             Done: "プレビュー",
+            UserInfoSeparator: "：",
             UserNameLabel: "ユーザーの名前",
             UserGenderLabel: "ユーザーの性別",
-            UserBrithdayLabel: "ユーザーの誕生日",
+            UserBirthdayLabel: "ユーザーの誕生日",
             BtnGenerate: "XMLを生成",
             BtnImport: "インポート",
             BtnDownload: "ダウンロード",
@@ -591,6 +608,13 @@
             Cleared: "フォームをクリアしました",
             ImportSuccess: "キャラクター設定をインポートしました",
             ImportError: "XMLの解析に失敗しました",
+            ImportErrEmpty: "ファイルが空です",
+            ImportErrSyntax: "XML構文エラーです。タグが正しく閉じられているか確認してください",
+            ImportErrRoot: "ルート要素が <{tag}> です（<system_instruction> ではありません）",
+            ImportErrNoSections: "インポートできるセクションが見つかりません（タグ名は生成器と一致させる必要があります）",
+            ImportSuccessIgnored: "インポートしました（{n} 個のセクションを無視：{list}）",
+            ExportInvalid: "生成された XML が不正です：フィールドに未エスケープの < か閉じられていないタグがあります。&lt; に置き換えてください",
+            ListSep: "、",
             Copied: "クリップボードにコピーしました"
         },
         ko: {
@@ -628,9 +652,10 @@
             Example_L: "대화 예시",
             Example_H: "실제 상호작용",
             Done: "미리보기",
+            UserInfoSeparator: ": ",
             UserNameLabel: "사용자 이름",
             UserGenderLabel: "사용자 성별",
-            UserBrithdayLabel: "사용자 생일",
+            UserBirthdayLabel: "사용자 생일",
             BtnGenerate: "XML 생성",
             BtnImport: "가져오기",
             BtnDownload: "다운로드",
@@ -639,6 +664,13 @@
             Cleared: "양식이 지워졌습니다",
             ImportSuccess: "캐릭터 설정을 가져왔습니다",
             ImportError: "XML 구문 분석 실패",
+            ImportErrEmpty: "파일이 비어 있습니다",
+            ImportErrSyntax: "XML 구문 오류입니다. 태그가 올바르게 닫혔는지 확인하세요",
+            ImportErrRoot: "루트 요소가 <{tag}>입니다 (<system_instruction>가 아님)",
+            ImportErrNoSections: "가져올 수 있는 섹션이 없습니다 (태그 이름이 생성기와 일치해야 합니다)",
+            ImportSuccessIgnored: "가져왔습니다 ({n}개 섹션 무시: {list})",
+            ExportInvalid: "생성된 XML이 올바르지 않습니다: 필드에 이스케이프되지 않은 < 또는 닫히지 않은 태그가 있습니다",
+            ListSep: ", ",
             Copied: "클립보드에 복사되었습니다"
         }
     };
@@ -782,11 +814,29 @@
         return lines.map(line => line.trim() === "" ? "" : line.substring(margin)).join('\n').trim();
     }
 
+    // 表单认识的段落标签
+    const SECTION_TAGS = [
+        "role_name", "identity", "core_philosophy",
+        "worldview_background", "appearance_traits", "personality_logic",
+        "addressing_protocol", "linguistic_style", "behavior_narrative_rules",
+        "interaction_strategy", "internal_monologue", "emotional_depth",
+        "knowledge_filter", "negative_constraints", "example_dialogue"
+    ];
+    // 包裹 role_name/identity/core_philosophy 的标签：以 <meta> 为准，兼容旧卡的 <mate>
+    const WRAPPER_TAGS = ["meta", "mate"];
+    // 由生成器按界面语言重写的段落，导入时忽略且不算「被忽略的段落」
+    const REGENERATED_TAGS = ["user_info"];
+
     function findSectionParents(xmlDoc) {
         const root = xmlDoc.documentElement;
-        if (!root || root.tagName !== "system_instruction") return null;
-        const mate = Array.from(root.children).find(el => el.tagName === "mate");
-        return mate ? [mate, root] : [root];
+        if (!root) return null;
+        const wrapper = Array.from(root.children).find(el => WRAPPER_TAGS.includes(el.tagName));
+        return wrapper ? [wrapper, root] : [root];
+    }
+
+    // 只转义「不构成实体」的裸 &，导入保留的子标签与已有实体原样透传
+    function escapeBareAmpersands(text) {
+        return String(text || "").replace(/&(?!(?:#\d+|#x[0-9a-fA-F]+|[A-Za-z_][\w.:-]*);)/g, "&amp;");
     }
 
     function readInnerMarkup(node) {
@@ -798,26 +848,54 @@
     }
 
     function parseAndFillXML(xmlString, filename) {
+        const dict = UI[currentLang];
         try {
+            const source = String(xmlString).replace(/^﻿/, "");
+            if (source.trim() === "") {
+                throw { code: "Empty" };
+            }
+
             const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+            const xmlDoc = parser.parseFromString(source, "text/xml");
 
             if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
-                throw new Error("Invalid XML format");
+                throw { code: "Syntax" };
+            }
+
+            const root = xmlDoc.documentElement;
+            if (!root || root.tagName !== "system_instruction") {
+                throw { code: "Root", tag: root ? root.tagName : "" };
             }
 
             const sectionParents = findSectionParents(xmlDoc);
-            if (!sectionParents) {
-                throw new Error("Root element is not <system_instruction>");
-            }
-
-            const getText = (tag) => {
+            const findSection = (tag) => {
                 for (const parent of sectionParents) {
                     const node = Array.from(parent.children).find(el => el.tagName === tag);
-                    if (node) return readInnerMarkup(node);
+                    if (node) return node;
                 }
-                return "";
+                return null;
             };
+            const getText = (tag) => {
+                const node = findSection(tag);
+                return node ? readInnerMarkup(node) : "";
+            };
+
+            // 记录了但表单没有对应字段（或重复）的段落，导入后无法写回，汇总提示
+            const seen = new Set();
+            const ignored = [];
+            Array.from(root.children).forEach(el => {
+                const tag = el.tagName;
+                if (WRAPPER_TAGS.includes(tag) || REGENERATED_TAGS.includes(tag)) return;
+                if (!SECTION_TAGS.includes(tag) || seen.has(tag)) {
+                    if (!ignored.includes(tag)) ignored.push(tag);
+                    return;
+                }
+                seen.add(tag);
+            });
+
+            if (!SECTION_TAGS.some(tag => findSection(tag) !== null)) {
+                throw { code: "NoSections" };
+            }
 
             const fullRoleName = getText("role_name").replace(/\s+/g, " ").trim();
             const nameMatch = fullRoleName.match(/^(.*?)(?:（(.*?)）)?$/);
@@ -858,13 +936,30 @@
             document.getElementById('Example').value = unindent(getText("example_dialogue"));
             document.getElementById('FileName').value = filename.replace(/\.xml$/i, '');
 
-            showToast(UI[currentLang].ImportSuccess);
+            if (ignored.length > 0) {
+                showToast(dict.ImportSuccessIgnored
+                    .replace("{n}", ignored.length)
+                    .replace("{list}", ignored.join(dict.ListSep)));
+            } else {
+                showToast(dict.ImportSuccess);
+            }
             updateTokenCount();
             saveToLocalStorage();
 
         } catch (error) {
             console.error("XML Parsing Error:", error);
-            showToast(UI[currentLang].ImportError);
+            const code = error && error.code;
+            if (code === "Empty") {
+                showToast(dict.ImportErrEmpty);
+            } else if (code === "Syntax") {
+                showToast(dict.ImportErrSyntax);
+            } else if (code === "Root") {
+                showToast(dict.ImportErrRoot.replace("{tag}", error.tag || "?"));
+            } else if (code === "NoSections") {
+                showToast(dict.ImportErrNoSections);
+            } else {
+                showToast(dict.ImportError);
+            }
         }
     }
 
@@ -928,21 +1023,22 @@
 
     function buildXMLString() {
         const dict = UI[currentLang];
-        const roleName = document.getElementById('RoleName').value || "Unknown";
-        const roleNameEN = document.getElementById('RoleNameEN').value || "";
-        const identity = document.getElementById('Identity').value || "";
-        const philosophy = document.getElementById('Philosophy').value || "";
-        const worldview = formatIndentedBlock(document.getElementById('Worldview').value);
-        const appearance = formatIndentedBlock(document.getElementById('Appearance').value);
-        const personality = formatIndentedBlock(document.getElementById('Personality').value);
-        const addressing = formatIndentedBlock(document.getElementById('Addressing').value);
-        const linguistic = formatIndentedBlock(document.getElementById('Linguistic').value);
-        const behavior = formatIndentedBlock(document.getElementById('Behavior').value);
-        const interaction = formatIndentedBlock(document.getElementById('Interaction').value);
-        const internalMonologueRaw = document.getElementById('InternalMonologue').value;
-        const emotionalDepthRaw = document.getElementById('EmotionalDepth').value;
-        const knowledgeFilterRaw = document.getElementById('KnowledgeFilter').value;
-        const negativeConstraintsRaw = document.getElementById('NegativeConstraints').value;
+        const read = (id) => escapeBareAmpersands(document.getElementById(id).value);
+        const roleName = read('RoleName') || "Unknown";
+        const roleNameEN = read('RoleNameEN');
+        const identity = read('Identity');
+        const philosophy = read('Philosophy');
+        const worldview = formatIndentedBlock(read('Worldview'));
+        const appearance = formatIndentedBlock(read('Appearance'));
+        const personality = formatIndentedBlock(read('Personality'));
+        const addressing = formatIndentedBlock(read('Addressing'));
+        const linguistic = formatIndentedBlock(read('Linguistic'));
+        const behavior = formatIndentedBlock(read('Behavior'));
+        const interaction = formatIndentedBlock(read('Interaction'));
+        const internalMonologueRaw = read('InternalMonologue');
+        const emotionalDepthRaw = read('EmotionalDepth');
+        const knowledgeFilterRaw = read('KnowledgeFilter');
+        const negativeConstraintsRaw = read('NegativeConstraints');
         
         let advancedXML = "";
         if (internalMonologueRaw.trim() !== "") {
@@ -958,8 +1054,9 @@
             advancedXML += `\n   <negative_constraints>\n${formatIndentedBlock(negativeConstraintsRaw)}\n   </negative_constraints>\n`;
         }
         
-        const example = formatIndentedBlock(document.getElementById('Example').value);
-        const mateField = (tag, value) => {
+        const example = formatIndentedBlock(read('Example'));
+        // 单行内容保持行内写法，多行内容转为缩进到 9 格的块（与包裹层的层级对齐）
+        const metaField = (tag, value) => {
             const text = value.trim();
             if (text === "") return `      <${tag}></${tag}>`;
             if (!text.includes('\n')) return `      <${tag}>${text}</${tag}>`;
@@ -967,11 +1064,11 @@
         };
 
         return `<system_instruction>
-   <mate>
-${mateField('role_name', roleName + (roleNameEN ? '（' + roleNameEN + '）' : ''))}
-${mateField('identity', identity)}
-${mateField('core_philosophy', philosophy)}
-   </mate>
+   <meta>
+${metaField('role_name', roleName + (roleNameEN ? '（' + roleNameEN + '）' : ''))}
+${metaField('identity', identity)}
+${metaField('core_philosophy', philosophy)}
+   </meta>
 
    <worldview_background>
 ${worldview}
@@ -1002,9 +1099,9 @@ ${interaction}
    </interaction_strategy>
 ${advancedXML}
    <user_info>
-      - ${dict.UserNameLabel}: \${userProfile.username}
-      - ${dict.UserGenderLabel}: \${userProfile.gender}
-      - ${dict.UserBrithdayLabel}: \${userProfile.birthday}
+      - ${dict.UserNameLabel}${dict.UserInfoSeparator}\${userProfile.username}
+      - ${dict.UserGenderLabel}${dict.UserInfoSeparator}\${userProfile.gender}
+      - ${dict.UserBirthdayLabel}${dict.UserInfoSeparator}\${userProfile.birthday}
    </user_info>
 
    <example_dialogue>
@@ -1054,8 +1151,20 @@ ${example}
         document.getElementById('preview-section').scrollIntoView({ behavior: 'smooth' });
     }
 
+    // 导出前校验：字段里若有未转义的 < 或未闭合的标签，生成的文件无法再被导入
+    function buildExportableXML() {
+        const xml = buildXMLString();
+        const doc = new DOMParser().parseFromString(xml, "text/xml");
+        if (doc.getElementsByTagName("parsererror").length > 0) {
+            showToast(UI[currentLang].ExportInvalid);
+            return null;
+        }
+        return xml;
+    }
+
     function downloadFile() {
-        const content = document.getElementById('xml-output').innerText;
+        const content = buildExportableXML();
+        if (content === null) return;
         let fileName = document.getElementById('FileName').value.trim();
         if (!fileName) fileName = "character_card";
         if (!fileName.endsWith('.xml')) fileName += '.xml';
@@ -1070,7 +1179,8 @@ ${example}
     }
 
     function copyToClipboard() {
-        const text = document.getElementById('xml-output').innerText;
+        const text = buildExportableXML();
+        if (text === null) return;
         navigator.clipboard.writeText(text).then(() => {
             showToast(UI[currentLang].Copied);
         });
