@@ -283,7 +283,6 @@
   },
   "attachmentCannotRead": " - No se puede leer el contenido",
   "unknownMimeType": "Tipo desconocido",
-  "multimediaNotSupported": "\nNota: DeepSeek no soporta el procesamiento de archivos multimedia como imágenes, videos o audio",
   "responseBlocked": "Respuesta bloqueada por el filtro de seguridad",
   "apiError": "Error de API: {message} (Código: {statusCode})",
   "@apiError": {

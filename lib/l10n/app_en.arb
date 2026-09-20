@@ -283,7 +283,6 @@
   },
   "attachmentCannotRead": " - Cannot read content",
   "unknownMimeType": "Unknown type",
-  "multimediaNotSupported": "\nNote: DeepSeek does not support processing multimedia files such as images, videos, and audio",
   "responseBlocked": "Response blocked by safety filter",
   "apiError": "API Error: {message} (Status code: {statusCode})",
   "@apiError": {
@@ -477,7 +476,7 @@
       }
     }
   },
-  "providerMultimediaNotSupported": "\nNote: DeepSeek does not support processing multimedia files such as images, videos, and audio",
+  "providerMultimediaNotSupported": "\nNote: DeepSeek does not support processing multimedia files such as videos and audio",
   "providerGeminiInvalidResponse": "Gemini API returned invalid response format",
   "providerGeminiMissingCandidates": "Gemini API response is missing candidates field",
   "providerGeminiInvalidFormat": "Invalid Gemini API response format",

@@ -585,9 +585,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get unknownMimeType => '未知类型';
 
   @override
-  String get multimediaNotSupported => '\n提示: DeepSeek 不支持处理图片、视频、音频等多媒体文件';
-
-  @override
   String get responseBlocked => '响应被安全过滤器阻止';
 
   @override
@@ -716,7 +713,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get providerMultimediaNotSupported => '\n提示: DeepSeek 不支持处理图片、视频、音频等多媒体文件';
+  String get providerMultimediaNotSupported => '\n提示: DeepSeek 不支持处理视频、音频等多媒体文件';
 
   @override
   String get providerGeminiInvalidResponse => 'Gemini API返回了无效的响应格式';

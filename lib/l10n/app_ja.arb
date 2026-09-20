@@ -283,7 +283,6 @@
   },
   "attachmentCannotRead": " - コンテンツを読み取れません",
   "unknownMimeType": "不明なタイプ",
-  "multimediaNotSupported": "\n注意: DeepSeekは画像、動画、音声などのマルチメディアファイルの処理をサポートしていません",
   "responseBlocked": "安全性フィルターによって応答がブロックされました",
   "apiError": "APIエラー: {message} (ステータスコード: {statusCode})",
   "@apiError": {
@@ -477,7 +476,7 @@
       }
     }
   },
-  "providerMultimediaNotSupported": "\n注意: DeepSeekは画像、動画、音声などのマルチメディアファイルの処理をサポートしていません",
+  "providerMultimediaNotSupported": "\n注意: DeepSeekは動画、音声などのマルチメディアファイルの処理をサポートしていません",
   "providerGeminiInvalidResponse": "Gemini APIが無効な応答形式を返しました",
   "providerGeminiMissingCandidates": "Gemini API応答に候補フィールドがありません",
   "providerGeminiInvalidFormat": "無効なGemini API応答形式",

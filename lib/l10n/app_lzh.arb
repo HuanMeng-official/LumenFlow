@@ -283,7 +283,6 @@
   },
   "attachmentCannotRead": " - 字跡莫辨",
   "unknownMimeType": "無名之卷",
-  "multimediaNotSupported": "\n誡：DeepSeek 弗識丹青、幻影、聲樂諸般雅玩",
   "responseBlocked": "言辭犯忌，為守關者所阻",
   "apiError": "樞機之謬: {message} (勘合碼: {statusCode})",
   "@apiError": {
@@ -477,7 +476,7 @@
       }
     }
   },
-  "providerMultimediaNotSupported": "\n誡：DeepSeek 弗識丹青、幻影、聲樂諸般雅玩",
+  "providerMultimediaNotSupported": "\n誡：DeepSeek 弗識幻影、聲樂諸般雅玩",
   "providerGeminiInvalidResponse": "Gemini 門戶傳書，不合體式",
   "providerGeminiMissingCandidates": "Gemini 門戶傳書，缺 candidates 之目",
   "providerGeminiInvalidFormat": "Gemini 傳書，不合體式",

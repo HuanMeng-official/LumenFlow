@@ -1207,12 +1207,6 @@ abstract class AppLocalizations {
   /// **'Unknown type'**
   String get unknownMimeType;
 
-  /// No description provided for @multimediaNotSupported.
-  ///
-  /// In en, this message translates to:
-  /// **'\nNote: DeepSeek does not support processing multimedia files such as images, videos, and audio'**
-  String get multimediaNotSupported;
-
   /// No description provided for @responseBlocked.
   ///
   /// In en, this message translates to:
@@ -1396,7 +1390,7 @@ abstract class AppLocalizations {
   /// No description provided for @providerMultimediaNotSupported.
   ///
   /// In en, this message translates to:
-  /// **'\nNote: DeepSeek does not support processing multimedia files such as images, videos, and audio'**
+  /// **'\nNote: DeepSeek does not support processing multimedia files such as videos and audio'**
   String get providerMultimediaNotSupported;
 
   /// No description provided for @providerGeminiInvalidResponse.

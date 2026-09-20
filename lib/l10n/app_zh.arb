@@ -283,7 +283,6 @@
   },
   "attachmentCannotRead": " - 无法读取内容",
   "unknownMimeType": "未知类型",
-  "multimediaNotSupported": "\n提示: DeepSeek 不支持处理图片、视频、音频等多媒体文件",
   "responseBlocked": "响应被安全过滤器阻止",
   "apiError": "API错误: {message} (状态码: {statusCode})",
   "@apiError": {
@@ -477,7 +476,7 @@
       }
     }
   },
-  "providerMultimediaNotSupported": "\n提示: DeepSeek 不支持处理图片、视频、音频等多媒体文件",
+  "providerMultimediaNotSupported": "\n提示: DeepSeek 不支持处理视频、音频等多媒体文件",
   "providerGeminiInvalidResponse": "Gemini API返回了无效的响应格式",
   "providerGeminiMissingCandidates": "Gemini API响应中缺少candidates字段",
   "providerGeminiInvalidFormat": "无效的Gemini API响应格式",

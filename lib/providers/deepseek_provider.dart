@@ -327,7 +327,7 @@ class DeepSeekProvider extends HttpProviderBase {
   }
 
   /// 构建消息内容（处理附件）
-  /// DeepSeek 不支持图片、视频、音频等多媒体文件
+  /// DeepSeek 支持图像理解；视频、音频等多媒体文件仍不支持
   Future<dynamic> _buildMessageContent(
       String message, List<Attachment> attachments, AppLocalizations l10n) async {
     if (attachments.isEmpty) {
@@ -359,7 +359,35 @@ class DeepSeekProvider extends HttpProviderBase {
         final fileSize = attachment.fileSize ??
             await _fileService.getFileSize(attachment.filePath!);
 
-        // 检查是否为多媒体文件（图片、视频、音频）
+        // 图片：DeepSeek 支持图像理解，以 base64 data URL 上传
+        if ((attachment.mimeType ?? '').toLowerCase().startsWith('image/')) {
+          if (fileSize > AIProvider.maxFileSizeForBase64) {
+            contentParts.add({
+              'type': 'text',
+              'text': l10n.providerFileTooLarge(
+                  attachment.fileName, formatFileSize(fileSize))
+            });
+            continue;
+          }
+
+          try {
+            final dataUrl =
+                await _fileService.getFileDataUrl(file, attachment.mimeType);
+            contentParts.add({
+              'type': 'image_url',
+              'image_url': {'url': dataUrl}
+            });
+          } catch (e) {
+            contentParts.add({
+              'type': 'text',
+              'text': l10n.providerFileProcessError(
+                  attachment.fileName, e.toString())
+            });
+          }
+          continue;
+        }
+
+        // 视频、音频等多媒体文件：DeepSeek 仍不支持
         if (isVisionSupportedFile(attachment) ||
             _isMediaFile(attachment)) {
           contentParts.add({

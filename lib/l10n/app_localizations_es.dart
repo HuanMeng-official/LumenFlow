@@ -585,9 +585,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get unknownMimeType => 'Tipo desconocido';
 
   @override
-  String get multimediaNotSupported => '\nNota: DeepSeek no soporta el procesamiento de archivos multimedia como imágenes, videos o audio';
-
-  @override
   String get responseBlocked => 'Respuesta bloqueada por el filtro de seguridad';
 
   @override

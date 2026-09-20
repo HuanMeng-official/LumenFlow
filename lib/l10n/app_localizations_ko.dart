@@ -585,9 +585,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get unknownMimeType => '알 수 없는 형식';
 
   @override
-  String get multimediaNotSupported => '\n참고: DeepSeek는 이미지, 동영상, 오디오 등의 멀티미디어 파일 처리를 지원하지 않습니다';
-
-  @override
   String get responseBlocked => '안전 필터에 의해 응답이 차단됨';
 
   @override
@@ -716,7 +713,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get providerMultimediaNotSupported => '\n참고: DeepSeek는 이미지, 동영상, 오디오 등의 멀티미디어 파일 처리를 지원하지 않습니다';
+  String get providerMultimediaNotSupported => '\n참고: DeepSeek는 동영상, 오디오 등의 멀티미디어 파일 처리를 지원하지 않습니다';
 
   @override
   String get providerGeminiInvalidResponse => 'Gemini API가 잘못된 응답 형식을 반환했습니다';

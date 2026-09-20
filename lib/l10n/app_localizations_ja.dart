@@ -585,9 +585,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get unknownMimeType => '不明なタイプ';
 
   @override
-  String get multimediaNotSupported => '\n注意: DeepSeekは画像、動画、音声などのマルチメディアファイルの処理をサポートしていません';
-
-  @override
   String get responseBlocked => '安全性フィルターによって応答がブロックされました';
 
   @override
@@ -716,7 +713,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get providerMultimediaNotSupported => '\n注意: DeepSeekは画像、動画、音声などのマルチメディアファイルの処理をサポートしていません';
+  String get providerMultimediaNotSupported => '\n注意: DeepSeekは動画、音声などのマルチメディアファイルの処理をサポートしていません';
 
   @override
   String get providerGeminiInvalidResponse => 'Gemini APIが無効な応答形式を返しました';

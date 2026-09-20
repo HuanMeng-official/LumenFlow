@@ -585,9 +585,6 @@ class AppLocalizationsLzh extends AppLocalizations {
   String get unknownMimeType => '無名之卷';
 
   @override
-  String get multimediaNotSupported => '\n誡：DeepSeek 弗識丹青、幻影、聲樂諸般雅玩';
-
-  @override
   String get responseBlocked => '言辭犯忌，為守關者所阻';
 
   @override
@@ -716,7 +713,7 @@ class AppLocalizationsLzh extends AppLocalizations {
   }
 
   @override
-  String get providerMultimediaNotSupported => '\n誡：DeepSeek 弗識丹青、幻影、聲樂諸般雅玩';
+  String get providerMultimediaNotSupported => '\n誡：DeepSeek 弗識幻影、聲樂諸般雅玩';
 
   @override
   String get providerGeminiInvalidResponse => 'Gemini 門戶傳書，不合體式';
