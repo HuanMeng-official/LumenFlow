@@ -48,6 +48,14 @@
             padding: 40px 20px;
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
+            transition: background-color 0.2s;
+        }
+
+        body.drag-over {
+            background-color: rgba(16, 185, 129, 0.05);
+        }
+        body.drag-over .container {
+            border: 2px dashed var(--accent);
         }
 
         .container {
@@ -58,6 +66,8 @@
             border-radius: 12px;
             box-shadow: var(--shadow);
             position: relative;
+            box-sizing: border-box;
+            transition: border 0.2s, transform 0.2s;
         }
 
         header {
@@ -169,7 +179,7 @@
             font-size: 15px; font-family: inherit; transition: all 0.2s ease;
         }
 
-        textarea { min-height: 120px; resize: vertical; line-height: 1.6; }
+        textarea { min-height: 120px; resize: vertical; line-height: 1.6; overflow-y: hidden; }
         textarea.compact { min-height: 52px; }
 
         input[type="text"]:hover, textarea:hover { background-color: var(--border-light); }
@@ -295,7 +305,7 @@
         <div class="header-controls">
             <span class="save-indicator" id="save-indicator">已自动保存</span>
             
-            <div class="token-counter safe" id="token-box" title="Token 长度估算 (健康)">
+            <div class="token-counter safe" id="token-box" title="Token 健康：结构精炼，响应迅速">
                 <div class="status-dot"></div>
                 <span id="lbl-TokenCount">Tokens</span>
                 <strong id="token-val">0</strong>
@@ -501,9 +511,13 @@
             ImportErrRoot: "根标签是 <{tag}>，不是 <system_instruction>，无法导入",
             ImportErrNoSections: "没有找到任何可导入的段落（标签名需与生成器一致）",
             ImportSuccessIgnored: "成功导入角色设定（忽略 {n} 个段落：{list}）",
-            ExportInvalid: "生成的 XML 不合法：字段里有未转义的 < 或未闭合的标签，请改成 &lt; 后重试",
+            ExportInvalid: "生成的 XML 存在无法解析的格式错误，请检查输入",
             ListSep: "、",
-            Copied: "已复制到剪贴板"
+            Copied: "已复制到剪贴板",
+            CopyFail: "复制失败，请手动在预览区复制",
+            TokenTipSafe: "Token 精炼：结构健康，模型响应快速",
+            TokenTipWarn: "Token 适中：设定丰富，适合现代长上下文模型",
+            TokenTipDanger: "Token 较长：请留意模型的最大上下文窗口限制"
         },
         en: {
             Title: "LumenFlow Generator",
@@ -557,9 +571,13 @@
             ImportErrRoot: "Root element is <{tag}>, not <system_instruction>",
             ImportErrNoSections: "No importable section found (tag names must match the generator)",
             ImportSuccessIgnored: "Imported (ignored {n} section(s): {list})",
-            ExportInvalid: "Generated XML is invalid: a field contains an unescaped < or an unclosed tag. Replace it with &lt; and retry.",
+            ExportInvalid: "Generated XML is malformed, please check your input",
             ListSep: ", ",
-            Copied: "Copied to clipboard"
+            Copied: "Copied to clipboard",
+            CopyFail: "Failed to copy, please copy manually from preview",
+            TokenTipSafe: "Healthy tokens: compact and efficient",
+            TokenTipWarn: "Moderate tokens: detailed character, good for flagship models",
+            TokenTipDanger: "Long tokens: please check model's context limits"
         },
         ja: {
             Title: "LumenFlow Generator",
@@ -613,9 +631,13 @@
             ImportErrRoot: "ルート要素が <{tag}> です（<system_instruction> ではありません）",
             ImportErrNoSections: "インポートできるセクションが見つかりません（タグ名は生成器と一致させる必要があります）",
             ImportSuccessIgnored: "インポートしました（{n} 個のセクションを無視：{list}）",
-            ExportInvalid: "生成された XML が不正です：フィールドに未エスケープの < か閉じられていないタグがあります。&lt; に置き換えてください",
+            ExportInvalid: "生成された XML に構文エラーがあります",
             ListSep: "、",
-            Copied: "クリップボードにコピーしました"
+            Copied: "クリップボードにコピーしました",
+            CopyFail: "コピーに失敗しました。プレビューから手動でコピーしてください",
+            TokenTipSafe: "健康なトークン数：高効率・高速応答",
+            TokenTipWarn: "適正トークン：詳細な設定、主要モデルに適合",
+            TokenTipDanger: "トークン多め：コンテキスト上限にご注意ください"
         },
         ko: {
             Title: "LumenFlow Generator",
@@ -669,9 +691,13 @@
             ImportErrRoot: "루트 요소가 <{tag}>입니다 (<system_instruction>가 아님)",
             ImportErrNoSections: "가져올 수 있는 섹션이 없습니다 (태그 이름이 생성기와 일치해야 합니다)",
             ImportSuccessIgnored: "가져왔습니다 ({n}개 섹션 무시: {list})",
-            ExportInvalid: "생성된 XML이 올바르지 않습니다: 필드에 이스케이프되지 않은 < 또는 닫히지 않은 태그가 있습니다",
+            ExportInvalid: "생성된 XML에 구문 오류가 있습니다",
             ListSep: ", ",
-            Copied: "클립보드에 복사되었습니다"
+            Copied: "클립보드에 복사되었습니다",
+            CopyFail: "복사 실패, 미리보기에서 직접 복사해 주세요",
+            TokenTipSafe: "안정적인 토큰 수: 효율적이고 빠른 응답",
+            TokenTipWarn: "적정 토큰: 상세한 캐릭터 설정",
+            TokenTipDanger: "토큰 수 많음: 모델의 컨텍스트 한도를 확인하세요"
         }
     };
 
@@ -696,16 +722,27 @@
         }, 2500);
     }
 
+    function autoResizeTextarea(el) {
+        if (!el) return;
+        el.style.height = 'auto';
+        const minH = el.classList.contains('compact') ? 52 : 120;
+        el.style.height = Math.max(el.scrollHeight, minH) + 'px';
+    }
+
+    function autoResizeAllTextareas() {
+        document.querySelectorAll('textarea').forEach(autoResizeTextarea);
+    }
+
     function loadFromLocalStorage() {
         try {
             const savedData = localStorage.getItem(STORAGE_KEY);
             if (savedData) {
                 const data = JSON.parse(savedData);
-                if (data.lang) {
+                if (data.lang && UI[data.lang]) {
                     document.getElementById('lang-selector').value = data.lang;
                     currentLang = data.lang;
                 }
-                const fields =[
+                const fields = [
                     'RoleName', 'RoleNameEN', 'Identity', 'Philosophy', 
                     'Worldview', 'Appearance',
                     'Personality', 'Addressing', 'Linguistic', 'Behavior', 'Interaction',
@@ -773,17 +810,21 @@
             clearConfirmTimeout = setTimeout(() => {
                 clearConfirmPending = false;
                 btnClear.classList.remove('pending');
-            }, 1500);
+            }, 2000);
         } else {
             clearTimeout(clearConfirmTimeout);
             clearConfirmPending = false;
             btnClear.classList.remove('pending');
 
-            document.querySelectorAll('input[type="text"], textarea').forEach(el => el.value = '');
+            document.querySelectorAll('input[type="text"], textarea').forEach(el => {
+                el.value = '';
+                el.style.height = '';
+            });
+            document.getElementById('AdvancedOptionsPanel').open = false;
             saveToLocalStorage();
             updateTokenCount();
 
-            if(window.innerWidth < 1024) {
+            if (window.innerWidth < 1024) {
                 document.getElementById('preview-section').classList.remove('active');
             }
 
@@ -797,8 +838,7 @@
 
         const reader = new FileReader();
         reader.onload = function(e) {
-            const content = e.target.result;
-            parseAndFillXML(content, file.name);
+            parseAndFillXML(e.target.result, file.name);
             event.target.value = ''; 
         };
         reader.readAsText(file);
@@ -834,9 +874,26 @@
         return wrapper ? [wrapper, root] : [root];
     }
 
-    // 只转义「不构成实体」的裸 &，导入保留的子标签与已有实体原样透传
+    // 只转义「不构成实体」的裸 &
     function escapeBareAmpersands(text) {
         return String(text || "").replace(/&(?!(?:#\d+|#x[0-9a-fA-F]+|[A-Za-z_][\w.:-]*);)/g, "&amp;");
+    }
+
+    // 格式化字段内容：若包含合法 XML 标签则保留，若为普通文本或包含孤立 < / > 则自动安全转义，防止 XML 损坏
+    function formatFieldContent(rawText) {
+        if (!rawText) return "";
+        const text = String(rawText).replace(/\r\n/g, '\n');
+        const withAmp = escapeBareAmpersands(text);
+        
+        const parser = new DOMParser();
+        const testDoc = parser.parseFromString(`<root>${withAmp}</root>`, "text/xml");
+        if (testDoc.getElementsByTagName("parsererror").length === 0) {
+            return withAmp;
+        }
+        
+        return withAmp
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
     }
 
     function readInnerMarkup(node) {
@@ -880,7 +937,6 @@
                 return node ? readInnerMarkup(node) : "";
             };
 
-            // 记录了但表单没有对应字段（或重复）的段落，导入后无法写回，汇总提示
             const seen = new Set();
             const ignored = [];
             Array.from(root.children).forEach(el => {
@@ -897,11 +953,12 @@
                 throw { code: "NoSections" };
             }
 
+            // 增强：同时兼容全角括号（）与半角括号()
             const fullRoleName = getText("role_name").replace(/\s+/g, " ").trim();
-            const nameMatch = fullRoleName.match(/^(.*?)(?:（(.*?)）)?$/);
+            const nameMatch = fullRoleName.match(/^(.*?)\s*[（\(]([^（）\(\)]+)[）\)]$/);
             if (nameMatch) {
                 document.getElementById('RoleName').value = nameMatch[1].trim();
-                document.getElementById('RoleNameEN').value = nameMatch[2] ? nameMatch[2].trim() : "";
+                document.getElementById('RoleNameEN').value = nameMatch[2].trim();
             } else {
                 document.getElementById('RoleName').value = fullRoleName;
                 document.getElementById('RoleNameEN').value = "";
@@ -934,7 +991,11 @@
             }
 
             document.getElementById('Example').value = unindent(getText("example_dialogue"));
-            document.getElementById('FileName').value = filename.replace(/\.xml$/i, '');
+            if (filename) {
+                document.getElementById('FileName').value = filename.replace(/\.xml$/i, '');
+            }
+
+            autoResizeAllTextareas();
 
             if (ignored.length > 0) {
                 showToast(dict.ImportSuccessIgnored
@@ -1023,7 +1084,7 @@
 
     function buildXMLString() {
         const dict = UI[currentLang];
-        const read = (id) => escapeBareAmpersands(document.getElementById(id).value);
+        const read = (id) => formatFieldContent(document.getElementById(id).value);
         const roleName = read('RoleName') || "Unknown";
         const roleNameEN = read('RoleNameEN');
         const identity = read('Identity');
@@ -1055,7 +1116,6 @@
         }
         
         const example = formatIndentedBlock(read('Example'));
-        // 单行内容保持行内写法，多行内容转为缩进到 9 格的块（与包裹层的层级对齐）
         const metaField = (tag, value) => {
             const text = value.trim();
             if (text === "") return `      <${tag}></${tag}>`;
@@ -1116,31 +1176,31 @@ ${example}
         const cjkMatch = text.match(cjkRegex);
         const cjkCount = cjkMatch ? cjkMatch.length : 0;
         const nonCjkText = text.replace(cjkRegex, '');
-        const nonCjkCount = Math.ceil(nonCjkText.length / 4);
-        return Math.ceil(cjkCount * 1.5) + nonCjkCount;
+        const nonCjkCount = Math.ceil(nonCjkText.length / 3.8);
+        return Math.ceil(cjkCount * 0.75) + nonCjkCount;
     }
 
     function updateTokenCount() {
         const xmlText = buildXMLString();
-
         document.getElementById('xml-output').innerText = xmlText;
 
         const tokens = estimateTokens(xmlText);
         const tokenValEl = document.getElementById('token-val');
         const tokenBox = document.getElementById('token-box');
+        const dict = UI[currentLang];
         
         tokenValEl.innerText = tokens.toLocaleString();
         tokenBox.classList.remove('safe', 'warning', 'danger');
         
-        if (tokens > 4000) {
+        if (tokens > 8000) {
             tokenBox.classList.add('danger');
-            tokenBox.title = "Token 过高：存在截断风险";
-        } else if (tokens > 2000) {
+            tokenBox.title = dict.TokenTipDanger;
+        } else if (tokens > 4000) {
             tokenBox.classList.add('warning');
-            tokenBox.title = "Token 适中：常规模型可良好处理";
+            tokenBox.title = dict.TokenTipWarn;
         } else {
-            tokenBox.title = "Token 健康：优秀的控制长度";
-            if(tokens > 200) {
+            tokenBox.title = dict.TokenTipSafe;
+            if (tokens > 100) {
                 tokenBox.classList.add('safe');
             }
         }
@@ -1151,7 +1211,6 @@ ${example}
         document.getElementById('preview-section').scrollIntoView({ behavior: 'smooth' });
     }
 
-    // 导出前校验：字段里若有未转义的 < 或未闭合的标签，生成的文件无法再被导入
     function buildExportableXML() {
         const xml = buildXMLString();
         const doc = new DOMParser().parseFromString(xml, "text/xml");
@@ -1176,25 +1235,87 @@ ${example}
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        URL.revokeObjectURL(url);
     }
 
     function copyToClipboard() {
         const text = buildExportableXML();
         if (text === null) return;
-        navigator.clipboard.writeText(text).then(() => {
-            showToast(UI[currentLang].Copied);
+
+        const dict = UI[currentLang];
+
+        const fallbackCopy = (str) => {
+            const textarea = document.createElement("textarea");
+            textarea.value = str;
+            textarea.style.position = "fixed";
+            textarea.style.left = "-9999px";
+            textarea.style.top = "-9999px";
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            try {
+                const successful = document.execCommand('copy');
+                showToast(successful ? dict.Copied : dict.CopyFail);
+            } catch (err) {
+                console.error("Fallback copy failed:", err);
+                showToast(dict.CopyFail);
+            }
+            document.body.removeChild(textarea);
+        };
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text)
+                .then(() => showToast(dict.Copied))
+                .catch(() => fallbackCopy(text));
+        } else {
+            fallbackCopy(text);
+        }
+    }
+
+    // 全局拖放导入支持
+    function initDragAndDrop() {
+        window.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            document.body.classList.add('drag-over');
+        });
+
+        window.addEventListener('dragleave', (e) => {
+            if (e.clientX === 0 && e.clientY === 0) {
+                document.body.classList.remove('drag-over');
+            }
+        });
+
+        window.addEventListener('drop', (e) => {
+            e.preventDefault();
+            document.body.classList.remove('drag-over');
+            const files = e.dataTransfer && e.dataTransfer.files;
+            if (files && files.length > 0) {
+                const file = files[0];
+                if (file.name.toLowerCase().endsWith('.xml')) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => parseAndFillXML(ev.target.result, file.name);
+                    reader.readAsText(file);
+                }
+            }
         });
     }
 
     function init() {
         loadFromLocalStorage();
+        
         document.querySelectorAll('input, textarea').forEach(element => {
-            element.addEventListener('input', () => {
+            element.addEventListener('input', function() {
+                if (this.tagName === 'TEXTAREA') {
+                    autoResizeTextarea(this);
+                }
                 updateTokenCount();
                 triggerAutoSave();
             });
         });
+
+        initDragAndDrop();
         applyLanguageUI();
+        autoResizeAllTextareas();
         updateTokenCount();
     }
 
