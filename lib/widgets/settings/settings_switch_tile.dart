@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
+import '../../utils/app_theme.dart';
+
 /// 设置页面开关组件
 ///
 /// 提供统一的开关样式，包括：
@@ -23,6 +25,8 @@ class SettingsSwitchTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final brightness = CupertinoTheme.of(context).brightness;
+    final fontFallback =
+        cjkFontFallbackForLocale(Localizations.maybeLocaleOf(context));
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -37,6 +41,7 @@ class SettingsSwitchTile extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
+                    fontFamilyFallback: fontFallback,
                     color: brightness == Brightness.dark
                         ? CupertinoColors.label.darkColor
                         : CupertinoColors.label.color,
@@ -48,6 +53,7 @@ class SettingsSwitchTile extends StatelessWidget {
                     subtitle!,
                     style: TextStyle(
                       fontSize: 13,
+                      fontFamilyFallback: fontFallback,
                       color: brightness == Brightness.dark
                           ? CupertinoColors.systemGrey.darkColor
                           : CupertinoColors.systemGrey,

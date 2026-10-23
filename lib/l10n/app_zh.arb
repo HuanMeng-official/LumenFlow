@@ -758,5 +758,9 @@
   "toolManagement": "工具管理",
   "promptTools": "工具",
   "addTimeToPrompt": "时间",
-  "addTimeToPromptDesc": "获取时间"
+  "addTimeToPromptDesc": "获取时间",
+  "builtinCalculator": "计算器",
+  "builtinCalculatorDesc": "进行算术计算",
+  "builtinTextTools": "文本工具",
+  "builtinTextToolsDesc": "对比与统计文本"
 }

@@ -758,5 +758,9 @@
   "toolManagement": "Tool Management",
   "promptTools": "Tools",
   "addTimeToPrompt": "Time",
-  "addTimeToPromptDesc": "Get time"
+  "addTimeToPromptDesc": "Get time",
+  "builtinCalculator": "Calculator",
+  "builtinCalculatorDesc": "Evaluate arithmetic",
+  "builtinTextTools": "Text tools",
+  "builtinTextToolsDesc": "Compare and count text"
 }

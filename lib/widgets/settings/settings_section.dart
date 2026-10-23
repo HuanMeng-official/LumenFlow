@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
+import '../../utils/app_theme.dart';
+
 /// 设置分组容器组件
 ///
 /// 提供统一的设置分组样式，包括：
@@ -23,6 +25,8 @@ class SettingsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final brightness = CupertinoTheme.of(context).brightness;
+    final fontFallback =
+        cjkFontFallbackForLocale(Localizations.maybeLocaleOf(context));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -33,6 +37,7 @@ class SettingsSection extends StatelessWidget {
             title,
             style: TextStyle(
               fontSize: 13,
+              fontFamilyFallback: fontFallback,
               color: brightness == Brightness.dark
                   ? CupertinoColors.systemGrey.darkColor
                   : CupertinoColors.systemGrey,

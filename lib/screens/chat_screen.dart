@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'dart:io';
 import 'dart:async';
+import '../controllers/chat_send_controller.dart';
 import '../l10n/app_localizations.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
@@ -79,14 +80,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   String _backgroundImagePath = SettingsService.defaultBackgroundImagePath;
   double _backgroundImageOpacity = SettingsService.defaultBackgroundImageOpacity;
 
-  Timer? _saveTimer; // 防抖保存定时器
   Timer? _setStateTimer; // 批量setState定时器
   bool _pendingStateUpdate = false; // 是否有待处理的state更新
   bool _isUserScrolling = false; // 用户是否正在手动滚动
   VoidCallback? _scrollListener; // 滚动监听器
 
   // AI生成控制相关变量
-  StreamSubscription<Map<String, dynamic>>? _streamSubscription; // 当前流式响应的订阅
+  ChatSendController? _sendController; // 当前流式发送的编排器
+  String? _toolStatus; // 当前工具调用状态
   bool _isGenerating = false; // 是否正在生成AI回复
 
   // 对话加载控制
@@ -118,7 +119,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final currentConversationId =
         await _conversationService.getCurrentConversationId();
 
-    if (currentConversationId != null) {
+    if (currentConversationId != null && currentConversationId.isNotEmpty) {
       await _setCurrentConversation(currentConversationId);
     } else {
       await _createNewConversation();
@@ -128,11 +129,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     // 取消所有定时器
-    _saveTimer?.cancel();
     _setStateTimer?.cancel();
-    // 取消流订阅
-    _streamSubscription?.cancel();
-    _streamSubscription = null;
+    // 释放发送控制器
+    final controller = _sendController;
+    if (controller != null) {
+      unawaited(controller.dispose());
+    }
+    _sendController = null;
+    unawaited(_aiService.dispose());
     // 移除滚动监听器
     if (_scrollListener != null) {
       _scrollController.removeListener(_scrollListener!);
@@ -228,6 +232,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       return;
     }
 
+    // 切换对话前先停止并持久化当前生成，避免加载时丢弃半成品 AI 消息
+    final activeController = _sendController;
+    if (activeController != null &&
+        activeController.isActive &&
+        _currentConversation?.id != conversationId) {
+      await activeController.stop();
+    }
+
+    if (!mounted) return;
     _isLoadingConversation = true;
 
     try {
@@ -314,17 +327,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         _currentConversation = updatedConversation;
       });
     }
-  }
-
-  /// 防抖保存对话（流式输出期间使用）
-  ///
-  /// 使用定时器防抖，确保至少每500ms保存一次
-  /// 避免流式输出时每个chunk都触发IO操作，同时保证崩溃时最多丢失500ms的内容
-  void _debouncedSaveConversation() {
-    _saveTimer?.cancel();
-    _saveTimer = Timer(const Duration(milliseconds: 500), () {
-      _saveCurrentConversation();
-    });
   }
 
   /// 批量setState（流式输出期间使用）
@@ -481,6 +483,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       return;
     }
 
+    if (_currentConversation == null) {
+      await _createNewConversation();
+    }
+
+    final previousController = _sendController;
+    if (previousController != null && previousController.isActive) {
+      await previousController.stop();
+    }
+
     // 获取预设提示词内容（如果预设模式启用）
     String presetSystemPrompt = '';
     if (_promptPresetEnabled && _currentPresetId.isNotEmpty) {
@@ -543,260 +554,189 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       await _liveUpdateService.startLiveUpdate(title: l10n.liveUpdateAIResponse);
     }
 
-    final aiMessageId = DateTime.now().millisecondsSinceEpoch.toString();
-    var aiMessageIndex = _messages.length;
+    final aiMessage = Message(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      content: '',
+      reasoningContent: null,
+      isUser: false,
+      timestamp: DateTime.now(),
+      status: MessageStatus.sending,
+    );
 
     setState(() {
-      _messages.add(Message(
-        id: aiMessageId,
-        content: '',
-        reasoningContent: null,
-        isUser: false,
-        timestamp: DateTime.now(),
-        status: MessageStatus.sending,
-      ));
+      _messages.add(aiMessage);
       _isLoading = false;
-      aiMessageIndex = _messages.length - 1;
     });
     _scrollToBottom();
+
+    final conversationId = _currentConversation!.id;
+    final titleAtSend = _currentTitle;
+    final history = ChatSendController.buildHistory(_messages);
+
+    ChatSendController? controllerRef;
+    final controller = ChatSendController(
+      conversationService: _conversationService,
+      conversationId: conversationId,
+      initialMessage: aiMessage,
+      history: history,
+      openStream: () => _aiService.sendMessageStreaming(
+        content,
+        history,
+        attachments: attachments,
+        thinkingMode: _thinkingMode,
+        presetSystemPrompt: presetSystemPrompt,
+        l10n: l10n,
+      ),
+      onUpdate: (message) {
+        _batchedSetState(() {
+          final index = _findMessageIndexById(message.id);
+          if (index != -1) {
+            _messages[index] = message;
+          }
+        });
+        if (identical(_sendController, controllerRef) &&
+            Platform.isAndroid &&
+            _liveUpdateService.isAvailable &&
+            _liveUpdateEnabled) {
+          _liveUpdateService.updateContent(message.content);
+        }
+      },
+      onComplete: (message) async {
+        _batchedSetState(() {
+          final index = _findMessageIndexById(message.id);
+          if (index != -1) {
+            _messages[index] = message;
+          }
+        });
+        if (identical(_sendController, controllerRef) && mounted) {
+          setState(() {
+            _isGenerating = false;
+            _toolStatus = null;
+          });
+        }
+        if (identical(_sendController, controllerRef) &&
+            Platform.isAndroid &&
+            _liveUpdateService.isAvailable &&
+            _liveUpdateEnabled) {
+          await _liveUpdateService.complete();
+        }
+        final notificationEnabled =
+            await _settingsService.getNotificationEnabled();
+        if (notificationEnabled) {
+          await _notificationService.showAIResponseCompleted(
+            message.content,
+            conversationTitle: titleAtSend,
+          );
+        }
+        if (_currentConversation?.id == conversationId) {
+          await _generateAutoTitle();
+        }
+      },
+      onError: (message) async {
+        _batchedSetState(() {
+          final index = _findMessageIndexById(message.id);
+          if (index != -1) {
+            _messages[index] = message;
+          }
+        });
+        if (identical(_sendController, controllerRef) && mounted) {
+          setState(() {
+            _isGenerating = false;
+            _toolStatus = null;
+          });
+        }
+        if (identical(_sendController, controllerRef) &&
+            Platform.isAndroid &&
+            _liveUpdateService.isAvailable &&
+            _liveUpdateEnabled) {
+          await _liveUpdateService.stopLiveUpdate();
+        }
+      },
+      onStopped: (message) async {
+        _batchedSetState(() {
+          final index = _findMessageIndexById(message.id);
+          if (index != -1) {
+            _messages[index] = message;
+          }
+        });
+        if (identical(_sendController, controllerRef) && mounted) {
+          setState(() {
+            _isGenerating = false;
+            _toolStatus = null;
+          });
+        }
+        if (identical(_sendController, controllerRef) &&
+            Platform.isAndroid &&
+            _liveUpdateService.isAvailable &&
+            _liveUpdateEnabled) {
+          await _liveUpdateService.stopLiveUpdate();
+        }
+      },
+      onToolEvent: (event) {
+        if (!mounted) return;
+        final type = event['type'];
+        if (type == 'tool_status') {
+          setState(() {
+            _toolStatus = event['message'] as String? ?? '';
+          });
+          return;
+        }
+        final name = event['name'] as String? ?? '';
+        setState(() {
+          _toolStatus = type == 'tool_call'
+              ? '正在调用工具: $name'
+              : '工具完成: $name';
+        });
+      },
+      errorContentBuilder: (error) =>
+          '${l10n.errorPrefix}: ${error.toString().replaceAll('Exception: ', '')}',
+      emptyResponseContent: '${l10n.errorPrefix}: API未返回任何响应内容',
+    );
+
+    controllerRef = controller;
+    _sendController = controller;
+    setState(() {
+      _isGenerating = true;
+    });
 
     try {
-      // 计算要排除的消息数量：如果跳过了用户消息，只排除AI消息（1条），否则排除用户和AI消息（2条）
-      final messagesToExclude = skipUserMessage ? 1 : 2;
-      final historyMessages = _messages.length >= messagesToExclude
-          ? _messages.sublist(0, _messages.length - messagesToExclude)
-          : <Message>[];
-
-      final stream = _aiService.sendMessageStreaming(content, historyMessages,
-          attachments: attachments, thinkingMode: _thinkingMode,
-          presetSystemPrompt: presetSystemPrompt, l10n: l10n);
-      final reasoningBuffer = StringBuffer();
-      final answerBuffer = StringBuffer();
-      int receivedChunks = 0;
-
-      // 使用StreamSubscription替代await for循环，以便可以取消
-      _streamSubscription = stream.listen(
-        (chunk) {
-          // 如果是第一个chunk，设置生成状态
-          if (receivedChunks == 0) {
-            setState(() {
-              _isGenerating = true;
-            });
-          }
-
-          receivedChunks++;
-          final type = chunk['type'] as String;
-          final chunkContent = chunk['content'] as String? ?? '';
-
-          if (type == 'reasoning') {
-            reasoningBuffer.write(chunkContent);
-          } else if (type == 'answer') {
-            answerBuffer.write(chunkContent);
-          } else {
-            // 未知类型，作为答案处理
-            answerBuffer.write(chunkContent);
-          }
-
-          // 实时更新 Live Update 通知内容
-          if (Platform.isAndroid && _liveUpdateService.isAvailable && _liveUpdateEnabled) {
-            _liveUpdateService.updateContent(answerBuffer.toString());
-          }
-
-          // 使用批量setState合并多次更新，减少UI重绘
-          _batchedSetState(() {
-            _messages[aiMessageIndex] = Message(
-              id: aiMessageId,
-              content: answerBuffer.toString(),
-              reasoningContent: reasoningBuffer.toString(),
-              isUser: false,
-              timestamp: _messages[aiMessageIndex].timestamp,
-              status: MessageStatus.sending,
-            );
-          });
-          // 使用防抖保存，避免每次chunk都触发IO操作
-          _debouncedSaveConversation();
-        },
-        onError: (error) {
-          // 处理流错误
-          _handleStreamError(error, aiMessageIndex, aiMessageId, l10n);
-        },
-        onDone: () async {
-          try {
-            // 流式输出结束，处理完成逻辑
-            await _handleStreamCompletion(
-              aiMessageIndex: aiMessageIndex,
-              aiMessageId: aiMessageId,
-              answerBuffer: answerBuffer,
-              reasoningBuffer: reasoningBuffer,
-              receivedChunks: receivedChunks,
-              l10n: l10n,
-            );
-          } catch (e) {
-            // 处理流完成时的错误
-            _handleStreamError(e, aiMessageIndex, aiMessageId, l10n);
-          }
-        },
-        cancelOnError: true,
-      );
+      await controller.start();
     } catch (e) {
-      // 清理流订阅和生成状态
-      _streamSubscription = null;
-      setState(() {
-        _isGenerating = false;
-      });
-
-      // 停止Live Update通知（如果还在运行）
-      if (Platform.isAndroid && _liveUpdateService.isAvailable && _liveUpdateEnabled) {
+      await controller.dispose();
+      if (Platform.isAndroid &&
+          _liveUpdateService.isAvailable &&
+          _liveUpdateEnabled) {
         await _liveUpdateService.stopLiveUpdate();
       }
-
-      debugPrint('AI消息发送错误: $e');
-      debugPrint(e.toString());
-      setState(() {
-        _messages[aiMessageIndex] = Message(
-          id: aiMessageId,
-          content: '${l10n.errorPrefix}: ${e.toString().replaceAll('Exception: ', '')}',
-          reasoningContent: null,
-          isUser: false,
-          timestamp: _messages[aiMessageIndex].timestamp,
-          status: MessageStatus.error,
-        );
+      _batchedSetState(() {
+        final index = _findMessageIndexById(aiMessage.id);
+        if (index != -1) {
+          _messages[index] = Message(
+            id: aiMessage.id,
+            content:
+                '${l10n.errorPrefix}: ${e.toString().replaceAll('Exception: ', '')}',
+            reasoningContent: null,
+            isUser: false,
+            timestamp: aiMessage.timestamp,
+            status: MessageStatus.error,
+          );
+        }
       });
-    }
-
-    // 取消防抖定时器并立即保存，确保最后状态被持久化
-    _saveTimer?.cancel();
-    _scrollToBottom();
-    await _saveCurrentConversation();
-
-    // 尝试自动生成标题
-    await _generateAutoTitle();
-  }
-
-  /// 处理流式响应完成逻辑
-  Future<void> _handleStreamCompletion({
-    required int aiMessageIndex,
-    required String aiMessageId,
-    required StringBuffer answerBuffer,
-    required StringBuffer reasoningBuffer,
-    required int receivedChunks,
-    required AppLocalizations l10n,
-  }) async {
-    // 清理流订阅
-    _streamSubscription = null;
-
-    // 更新生成状态
-    setState(() {
-      _isGenerating = false;
-    });
-
-    // 如果没有收到任何chunk，显示错误
-    if (receivedChunks == 0) {
-      // 停止Live Update通知
-      if (Platform.isAndroid && _liveUpdateService.isAvailable && _liveUpdateEnabled) {
-        await _liveUpdateService.stopLiveUpdate();
+      if (mounted) {
+        setState(() {
+          _isGenerating = false;
+          _toolStatus = null;
+        });
       }
-      // 更新消息状态为错误
-      setState(() {
-        _messages[aiMessageIndex] = Message(
-          id: aiMessageId,
-          content: '${l10n.errorPrefix}: API未返回任何响应内容',
-          reasoningContent: null,
-          isUser: false,
-          timestamp: _messages[aiMessageIndex].timestamp,
-          status: MessageStatus.error,
-        );
-      });
-      return;
+      await _saveCurrentConversation();
     }
-
-    // 流式输出结束，先标记 Live Update 完成
-    if (Platform.isAndroid && _liveUpdateService.isAvailable && _liveUpdateEnabled) {
-      await _liveUpdateService.complete();
-    }
-
-    // 然后更新消息状态
-    setState(() {
-      _messages[aiMessageIndex] = Message(
-        id: aiMessageId,
-        content: answerBuffer.toString(),
-        reasoningContent: reasoningBuffer.toString(),
-        isUser: false,
-        timestamp: _messages[aiMessageIndex].timestamp,
-        status: MessageStatus.sent,
-      );
-    });
-
-    // 发送通知（如果通知已启用且应用不在前台）
-    final notificationEnabled = await _settingsService.getNotificationEnabled();
-    if (notificationEnabled) {
-      await _notificationService.showAIResponseCompleted(
-        answerBuffer.toString(),
-        conversationTitle: _currentTitle,
-      );
-    }
-  }
-
-  /// 处理流式响应错误
-  void _handleStreamError(dynamic e, int aiMessageIndex, String aiMessageId, AppLocalizations l10n) {
-    // 清理流订阅和生成状态
-    _streamSubscription = null;
-    setState(() {
-      _isGenerating = false;
-    });
-
-    // 停止Live Update通知（如果还在运行）
-    if (Platform.isAndroid && _liveUpdateService.isAvailable && _liveUpdateEnabled) {
-      _liveUpdateService.stopLiveUpdate();
-    }
-
-    debugPrint('AI消息流式响应错误: $e');
-    setState(() {
-      _messages[aiMessageIndex] = Message(
-        id: aiMessageId,
-        content: '${l10n.errorPrefix}: ${e.toString().replaceAll('Exception: ', '')}',
-        reasoningContent: null,
-        isUser: false,
-        timestamp: _messages[aiMessageIndex].timestamp,
-        status: MessageStatus.error,
-      );
-    });
   }
 
   /// 停止AI生成
   void _stopGenerating() {
-    if (_streamSubscription != null) {
-      _streamSubscription!.cancel();
-      _streamSubscription = null;
-
-      // 更新生成状态
-      setState(() {
-        _isGenerating = false;
-      });
-
-      // 停止Live Update通知（如果还在运行）
-      if (Platform.isAndroid && _liveUpdateService.isAvailable && _liveUpdateEnabled) {
-        _liveUpdateService.stopLiveUpdate();
-      }
-
-      // 如果当前有AI消息正在生成，将其标记为已停止
-      for (int i = _messages.length - 1; i >= 0; i--) {
-        if (!_messages[i].isUser && _messages[i].status == MessageStatus.sending) {
-          setState(() {
-            _messages[i] = Message(
-              id: _messages[i].id,
-              content: _messages[i].content,
-              reasoningContent: _messages[i].reasoningContent,
-              isUser: false,
-              timestamp: _messages[i].timestamp,
-              status: MessageStatus.stopped,
-            );
-          });
-          break;
-        }
-      }
-
-      debugPrint('用户手动停止了AI生成');
+    final controller = _sendController;
+    if (controller != null && controller.isActive) {
+      unawaited(controller.stop());
     }
   }
 
@@ -912,9 +852,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       return;
     }
 
-    // 删除当前的AI消息
+    // 删除该AI消息及其之后的所有消息，避免新回复追加到旧上下文末尾
+    final truncated =
+        ChatSendController.truncateForRegenerate(_messages, message.id);
     setState(() {
-      _messages.removeAt(messageIndex);
+      _messages
+        ..clear()
+        ..addAll(truncated);
     });
 
     // 查找前一条用户消息
@@ -1116,6 +1060,29 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           },
                         ),
                 ),
+                if (_toolStatus != null)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    color: CupertinoColors.systemGrey6.resolveFrom(context),
+                    child: Row(
+                      children: [
+                        const CupertinoActivityIndicator(radius: 7),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _toolStatus!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ChatInput(
                   onSendMessage: (content, attachments) => _sendMessage(content, attachments: attachments),
                   onStopGenerating: _stopGenerating,

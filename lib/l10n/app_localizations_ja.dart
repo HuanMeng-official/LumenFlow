@@ -1215,11 +1215,23 @@ class AppLocalizationsJa extends AppLocalizations {
   String get toolManagement => 'ツール管理';
 
   @override
-  String get promptTools => 'プロンプトツール';
+  String get promptTools => 'ツール';
 
   @override
   String get addTimeToPrompt => '時間';
 
   @override
   String get addTimeToPromptDesc => '時間を取得する';
+
+  @override
+  String get builtinCalculator => '電卓';
+
+  @override
+  String get builtinCalculatorDesc => '算術計算を行う';
+
+  @override
+  String get builtinTextTools => 'テキストツール';
+
+  @override
+  String get builtinTextToolsDesc => 'テキストの比較と集計';
 }

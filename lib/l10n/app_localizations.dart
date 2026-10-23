@@ -2340,6 +2340,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Get time'**
   String get addTimeToPromptDesc;
+
+  /// No description provided for @builtinCalculator.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculator'**
+  String get builtinCalculator;
+
+  /// No description provided for @builtinCalculatorDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Evaluate arithmetic'**
+  String get builtinCalculatorDesc;
+
+  /// No description provided for @builtinTextTools.
+  ///
+  /// In en, this message translates to:
+  /// **'Text tools'**
+  String get builtinTextTools;
+
+  /// No description provided for @builtinTextToolsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare and count text'**
+  String get builtinTextToolsDesc;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

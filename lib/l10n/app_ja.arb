@@ -757,7 +757,11 @@
   "birthdayHint": "誕生日を選択してください",
   "selectBirthday": "誕生日を選択",
   "toolManagement": "ツール管理",
-  "promptTools": "プロンプトツール",
+  "promptTools": "ツール",
   "addTimeToPrompt": "時間",
-  "addTimeToPromptDesc": "時間を取得する"
+  "addTimeToPromptDesc": "時間を取得する",
+  "builtinCalculator": "電卓",
+  "builtinCalculatorDesc": "算術計算を行う",
+  "builtinTextTools": "テキストツール",
+  "builtinTextToolsDesc": "テキストの比較と集計"
 }

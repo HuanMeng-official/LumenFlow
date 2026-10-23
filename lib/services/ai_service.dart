@@ -1,6 +1,19 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'settings_service.dart';
+import 'tool_chat_service.dart';
 import 'user_service.dart';
+import '../ai/contracts/ai_error.dart';
+import '../ai/contracts/ai_tool_executor.dart';
+import '../ai/mcp/mcp_client.dart';
+import '../ai/mcp/mcp_models.dart';
+import '../ai/mcp/mcp_tool_manager.dart';
+import '../ai/providers/chat_completions_profile.dart';
+import '../ai/tools/builtin_calculator_tool.dart';
+import '../ai/tools/builtin_text_tools.dart';
+import '../ai/tools/builtin_time_tool.dart';
+import '../ai/tools/composite_tool_executor.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
 import '../models/user_profile.dart';
@@ -31,8 +44,25 @@ import 'package:intl/intl.dart';
 /// - 通过工厂模式根据 API 类型选择对应的 Provider
 /// - 简化了主服务类的职责，主要负责配置管理和 Provider 选择
 class AIService {
-  final SettingsService _settingsService = SettingsService();
-  final UserService _userService = UserService();
+  AIService({
+    SettingsService? settingsService,
+    UserService? userService,
+    McpToolManager Function(List<McpServerConfig> servers)?
+        toolManagerFactory,
+    ToolChatService Function(AIToolExecutor executor)? toolChatServiceFactory,
+    this.toolRefreshInterval = const Duration(seconds: 30),
+  })  : _settingsService = settingsService ?? SettingsService(),
+        _userService = userService ?? UserService(),
+        _toolManagerFactory = toolManagerFactory,
+        _toolChatServiceFactory = toolChatServiceFactory;
+
+  final SettingsService _settingsService;
+  final UserService _userService;
+  final McpToolManager Function(List<McpServerConfig> servers)?
+      _toolManagerFactory;
+  final ToolChatService Function(AIToolExecutor executor)?
+      _toolChatServiceFactory;
+  final Duration toolRefreshInterval;
 
   /// Provider 缓存
   AIProvider? _cachedProvider;
@@ -109,6 +139,126 @@ class AIService {
 
   // 缓存的 API 类型，用于检测配置变化
   String? _cachedApiType;
+
+  McpToolManager? _toolManager;
+  String? _toolManagerSignature;
+  Future<McpToolManager?>? _toolManagerLoad;
+  DateTime? _lastToolRefresh;
+  bool _disposed = false;
+
+  @visibleForTesting
+  Future<McpToolManager?> loadToolManagerForTest() => _loadToolManager();
+
+  /// 合并内置工具与 MCP 工具，供工具调用路径使用。
+  AIToolExecutor buildToolExecutor({
+    required bool timeEnabled,
+    required bool calculatorEnabled,
+    required bool textToolsEnabled,
+    McpToolManager? manager,
+  }) {
+    return CompositeToolExecutor([
+      if (timeEnabled) BuiltInTimeTool(),
+      if (calculatorEnabled) BuiltInCalculatorTool(),
+      if (textToolsEnabled) ...[
+        BuiltInTextCompareTool(),
+        BuiltInTextStatsTool(),
+      ],
+      ?manager,
+    ]);
+  }
+
+  Future<McpToolManager?> _loadToolManager() {
+    if (_disposed) return Future.value(null);
+
+    final existing = _toolManagerLoad;
+    if (existing != null) return existing;
+
+    final future = _loadToolManagerInternal();
+    _toolManagerLoad = future;
+    future.then<void>(
+      (_) {
+        if (identical(_toolManagerLoad, future)) {
+          _toolManagerLoad = null;
+        }
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        if (identical(_toolManagerLoad, future)) {
+          _toolManagerLoad = null;
+        }
+      },
+    );
+    return future;
+  }
+
+  Future<McpToolManager?> _loadToolManagerInternal() async {
+    final servers = (await _settingsService.getMcpServers())
+        .where((server) => server.enabled)
+        .toList();
+
+    if (servers.isEmpty) {
+      await _toolManager?.dispose();
+      _toolManager = null;
+      _toolManagerSignature = null;
+      _lastToolRefresh = null;
+      return null;
+    }
+
+    final signature = jsonEncode(
+      servers.map((server) => server.toJson()).toList(),
+    );
+    final now = DateTime.now();
+
+    if (_toolManager != null && _toolManagerSignature == signature) {
+      final manager = _toolManager!;
+      final shouldRetry =
+          manager.tools.isEmpty || manager.errors.isNotEmpty;
+      final due = _lastToolRefresh == null ||
+          now.difference(_lastToolRefresh!) >= toolRefreshInterval;
+
+      if (!shouldRetry || !due) {
+        return manager;
+      }
+
+      await manager.refresh();
+      _lastToolRefresh = DateTime.now();
+      if (_disposed) {
+        await manager.dispose();
+        _toolManager = null;
+        _toolManagerSignature = null;
+        return null;
+      }
+      return manager;
+    }
+
+    await _toolManager?.dispose();
+    final manager = _toolManagerFactory?.call(servers) ??
+        McpToolManager(
+          servers: servers,
+          connectionFactory: (config) => McpClient(config: config),
+          timeout: const Duration(seconds: 8),
+        );
+    await manager.refresh();
+    _lastToolRefresh = DateTime.now();
+
+    if (_disposed) {
+      await manager.dispose();
+      return null;
+    }
+
+    _toolManager = manager;
+    _toolManagerSignature = signature;
+    return manager;
+  }
+
+  /// 释放 MCP 连接。
+  Future<void> dispose() async {
+    _disposed = true;
+    _toolManagerLoad = null;
+    await _toolManager?.dispose();
+    _toolManager = null;
+    _toolManagerSignature = null;
+    _lastToolRefresh = null;
+  }
 
   /// 替换系统提示词中的变量占位符
   ///
@@ -236,18 +386,75 @@ class AIService {
       throw Exception(l10n.configureApiKeyFirst);
     }
 
-    final provider = await _getProvider();
     final temperature = await _settingsService.getTemperature();
     final maxTokens = await _settingsService.getMaxTokens();
     final systemPrompt = await _buildSystemPrompt(presetSystemPrompt, l10n);
     final addTimeToPrompt = await _settingsService.getAddTimeToPrompt();
 
-    // 根据设置决定是否添加当前时间信息到用户消息
-    final messageToSend = addTimeToPrompt
-        ? '$message\n\n${l10n.currentTime}${TimeUtils.now()}'
-        : message;
-
     try {
+      final config = await _settingsService.getActivePlatformConfig();
+      if (attachments.isEmpty &&
+          ChatCompletionsProfiles.forType(config.apiType) != null) {
+        final servers = await _settingsService.getMcpServers();
+        if (servers.any((server) => server.enabled)) {
+          yield {
+            'type': 'tool_status',
+            'message': '正在发现 MCP 工具...',
+          };
+        }
+
+        final manager = await _loadToolManager();
+        if (manager != null && manager.errors.isNotEmpty) {
+          yield {
+            'type': 'tool_status',
+            'message':
+                '部分 MCP 服务器连接失败: ${manager.errors.values.join('; ')}',
+          };
+        } else if (manager != null && manager.tools.isEmpty) {
+          yield {
+            'type': 'tool_status',
+            'message': 'MCP 服务器没有可用工具',
+          };
+        }
+
+        final calculatorEnabled =
+            await _settingsService.getBuiltinCalculatorEnabled();
+        final textToolsEnabled =
+            await _settingsService.getBuiltinTextToolsEnabled();
+        final executor = buildToolExecutor(
+          timeEnabled: addTimeToPrompt,
+          calculatorEnabled: calculatorEnabled,
+          textToolsEnabled: textToolsEnabled,
+          manager: manager,
+        );
+        if (executor.tools.isNotEmpty) {
+          final enableHistory = await _settingsService.getEnableHistory();
+          final historyContextLength =
+              await _settingsService.getHistoryContextLength();
+          final toolService = _toolChatServiceFactory?.call(executor) ??
+              ToolChatService(executor: executor);
+          yield* toolService.run(
+            config: config,
+            // 时间由内置工具提供，工具路径不再把时间拼进用户消息。
+            message: message,
+            history: chatHistory,
+            systemPrompt: systemPrompt,
+            temperature: temperature,
+            maxTokens: maxTokens,
+            thinkingMode: thinkingMode,
+            enableHistory: enableHistory,
+            historyContextLength: historyContextLength,
+          );
+          return;
+        }
+      }
+
+      // 工具调用不可用时（附件请求或不支持工具的模型）保留提示词时间兜底。
+      final messageToSend = addTimeToPrompt
+          ? '$message\n\n${l10n.currentTime}${TimeUtils.now()}'
+          : message;
+
+      final provider = await _getProvider();
       yield* provider.sendMessageStreaming(
         message: messageToSend,
         chatHistory: chatHistory,
@@ -291,6 +498,31 @@ class AIService {
   ///
   /// 将各种错误转换为用户友好的异常消息
   Exception _handleError(dynamic e, AppLocalizations l10n) {
+    if (e is AIError) {
+      switch (e.type) {
+        case AIErrorType.authentication:
+          return Exception(l10n.configureApiKeyFirst);
+        case AIErrorType.timeout:
+          return Exception(l10n.requestTimeout(e.message));
+        case AIErrorType.network:
+          return Exception(l10n.networkConnectionFailed(e.message));
+        case AIErrorType.rateLimit:
+        case AIErrorType.server:
+          return Exception(
+            l10n.providerApiError(
+              e.message,
+              e.statusCode ??
+                  (e.type == AIErrorType.rateLimit ? 429 : 500),
+            ),
+          );
+        case AIErrorType.invalidResponse:
+          return Exception(l10n.providerInvalidResponseFormat);
+        case AIErrorType.unsupported:
+        case AIErrorType.cancelled:
+          return Exception(e.message);
+      }
+    }
+
     // 如果已经是 API 错误，直接重新抛出
     if (e.toString().contains('API错误: ') || e.toString().contains('API Error: ') ||
         e.toString().contains('Gemini API错误: ') || e.toString().contains('Gemini API Error: ')) {

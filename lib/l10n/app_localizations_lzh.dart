@@ -1222,4 +1222,16 @@ class AppLocalizationsLzh extends AppLocalizations {
 
   @override
   String get addTimeToPromptDesc => '觀天象知時辰';
+
+  @override
+  String get builtinCalculator => '算籌';
+
+  @override
+  String get builtinCalculatorDesc => '演算數術';
+
+  @override
+  String get builtinTextTools => '文墨之具';
+
+  @override
+  String get builtinTextToolsDesc => '比對與統計文辭';
 }

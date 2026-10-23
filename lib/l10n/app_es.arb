@@ -758,5 +758,9 @@
   "toolManagement": "Gestión de herramientas",
   "promptTools": "Herramientas",
   "addTimeToPrompt": "Hora",
-  "addTimeToPromptDesc": "Obtener hora actual"
+  "addTimeToPromptDesc": "Obtener hora actual",
+  "builtinCalculator": "Calculadora",
+  "builtinCalculatorDesc": "Evaluar operaciones aritméticas",
+  "builtinTextTools": "Herramientas de texto",
+  "builtinTextToolsDesc": "Comparar y contar texto"
 }

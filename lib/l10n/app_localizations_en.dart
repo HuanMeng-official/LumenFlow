@@ -1222,4 +1222,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addTimeToPromptDesc => 'Get time';
+
+  @override
+  String get builtinCalculator => 'Calculator';
+
+  @override
+  String get builtinCalculatorDesc => 'Evaluate arithmetic';
+
+  @override
+  String get builtinTextTools => 'Text tools';
+
+  @override
+  String get builtinTextToolsDesc => 'Compare and count text';
 }

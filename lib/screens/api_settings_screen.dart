@@ -89,9 +89,11 @@ class _ApiSettingsScreenState extends State<ApiSettingsScreen> {
     });
 
     try {
-      await _settingsService.setApiEndpoint(_endpointController.text.trim());
-      await _settingsService.setApiKey(_apiKeyController.text.trim());
-      await _settingsService.setApiType(_apiType);
+      await _settingsService.saveSinglePlatformConfig(
+        type: _apiType,
+        endpoint: _endpointController.text.trim(),
+        apiKey: _apiKeyController.text.trim(),
+      );
 
       if (mounted) {
         final l10n = AppLocalizations.of(context)!;

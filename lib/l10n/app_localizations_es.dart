@@ -1222,4 +1222,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get addTimeToPromptDesc => 'Obtener hora actual';
+
+  @override
+  String get builtinCalculator => 'Calculadora';
+
+  @override
+  String get builtinCalculatorDesc => 'Evaluar operaciones aritméticas';
+
+  @override
+  String get builtinTextTools => 'Herramientas de texto';
+
+  @override
+  String get builtinTextToolsDesc => 'Comparar y contar texto';
 }

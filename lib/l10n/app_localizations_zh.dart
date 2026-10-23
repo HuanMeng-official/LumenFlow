@@ -1222,4 +1222,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get addTimeToPromptDesc => '获取时间';
+
+  @override
+  String get builtinCalculator => '计算器';
+
+  @override
+  String get builtinCalculatorDesc => '进行算术计算';
+
+  @override
+  String get builtinTextTools => '文本工具';
+
+  @override
+  String get builtinTextToolsDesc => '对比与统计文本';
 }

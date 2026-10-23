@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../ai/mcp/mcp_models.dart';
+import '../models/active_platform_config.dart';
 import '../models/ai_platform.dart';
 import 'version_service.dart';
 
@@ -31,9 +33,12 @@ class SettingsService {
   static const String _backgroundImageEnabledKey = 'background_image_enabled';
   // 工具管理相关的key
   static const String _addTimeToPromptKey = 'add_time_to_prompt';
+  static const String _builtinCalculatorKey = 'builtin_calculator_enabled';
+  static const String _builtinTextToolsKey = 'builtin_text_tools_enabled';
   // 多平台配置相关的key
   static const String _platformsKey = 'ai_platforms';
   static const String _currentPlatformIdKey = 'current_platform_id';
+  static const String _mcpServersKey = 'mcp_servers';
   static const String defaultCustomSystemPrompt = '';
   static const String defaultApiType = 'openai';
   static const bool defaultDarkMode = false;
@@ -53,6 +58,8 @@ class SettingsService {
   static const bool defaultBackgroundImageEnabled = false;
   // 工具管理默认值
   static const bool defaultAddTimeToPrompt = true;
+  static const bool defaultBuiltinCalculatorEnabled = true;
+  static const bool defaultBuiltinTextToolsEnabled = true;
 
   static const String defaultEndpoint = 'https://api.openai.com/v1';
   static const String defaultModel = 'gpt-5';
@@ -64,34 +71,43 @@ class SettingsService {
   static const String _lumenflowFormat = 'lumenflow';
   static const String _lumenflowVersion = '1.0';
 
-  Future<String> getApiEndpoint() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_apiEndpointKey) ?? defaultEndpoint;
+  static ActivePlatformConfig? _cachedActiveConfig;
+  static Future<ActivePlatformConfig>? _activeConfigFuture;
+
+  static void _invalidateActiveConfig() {
+    _cachedActiveConfig = null;
+    _activeConfigFuture = null;
   }
+
+  /// Clears the resolved active-platform snapshot (tests and write paths).
+  @visibleForTesting
+  static void clearActiveConfigCache() => _invalidateActiveConfig();
+
+  Future<String> getApiEndpoint() async =>
+      (await getActivePlatformConfig()).endpoint;
 
   Future<void> setApiEndpoint(String endpoint) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_apiEndpointKey, endpoint);
+    _invalidateActiveConfig();
   }
 
-  Future<String> getApiKey() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_apiKeyKey) ?? '';
-  }
+  Future<String> getApiKey() async =>
+      (await getActivePlatformConfig()).apiKey;
 
   Future<void> setApiKey(String apiKey) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_apiKeyKey, apiKey);
+    _invalidateActiveConfig();
   }
 
-  Future<String> getModel() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_modelKey) ?? defaultModel;
-  }
+  Future<String> getModel() async =>
+      (await getActivePlatformConfig()).model;
 
   Future<void> setModel(String model) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_modelKey, model);
+    _invalidateActiveConfig();
   }
 
   Future<double> getTemperature() async {
@@ -145,14 +161,75 @@ class SettingsService {
     await prefs.setString(_customSystemPromptKey, prompt);
   }
 
-  Future<String> getApiType() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_apiTypeKey) ?? defaultApiType;
-  }
+  Future<String> getApiType() async =>
+      (await getActivePlatformConfig()).apiType;
 
   Future<void> setApiType(String apiType) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_apiTypeKey, apiType);
+    _invalidateActiveConfig();
+  }
+
+  /// Resolves the current platform (or legacy fallback) into one snapshot.
+  Future<ActivePlatformConfig> getActivePlatformConfig() {
+    final cached = _cachedActiveConfig;
+    if (cached != null) return Future.value(cached);
+
+    return _activeConfigFuture ??= _resolveActivePlatformConfig().then(
+      (config) {
+        _cachedActiveConfig = config;
+        _activeConfigFuture = null;
+        return config;
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        _activeConfigFuture = null;
+        Error.throwWithStackTrace(error, stackTrace);
+      },
+    );
+  }
+
+  Future<ActivePlatformConfig> _resolveActivePlatformConfig() async {
+    final prefs = await SharedPreferences.getInstance();
+    final platforms = _parsePlatforms(prefs.getString(_platformsKey));
+    final currentId = prefs.getString(_currentPlatformIdKey) ?? 'openai';
+
+    AIPlatform? selected;
+    for (final platform in platforms) {
+      if (platform.id == currentId) {
+        selected = platform;
+        break;
+      }
+    }
+    if (selected == null) {
+      final configured = platforms.where((platform) => platform.isConfigured);
+      selected = configured.isNotEmpty
+          ? configured.first
+          : (platforms.isNotEmpty
+              ? platforms.first
+              : AIPlatform.createDefaultPlatform(defaultApiType));
+    }
+    final active = selected;
+
+    // Legacy keys are a fallback only before a platform list is materialized.
+    // Once it exists, the active platform is authoritative: clearing or
+    // deleting a key must not resurrect an old legacy credential.
+    if (!prefs.containsKey(_platformsKey)) {
+      return ActivePlatformConfig(
+        platform: active,
+        endpoint: prefs.getString(_apiEndpointKey) ?? defaultEndpoint,
+        apiKey: prefs.getString(_apiKeyKey) ?? '',
+        model: prefs.getString(_modelKey) ?? defaultModel,
+        apiType: prefs.getString(_apiTypeKey) ?? defaultApiType,
+      );
+    }
+
+    return ActivePlatformConfig(
+      platform: active,
+      endpoint: active.endpoint.isNotEmpty ? active.endpoint : defaultEndpoint,
+      apiKey: active.apiKey,
+      model: active.defaultModel.isNotEmpty ? active.defaultModel : defaultModel,
+      apiType: active.type.isNotEmpty ? active.type : defaultApiType,
+    );
   }
 
   Future<bool> getDarkMode() async {
@@ -295,6 +372,7 @@ class SettingsService {
     await prefs.setBool(_backgroundImageEnabledKey, enabled);
   }
 
+  /// 是否启用内置时间工具（键名为兼容旧设置而保留）。
   Future<bool> getAddTimeToPrompt() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_addTimeToPromptKey) ?? defaultAddTimeToPrompt;
@@ -303,6 +381,30 @@ class SettingsService {
   Future<void> setAddTimeToPrompt(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_addTimeToPromptKey, enabled);
+  }
+
+  /// 是否启用内置计算器工具。
+  Future<bool> getBuiltinCalculatorEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_builtinCalculatorKey) ??
+        defaultBuiltinCalculatorEnabled;
+  }
+
+  Future<void> setBuiltinCalculatorEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_builtinCalculatorKey, enabled);
+  }
+
+  /// 是否启用内置文本对比与统计工具。
+  Future<bool> getBuiltinTextToolsEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_builtinTextToolsKey) ??
+        defaultBuiltinTextToolsEnabled;
+  }
+
+  Future<void> setBuiltinTextToolsEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_builtinTextToolsKey, enabled);
   }
 
   /// 导出所有设置为JSON格式的Map
@@ -347,6 +449,12 @@ class SettingsService {
         prefs.getBool(_liveUpdateEnabledKey) ?? defaultLiveUpdateEnabled;
     settings[_addTimeToPromptKey] =
         prefs.getBool(_addTimeToPromptKey) ?? defaultAddTimeToPrompt;
+    settings[_builtinCalculatorKey] =
+        prefs.getBool(_builtinCalculatorKey) ??
+            defaultBuiltinCalculatorEnabled;
+    settings[_builtinTextToolsKey] =
+        prefs.getBool(_builtinTextToolsKey) ??
+            defaultBuiltinTextToolsEnabled;
     settings[_backgroundImagePathKey] =
         prefs.getString(_backgroundImagePathKey) ?? defaultBackgroundImagePath;
     settings[_backgroundImageOpacityKey] =
@@ -492,6 +600,18 @@ class SettingsService {
         settings[_addTimeToPromptKey] as bool,
       );
     }
+    if (settings.containsKey(_builtinCalculatorKey)) {
+      await prefs.setBool(
+        _builtinCalculatorKey,
+        settings[_builtinCalculatorKey] as bool,
+      );
+    }
+    if (settings.containsKey(_builtinTextToolsKey)) {
+      await prefs.setBool(
+        _builtinTextToolsKey,
+        settings[_builtinTextToolsKey] as bool,
+      );
+    }
     if (settings.containsKey(_backgroundImagePathKey)) {
       await prefs.setString(
         _backgroundImagePathKey,
@@ -522,6 +642,8 @@ class SettingsService {
         settings[_currentPlatformIdKey] as String,
       );
     }
+
+    _invalidateActiveConfig();
   }
 
   /// 从Lumenflow格式或旧JSON格式导入设置
@@ -552,8 +674,10 @@ class SettingsService {
   /// 获取所有AI平台配置
   Future<List<AIPlatform>> getPlatforms() async {
     final prefs = await SharedPreferences.getInstance();
-    final platformsJson = prefs.getString(_platformsKey);
+    return _parsePlatforms(prefs.getString(_platformsKey));
+  }
 
+  List<AIPlatform> _parsePlatforms(String? platformsJson) {
     if (platformsJson == null || platformsJson.isEmpty) {
       // 如果没有保存的配置，返回默认平台列表
       return _getDefaultPlatforms();
@@ -575,6 +699,7 @@ class SettingsService {
     final prefs = await SharedPreferences.getInstance();
     final platformsJson = jsonEncode(platforms.map((p) => p.toJson()).toList());
     await prefs.setString(_platformsKey, platformsJson);
+    _invalidateActiveConfig();
   }
 
   /// 添加或更新一个AI平台配置
@@ -604,18 +729,74 @@ class SettingsService {
     debugPrint('保存完成');
   }
 
+  /// 保存单平台配置：更新同类型平台或创建新平台，并设为当前平台。
+  Future<AIPlatform> saveSinglePlatformConfig({
+    required String type,
+    required String endpoint,
+    required String apiKey,
+  }) async {
+    final platforms = await getPlatforms();
+    final active = await getCurrentPlatform();
+
+    int index = -1;
+    if (active != null && active.type == type) {
+      index = platforms.indexWhere((platform) => platform.id == active.id);
+    }
+
+    if (index < 0) {
+      final matches =
+          platforms.where((platform) => platform.type == type).toList();
+      if (matches.length == 1) {
+        index =
+            platforms.indexWhere((platform) => platform.id == matches.single.id);
+      }
+    }
+
+    final base = index >= 0
+        ? platforms[index]
+        : AIPlatform.createDefaultPlatform(type).copyWith(
+            id: '${type}_${DateTime.now().millisecondsSinceEpoch}',
+          );
+    final updated = base.copyWith(
+      type: type,
+      endpoint: endpoint,
+      apiKey: apiKey,
+    );
+
+    if (index >= 0) {
+      platforms[index] = updated;
+    } else {
+      platforms.add(updated);
+    }
+
+    await savePlatforms(platforms);
+    await setCurrentPlatformId(updated.id);
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_apiEndpointKey, endpoint);
+    await prefs.setString(_apiKeyKey, apiKey);
+    await prefs.setString(_apiTypeKey, type);
+    _invalidateActiveConfig();
+
+    return updated;
+  }
+
   /// 删除一个AI平台配置
   Future<void> deletePlatform(String platformId) async {
     final platforms = await getPlatforms();
     platforms.removeWhere((p) => p.id == platformId);
     await savePlatforms(platforms);
 
-    // 如果删除的是当前平台，切换到第一个可用平台
+    // 如果删除的是当前平台，优先切换到剩余平台中第一个已配置的平台
     final currentPlatformId = await getCurrentPlatformId();
     if (currentPlatformId == platformId) {
       final remainingPlatforms = await getPlatforms();
       if (remainingPlatforms.isNotEmpty) {
-        await setCurrentPlatformId(remainingPlatforms.first.id);
+        final next = remainingPlatforms.firstWhere(
+          (platform) => platform.isConfigured,
+          orElse: () => remainingPlatforms.first,
+        );
+        await setCurrentPlatformId(next.id);
       }
     }
   }
@@ -630,6 +811,7 @@ class SettingsService {
   Future<void> setCurrentPlatformId(String platformId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_currentPlatformIdKey, platformId);
+    _invalidateActiveConfig();
   }
 
   /// 获取当前选中的平台配置
@@ -684,53 +866,91 @@ class SettingsService {
     return platforms.any((p) => p.isConfigured);
   }
 
-  /// 检查应用是否已配置（向后兼容版本）
-  /// 优先检查新版本的多平台配置，如果没有则检查旧的单一配置
+  /// 检查应用是否已配置。
+  /// 只检查当前解析出的平台配置，而不是任意平台。
   Future<bool> isConfigured() async {
-    final hasPlatform = await hasConfiguredPlatform();
-    if (hasPlatform) return true;
-
-    // 向后兼容：检查旧版本配置
-    final apiKey = await getApiKey();
-    return apiKey.isNotEmpty;
+    return (await getActivePlatformConfig()).isConfigured;
   }
 
-  /// 迁移旧版本配置到新版本的多平台配置
+  /// 迁移旧版本配置到新版本的多平台配置。
+  ///
+  /// 只在没有任何已配置平台时执行，且只读取原始旧键，避免把已解析的
+  /// 平台配置再写回平台列表。已有配置的平台永远不会被覆盖。
   Future<void> migrateLegacySettings() async {
     final platforms = await getPlatforms();
-    // 如果已经有自定义配置，不进行迁移
-    if (platforms.length > 5 && platforms.any((p) => p.isConfigured)) {
+    if (platforms.any((platform) => platform.isConfigured)) {
       return;
     }
 
-    final oldApiType = await getApiType();
-    final oldEndpoint = await getApiEndpoint();
-    final oldApiKey = await getApiKey();
-    final oldModel = await getModel();
+    final prefs = await SharedPreferences.getInstance();
+    final oldApiType = prefs.getString(_apiTypeKey) ?? defaultApiType;
+    final oldEndpoint = prefs.getString(_apiEndpointKey) ?? defaultEndpoint;
+    final oldApiKey = prefs.getString(_apiKeyKey) ?? '';
+    final oldModel = prefs.getString(_modelKey) ?? defaultModel;
 
-    // 如果旧配置有API密钥，迁移到对应平台
-    if (oldApiKey.isNotEmpty) {
-      final index = platforms.indexWhere((p) => p.type == oldApiType);
-      if (index >= 0) {
-        final updatedPlatform = platforms[index].copyWith(
-          endpoint: oldEndpoint,
-          apiKey: oldApiKey,
-          defaultModel: oldModel,
-        );
-        platforms[index] = updatedPlatform;
+    if (oldApiKey.isEmpty) return;
 
-        // 如果有多个模型，添加到列表
-        if (!updatedPlatform.availableModels.contains(oldModel)) {
-          final updatedModels = [...updatedPlatform.availableModels, oldModel];
-          platforms[index] = updatedPlatform.copyWith(
-            availableModels: updatedModels,
-          );
-        }
+    final index = platforms.indexWhere((p) => p.type == oldApiType);
+    final base = index >= 0
+        ? platforms[index]
+        : AIPlatform.createDefaultPlatform(oldApiType);
 
-        await savePlatforms(platforms);
-        await setCurrentPlatformId(updatedPlatform.id);
-      }
+    var updatedPlatform = base.copyWith(
+      endpoint: oldEndpoint,
+      apiKey: oldApiKey,
+      defaultModel: oldModel,
+    );
+
+    if (!updatedPlatform.availableModels.contains(oldModel)) {
+      updatedPlatform = updatedPlatform.copyWith(
+        availableModels: [...updatedPlatform.availableModels, oldModel],
+      );
     }
+
+    if (index >= 0) {
+      platforms[index] = updatedPlatform;
+    } else {
+      platforms.add(updatedPlatform);
+    }
+
+    await savePlatforms(platforms);
+    await setCurrentPlatformId(updatedPlatform.id);
+  }
+
+  /// 获取已配置的 MCP 服务器。
+  Future<List<McpServerConfig>> getMcpServers() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_mcpServersKey);
+    if (raw == null || raw.isEmpty) return const [];
+
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return const [];
+
+      final servers = <McpServerConfig>[];
+      for (final item in decoded) {
+        if (item is! Map) continue;
+        try {
+          servers.add(
+            McpServerConfig.fromJson(item.cast<String, dynamic>()),
+          );
+        } catch (_) {
+          // Skip malformed entries.
+        }
+      }
+      return servers;
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  /// 保存 MCP 服务器配置。
+  Future<void> saveMcpServers(List<McpServerConfig> servers) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _mcpServersKey,
+      jsonEncode(servers.map((server) => server.toJson()).toList()),
+    );
   }
 
   /// 获取默认平台列表

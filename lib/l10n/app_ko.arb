@@ -758,5 +758,9 @@
   "toolManagement": "도구 관리",
   "promptTools": "도구",
   "addTimeToPrompt": "시간",
-  "addTimeToPromptDesc": "시간 가져오기"
+  "addTimeToPromptDesc": "시간 가져오기",
+  "builtinCalculator": "계산기",
+  "builtinCalculatorDesc": "산술 계산",
+  "builtinTextTools": "텍스트 도구",
+  "builtinTextToolsDesc": "텍스트 비교 및 집계"
 }

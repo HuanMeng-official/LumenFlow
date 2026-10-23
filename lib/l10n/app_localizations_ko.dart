@@ -1222,4 +1222,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get addTimeToPromptDesc => '시간 가져오기';
+
+  @override
+  String get builtinCalculator => '계산기';
+
+  @override
+  String get builtinCalculatorDesc => '산술 계산';
+
+  @override
+  String get builtinTextTools => '텍스트 도구';
+
+  @override
+  String get builtinTextToolsDesc => '텍스트 비교 및 집계';
 }

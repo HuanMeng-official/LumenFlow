@@ -758,5 +758,9 @@
   "toolManagement": "奇巧總理",
   "promptTools": "奇巧",
   "addTimeToPrompt": "時辰",
-  "addTimeToPromptDesc": "觀天象知時辰"
+  "addTimeToPromptDesc": "觀天象知時辰",
+  "builtinCalculator": "算籌",
+  "builtinCalculatorDesc": "演算數術",
+  "builtinTextTools": "文墨之具",
+  "builtinTextToolsDesc": "比對與統計文辭"
 }

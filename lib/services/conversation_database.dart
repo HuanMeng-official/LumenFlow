@@ -33,40 +33,141 @@ class ConversationDatabase {
   // 单例实例
   static final ConversationDatabase _instance = ConversationDatabase._internal();
   factory ConversationDatabase() => _instance;
-  ConversationDatabase._internal();
+
+  ConversationDatabase._internal({
+    String? databasePath,
+    SharedPreferences? preferences,
+    bool skipLegacyFileMigration = false,
+    Future<void> Function()? beforeMigration,
+  })  : _databasePath = databasePath,
+        _preferences = preferences,
+        _skipLegacyFileMigration = skipLegacyFileMigration,
+        _beforeMigration = beforeMigration;
+
+  /// 创建测试专用实例，使用独立数据库路径和可注入的偏好设置。
+  @visibleForTesting
+  factory ConversationDatabase.forTesting({
+    required String databasePath,
+    SharedPreferences? preferences,
+    bool skipLegacyFileMigration = true,
+    Future<void> Function()? beforeMigration,
+  }) {
+    return ConversationDatabase._internal(
+      databasePath: databasePath,
+      preferences: preferences,
+      skipLegacyFileMigration: skipLegacyFileMigration,
+      beforeMigration: beforeMigration,
+    );
+  }
+
+  final String? _databasePath;
+  final SharedPreferences? _preferences;
+  final bool _skipLegacyFileMigration;
+  final Future<void> Function()? _beforeMigration;
+
+  /// 当前数据库结构版本。
+  static const int schemaVersion = 1;
 
   Database? _db;
+  Future<void>? _initFuture;
+  int _debugInitCount = 0;
+
+  /// 成功初始化的次数，用于验证并发初始化只执行一次。
+  @visibleForTesting
+  int get debugInitCount => _debugInitCount;
+
+  /// 读取数据库结构版本，用于测试迁移行为。
+  @visibleForTesting
+  Future<int> debugSchemaVersion() async {
+    final db = await this.db;
+    return db.select('PRAGMA user_version').first.values.first as int;
+  }
 
   // 异步锁 - 防止同一 isolate 内的并发写操作
   Completer<void>? _writeLock;
 
   /// 获取数据库实例
   Future<Database> get db async {
-    if (_db == null) {
-      await _init();
+    final pending = _initFuture;
+    if (pending != null) {
+      await pending;
+    } else if (_db == null) {
+      await _ensureInitialized();
     }
     return _db!;
+  }
+
+  /// 单飞初始化：并发调用共享同一个 Future，结束后清除以便失败重试。
+  Future<void> _ensureInitialized() {
+    final existing = _initFuture;
+    if (existing != null) return existing;
+
+    final future = _init();
+    _initFuture = future;
+    future.then<void>(
+      (_) {
+        if (identical(_initFuture, future)) {
+          _initFuture = null;
+        }
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        if (identical(_initFuture, future)) {
+          _initFuture = null;
+        }
+      },
+    );
+    return future;
   }
 
   /// 初始化数据库
   Future<void> _init() async {
     if (_db != null) return;
 
-    // 迁移旧数据到新位置（如果需要）
-    await PathUtils.migrateOldDataIfNeeded();
+    Database? opened;
+    try {
+      // 迁移旧数据到新位置（如果需要）
+      if (!_skipLegacyFileMigration) {
+        await PathUtils.migrateOldDataIfNeeded();
+      }
 
-    final dbPath = await PathUtils.getDatabasePath();
+      final dbPath = _databasePath ?? await PathUtils.getDatabasePath();
+      final db = sqlite3.open(dbPath);
+      opened = db;
 
-    _db = sqlite3.open(dbPath);
+      // 启用外键约束，否则 ON DELETE CASCADE 不会生效
+      db.execute('PRAGMA foreign_keys = ON');
 
-    // 启用外键约束，否则 ON DELETE CASCADE 不会生效
-    _db!.execute('PRAGMA foreign_keys = ON');
+      // 创建表
+      _createTables(db);
+      _migrateSchema(db);
 
-    // 创建表
-    _createTables(_db!);
+      // Test-only gate: pauses before prefs migration.
+      await _beforeMigration?.call();
 
-    // 检查是否需要迁移
-    await _checkAndMigrateIfNeeded();
+      // 迁移使用本地句柄，避免初始化期间重入 db getter。
+      await _checkAndMigrateIfNeeded(db);
+
+      // 只有初始化（含迁移）成功后才发布连接。
+      _db = db;
+      _debugInitCount++;
+    } catch (_) {
+      opened?.close();
+      _db = null;
+      rethrow;
+    }
+  }
+
+  /// 前向迁移数据库结构。只增加版本号，不删除或重写现有数据。
+  void _migrateSchema(Database db) {
+    final currentVersion =
+        db.select('PRAGMA user_version').first.values.first as int;
+    if (currentVersion >= schemaVersion) return;
+
+    if (currentVersion < 1) {
+      // v1 仅引入 user_version 追踪；表结构由 _createTables 负责。
+    }
+
+    db.execute('PRAGMA user_version = $schemaVersion');
   }
 
   /// 创建数据库表
@@ -146,102 +247,95 @@ class ConversationDatabase {
   }
 
   /// 检查并执行数据迁移
-  Future<void> _checkAndMigrateIfNeeded() async {
-    final db = await this.db;
-
+  Future<void> _checkAndMigrateIfNeeded(Database db) async {
     // 检查是否已经迁移过
     final result = db.select('SELECT value FROM settings WHERE key = ?', ['migrated']);
     final hasMigrated = result.isNotEmpty;
 
     if (!hasMigrated) {
-      // 执行迁移
-      await _migrateFromSharedPreferences();
-      // 标记已迁移
+      // 只有迁移成功后才标记，失败时下次启动会重试
+      await _migrateFromSharedPreferences(db);
       db.execute('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', ['migrated', 'true']);
     }
   }
 
   /// 从 SharedPreferences 迁移数据
-  Future<void> _migrateFromSharedPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
+  ///
+  /// 迁移失败时事务回滚并向上抛出，调用方不得写入 migrated 标记。
+  Future<void> _migrateFromSharedPreferences(Database db) async {
+    final prefs = _preferences ?? await SharedPreferences.getInstance();
     final conversationsString = prefs.getString('conversations');
 
     if (conversationsString == null) return;
 
+    final conversationsJson = jsonDecode(conversationsString) as List;
+
+    // 开始事务
+    db.execute('BEGIN TRANSACTION');
+
     try {
-      final conversationsJson = jsonDecode(conversationsString) as List;
+      for (final json in conversationsJson) {
+        final conversation = Conversation.fromJson(json as Map<String, dynamic>);
 
-      final db = await this.db;
+        // 插入对话
+        db.execute('''
+          INSERT OR REPLACE INTO conversations (id, title, created_at, updated_at)
+          VALUES (?, ?, ?, ?)
+        ''', [
+          conversation.id,
+          conversation.title,
+          conversation.createdAt.millisecondsSinceEpoch,
+          conversation.updatedAt.millisecondsSinceEpoch,
+        ]);
 
-      // 开始事务
-      db.execute('BEGIN TRANSACTION');
-
-      try {
-        for (final json in conversationsJson) {
-          final conversation = Conversation.fromJson(json as Map<String, dynamic>);
-
-          // 插入对话
+        // 插入消息
+        for (final message in conversation.messages) {
           db.execute('''
-            INSERT OR REPLACE INTO conversations (id, title, created_at, updated_at)
-            VALUES (?, ?, ?, ?)
+            INSERT OR REPLACE INTO messages (id, conversation_id, content, reasoning_content, is_user, timestamp, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
           ''', [
+            message.id,
             conversation.id,
-            conversation.title,
-            conversation.createdAt.millisecondsSinceEpoch,
-            conversation.updatedAt.millisecondsSinceEpoch,
+            message.content,
+            message.reasoningContent,
+            message.isUser ? 1 : 0,
+            message.timestamp.millisecondsSinceEpoch,
+            message.status.index,
           ]);
 
-          // 插入消息
-          for (final message in conversation.messages) {
+          // 插入附件
+          for (final attachment in message.attachments) {
             db.execute('''
-              INSERT OR REPLACE INTO messages (id, conversation_id, content, reasoning_content, is_user, timestamp, status)
-              VALUES (?, ?, ?, ?, ?, ?, ?)
+              INSERT OR REPLACE INTO attachments (id, message_id, file_name, file_path, url, type, file_size, mime_type, created_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', [
+              attachment.id,
               message.id,
-              conversation.id,
-              message.content,
-              message.reasoningContent,
-              message.isUser ? 1 : 0,
-              message.timestamp.millisecondsSinceEpoch,
-              message.status.index,
+              attachment.fileName,
+              attachment.filePath,
+              attachment.url,
+              attachment.type.index,
+              attachment.fileSize,
+              attachment.mimeType,
+              attachment.createdAt.millisecondsSinceEpoch,
             ]);
-
-            // 插入附件
-            for (final attachment in message.attachments) {
-              db.execute('''
-                INSERT OR REPLACE INTO attachments (id, message_id, file_name, file_path, url, type, file_size, mime_type, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-              ''', [
-                attachment.id,
-                message.id,
-                attachment.fileName,
-                attachment.filePath,
-                attachment.url,
-                attachment.type.index,
-                attachment.fileSize,
-                attachment.mimeType,
-                attachment.createdAt.millisecondsSinceEpoch,
-              ]);
-            }
           }
         }
-
-        // 迁移当前对话ID
-        final currentConversationId = prefs.getString('current_conversation_id');
-        if (currentConversationId != null) {
-          db.execute('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', [
-            'current_conversation_id',
-            currentConversationId,
-          ]);
-        }
-
-        db.execute('COMMIT');
-      } catch (e) {
-        db.execute('ROLLBACK');
-        rethrow;
       }
+
+      // 迁移当前对话ID
+      final currentConversationId = prefs.getString('current_conversation_id');
+      if (currentConversationId != null) {
+        db.execute('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', [
+          'current_conversation_id',
+          currentConversationId,
+        ]);
+      }
+
+      db.execute('COMMIT');
     } catch (e) {
-      debugPrint('Migration failed: $e');
+      db.execute('ROLLBACK');
+      rethrow;
     }
   }
 
@@ -359,59 +453,193 @@ class ConversationDatabase {
     });
   }
 
+  /// 插入一条消息记录。
+  void _insertMessageRow(
+    Database db,
+    String conversationId,
+    Message message, {
+    bool replace = false,
+  }) {
+    final verb = replace ? 'INSERT OR REPLACE' : 'INSERT';
+    db.execute('''
+      $verb INTO messages (id, conversation_id, content, reasoning_content, is_user, timestamp, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', [
+      message.id,
+      conversationId,
+      message.content,
+      message.reasoningContent,
+      message.isUser ? 1 : 0,
+      message.timestamp.millisecondsSinceEpoch,
+      message.status.index,
+    ]);
+  }
+
+  /// 插入一条附件记录。
+  void _insertAttachmentRow(
+    Database db,
+    String messageId,
+    Attachment attachment, {
+    bool replace = false,
+  }) {
+    final verb = replace ? 'INSERT OR REPLACE' : 'INSERT';
+    db.execute('''
+      $verb INTO attachments (id, message_id, file_name, file_path, url, type, file_size, mime_type, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', [
+      attachment.id,
+      messageId,
+      attachment.fileName,
+      attachment.filePath,
+      attachment.url,
+      attachment.type.index,
+      attachment.fileSize,
+      attachment.mimeType,
+      attachment.createdAt.millisecondsSinceEpoch,
+    ]);
+  }
+
+  /// 更新对话的最近更新时间。
+  void _touchConversation(
+    Database db,
+    String conversationId,
+    DateTime at,
+  ) {
+    db.execute('UPDATE conversations SET updated_at = ? WHERE id = ?', [
+      at.millisecondsSinceEpoch,
+      conversationId,
+    ]);
+  }
+
   /// 更新对话
   Future<void> updateConversation(Conversation conversation) async {
     await _synchronized(() async {
       final db = await this.db;
 
-      db.execute('''
-        INSERT OR REPLACE INTO conversations (id, title, created_at, updated_at)
-        VALUES (?, ?, ?, ?)
-      ''', [
-        conversation.id,
-        conversation.title,
-        conversation.createdAt.millisecondsSinceEpoch,
-        conversation.updatedAt.millisecondsSinceEpoch,
-      ]);
-
-      // 删除旧消息
-      db.execute('DELETE FROM messages WHERE conversation_id = ?', [conversation.id]);
-
-      // 插入新消息
-      for (final message in conversation.messages) {
+      db.execute('BEGIN IMMEDIATE TRANSACTION');
+      try {
         db.execute('''
-          INSERT OR REPLACE INTO messages (id, conversation_id, content, reasoning_content, is_user, timestamp, status)
-          VALUES (?, ?, ?, ?, ?, ?, ?)
+          INSERT OR REPLACE INTO conversations (id, title, created_at, updated_at)
+          VALUES (?, ?, ?, ?)
         ''', [
-          message.id,
           conversation.id,
+          conversation.title,
+          conversation.createdAt.millisecondsSinceEpoch,
+          conversation.updatedAt.millisecondsSinceEpoch,
+        ]);
+
+        // 删除旧消息
+        db.execute('DELETE FROM messages WHERE conversation_id = ?',
+            [conversation.id]);
+
+        // 插入新消息
+        for (final message in conversation.messages) {
+          db.execute('''
+            INSERT OR REPLACE INTO messages (id, conversation_id, content, reasoning_content, is_user, timestamp, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+          ''', [
+            message.id,
+            conversation.id,
+            message.content,
+            message.reasoningContent,
+            message.isUser ? 1 : 0,
+            message.timestamp.millisecondsSinceEpoch,
+            message.status.index,
+          ]);
+
+          // 删除旧附件
+          db.execute('DELETE FROM attachments WHERE message_id = ?',
+              [message.id]);
+
+          // 插入新附件
+          for (final attachment in message.attachments) {
+            db.execute('''
+              INSERT OR REPLACE INTO attachments (id, message_id, file_name, file_path, url, type, file_size, mime_type, created_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', [
+              attachment.id,
+              message.id,
+              attachment.fileName,
+              attachment.filePath,
+              attachment.url,
+              attachment.type.index,
+              attachment.fileSize,
+              attachment.mimeType,
+              attachment.createdAt.millisecondsSinceEpoch,
+            ]);
+          }
+        }
+
+        db.execute('COMMIT');
+      } catch (_) {
+        db.execute('ROLLBACK');
+        rethrow;
+      }
+    });
+  }
+
+  /// 追加一条消息及其附件，并更新对话的最近更新时间。
+  Future<void> appendMessage(
+    String conversationId,
+    Message message,
+  ) async {
+    await _synchronized(() async {
+      final db = await this.db;
+
+      db.execute('BEGIN IMMEDIATE TRANSACTION');
+      try {
+        _insertMessageRow(db, conversationId, message);
+        for (final attachment in message.attachments) {
+          _insertAttachmentRow(db, message.id, attachment);
+        }
+        _touchConversation(db, conversationId, message.timestamp);
+        db.execute('COMMIT');
+      } catch (_) {
+        db.execute('ROLLBACK');
+        rethrow;
+      }
+    });
+  }
+
+  /// 更新一条消息及其附件；消息不存在时抛出 [StateError]。
+  Future<void> updateMessage(Message message) async {
+    await _synchronized(() async {
+      final db = await this.db;
+
+      db.execute('BEGIN IMMEDIATE TRANSACTION');
+      try {
+        final existing = db.select(
+          'SELECT conversation_id FROM messages WHERE id = ?',
+          [message.id],
+        );
+        if (existing.isEmpty) {
+          throw StateError('Message not found: ${message.id}');
+        }
+        final conversationId = existing.first['conversation_id'] as String;
+
+        db.execute('''
+          UPDATE messages
+          SET content = ?, reasoning_content = ?, is_user = ?, timestamp = ?, status = ?
+          WHERE id = ?
+        ''', [
           message.content,
           message.reasoningContent,
           message.isUser ? 1 : 0,
           message.timestamp.millisecondsSinceEpoch,
           message.status.index,
+          message.id,
         ]);
 
-        // 删除旧附件
         db.execute('DELETE FROM attachments WHERE message_id = ?', [message.id]);
-
-        // 插入新附件
         for (final attachment in message.attachments) {
-          db.execute('''
-            INSERT OR REPLACE INTO attachments (id, message_id, file_name, file_path, url, type, file_size, mime_type, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-          ''', [
-            attachment.id,
-            message.id,
-            attachment.fileName,
-            attachment.filePath,
-            attachment.url,
-            attachment.type.index,
-            attachment.fileSize,
-            attachment.mimeType,
-            attachment.createdAt.millisecondsSinceEpoch,
-          ]);
+          _insertAttachmentRow(db, message.id, attachment);
         }
+
+        _touchConversation(db, conversationId, message.timestamp);
+        db.execute('COMMIT');
+      } catch (_) {
+        db.execute('ROLLBACK');
+        rethrow;
       }
     });
   }
@@ -437,11 +665,24 @@ class ConversationDatabase {
     });
   }
 
-  /// 获取当前对话ID
+  /// 获取当前对话ID；空字符串视为没有当前对话。
   Future<String?> getCurrentConversationId() async {
     final db = await this.db;
     final result = db.select('SELECT value FROM settings WHERE key = ?', ['current_conversation_id']);
-    return result.isEmpty ? null : result.first['value'] as String?;
+    if (result.isEmpty) return null;
+    final value = result.first['value'] as String?;
+    return (value == null || value.isEmpty) ? null : value;
+  }
+
+  /// 清除当前对话ID。
+  Future<void> clearCurrentConversationId() async {
+    await _synchronized(() async {
+      final db = await this.db;
+      db.execute(
+        'DELETE FROM settings WHERE key = ?',
+        ['current_conversation_id'],
+      );
+    });
   }
 
   /// 设置当前对话ID
@@ -460,11 +701,11 @@ class ConversationDatabase {
     return result.first['count'] as int;
   }
 
-  /// 关闭数据库连接
+  /// 关闭数据库连接，并把初始化状态重置为未初始化。
   Future<void> close() async {
-    if (_db != null) {
-      _db!.close();
-      _db = null;
-    }
+    final db = _db;
+    _db = null;
+    _initFuture = null;
+    db?.close();
   }
 }

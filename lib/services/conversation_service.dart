@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import '../models/conversation.dart';
+import '../models/message.dart';
 import '../l10n/app_localizations.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
@@ -32,10 +34,18 @@ class ConversationService {
   // 单例实例
   static final ConversationService _instance = ConversationService._internal();
   factory ConversationService() => _instance;
-  ConversationService._internal();
+
+  ConversationService._internal({ConversationDatabase? database})
+      : _db = database ?? ConversationDatabase();
+
+  /// 创建测试专用实例，使用独立数据库以避免共享单例缓存。
+  @visibleForTesting
+  factory ConversationService.forTesting(ConversationDatabase database) {
+    return ConversationService._internal(database: database);
+  }
 
   /// 数据库实例
-  final ConversationDatabase _db = ConversationDatabase();
+  final ConversationDatabase _db;
 
   /// 内存缓存（由于是单例，实例变量也是全局共享的）
   List<Conversation>? _cachedConversations;
@@ -55,6 +65,8 @@ class ConversationService {
     final conversations = await _db.getConversations();
 
     _cachedConversations = conversations;
+    // The list entries are metadata stubs, not fully loaded conversations.
+    _loadedConversationIds.clear();
     _isCacheDirty = false;
     return conversations;
   }
@@ -67,7 +79,8 @@ class ConversationService {
   }
 
   Future<String?> getCurrentConversationId() async {
-    return await _db.getCurrentConversationId();
+    final id = await _db.getCurrentConversationId();
+    return (id == null || id.isEmpty) ? null : id;
   }
 
   Future<void> setCurrentConversationId(String conversationId) async {
@@ -123,7 +136,53 @@ class ConversationService {
       _isCacheDirty = false;
     }
 
-    _loadedConversationIds.add(conversation.id);
+    if (_cachedConversations != null) {
+      _loadedConversationIds.add(conversation.id);
+    }
+  }
+
+  /// 追加一条消息并同步已加载的缓存。
+  Future<void> appendMessage(String conversationId, Message message) async {
+    await _db.appendMessage(conversationId, message);
+    _applyMessageToCache(conversationId, message);
+  }
+
+  /// 更新一条消息并同步已加载的缓存。
+  Future<void> updateMessage(String conversationId, Message message) async {
+    await _db.updateMessage(message);
+    _applyMessageToCache(conversationId, message);
+  }
+
+  /// 只更新已经完全加载到内存的对话，避免把消息半成品写回列表缓存。
+  void _applyMessageToCache(String conversationId, Message message) {
+    final conversations = _cachedConversations;
+    if (conversations == null) return;
+
+    final conversationIndex =
+        conversations.indexWhere((c) => c.id == conversationId);
+    if (conversationIndex == -1) return;
+
+    final conversation = conversations[conversationIndex];
+    if (!_loadedConversationIds.contains(conversationId)) {
+      conversations[conversationIndex] =
+          conversation.copyWith(updatedAt: message.timestamp);
+      conversations.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+      return;
+    }
+
+    final messages = List<Message>.from(conversation.messages);
+    final messageIndex = messages.indexWhere((m) => m.id == message.id);
+    if (messageIndex == -1) {
+      messages.add(message);
+    } else {
+      messages[messageIndex] = message;
+    }
+
+    conversations[conversationIndex] = conversation.copyWith(
+      messages: messages,
+      updatedAt: message.timestamp,
+    );
+    conversations.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
   }
 
   /// 删除对话
@@ -136,7 +195,7 @@ class ConversationService {
 
     final currentId = await getCurrentConversationId();
     if (currentId == conversationId) {
-      await _db.setCurrentConversationId('');
+      await _db.clearCurrentConversationId();
     }
   }
 
@@ -175,7 +234,7 @@ class ConversationService {
     final conversation = await _db.getConversationById(id);
 
     if (conversation != null) {
-      // 更新缓存
+      // 更新缓存；只有真正存入了完整对话才标记为已加载
       if (_cachedConversations != null) {
         final index = _cachedConversations!.indexWhere((c) => c.id == id);
         if (index != -1) {
@@ -184,8 +243,8 @@ class ConversationService {
           _cachedConversations!.add(conversation);
           _cachedConversations!.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
         }
+        _loadedConversationIds.add(id);
       }
-      _loadedConversationIds.add(id);
     }
 
     return conversation;
