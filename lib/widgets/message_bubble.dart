@@ -9,6 +9,7 @@ import '../models/message.dart';
 import '../models/attachment.dart';
 import '../models/user_profile.dart';
 import '../screens/image_preview_screen.dart';
+import '../utils/app_theme.dart';
 import 'avatar_widget.dart';
 
 /// 自定义代码块构建器，用于在代码块右上角添加复制按钮
@@ -141,6 +142,9 @@ class __CodeBlockWithCopyButtonState extends State<_CodeBlockWithCopyButton> {
   Widget build(BuildContext context) {
     final brightness = widget.brightness;
     final l10n = AppLocalizations.of(context)!;
+    final cjkFallback = cjkFontFallbackForLocale(
+      Localizations.maybeLocaleOf(context),
+    );
 
     return Stack(
       children: [
@@ -176,7 +180,13 @@ class __CodeBlockWithCopyButtonState extends State<_CodeBlockWithCopyButton> {
                 widget.codeContent,
                 style: TextStyle(
                   fontSize: 15,
-                  fontFamily: 'JetBrains Mono, SF Mono, Courier, monospace',
+                  fontFamily: 'JetBrains Mono',
+                  fontFamilyFallback: [
+                    'SF Mono',
+                    'Courier',
+                    'monospace',
+                    ...cjkFallback,
+                  ],
                   color: brightness == Brightness.dark
                       ? const Color(0xFFD4D4D4)
                       : const Color(0xFF24292E),
@@ -584,6 +594,22 @@ class _MessageBubbleState extends State<MessageBubble>
 
     final l10n = AppLocalizations.of(context)!;
     final Brightness brightness = CupertinoTheme.of(context).brightness!;
+    final cjkFallback = cjkFontFallbackForLocale(
+      Localizations.maybeLocaleOf(context),
+    );
+    final materialTheme = Theme.of(context);
+
+    TextStyle codeFallback(TextStyle style) {
+      return style.copyWith(
+        fontFamily: 'JetBrains Mono',
+        fontFamilyFallback: [
+          'SF Mono',
+          'Courier',
+          'monospace',
+          ...cjkFallback,
+        ],
+      );
+    }
 
     // 根据消息类型和主题确定选择颜色
     final selectionColor = widget.message.isUser
@@ -624,7 +650,10 @@ class _MessageBubbleState extends State<MessageBubble>
             ],
             Flexible(
               child: Theme(
-                data: Theme.of(context).copyWith(
+                data: materialTheme.copyWith(
+                  textTheme: materialTheme.textTheme.apply(
+                    fontFamilyFallback: cjkFallback,
+                  ),
                   textSelectionTheme: TextSelectionThemeData(
                     selectionColor: selectionColor,
                   ),
@@ -842,19 +871,19 @@ class _MessageBubbleState extends State<MessageBubble>
                                                   .darkColor
                                             : CupertinoColors.systemGrey.color,
                                       ),
-                                      code: TextStyle(
-                                        fontSize: 12,
-                                        fontFamily:
-                                            'JetBrains Mono, SF Mono, Courier, monospace',
-                                        color: brightness == Brightness.dark
-                                            ? CupertinoColors
-                                                  .systemGreen
-                                                  .darkColor
-                                            : const Color(0xFF006400), // 深绿色
-                                        backgroundColor:
-                                            brightness == Brightness.dark
-                                            ? const Color(0xFF1E1E1E)
-                                            : const Color(0xFFF8F9FA),
+                                      code: codeFallback(
+                                        TextStyle(
+                                          fontSize: 12,
+                                          color: brightness == Brightness.dark
+                                              ? CupertinoColors
+                                                    .systemGreen
+                                                    .darkColor
+                                              : const Color(0xFF006400), // 深绿色
+                                          backgroundColor:
+                                              brightness == Brightness.dark
+                                                  ? const Color(0xFF1E1E1E)
+                                                  : const Color(0xFFF8F9FA),
+                                        ),
                                       ),
                                       codeblockPadding: const EdgeInsets.all(
                                         12,
@@ -950,16 +979,16 @@ class _MessageBubbleState extends State<MessageBubble>
                               fontSize: 16,
                               height: 1.5,
                             ),
-                            code: TextStyle(
-                              fontSize: 15,
-                              fontFamily:
-                                  'JetBrains Mono, SF Mono, Courier, monospace',
-                              color: brightness == Brightness.dark
-                                  ? const Color(0xFFD4D4D4)
-                                  : const Color(0xFF24292E),
-                              backgroundColor: brightness == Brightness.dark
-                                  ? const Color(0xFF1E1E1E)
-                                  : const Color(0xFFF6F8FA),
+                            code: codeFallback(
+                              TextStyle(
+                                fontSize: 15,
+                                color: brightness == Brightness.dark
+                                    ? const Color(0xFFD4D4D4)
+                                    : const Color(0xFF24292E),
+                                backgroundColor: brightness == Brightness.dark
+                                    ? const Color(0xFF1E1E1E)
+                                    : const Color(0xFFF6F8FA),
+                              ),
                             ),
                             codeblockPadding: const EdgeInsets.all(16),
                             codeblockDecoration: BoxDecoration(

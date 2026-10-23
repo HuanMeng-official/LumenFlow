@@ -136,10 +136,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             Locale('es'),
           ],
           locale: _locale,
-          theme: CupertinoThemeData(
-            primaryColor: CupertinoColors.systemBlue,
-            brightness: brightness,
-          ),
+          theme: buildAppTheme(brightness, _locale),
           home: child!,
           debugShowCheckedModeBanner: false,
         );

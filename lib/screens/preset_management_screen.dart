@@ -7,6 +7,7 @@ import '../services/prompt_service.dart';
 import '../services/http_server_service.dart';
 import '../models/prompt_preset.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/app_theme.dart';
 
 /// 预设管理界面
 ///
@@ -457,6 +458,9 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
   /// 显示预设详情
   void _showPresetDetails(PromptPreset preset) {
     final l10n = AppLocalizations.of(context)!;
+    final cjkFallback = cjkFontFallbackForLocale(
+      Localizations.maybeLocaleOf(context),
+    );
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoAlertDialog(
@@ -481,7 +485,15 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
                   preset.systemPrompt.length > 200
                       ? '${preset.systemPrompt.substring(0, 200)}...'
                       : preset.systemPrompt,
-                  style: const TextStyle(fontFamily: 'Menlo', fontSize: 12),
+                  style: TextStyle(
+                    fontFamily: 'Menlo',
+                    fontFamilyFallback: [
+                      'Courier',
+                      'monospace',
+                      ...cjkFallback,
+                    ],
+                    fontSize: 12,
+                  ),
                 ),
               ),
             ],

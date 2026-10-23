@@ -15,6 +15,7 @@ import '../services/notification_service.dart';
 import '../services/live_update_service.dart';
 import '../services/prompt_service.dart';
 import '../services/user_service.dart';
+import '../utils/app_theme.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/chat_input.dart';
 import 'settings_screen.dart';
@@ -967,6 +968,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final cjkFallback = cjkFontFallbackForLocale(
+      Localizations.maybeLocaleOf(context),
+    );
     /// 构建聊天界面布局
     /// 包含：导航栏、消息列表、输入框、配置提示等组件
     return CupertinoPageScaffold(
@@ -1077,7 +1081,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             _toolStatus!,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 13),
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontFamilyFallback: cjkFallback,
+                            ),
                           ),
                         ),
                       ],
@@ -1112,6 +1119,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   /// 当消息列表为空时显示，包含图标和提示文本
   Widget _buildEmptyState() {
     final l10n = AppLocalizations.of(context)!;
+    final cjkFallback = cjkFontFallbackForLocale(
+      Localizations.maybeLocaleOf(context),
+    );
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -1124,8 +1134,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           const SizedBox(height: 16),
           Text(
             l10n.startChatting,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
+              fontFamilyFallback: cjkFallback,
               color: CupertinoColors.systemGrey,
             ),
           ),
