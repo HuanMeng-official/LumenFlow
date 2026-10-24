@@ -152,7 +152,9 @@ class AIService {
 
   bool _supportsTools(String apiType) {
     return ChatCompletionsProfiles.forType(apiType) != null ||
-        ResponsesToolProfiles.supports(apiType);
+        ResponsesToolProfiles.supports(apiType) ||
+        apiType == 'claude' ||
+        apiType == 'gemini';
   }
 
   /// 合并内置工具与 MCP 工具，供工具调用路径使用。

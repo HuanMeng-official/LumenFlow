@@ -6,6 +6,8 @@ import '../ai/contracts/ai_stream_event.dart';
 import '../ai/contracts/ai_tool_executor.dart';
 import '../ai/providers/chat_completions_profile.dart';
 import '../ai/providers/chat_completions_tool_provider.dart';
+import '../ai/providers/claude_tool_provider.dart';
+import '../ai/providers/gemini_tool_provider.dart';
 import '../ai/providers/responses_tool_provider.dart';
 import '../models/active_platform_config.dart';
 import '../models/message.dart';
@@ -115,6 +117,13 @@ class ToolChatService {
     final responsesProfile = ResponsesToolProfiles.forType(config.apiType);
     if (responsesProfile != null) {
       return ResponsesToolProvider(profile: responsesProfile);
+    }
+
+    if (config.apiType == 'claude') {
+      return ClaudeToolProvider();
+    }
+    if (config.apiType == 'gemini') {
+      return GeminiToolProvider();
     }
 
     throw AIError(

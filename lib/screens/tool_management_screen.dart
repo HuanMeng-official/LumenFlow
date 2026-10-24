@@ -419,9 +419,13 @@ class _ToolManagementScreenState extends State<ToolManagementScreen> {
                   child: Text(
                     ChatCompletionsProfiles.forType(_activePlatformType) !=
                                 null ||
-                            ResponsesToolProfiles.supports(_activePlatformType)
+                            ResponsesToolProfiles.supports(
+                              _activePlatformType,
+                            ) ||
+                            _activePlatformType == 'claude' ||
+                            _activePlatformType == 'gemini'
                         ? '当前平台（$_activePlatformType）支持工具调用。'
-                        : '当前平台（$_activePlatformType）暂不支持工具调用。支持的平台：DeepSeek、Kimi、MiniMax、智谱、SiliconFlow、Other、Xiaomi MiMo、OpenAI、Grok、OpenRouter、LM Studio。',
+                        : '当前平台（$_activePlatformType）暂不支持工具调用。支持的平台：DeepSeek、Kimi、MiniMax、智谱、SiliconFlow、Other、Xiaomi MiMo、OpenAI、Grok、OpenRouter、LM Studio、Claude、Gemini。',
                     style: const TextStyle(fontSize: 13),
                   ),
                 ),

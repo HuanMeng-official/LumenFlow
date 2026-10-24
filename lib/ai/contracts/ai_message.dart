@@ -11,6 +11,7 @@ class AIMessage {
   final List<AIToolCall> toolCalls;
   final String? toolCallId;
   final String? name;
+  final bool isError;
 
   const AIMessage._({
     required this.role,
@@ -19,6 +20,7 @@ class AIMessage {
     this.toolCalls = const [],
     this.toolCallId,
     this.name,
+    this.isError = false,
   });
 
   const AIMessage.system(String content)
@@ -40,11 +42,13 @@ class AIMessage {
     required String toolCallId,
     required String content,
     String? name,
+    bool isError = false,
   }) : this._(
           role: AIMessageRole.tool,
           content: content,
           toolCallId: toolCallId,
           name: name,
+          isError: isError,
         );
 
   Map<String, dynamic> toOpenAIJson() {

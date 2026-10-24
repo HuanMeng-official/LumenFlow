@@ -83,6 +83,7 @@ class AgentRunner {
             toolCallId: call.id,
             name: call.name,
             content: result.content,
+            isError: result.isError,
           ),
         );
       }
