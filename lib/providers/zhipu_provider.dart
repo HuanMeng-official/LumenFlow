@@ -15,6 +15,19 @@ class ZhiPuProvider extends HttpProviderBase {
   final SettingsService _settingsService = SettingsService();
   final FileService _fileService = FileService();
 
+  Map<String, dynamic> _thinkingFields(String model, bool thinkingMode) {
+    if (model.startsWith('glm-5.3')) {
+      // GLM-5.3 始终开启思考，只能通过 reasoning_effort 调节。
+      return {
+        'thinking': {'type': 'enabled'},
+        'reasoning_effort': thinkingMode ? 'high' : 'low',
+      };
+    }
+    return {
+      'thinking': {'type': thinkingMode ? 'enabled' : 'disabled'},
+    };
+  }
+
   @override
   Future<Map<String, dynamic>> sendMessage({
     required String message,
@@ -52,7 +65,7 @@ class ZhiPuProvider extends HttpProviderBase {
             'messages': messages,
             'max_tokens': maxTokens,
             'temperature': temperature,
-            'thinking': {'type': thinkingMode ? 'enable' : 'disabled'},
+            ..._thinkingFields(model, thinkingMode),
           };
 
           final response = await client.post(
@@ -123,7 +136,7 @@ class ZhiPuProvider extends HttpProviderBase {
         'max_tokens': maxTokens,
         'temperature': temperature,
         'stream': true,
-        'thinking': {'type': thinkingMode ? 'enable' : 'disabled'},
+        ..._thinkingFields(model, thinkingMode),
       };
 
       request.body = jsonEncode(requestBody);
@@ -250,6 +263,7 @@ class ZhiPuProvider extends HttpProviderBase {
         'messages': requestMessages,
         'max_tokens': 50,
         'temperature': 0.3,
+        ..._thinkingFields(model, false),
       }),
     );
 

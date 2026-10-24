@@ -252,6 +252,7 @@ class DeepSeekProvider extends HttpProviderBase {
         'messages': requestMessages,
         'max_tokens': 50,
         'temperature': 0.3,
+        'thinking': {'type': 'disabled'},
       }),
     );
 

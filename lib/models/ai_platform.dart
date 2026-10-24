@@ -119,8 +119,8 @@ class AIPlatform {
           type: 'openai',
           endpoint: 'https://api.openai.com/v1',
           apiKey: '',
-          availableModels: [],
-          defaultModel: '',
+          availableModels: ['gpt-6.1-sol', 'gpt-6-astra', 'gpt-6-luna'],
+          defaultModel: 'gpt-6.1-sol',
           icon: 'openai',
         );
       case 'claude':
@@ -130,8 +130,13 @@ class AIPlatform {
           type: 'claude',
           endpoint: 'https://api.anthropic.com/v1',
           apiKey: '',
-          availableModels: [],
-          defaultModel: '',
+          availableModels: [
+            'claude-opus-5-5',
+            'claude-sonnet-5-5',
+            'claude-haiku-5-5',
+            'claude-fable-5-1',
+          ],
+          defaultModel: 'claude-opus-5-5',
           icon: 'claude',
         );
       case 'deepseek':
@@ -141,8 +146,8 @@ class AIPlatform {
           type: 'deepseek',
           endpoint: 'https://api.deepseek.com',
           apiKey: '',
-          availableModels: [],
-          defaultModel: '',
+          availableModels: ['deepseek-flash', 'deepseek-v4-pro'],
+          defaultModel: 'deepseek-flash',
           icon: 'deepseek',
         );
       case 'gemini':
@@ -152,8 +157,12 @@ class AIPlatform {
           type: 'gemini',
           endpoint: 'https://generativelanguage.googleapis.com/v1beta',
           apiKey: '',
-          availableModels: [],
-          defaultModel: '',
+          availableModels: [
+            'gemini-3.8-flash',
+            'gemini-4-argon',
+            'gemini-3.5-flash-lite',
+          ],
+          defaultModel: 'gemini-3.8-flash',
           icon: 'gemini',
         );
       case 'siliconflow':
@@ -172,10 +181,10 @@ class AIPlatform {
           id: 'minimax',
           name: 'MiniMax',
           type: 'minimax',
-          endpoint: 'https://api.minimaxi.com/v1',
+          endpoint: 'https://api.minimax.cn/v1',
           apiKey: '',
-          availableModels: [],
-          defaultModel: '',
+          availableModels: ['MiniMax-M3.1-Flash', 'MiniMax-M3'],
+          defaultModel: 'MiniMax-M3.1-Flash',
           icon: 'minimax',
         );
       case 'zhipu':
@@ -185,8 +194,8 @@ class AIPlatform {
           type: 'zhipu',
           endpoint: 'https://open.bigmodel.cn/api/paas/v4',
           apiKey: '',
-          availableModels: [],
-          defaultModel: '',
+          availableModels: ['glm-5.3', 'glm-5.3-flash', 'glm-5.2'],
+          defaultModel: 'glm-5.3',
           icon: 'zhipu',
         );
       case 'kimi':
@@ -196,8 +205,14 @@ class AIPlatform {
           type: 'kimi',
           endpoint: 'https://api.moonshot.cn/v1',
           apiKey: '',
-          availableModels: [],
-          defaultModel: '',
+          availableModels: [
+            'kimi-k3.1-pro',
+            'kimi-k3.1-pro-highspeed',
+            'kimi-k3',
+            'kimi-k2.7-code',
+            'kimi-k2.6',
+          ],
+          defaultModel: 'kimi-k3.1-pro',
           icon: 'kimi',
         );
       case 'lmstudio':
@@ -218,8 +233,8 @@ class AIPlatform {
           type: 'grok',
           endpoint: 'https://api.x.ai/v1',
           apiKey: '',
-          availableModels: [],
-          defaultModel: '',
+          availableModels: ['grok-4.7', 'grok-4.6', 'grok-4.5', 'grok-4.3'],
+          defaultModel: 'grok-4.7',
           icon: 'grok',
         );
       case 'openrouter':
@@ -240,8 +255,8 @@ class AIPlatform {
           type: 'xiaomimimo',
           endpoint: 'https://api.xiaomimimo.com/v1',
           apiKey: '',
-          availableModels: [],
-          defaultModel: '',
+          availableModels: ['mimo-v2.6-pro', 'mimo-v2.6-flash'],
+          defaultModel: 'mimo-v2.6-pro',
           icon: 'xiaomimimo',
         );
       case 'other':

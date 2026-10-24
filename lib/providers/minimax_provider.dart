@@ -18,12 +18,27 @@ class MiniMaxProvider extends HttpProviderBase {
   final FileService _fileService = FileService();
 
   /// MiniMax API 专用配置
-  static const String defaultEndpoint = 'https://api.minimaxi.com/v1';
+  static const String defaultEndpoint = 'https://api.minimax.cn/v1';
 
   /// 默认模型
   static const List<String> defaultModels = [
-    'MiniMax-M2.1',
+    'MiniMax-M3.1-Flash',
+    'MiniMax-M3',
   ];
+
+  Map<String, dynamic> _thinkingFields(String model, bool thinkingMode) {
+    if (model.startsWith('MiniMax-M3')) {
+      return {
+        'thinking': {'type': 'adaptive'},
+        'reasoning_effort': thinkingMode ? 'high' : 'low',
+      };
+    }
+    return thinkingMode
+        ? {
+            'extra_body': {'reasoning_split': true},
+          }
+        : const {};
+  }
 
   @override
   Future<Map<String, dynamic>> sendMessage({
@@ -57,23 +72,17 @@ class MiniMaxProvider extends HttpProviderBase {
             l10n: l10n,
           );
 
-          // 构建请求体
+          // 构建请求体（OpenAI 兼容端点）
           final requestBody = <String, dynamic>{
             'model': model,
             'messages': messages,
-            'max_tokens': maxTokens,
+            'max_completion_tokens': maxTokens,
             'temperature': temperature,
+            ..._thinkingFields(model, thinkingMode),
           };
 
-          // MiniMax 特殊参数：reasoning_split 将思考内容分离
-          if (thinkingMode) {
-            requestBody['extra_body'] = {
-              'reasoning_split': true,
-            };
-          }
-
           final response = await client.post(
-            Uri.parse('$apiEndpoint/text/chatcompletion_v2'),
+            Uri.parse('$apiEndpoint/chat/completions'),
             headers: {
               'Content-Type': 'application/json',
               'Authorization': 'Bearer $apiKey',
@@ -127,25 +136,19 @@ class MiniMaxProvider extends HttpProviderBase {
         l10n: l10n,
       );
 
-      // 构建请求体
+      // 构建请求体（OpenAI 兼容端点）
       final requestBody = <String, dynamic>{
         'model': model,
         'messages': messages,
-        'max_tokens': maxTokens,
+        'max_completion_tokens': maxTokens,
         'temperature': temperature,
         'stream': true,
+        ..._thinkingFields(model, thinkingMode),
       };
-
-      // MiniMax 特殊参数：reasoning_split 将思考内容分离
-      if (thinkingMode) {
-        requestBody['extra_body'] = {
-          'reasoning_split': true,
-        };
-      }
 
       final request = http.Request(
         'POST',
-        Uri.parse('$apiEndpoint/text/chatcompletion_v2'),
+        Uri.parse('$apiEndpoint/chat/completions'),
       );
       request.headers['Content-Type'] = 'application/json';
       request.headers['Authorization'] = 'Bearer $apiKey';
@@ -295,7 +298,7 @@ class MiniMaxProvider extends HttpProviderBase {
     ];
 
     final response = await http.post(
-      Uri.parse('$apiEndpoint/text/chatcompletion_v2'),
+      Uri.parse('$apiEndpoint/chat/completions'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $apiKey',
@@ -303,8 +306,9 @@ class MiniMaxProvider extends HttpProviderBase {
       body: jsonEncode({
         'model': model,
         'messages': requestMessages,
-        'max_tokens': 50,
+        'max_completion_tokens': 50,
         'temperature': 0.3,
+        ..._thinkingFields(model, false),
       }),
     );
 

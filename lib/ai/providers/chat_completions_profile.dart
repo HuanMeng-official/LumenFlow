@@ -61,22 +61,20 @@ Map<String, dynamic> _deepSeekThinking(AIRequest request) {
 }
 
 Map<String, dynamic> _kimiThinking(AIRequest request) {
+  if (request.model.startsWith('kimi-k3')) {
+    return {
+      'reasoning_effort': request.thinkingMode ? 'high' : 'low',
+    };
+  }
   return {
     'thinking': {'type': request.thinkingMode ? 'enabled' : 'disabled'},
   };
 }
 
-double _kimiTemperature(AIRequest request) {
-  if (request.model == 'kimi-k2.5') {
-    return request.thinkingMode ? 1.0 : 0.6;
-  }
-  return request.temperature;
-}
-
 Map<String, dynamic> _minimaxThinking(AIRequest request) {
-  if (!request.thinkingMode) return const {};
   return {
-    'extra_body': {'reasoning_split': true},
+    'thinking': {'type': 'adaptive'},
+    'reasoning_effort': request.thinkingMode ? 'high' : 'low',
   };
 }
 
@@ -102,8 +100,14 @@ String? _minimaxReasoning(Map<String, dynamic> delta) {
 }
 
 Map<String, dynamic> _zhipuThinking(AIRequest request) {
+  if (request.model.startsWith('glm-5.3')) {
+    return {
+      'thinking': {'type': 'enabled'},
+      'reasoning_effort': request.thinkingMode ? 'high' : 'low',
+    };
+  }
   return {
-    'thinking': {'type': request.thinkingMode ? 'enable' : 'disabled'},
+    'thinking': {'type': request.thinkingMode ? 'enabled' : 'disabled'},
   };
 }
 
@@ -137,12 +141,11 @@ class ChatCompletionsProfiles {
   static final ChatCompletionsProfile kimi = ChatCompletionsProfile(
     id: 'kimi',
     thinkingFieldsBuilder: _kimiThinking,
-    temperatureBuilder: _kimiTemperature,
   );
 
   static final ChatCompletionsProfile minimax = ChatCompletionsProfile(
     id: 'minimax',
-    path: '/text/chatcompletion_v2',
+    tokenField: 'max_completion_tokens',
     thinkingFieldsBuilder: _minimaxThinking,
     reasoningReader: _minimaxReasoning,
   );

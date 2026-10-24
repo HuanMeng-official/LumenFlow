@@ -18,8 +18,20 @@ class KimiProvider extends HttpProviderBase {
   final SettingsService _settingsService = SettingsService();
   final FileService _fileService = FileService();
 
-  /// API 基础地址
+  /// API 基础地址（设置里配置的端点优先，支持 .cn / .ai）
   static const String baseUrl = 'https://api.moonshot.cn/v1';
+
+  Map<String, dynamic> _thinkingFields(String model, bool thinkingMode) {
+    if (model.startsWith('kimi-k3')) {
+      // K3 系列始终开启思考，只能用 reasoning_effort 调节深度。
+      return {
+        'reasoning_effort': thinkingMode ? 'high' : 'low',
+      };
+    }
+    return {
+      'thinking': {'type': thinkingMode ? 'enabled' : 'disabled'},
+    };
+  }
 
   @override
   Future<Map<String, dynamic>> sendMessage({
@@ -36,6 +48,9 @@ class KimiProvider extends HttpProviderBase {
       () async {
         final client = createHttpClient();
         try {
+          final configuredEndpoint = await _settingsService.getApiEndpoint();
+          final apiEndpoint =
+              configuredEndpoint.isEmpty ? baseUrl : configuredEndpoint;
           final apiKey = await _settingsService.getApiKey();
           final model = await _settingsService.getModel();
           final enableHistory = await _settingsService.getEnableHistory();
@@ -53,7 +68,7 @@ class KimiProvider extends HttpProviderBase {
           );
 
           final response = await client.post(
-            Uri.parse('$baseUrl/chat/completions'),
+            Uri.parse('$apiEndpoint/chat/completions'),
             headers: {
               'Content-Type': 'application/json',
               'Authorization': 'Bearer $apiKey',
@@ -62,8 +77,8 @@ class KimiProvider extends HttpProviderBase {
               'model': model,
               'messages': messages,
               'max_tokens': maxTokens,
-              'temperature': _getKimiTemperature(model, temperature, thinkingMode),
-              'thinking': {'type': thinkingMode ? 'enabled' : 'disabled'},
+              'temperature': temperature,
+              ..._thinkingFields(model, thinkingMode),
             }),
           ).timeout(connectionTimeout + readTimeout);
 
@@ -96,6 +111,9 @@ class KimiProvider extends HttpProviderBase {
   }) async* {
     final client = createHttpClient();
     try {
+      final configuredEndpoint = await _settingsService.getApiEndpoint();
+      final apiEndpoint =
+          configuredEndpoint.isEmpty ? baseUrl : configuredEndpoint;
       final apiKey = await _settingsService.getApiKey();
       final model = await _settingsService.getModel();
       final enableHistory = await _settingsService.getEnableHistory();
@@ -112,16 +130,19 @@ class KimiProvider extends HttpProviderBase {
         l10n: l10n,
       );
 
-      final request = http.Request('POST', Uri.parse('$baseUrl/chat/completions'));
+      final request = http.Request(
+        'POST',
+        Uri.parse('$apiEndpoint/chat/completions'),
+      );
       request.headers['Content-Type'] = 'application/json';
       request.headers['Authorization'] = 'Bearer $apiKey';
       request.body = jsonEncode({
         'model': model,
         'messages': messages,
         'max_tokens': maxTokens,
-        'temperature': _getKimiTemperature(model, temperature, thinkingMode),
+        'temperature': temperature,
         'stream': true,
-        'thinking': {'type': thinkingMode ? 'enabled' : 'disabled'},
+        ..._thinkingFields(model, thinkingMode),
       });
 
       final streamedResponse = await client.send(request).timeout(streamingTimeout);
@@ -213,6 +234,9 @@ class KimiProvider extends HttpProviderBase {
 
   @override
   Future<String> generateConversationTitle(List<Message> messages, {required AppLocalizations l10n}) async {
+    final configuredEndpoint = await _settingsService.getApiEndpoint();
+    final apiEndpoint =
+        configuredEndpoint.isEmpty ? baseUrl : configuredEndpoint;
     final apiKey = await _settingsService.getApiKey();
     final model = await _settingsService.getModel();
 
@@ -235,7 +259,7 @@ class KimiProvider extends HttpProviderBase {
     ];
 
     final response = await http.post(
-      Uri.parse('$baseUrl/chat/completions'),
+      Uri.parse('$apiEndpoint/chat/completions'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $apiKey',
@@ -245,6 +269,7 @@ class KimiProvider extends HttpProviderBase {
         'messages': requestMessages,
         'max_tokens': 50,
         'temperature': 0.3,
+        ..._thinkingFields(model, false),
       }),
     );
 
@@ -446,16 +471,6 @@ class KimiProvider extends HttpProviderBase {
       'reasoningContent': reasoningContent,
       'content': content,
     };
-  }
-
-  /// 获取Kimi模型的温度设置
-  /// 当模型为kimi-k2.5且没开启思考时，温度设置为0.6
-  /// 当模型为kimi-k2.5且开启思考时温度设置为1
-  double _getKimiTemperature(String model, double originalTemperature, bool thinkingMode) {
-    if (model == 'kimi-k2.5') {
-      return thinkingMode ? 1.0 : 0.6;
-    }
-    return originalTemperature;
   }
 
 }

@@ -56,11 +56,13 @@ class _ApiSettingsScreenState extends State<ApiSettingsScreen> {
     setState(() {
       if (apiType == 'gemini') {
         _endpointController.text =
-            'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+            'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent';
       } else if (apiType == 'deepseek') {
         _endpointController.text = 'https://api.deepseek.com';
       } else if (apiType == 'claude') {
         _endpointController.text = 'https://api.anthropic.com/v1';
+      } else if (apiType == 'minimax') {
+        _endpointController.text = 'https://api.minimax.cn/v1';
       } else if (apiType == 'siliconflow') {
         _endpointController.text = 'https://api.siliconflow.cn/v1';
       } else if (apiType == 'zhipu') {

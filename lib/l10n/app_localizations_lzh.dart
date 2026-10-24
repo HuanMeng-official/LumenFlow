@@ -258,7 +258,7 @@ class AppLocalizationsLzh extends AppLocalizations {
   String get modelPlaceholder => '賜下法象之名';
 
   @override
-  String get modelDesc => '如: gpt-5, deepseek-chat';
+  String get modelDesc => '如: gpt-6.1-sol, deepseek-flash';
 
   @override
   String get maxTokens => '至多言數';
@@ -362,7 +362,7 @@ class AppLocalizationsLzh extends AppLocalizations {
   String get commonModels => '常見法象';
 
   @override
-  String get commonModelsContent => 'OpenAI:\n• gpt-5\n\nDeepSeek:\n• deepseek-chat\n• deepseek-reasoner\n\n祈察渡口以擇相應法象。';
+  String get commonModelsContent => 'OpenAI:\n• gpt-6.1-sol\n• gpt-6-astra\n\nDeepSeek:\n• deepseek-flash\n• deepseek-v4-pro\n\n祈察渡口以擇相應法象。';
 
   @override
   String get appInfo => '本器綱要';

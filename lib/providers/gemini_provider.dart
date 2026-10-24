@@ -40,6 +40,7 @@ class GeminiProvider extends HttpProviderBase {
               await _settingsService.getHistoryContextLength();
 
           final requestBody = await _buildRequestBody(
+            model: model,
             message: message,
             chatHistory: chatHistory,
             attachments: attachments,
@@ -97,6 +98,7 @@ class GeminiProvider extends HttpProviderBase {
           await _settingsService.getHistoryContextLength();
 
       final requestBody = await _buildRequestBody(
+        model: model,
         message: message,
         chatHistory: chatHistory,
         attachments: attachments,
@@ -223,6 +225,7 @@ class GeminiProvider extends HttpProviderBase {
 
   /// 构建符合 Gemini API 标准的请求体
   Future<Map<String, dynamic>> _buildRequestBody({
+    required String model,
     required String message,
     required List<Message> chatHistory,
     required List<Attachment> attachments,
@@ -246,6 +249,7 @@ class GeminiProvider extends HttpProviderBase {
     final requestBody = <String, dynamic>{
       'contents': contents,
       'generationConfig': _buildGenerationConfig(
+        model: model,
         temperature: temperature,
         maxTokens: maxTokens,
         thinkingMode: thinkingMode,
@@ -266,6 +270,7 @@ class GeminiProvider extends HttpProviderBase {
 
   /// 构建 generationConfig
   Map<String, dynamic> _buildGenerationConfig({
+    required String model,
     required double temperature,
     required int maxTokens,
     required bool thinkingMode,
@@ -275,8 +280,15 @@ class GeminiProvider extends HttpProviderBase {
       'maxOutputTokens': maxTokens,
     };
 
-    // 添加思考模式配置
-    if (thinkingMode) {
+    // Gemini 3/4 使用 thinkingLevel；2.5 及更早模型使用 thinkingBudget。
+    final isGemini3Plus =
+        model.startsWith('gemini-3') || model.startsWith('gemini-4');
+    if (isGemini3Plus) {
+      config['thinkingConfig'] = {
+        'thinkingLevel': thinkingMode ? 'high' : 'low',
+        'includeThoughts': thinkingMode,
+      };
+    } else if (thinkingMode) {
       config['thinkingConfig'] = {
         'thinkingBudget': -1,
         'includeThoughts': true,

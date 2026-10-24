@@ -258,7 +258,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get modelPlaceholder => '输入模型名称';
 
   @override
-  String get modelDesc => '例如: gpt-5, deepseek-chat';
+  String get modelDesc => '例如: gpt-6.1-sol, deepseek-flash';
 
   @override
   String get maxTokens => '最大Token数';
@@ -362,7 +362,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get commonModels => '常用模型';
 
   @override
-  String get commonModelsContent => 'OpenAI:\n• gpt-5\n\nDeepSeek:\n• deepseek-chat\n• deepseek-reasoner\n\n请根据您的 API 端点选择相应的模型。';
+  String get commonModelsContent => 'OpenAI:\n• gpt-6.1-sol\n• gpt-6-astra\n\nDeepSeek:\n• deepseek-flash\n• deepseek-v4-pro\n\n请根据您的 API 端点选择相应的模型。';
 
   @override
   String get appInfo => '应用信息';

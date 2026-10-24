@@ -258,7 +258,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get modelPlaceholder => '모델 이름 입력';
 
   @override
-  String get modelDesc => '예: gpt-5, deepseek-chat';
+  String get modelDesc => '예: gpt-6.1-sol, deepseek-flash';
 
   @override
   String get maxTokens => '최대 토큰 수';
@@ -362,7 +362,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get commonModels => '일반적인 모델';
 
   @override
-  String get commonModelsContent => 'OpenAI:\n• gpt-5\n\nDeepSeek:\n• deepseek-chat\n• deepseek-reasoner\n\nAPI 엔드포인트에 따라 해당 모델 선택.';
+  String get commonModelsContent => 'OpenAI:\n• gpt-6.1-sol\n• gpt-6-astra\n\nDeepSeek:\n• deepseek-flash\n• deepseek-v4-pro\n\nAPI 엔드포인트에 따라 해당 모델 선택.';
 
   @override
   String get appInfo => '앱 정보';

@@ -22,7 +22,37 @@ class ClaudeProvider extends HttpProviderBase {
   // 重试配置
 
   // Claude API 版本
-  static const String anthropicVersion = '2023-06-01';
+  static const String anthropicVersion = '2026-10-21';
+
+  /// Claude 4.7+ 和 5.x 使用 adaptive thinking，旧的 budget_tokens 会被拒绝。
+  bool _usesAdaptiveThinking(String model) {
+    final match = RegExp(r'claude-[a-z]+-(\d+)-(\d+)').firstMatch(model);
+    if (match != null) {
+      final major = int.tryParse(match.group(1) ?? '') ?? 0;
+      final minor = int.tryParse(match.group(2) ?? '') ?? 0;
+      return major > 4 || (major == 4 && minor >= 7);
+    }
+    return model.startsWith('claude-fable-5') ||
+        model.startsWith('claude-mythos-5');
+  }
+
+  Map<String, dynamic> _thinkingFields(
+    String model,
+    bool thinkingMode,
+    int maxTokens,
+  ) {
+    if (_usesAdaptiveThinking(model)) {
+      // 2026-10-21 起不再接受 temperature/top_p/top_k；
+      // adaptive 模型默认会自行决定思考深度，用 effort 控制。
+      return {
+        'output_config': {'effort': thinkingMode ? 'high' : 'low'},
+      };
+    }
+    if (!thinkingMode || maxTokens <= 1024) return const {};
+    return {
+      'thinking': {'type': 'enabled', 'budget_tokens': 1024},
+    };
+  }
 
   @override
   Future<Map<String, dynamic>> sendMessage({
@@ -60,9 +90,8 @@ class ClaudeProvider extends HttpProviderBase {
             'model': model,
             'messages': messages,
             'max_tokens': maxTokens,
-            'temperature': temperature,
             if (systemPrompt.isNotEmpty) 'system': systemPrompt,
-            if (thinkingMode) 'thinking': {'type': 'enabled', 'budget_tokens': 1000},
+            ..._thinkingFields(model, thinkingMode, maxTokens),
           };
 
           final response = await client.post(
@@ -125,10 +154,9 @@ class ClaudeProvider extends HttpProviderBase {
         'model': model,
         'messages': messages,
         'max_tokens': maxTokens,
-        'temperature': temperature,
         'stream': true,
         if (systemPrompt.isNotEmpty) 'system': systemPrompt,
-        if (thinkingMode) 'thinking': {'type': 'enabled', 'budget_tokens': 1000},
+        ..._thinkingFields(model, thinkingMode, maxTokens),
       };
 
       final request = http.Request(
@@ -258,7 +286,7 @@ class ClaudeProvider extends HttpProviderBase {
       'model': model,
       'messages': requestMessages,
       'max_tokens': 50,
-      'temperature': 0.3,
+      ..._thinkingFields(model, false, 50),
     };
 
     final response = await http.post(

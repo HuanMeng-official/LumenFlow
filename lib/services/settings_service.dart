@@ -62,7 +62,7 @@ class SettingsService {
   static const bool defaultBuiltinTextToolsEnabled = true;
 
   static const String defaultEndpoint = 'https://api.openai.com/v1';
-  static const String defaultModel = 'gpt-5';
+  static const String defaultModel = 'gpt-6.1-sol';
   static const double defaultTemperature = 0.7;
   static const int defaultMaxTokens = 8192;
   static const bool defaultEnableHistory = true;

@@ -258,7 +258,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get modelPlaceholder => 'Introduce el nombre del modelo';
 
   @override
-  String get modelDesc => 'ej: gpt-4o, deepseek-chat';
+  String get modelDesc => 'ej: gpt-6.1-sol, deepseek-flash';
 
   @override
   String get maxTokens => 'Tokens máximos';
@@ -362,7 +362,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get commonModels => 'Modelos comunes';
 
   @override
-  String get commonModelsContent => 'OpenAI:\n• gpt-4o\n\nDeepSeek:\n• deepseek-chat\n• deepseek-reasoner\n\nSelecciona el modelo correspondiente según tu punto de acceso API.';
+  String get commonModelsContent => 'OpenAI:\n• gpt-6.1-sol\n• gpt-6-astra\n\nDeepSeek:\n• deepseek-flash\n• deepseek-v4-pro\n\nSelecciona el modelo correspondiente según tu punto de acceso API.';
 
   @override
   String get appInfo => 'Información de la aplicación';
