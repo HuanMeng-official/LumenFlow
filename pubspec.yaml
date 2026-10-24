@@ -27,12 +27,17 @@ dependencies:
   flutter_local_notifications: ^21.0.0
   sqlite3: ^3.2.0
   window_manager: ^0.5.1
-  auto_orientation_v2: ^2.3.7
+  auto_orientation_v2: 2.4.6
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+
+dependency_overrides:
+  # image 4.11+ calls archive APIs added after 4.0.9, but pdf 3.12 caps
+  # archive at <4.1.0. Keep image at the last version compatible with 4.0.9.
+  image: 4.10.1
 
 flutter:
   uses-material-design: true

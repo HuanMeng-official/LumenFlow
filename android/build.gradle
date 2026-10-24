@@ -9,6 +9,20 @@ rootProject.buildDir = "../build"
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
+subprojects { subproject ->
+    // auto_orientation_v2 2.4.x ships Kotlin sources but does not apply the
+    // Kotlin plugin in its own build.gradle.
+    if (subproject.name == "auto_orientation_v2") {
+        subproject.pluginManager.apply("org.jetbrains.kotlin.android")
+        def kotlinCompile = Class.forName(
+            "org.jetbrains.kotlin.gradle.tasks.KotlinCompile"
+        )
+        subproject.tasks.withType(kotlinCompile).configureEach { task ->
+            task.kotlinOptions.jvmTarget = "1.8"
+        }
+    }
+}
+
 subprojects {
     project.evaluationDependsOn(":app")
 }

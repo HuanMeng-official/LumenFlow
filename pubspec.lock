@@ -29,10 +29,10 @@ packages:
     dependency: "direct main"
     description:
       name: auto_orientation_v2
-      sha256: "7a3870f0fba5a451f5a5f119d13ba4c949ec63b1d2caf90394801e24001ed978"
+      sha256: "3fc17c769b17c49246e897d0b498c398c20eee5b7ecd54ae650bffc4113bdef2"
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "2.4.7"
+    version: "2.4.6"
   barcode:
     dependency: transitive
     description:
@@ -302,13 +302,13 @@ packages:
     source: hosted
     version: "4.1.2"
   image:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: image
-      sha256: d701df3ef4761a22854c69b9661c9d8f25b264b3982985f25944247ce644761f
+      sha256: a1e7f4951e538a568e14b856702afc9ae1d2f4b202daced8d22c1b9cd211ce89
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "4.11.0"
+    version: "4.10.1"
   image_picker:
     dependency: "direct main"
     description:
