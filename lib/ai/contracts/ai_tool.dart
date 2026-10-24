@@ -30,10 +30,15 @@ class AIToolCall {
   final String name;
   final String argumentsJson;
 
+  /// Provider-side item id (for example OpenAI Responses `fc_...`). This is
+  /// distinct from [id], which maps to the provider's `call_id`.
+  final String? providerItemId;
+
   const AIToolCall({
     required this.id,
     required this.name,
     required this.argumentsJson,
+    this.providerItemId,
   });
 
   Map<String, dynamic> get arguments {

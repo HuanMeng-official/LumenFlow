@@ -6,21 +6,22 @@ import '../ai/contracts/ai_stream_event.dart';
 import '../ai/contracts/ai_tool_executor.dart';
 import '../ai/providers/chat_completions_profile.dart';
 import '../ai/providers/chat_completions_tool_provider.dart';
+import '../ai/providers/responses_tool_provider.dart';
 import '../models/active_platform_config.dart';
 import '../models/message.dart';
 
-/// Runs a tool-capable Chat Completions turn and emits the legacy map protocol
+/// Runs a tool-capable provider turn and emits the legacy map protocol
 /// consumed by [ChatSendController].
 class ToolChatService {
   ToolChatService({
     required this.executor,
-    AIStreamingProvider Function(ChatCompletionsProfile profile)?
+    AIStreamingProvider Function(ActivePlatformConfig config)?
         providerFactory,
     this.maxIterations = 5,
   }) : _providerFactory = providerFactory;
 
   final AIToolExecutor executor;
-  final AIStreamingProvider Function(ChatCompletionsProfile profile)?
+  final AIStreamingProvider Function(ActivePlatformConfig config)?
       _providerFactory;
   final int maxIterations;
 
@@ -35,13 +36,7 @@ class ToolChatService {
     required bool enableHistory,
     required int historyContextLength,
   }) async* {
-    final profile = ChatCompletionsProfiles.forType(config.apiType);
-    if (profile == null) {
-      throw AIError(
-        type: AIErrorType.unsupported,
-        message: 'Platform ${config.apiType} does not support tools',
-      );
-    }
+    final provider = _providerFactory?.call(config) ?? _createProvider(config);
 
     final messages = <AIMessage>[AIMessage.system(systemPrompt)];
 
@@ -82,8 +77,6 @@ class ToolChatService {
       toolChoice: AIToolChoice.auto,
     );
 
-    final provider = _providerFactory?.call(profile) ??
-        ChatCompletionsToolProvider(profile: profile);
     final runner = AgentRunner(
       provider: provider,
       executor: executor,
@@ -111,5 +104,22 @@ class ToolChatService {
         };
       }
     }
+  }
+
+  AIStreamingProvider _createProvider(ActivePlatformConfig config) {
+    final chatProfile = ChatCompletionsProfiles.forType(config.apiType);
+    if (chatProfile != null) {
+      return ChatCompletionsToolProvider(profile: chatProfile);
+    }
+
+    final responsesProfile = ResponsesToolProfiles.forType(config.apiType);
+    if (responsesProfile != null) {
+      return ResponsesToolProvider(profile: responsesProfile);
+    }
+
+    throw AIError(
+      type: AIErrorType.unsupported,
+      message: 'Platform ${config.apiType} does not support tools',
+    );
   }
 }

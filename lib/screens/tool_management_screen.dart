@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import '../ai/mcp/mcp_client.dart';
 import '../ai/mcp/mcp_models.dart';
 import '../ai/providers/chat_completions_profile.dart';
+import '../ai/providers/responses_tool_provider.dart';
 import '../l10n/app_localizations.dart';
 import '../services/settings_service.dart';
 import '../widgets/settings/settings_section.dart';
@@ -417,9 +418,10 @@ class _ToolManagementScreenState extends State<ToolManagementScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                   child: Text(
                     ChatCompletionsProfiles.forType(_activePlatformType) !=
-                            null
+                                null ||
+                            ResponsesToolProfiles.supports(_activePlatformType)
                         ? '当前平台（$_activePlatformType）支持工具调用。'
-                        : '当前平台（$_activePlatformType）暂不支持工具调用。支持的平台：DeepSeek、Kimi、MiniMax、智谱、SiliconFlow、Other、Xiaomi MiMo。',
+                        : '当前平台（$_activePlatformType）暂不支持工具调用。支持的平台：DeepSeek、Kimi、MiniMax、智谱、SiliconFlow、Other、Xiaomi MiMo、OpenAI、Grok、OpenRouter、LM Studio。',
                     style: const TextStyle(fontSize: 13),
                   ),
                 ),

@@ -10,6 +10,7 @@ import '../ai/mcp/mcp_client.dart';
 import '../ai/mcp/mcp_models.dart';
 import '../ai/mcp/mcp_tool_manager.dart';
 import '../ai/providers/chat_completions_profile.dart';
+import '../ai/providers/responses_tool_provider.dart';
 import '../ai/tools/builtin_calculator_tool.dart';
 import '../ai/tools/builtin_text_tools.dart';
 import '../ai/tools/builtin_time_tool.dart';
@@ -148,6 +149,11 @@ class AIService {
 
   @visibleForTesting
   Future<McpToolManager?> loadToolManagerForTest() => _loadToolManager();
+
+  bool _supportsTools(String apiType) {
+    return ChatCompletionsProfiles.forType(apiType) != null ||
+        ResponsesToolProfiles.supports(apiType);
+  }
 
   /// 合并内置工具与 MCP 工具，供工具调用路径使用。
   AIToolExecutor buildToolExecutor({
@@ -393,8 +399,7 @@ class AIService {
 
     try {
       final config = await _settingsService.getActivePlatformConfig();
-      if (attachments.isEmpty &&
-          ChatCompletionsProfiles.forType(config.apiType) != null) {
+      if (attachments.isEmpty && _supportsTools(config.apiType)) {
         final servers = await _settingsService.getMcpServers();
         if (servers.any((server) => server.enabled)) {
           yield {
