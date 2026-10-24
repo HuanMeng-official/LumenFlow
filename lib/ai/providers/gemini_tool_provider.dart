@@ -13,7 +13,16 @@ import '../contracts/cancellation_token.dart';
 import '../transport/sse_decoder.dart';
 import 'chat_completions_tool_provider.dart' show AIStreamingProvider;
 
-/// Streams a Gemini generateContent request with function declarations.
+class _ToolCallBuilder {
+  String? id;
+  String name = '';
+  final StringBuffer arguments = StringBuffer();
+}
+
+/// Streams a Gemini Interactions request with client tools.
+///
+/// Tool loops use server-side interaction state: after a function call we send
+/// only the matching `function_result` steps plus `previous_interaction_id`.
 class GeminiToolProvider implements AIStreamingProvider {
   GeminiToolProvider({
     http.Client Function()? clientFactory,
@@ -29,9 +38,8 @@ class GeminiToolProvider implements AIStreamingProvider {
   final Duration retryBaseDelay;
   final int maxRetries;
 
-  /// Raw model parts from the previous response. Gemini 3 thought signatures
-  /// must be passed back unchanged during tool use.
-  List<Map<String, dynamic>>? _pendingModelParts;
+  String? _previousInteractionId;
+  final Set<String> _sentToolResultIds = {};
 
   @override
   Stream<AIStreamEvent> stream(AIRequest request) async* {
@@ -39,15 +47,15 @@ class GeminiToolProvider implements AIStreamingProvider {
 
     final client = _clientFactory();
     final decoder = SseDecoder();
+    final stepTypes = <int, String>{};
+    final builders = <int, _ToolCallBuilder>{};
     final answer = StringBuffer();
     final reasoning = StringBuffer();
-    final modelParts = <Map<String, dynamic>>[];
-    final calls = <AIToolCall>[];
-    var sawChunk = false;
-    _pendingDeltaEvents.clear();
+    var sawEvent = false;
 
     try {
       final response = await _sendWithRetry(client, request);
+      _markToolResultsSent(request.messages);
       final contentType =
           (response.headers['content-type'] ??
                   response.headers['Content-Type'] ??
@@ -55,9 +63,9 @@ class GeminiToolProvider implements AIStreamingProvider {
               .toLowerCase();
 
       if (contentType.contains('application/json')) {
-        final body = await response.stream
-            .bytesToString()
-            .timeout(streamingTimeout);
+        final body = await response.stream.bytesToString().timeout(
+          streamingTimeout,
+        );
         yield* _parseNonStreamingBody(body);
         return;
       }
@@ -84,18 +92,27 @@ class GeminiToolProvider implements AIStreamingProvider {
 
           for (final event in decoder.add(iterator.current)) {
             final data = event.data.trim();
-            if (data.isEmpty || data == '[DONE]') continue;
+            if (data.isEmpty) continue;
+            if (data == '[DONE]') {
+              yield* _emitToolCalls(builders);
+              return;
+            }
 
-            final parsed = _parseChunk(
+            sawEvent = true;
+            final parsed = _parseEvent(
               data,
+              event.event,
+              stepTypes,
+              builders,
               answer,
               reasoning,
-              modelParts,
-              calls,
             );
-            sawChunk = sawChunk || parsed;
-            for (final parsedEvent in _drainDeltaEvents()) {
+            for (final parsedEvent in parsed.events) {
               yield parsedEvent;
+            }
+            if (parsed.terminal) {
+              yield* _emitToolCalls(builders);
+              return;
             }
           }
         }
@@ -103,30 +120,32 @@ class GeminiToolProvider implements AIStreamingProvider {
         for (final event in decoder.flush()) {
           final data = event.data.trim();
           if (data.isEmpty || data == '[DONE]') continue;
-          final parsed = _parseChunk(
+          sawEvent = true;
+          final parsed = _parseEvent(
             data,
+            event.event,
+            stepTypes,
+            builders,
             answer,
             reasoning,
-            modelParts,
-            calls,
           );
-          sawChunk = sawChunk || parsed;
-          for (final parsedEvent in _drainDeltaEvents()) {
+          for (final parsedEvent in parsed.events) {
             yield parsedEvent;
+          }
+          if (parsed.terminal) {
+            yield* _emitToolCalls(builders);
+            return;
           }
         }
 
-        if (!sawChunk) {
+        if (!sawEvent) {
           throw const AIError(
             type: AIErrorType.invalidResponse,
-            message: 'Stream ended before any response was received',
+            message: 'Stream ended before any event was received',
           );
         }
 
-        _pendingModelParts = modelParts.isEmpty ? null : modelParts;
-        if (calls.isNotEmpty) {
-          yield AIToolCallsComplete(calls);
-        }
+        yield* _emitToolCalls(builders);
       } finally {
         await iterator.cancel();
       }
@@ -167,88 +186,192 @@ class GeminiToolProvider implements AIStreamingProvider {
     }
   }
 
-  // Delta events are collected by _parseChunk and drained after each chunk.
-  final List<AIStreamEvent> _pendingDeltaEvents = [];
-
-  List<AIStreamEvent> _drainDeltaEvents() {
-    final events = List<AIStreamEvent>.from(_pendingDeltaEvents);
-    _pendingDeltaEvents.clear();
-    return events;
-  }
-
-  bool _parseChunk(
+  ({List<AIStreamEvent> events, bool terminal}) _parseEvent(
     String data,
+    String? eventName,
+    Map<int, String> stepTypes,
+    Map<int, _ToolCallBuilder> builders,
     StringBuffer answer,
     StringBuffer reasoning,
-    List<Map<String, dynamic>> modelParts,
-    List<AIToolCall> calls,
   ) {
     dynamic json;
     try {
       json = jsonDecode(data);
     } catch (_) {
-      return false;
+      return (events: const [], terminal: false);
     }
-    if (json is! Map) return false;
+    if (json is! Map) {
+      return (events: const [], terminal: false);
+    }
 
     final map = json.cast<String, dynamic>();
-    final error = map['error'];
-    if (error != null) {
+    final type =
+        map['type']?.toString() ?? map['event_type']?.toString() ?? eventName;
+    final events = <AIStreamEvent>[];
+
+    if (type == 'error' || type == 'interaction.failed') {
+      final interaction = map['interaction'];
+      final error = interaction is Map
+          ? interaction['error'] ?? interaction
+          : map['error'] ?? map;
       throw _errorFromPayload(error);
     }
 
-    final candidates = map['candidates'];
-    if (candidates is! List || candidates.isEmpty) return false;
-
-    final candidate = candidates.first;
-    if (candidate is! Map) return false;
-
-    final content = candidate['content'];
-    if (content is! Map) return true;
-
-    final parts = content['parts'];
-    if (parts is! List) return true;
-
-    for (final rawPart in parts) {
-      if (rawPart is! Map) continue;
-      final part = rawPart.cast<String, dynamic>();
-
-      final functionCall = part['functionCall'];
-      if (functionCall is Map) {
-        final callMap = functionCall.cast<String, dynamic>();
-        final name = callMap['name']?.toString() ?? '';
-        if (name.isEmpty) continue;
-        final args = callMap['args'];
-        final argumentsJson = args is Map ? jsonEncode(args) : '{}';
-        final index = calls.length;
-        calls.add(
-          AIToolCall(
-            id: 'gemini_call_$index',
-            name: name,
-            argumentsJson: argumentsJson,
-          ),
-        );
-        modelParts.add(part);
-        continue;
-      }
-
-      final text = part['text'];
-      if (text is String && text.isNotEmpty) {
-        final isThought = part['thought'] == true;
-        if (isThought) {
-          reasoning.write(text);
-          _pendingDeltaEvents.add(AIReasoningDelta(text));
-        } else {
-          answer.write(text);
-          _pendingDeltaEvents.add(AIAnswerDelta(text));
-        }
-        modelParts.add(part);
-      } else if (part['thoughtSignature'] != null) {
-        modelParts.add(part);
+    final interaction = map['interaction'];
+    if (interaction is Map) {
+      final id = interaction['id'];
+      if (id is String && id.isNotEmpty) {
+        _previousInteractionId = id;
       }
     }
+    final interactionId = map['interaction_id'];
+    if (interactionId is String && interactionId.isNotEmpty) {
+      _previousInteractionId = interactionId;
+    }
 
-    return true;
+    if (type == 'interaction.status_update') {
+      final status = map['status']?.toString() ?? '';
+      if (status == 'failed') {
+        throw const AIError(
+          type: AIErrorType.invalidResponse,
+          message: 'Gemini interaction failed',
+        );
+      }
+      if (status == 'cancelled') {
+        throw const AIError(
+          type: AIErrorType.cancelled,
+          message: 'Gemini interaction cancelled',
+        );
+      }
+      // Keep reading until interaction.completed so we can capture the
+      // interaction id even when requires_action is reported early.
+      return (events: const [], terminal: false);
+    }
+
+    switch (type) {
+      case 'step.start':
+        final index = (map['index'] as num?)?.toInt() ?? 0;
+        final step = map['step'];
+        if (step is Map) {
+          final stepMap = step.cast<String, dynamic>();
+          final stepType = stepMap['type']?.toString() ?? '';
+          stepTypes[index] = stepType;
+          if (stepType == 'function_call') {
+            final builder = builders.putIfAbsent(index, _ToolCallBuilder.new);
+            final id = stepMap['id'];
+            if (id is String && id.isNotEmpty) builder.id = id;
+            final name = stepMap['name'];
+            if (name is String && name.isNotEmpty) builder.name = name;
+            final arguments = stepMap['arguments'];
+            if (arguments is Map && arguments.isNotEmpty) {
+              builder.arguments.write(jsonEncode(arguments));
+            } else if (arguments is String && arguments.isNotEmpty) {
+              builder.arguments.write(arguments);
+            }
+          } else if (stepType == 'model_output') {
+            for (final text in _extractTexts(stepMap['content'])) {
+              answer.write(text);
+              events.add(AIAnswerDelta(text));
+            }
+          } else if (stepType == 'thought') {
+            for (final text in _extractTexts(stepMap['summary'])) {
+              reasoning.write(text);
+              events.add(AIReasoningDelta(text));
+            }
+          }
+        }
+        return (events: events, terminal: false);
+
+      case 'step.delta':
+        final index = (map['index'] as num?)?.toInt() ?? 0;
+        final delta = map['delta'];
+        if (delta is! Map) {
+          return (events: const [], terminal: false);
+        }
+        final deltaMap = delta.cast<String, dynamic>();
+        final deltaType = deltaMap['type']?.toString() ?? '';
+        final stepType = stepTypes[index] ?? 'model_output';
+
+        if (deltaType == 'arguments' || deltaType == 'arguments_delta') {
+          final partial =
+              deltaMap['partial_arguments'] ?? deltaMap['arguments'];
+          if (partial is String) {
+            builders
+                .putIfAbsent(index, _ToolCallBuilder.new)
+                .arguments
+                .write(partial);
+          }
+        } else if (deltaType == 'thought_summary' || deltaType == 'thought') {
+          final texts = _extractTexts(deltaMap['content']).toList();
+          final text = deltaMap['text'];
+          if (texts.isEmpty && text is String && text.isNotEmpty) {
+            texts.add(text);
+          }
+          for (final thought in texts) {
+            reasoning.write(thought);
+            events.add(AIReasoningDelta(thought));
+          }
+        } else if (deltaType == 'text') {
+          final text = deltaMap['text'];
+          if (text is String && text.isNotEmpty) {
+            if (stepType == 'thought') {
+              reasoning.write(text);
+              events.add(AIReasoningDelta(text));
+            } else {
+              answer.write(text);
+              events.add(AIAnswerDelta(text));
+            }
+          }
+        }
+        return (events: events, terminal: false);
+
+      case 'step.stop':
+        final index = (map['index'] as num?)?.toInt() ?? 0;
+        final builder = builders[index];
+        if (builder != null) {
+          final arguments = builder.arguments.toString();
+          if (arguments.trim().isNotEmpty) {
+            try {
+              final decoded = jsonDecode(arguments);
+              if (decoded is! Map) {
+                throw const FormatException('arguments must be an object');
+              }
+            } catch (error) {
+              throw AIError(
+                type: AIErrorType.invalidResponse,
+                message: 'Invalid tool call arguments for ${builder.name}',
+                cause: error,
+              );
+            }
+          }
+        }
+        return (events: const [], terminal: false);
+
+      case 'interaction.requires_action':
+        return (events: const [], terminal: true);
+
+      case 'interaction.completed':
+        final completed = map['interaction'];
+        final status = completed is Map
+            ? completed['status']?.toString() ?? ''
+            : '';
+        if (status == 'failed') {
+          throw const AIError(
+            type: AIErrorType.invalidResponse,
+            message: 'Gemini interaction failed',
+          );
+        }
+        if (status == 'cancelled') {
+          throw const AIError(
+            type: AIErrorType.cancelled,
+            message: 'Gemini interaction cancelled',
+          );
+        }
+        return (events: const [], terminal: true);
+
+      default:
+        return (events: const [], terminal: false);
+    }
   }
 
   Stream<AIStreamEvent> _parseNonStreamingBody(String body) async* {
@@ -262,7 +385,6 @@ class GeminiToolProvider implements AIStreamingProvider {
         cause: error,
       );
     }
-
     if (json is! Map) {
       throw const AIError(
         type: AIErrorType.invalidResponse,
@@ -276,45 +398,125 @@ class GeminiToolProvider implements AIStreamingProvider {
       throw _errorFromPayload(error);
     }
 
-    final candidates = map['candidates'];
-    if (candidates is! List || candidates.isEmpty) {
+    final id = map['id'];
+    if (id is String && id.isNotEmpty) {
+      _previousInteractionId = id;
+    }
+
+    final steps = map['steps'];
+    if (steps is! List) {
       throw const AIError(
         type: AIErrorType.invalidResponse,
-        message: 'Response contains no candidates',
+        message: 'Response contains no steps',
       );
     }
 
     final answer = StringBuffer();
     final reasoning = StringBuffer();
-    final modelParts = <Map<String, dynamic>>[];
     final calls = <AIToolCall>[];
 
-    _parseChunk(
-      jsonEncode(map),
-      answer,
-      reasoning,
-      modelParts,
-      calls,
-    );
+    for (final rawStep in steps) {
+      if (rawStep is! Map) continue;
+      final step = rawStep.cast<String, dynamic>();
 
-    final events = List<AIStreamEvent>.from(_pendingDeltaEvents);
-    _pendingDeltaEvents.clear();
-
-    _pendingModelParts = modelParts.isEmpty ? null : modelParts;
-    if (calls.isNotEmpty) {
-      events.add(AIToolCallsComplete(calls));
+      switch (step['type']) {
+        case 'thought':
+          _collectThought(step, reasoning);
+        case 'model_output':
+          _collectModelOutput(step, answer);
+        case 'function_call':
+          final name = step['name']?.toString() ?? '';
+          if (name.isEmpty) continue;
+          final args = step['arguments'];
+          calls.add(
+            AIToolCall(
+              id: step['id']?.toString() ?? 'gemini_call_${calls.length}',
+              name: name,
+              argumentsJson: args is Map
+                  ? jsonEncode(args)
+                  : args is String
+                  ? args
+                  : '{}',
+            ),
+          );
+      }
     }
 
-    for (final event in events) {
-      yield event;
+    if (reasoning.isNotEmpty) {
+      yield AIReasoningDelta(reasoning.toString());
+    }
+    if (answer.isNotEmpty) {
+      yield AIAnswerDelta(answer.toString());
+    }
+    if (calls.isNotEmpty) {
+      yield AIToolCallsComplete(calls);
+    }
+  }
+
+  Iterable<String> _extractTexts(dynamic raw) sync* {
+    if (raw == null) return;
+    final items = raw is List ? raw : [raw];
+    for (final item in items) {
+      if (item is! Map) continue;
+      final text = item['text'];
+      if (text is String && text.isNotEmpty) yield text;
+    }
+  }
+
+  void _collectThought(Map<String, dynamic> step, StringBuffer buffer) {
+    for (final text in _extractTexts(step['summary'])) {
+      buffer.write(text);
+    }
+  }
+
+  void _collectModelOutput(Map<String, dynamic> step, StringBuffer buffer) {
+    for (final text in _extractTexts(step['content'])) {
+      buffer.write(text);
+    }
+  }
+
+  Stream<AIStreamEvent> _emitToolCalls(
+    Map<int, _ToolCallBuilder> builders,
+  ) async* {
+    final calls = <AIToolCall>[];
+    final indexes = builders.keys.toList()..sort();
+
+    for (final index in indexes) {
+      final builder = builders[index]!;
+      if (builder.name.isEmpty) continue;
+
+      final argumentsJson = builder.arguments.toString();
+      if (argumentsJson.trim().isNotEmpty) {
+        try {
+          final decoded = jsonDecode(argumentsJson);
+          if (decoded is! Map) {
+            throw const FormatException('arguments must be an object');
+          }
+        } catch (error) {
+          throw AIError(
+            type: AIErrorType.invalidResponse,
+            message: 'Invalid tool call arguments for ${builder.name}',
+            cause: error,
+          );
+        }
+      }
+
+      calls.add(
+        AIToolCall(
+          id: builder.id ?? 'gemini_call_$index',
+          name: builder.name,
+          argumentsJson: argumentsJson,
+        ),
+      );
+    }
+
+    if (calls.isNotEmpty) {
+      yield AIToolCallsComplete(calls);
     }
   }
 
   http.Request _buildRequest(AIRequest request) {
-    final httpRequest = http.Request(
-      'POST',
-      _resolveUrl(request.endpoint, request.model, request.apiKey),
-    );
+    final httpRequest = http.Request('POST', _resolveUrl(request.endpoint));
 
     httpRequest.headers['Content-Type'] = 'application/json';
     httpRequest.headers['Accept'] = 'text/event-stream, application/json';
@@ -323,134 +525,132 @@ class GeminiToolProvider implements AIStreamingProvider {
     }
     httpRequest.headers.addAll(request.headers);
 
-    final built = _buildContents(request);
+    final built = _buildInput(request);
     final body = <String, dynamic>{
-      'contents': built.contents,
-      'generationConfig': _buildGenerationConfig(request),
-      if (built.system.isNotEmpty)
-        'system_instruction': {
-          'parts': [
-            {'text': built.system},
-          ],
-        },
+      'model': _normalizeModel(request.model),
+      'input': built.input,
+      'stream': true,
+      'store': true,
+      if (built.system.isNotEmpty) 'system_instruction': built.system,
+      'generation_config': {
+        'max_output_tokens': _effectiveMaxTokens(request.maxTokens),
+        'thinking_level': request.thinkingMode ? 'high' : 'low',
+        'thinking_summaries': request.thinkingMode ? 'auto' : 'none',
+        if (_supportsSamplingParams(request.model))
+          'temperature': request.temperature,
+        if (request.tools.isNotEmpty)
+          'tool_choice': _toolChoice(request.toolChoice),
+      },
       if (request.tools.isNotEmpty)
-        'tools': [
-          {
-            'functionDeclarations': request.tools
-                .map(
-                  (tool) => {
-                    'name': tool.name,
-                    'description': tool.description,
-                    'parameters': tool.inputSchema,
-                  },
-                )
-                .toList(),
-          },
-        ],
-      if (request.tools.isNotEmpty)
-        'toolConfig': {
-          'functionCallingConfig': {
-            'mode': _toolChoice(request.toolChoice),
-          },
-        },
+        'tools': request.tools
+            .map(
+              (tool) => {
+                'type': 'function',
+                'name': tool.name,
+                'description': tool.description,
+                'parameters': tool.inputSchema,
+              },
+            )
+            .toList(),
+      if (_previousInteractionId != null)
+        'previous_interaction_id': _previousInteractionId,
     };
 
     httpRequest.body = jsonEncode(body);
     return httpRequest;
   }
 
-  ({List<Map<String, dynamic>> contents, String system}) _buildContents(
+  ({List<Map<String, dynamic>> input, String system}) _buildInput(
     AIRequest request,
   ) {
-    final contents = <Map<String, dynamic>>[];
     final system = StringBuffer();
+    final input = <Map<String, dynamic>>[];
 
-    var index = 0;
-    while (index < request.messages.length) {
-      final message = request.messages[index];
-
-      switch (message.role) {
-        case AIMessageRole.system:
-          if (system.isNotEmpty) system.write('\n\n');
-          system.write(message.content);
-          index++;
-        case AIMessageRole.user:
-          contents.add({
-            'role': 'user',
-            'parts': [
-              {'text': message.content},
-            ],
-          });
-          index++;
-        case AIMessageRole.assistant:
-          final parts = <Map<String, dynamic>>[];
-          final pending = _pendingModelParts;
-          if (message.toolCalls.isNotEmpty &&
-              pending != null &&
-              _partsMatch(pending, message.toolCalls)) {
-            parts.addAll(pending);
-            _pendingModelParts = null;
-          } else {
+    if (_previousInteractionId == null) {
+      for (final message in request.messages) {
+        switch (message.role) {
+          case AIMessageRole.system:
+            if (system.isNotEmpty) system.write('\n\n');
+            system.write(message.content);
+          case AIMessageRole.user:
+            input.add({
+              'type': 'user_input',
+              'content': [
+                {'type': 'text', 'text': message.content},
+              ],
+            });
+          case AIMessageRole.assistant:
             if (message.content.trim().isNotEmpty) {
-              parts.add({'text': message.content});
-            }
-            for (final call in message.toolCalls) {
-              parts.add({
-                'functionCall': {
-                  'name': call.name,
-                  'args': _decodeArguments(call.argumentsJson),
-                },
+              input.add({
+                'type': 'model_output',
+                'content': [
+                  {'type': 'text', 'text': message.content},
+                ],
               });
             }
-          }
-          if (parts.isNotEmpty) {
-            contents.add({'role': 'model', 'parts': parts});
-          }
-          index++;
-        case AIMessageRole.tool:
-          final parts = <Map<String, dynamic>>[];
-          while (index < request.messages.length &&
-              request.messages[index].role == AIMessageRole.tool) {
-            final toolMessage = request.messages[index];
-            final name = toolMessage.name ?? '';
-            parts.add({
-              'functionResponse': {
-                'name': name,
-                'response': {
-                  'name': name,
-                  'content': _decodeContent(toolMessage.content),
-                },
-              },
-            });
-            index++;
-          }
-          if (parts.isNotEmpty) {
-            contents.add({'role': 'user', 'parts': parts});
-          }
+            for (final call in message.toolCalls) {
+              input.add({
+                'type': 'function_call',
+                'id': call.id,
+                'name': call.name,
+                'arguments': _decodeArguments(call.argumentsJson),
+              });
+            }
+          case AIMessageRole.tool:
+            input.add(_functionResultStep(message));
+        }
+      }
+      return (input: input, system: system.toString());
+    }
+
+    // Subsequent turns only need the new tool results; the interaction state
+    // carries the prior user/model/thought/function_call steps.
+    for (final message in request.messages) {
+      if (message.role == AIMessageRole.system) {
+        if (system.isNotEmpty) system.write('\n\n');
+        system.write(message.content);
+      } else if (message.role == AIMessageRole.tool) {
+        final callId = message.toolCallId ?? '';
+        if (callId.isNotEmpty && _sentToolResultIds.contains(callId)) {
+          continue;
+        }
+        input.add(_functionResultStep(message));
       }
     }
 
-    return (contents: contents, system: system.toString());
+    return (input: input, system: system.toString());
   }
 
-  bool _partsMatch(
-    List<Map<String, dynamic>> parts,
-    List<AIToolCall> calls,
-  ) {
-    final names = parts
-        .map((part) => part['functionCall'])
-        .whereType<Map>()
-        .map((call) => call['name']?.toString())
-        .whereType<String>()
-        .toList();
-    if (names.length != calls.length) return false;
+  int _effectiveMaxTokens(int maxTokens) {
+    // Synchronous Interactions requests are capped at 64K output tokens.
+    if (maxTokens <= 0) return 1;
+    if (maxTokens > 65536) return 65536;
+    return maxTokens;
+  }
 
-    final sortedNames = names.toList()..sort();
-    final sortedCalls = calls.map((call) => call.name).toList()..sort();
-    for (var i = 0; i < sortedNames.length; i++) {
-      if (sortedNames[i] != sortedCalls[i]) return false;
+  bool _supportsSamplingParams(String model) {
+    final name = _normalizeModel(model);
+    return !(name.startsWith('gemini-4') ||
+        name.startsWith('gemini-3.6') ||
+        name.startsWith('gemini-3.7') ||
+        name.startsWith('gemini-3.8'));
+  }
+
+  void _markToolResultsSent(List<AIMessage> messages) {
+    for (final message in messages) {
+      if (message.role != AIMessageRole.tool) continue;
+      final callId = message.toolCallId;
+      if (callId != null && callId.isNotEmpty) {
+        _sentToolResultIds.add(callId);
+      }
     }
-    return true;
+  }
+
+  String _normalizeModel(String model) {
+    final trimmed = model.trim();
+    return trimmed.startsWith('models/')
+        ? trimmed.substring('models/'.length)
+        : trimmed;
   }
 
   Map<String, dynamic> _decodeArguments(String argumentsJson) {
@@ -464,50 +664,31 @@ class GeminiToolProvider implements AIStreamingProvider {
     return const {};
   }
 
-  dynamic _decodeContent(String content) {
-    if (content.trim().isEmpty) return content;
-    try {
-      return jsonDecode(content);
-    } catch (_) {
-      return content;
-    }
-  }
-
-  Map<String, dynamic> _buildGenerationConfig(AIRequest request) {
-    final config = <String, dynamic>{
-      'temperature': request.temperature,
-      'maxOutputTokens': request.maxTokens,
+  Map<String, dynamic> _functionResultStep(AIMessage message) {
+    final name = message.name ?? '';
+    return {
+      'type': 'function_result',
+      'name': name,
+      'call_id': message.toolCallId ?? '',
+      'result': [
+        {'type': 'text', 'text': message.content},
+      ],
+      if (message.isError) 'is_error': true,
     };
-
-    final isGemini3Plus = request.model.startsWith('gemini-3') ||
-        request.model.startsWith('gemini-4');
-    if (isGemini3Plus) {
-      config['thinkingConfig'] = {
-        'thinkingLevel': request.thinkingMode ? 'high' : 'low',
-        'includeThoughts': request.thinkingMode,
-      };
-    } else if (request.thinkingMode) {
-      config['thinkingConfig'] = {
-        'thinkingBudget': -1,
-        'includeThoughts': true,
-      };
-    }
-
-    return config;
   }
 
   String _toolChoice(AIToolChoice choice) {
     switch (choice) {
       case AIToolChoice.auto:
-        return 'AUTO';
+        return 'auto';
       case AIToolChoice.none:
-        return 'NONE';
+        return 'none';
       case AIToolChoice.required:
-        return 'ANY';
+        return 'any';
     }
   }
 
-  Uri _resolveUrl(String endpoint, String model, String apiKey) {
+  Uri _resolveUrl(String endpoint) {
     final raw = endpoint.trim();
     if (raw.isEmpty) {
       throw const AIError(
@@ -525,31 +706,21 @@ class GeminiToolProvider implements AIStreamingProvider {
     }
 
     var path = uri.path;
+    final modelsIndex = path.indexOf('/models/');
+    if (modelsIndex >= 0) {
+      path = path.substring(0, modelsIndex);
+    }
     if (path.endsWith('/')) {
       path = path.substring(0, path.length - 1);
     }
-
-    final modelPath = model.contains('/') ? model : 'models/$model';
-    if (path.contains('/models/')) {
-      final marker = path.indexOf(':');
-      if (marker >= 0) {
-        path = path.substring(0, marker);
-      }
-      if (!path.endsWith(':streamGenerateContent')) {
-        path = '$path:streamGenerateContent';
-      }
-    } else {
-      path = '$path/$modelPath:streamGenerateContent';
+    if (path.endsWith('/models')) {
+      path = path.substring(0, path.length - '/models'.length);
+    }
+    if (!path.endsWith('/interactions')) {
+      path = '$path/interactions';
     }
 
-    final query = Map<String, String>.from(uri.queryParameters);
-    query['alt'] = 'sse';
-    if (apiKey.isNotEmpty) {
-      query['key'] = apiKey;
-    }
-    uri = uri.replace(path: path, queryParameters: query);
-
-    return uri;
+    return uri.replace(path: path);
   }
 
   Future<bool> _nextOrCancel(
@@ -681,8 +852,7 @@ class GeminiToolProvider implements AIStreamingProvider {
           status == 'UNAUTHENTICATED' ||
           status == 'PERMISSION_DENIED') {
         type = AIErrorType.authentication;
-      } else if (numericCode == 429 ||
-          status == 'RESOURCE_EXHAUSTED') {
+      } else if (numericCode == 429 || status == 'RESOURCE_EXHAUSTED') {
         type = AIErrorType.rateLimit;
       } else if ((numericCode != null && numericCode >= 500) ||
           status == 'INTERNAL' ||
@@ -692,11 +862,7 @@ class GeminiToolProvider implements AIStreamingProvider {
         type = AIErrorType.invalidResponse;
       }
 
-      return AIError(
-        type: type,
-        message: message,
-        statusCode: numericCode,
-      );
+      return AIError(type: type, message: message, statusCode: numericCode);
     }
 
     return AIError(

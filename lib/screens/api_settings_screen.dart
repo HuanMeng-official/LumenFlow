@@ -56,7 +56,7 @@ class _ApiSettingsScreenState extends State<ApiSettingsScreen> {
     setState(() {
       if (apiType == 'gemini') {
         _endpointController.text =
-            'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent';
+            'https://generativelanguage.googleapis.com/v1beta';
       } else if (apiType == 'deepseek') {
         _endpointController.text = 'https://api.deepseek.com';
       } else if (apiType == 'claude') {

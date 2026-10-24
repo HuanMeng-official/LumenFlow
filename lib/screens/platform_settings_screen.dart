@@ -82,6 +82,7 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
   Future<void> _showPlatformDialog([AIPlatform? platform]) async {
     final l10n = AppLocalizations.of(context)!;
     final isEdit = platform != null;
+    final originalType = platform?.type;
 
     final nameController = TextEditingController(text: platform?.name ?? '');
     final endpointController = TextEditingController(
@@ -127,11 +128,23 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
                           selectedType,
                           (value) {
                             setDialogState(() {
+                              final previousType = selectedType;
                               selectedType = value;
                               endpointController.text =
                                   AIPlatform.createDefaultPlatform(
                                     value,
                                   ).endpoint;
+                              if (isEdit &&
+                                  value != originalType &&
+                                  nameController.text.trim() ==
+                                      AIPlatform.createDefaultPlatform(
+                                        previousType,
+                                      ).name) {
+                                nameController.text =
+                                    AIPlatform.createDefaultPlatform(
+                                      value,
+                                    ).name;
+                              }
                             });
                           },
                         );
@@ -218,6 +231,9 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
     );
 
     if (result == true && mounted) {
+      final typeDefaults = AIPlatform.createDefaultPlatform(selectedType);
+      final keepExistingModels =
+          platform != null && platform.type == selectedType;
       final newPlatform = AIPlatform(
         id: platform?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
         name: nameController.text.trim(),
@@ -225,13 +241,14 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
         endpoint: endpointController.text.trim(),
         apiKey: apiKeyController.text.trim(),
         availableModels:
-            platform?.availableModels ??
-            AIPlatform.createDefaultPlatform(selectedType).availableModels,
-        defaultModel:
-            platform?.defaultModel ??
-            AIPlatform.createDefaultPlatform(selectedType).defaultModel,
+            keepExistingModels && platform.availableModels.isNotEmpty
+            ? platform.availableModels
+            : typeDefaults.availableModels,
+        defaultModel: keepExistingModels && platform.defaultModel.isNotEmpty
+            ? platform.defaultModel
+            : typeDefaults.defaultModel,
         enabled: true,
-        lastModelUpdate: platform?.lastModelUpdate,
+        lastModelUpdate: keepExistingModels ? platform.lastModelUpdate : null,
         icon: selectedType,
       );
 
@@ -667,8 +684,21 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
     if (platform.type == 'gemini') {
       try {
         var endpoint = platform.endpoint;
+        final modelsIndex = endpoint.indexOf('/models/');
+        if (modelsIndex >= 0) {
+          endpoint = endpoint.substring(0, modelsIndex);
+        }
         if (endpoint.endsWith('/')) {
           endpoint = endpoint.substring(0, endpoint.length - 1);
+        }
+        if (endpoint.endsWith('/interactions')) {
+          endpoint = endpoint.substring(
+            0,
+            endpoint.length - '/interactions'.length,
+          );
+        }
+        if (endpoint.endsWith('/models')) {
+          endpoint = endpoint.substring(0, endpoint.length - '/models'.length);
         }
         final modelsUrl = '$endpoint/models?key=${platform.apiKey}';
 
@@ -701,7 +731,10 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
               .where((m) {
                 final name = m['name'] as String? ?? '';
                 final methods = m['supportedGenerationMethods'] as List? ?? [];
-                if (!methods.contains('generateContent')) return false;
+                if (!methods.contains('generateContent') &&
+                    !methods.contains('interactions')) {
+                  return false;
+                }
                 for (final pattern in excludedPatterns) {
                   if (name.contains(pattern)) return false;
                 }

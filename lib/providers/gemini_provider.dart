@@ -1,18 +1,20 @@
-import 'dart:convert';
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/cupertino.dart';
+
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+
 import 'ai_provider.dart';
 import 'http_provider_base.dart';
+import '../ai/transport/sse_decoder.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
 import '../services/file_service.dart';
 import '../services/settings_service.dart';
 import '../l10n/app_localizations.dart';
 
-/// Google Gemini API Provider 实现
-/// 负责处理与 Google Gemini API 的通信
+/// Google Gemini provider using the Interactions API.
 class GeminiProvider extends HttpProviderBase {
   final SettingsService _settingsService = SettingsService();
   final FileService _fileService = FileService();
@@ -34,38 +36,45 @@ class GeminiProvider extends HttpProviderBase {
         try {
           final apiEndpoint = await _settingsService.getApiEndpoint();
           final apiKey = await _settingsService.getApiKey();
-          final model = await _settingsService.getModel();
+          final model = _normalizeModel(await _settingsService.getModel());
           final enableHistory = await _settingsService.getEnableHistory();
-          final historyContextLength =
-              await _settingsService.getHistoryContextLength();
+          final historyContextLength = await _settingsService
+              .getHistoryContextLength();
 
-          final requestBody = await _buildRequestBody(
-            model: model,
+          final input = await _buildInput(
             message: message,
             chatHistory: chatHistory,
             attachments: attachments,
-            systemPrompt: systemPrompt,
-            temperature: temperature,
-            maxTokens: maxTokens,
-            thinkingMode: thinkingMode,
             enableHistory: enableHistory,
             historyContextLength: historyContextLength,
             l10n: l10n,
           );
 
-          final url = _buildApiUrl(
-            apiEndpoint: apiEndpoint,
-            apiKey: apiKey,
-            model: model,
-            action: 'generateContent',
-          );
+          final requestBody = <String, dynamic>{
+            'model': model,
+            'input': input,
+            'store': false,
+            if (systemPrompt.isNotEmpty) 'system_instruction': systemPrompt,
+            'generation_config': _buildGenerationConfig(
+              model: model,
+              maxTokens: maxTokens,
+              thinkingMode: thinkingMode,
+              temperature: temperature,
+            ),
+          };
 
-          return await _sendNonStreamingRequest(
-            client: client,
-            url: url,
-            requestBody: requestBody,
-            l10n: l10n,
-          );
+          final response = await client
+              .post(
+                _resolveUrl(apiEndpoint),
+                headers: _headers(apiKey),
+                body: jsonEncode(requestBody),
+              )
+              .timeout(connectionTimeout + readTimeout);
+
+          if (response.statusCode == 200) {
+            return _parseResponse(response.body, l10n);
+          }
+          throw parseError(response.body, response.statusCode, l10n);
         } finally {
           client.close();
         }
@@ -92,214 +101,299 @@ class GeminiProvider extends HttpProviderBase {
     try {
       final apiEndpoint = await _settingsService.getApiEndpoint();
       final apiKey = await _settingsService.getApiKey();
-      final model = await _settingsService.getModel();
+      final model = _normalizeModel(await _settingsService.getModel());
       final enableHistory = await _settingsService.getEnableHistory();
-      final historyContextLength =
-          await _settingsService.getHistoryContextLength();
+      final historyContextLength = await _settingsService
+          .getHistoryContextLength();
 
-      final requestBody = await _buildRequestBody(
-        model: model,
+      final input = await _buildInput(
         message: message,
         chatHistory: chatHistory,
         attachments: attachments,
-        systemPrompt: systemPrompt,
-        temperature: temperature,
-        maxTokens: maxTokens,
-        thinkingMode: thinkingMode,
         enableHistory: enableHistory,
         historyContextLength: historyContextLength,
         l10n: l10n,
       );
 
-      final url = _buildApiUrl(
-        apiEndpoint: apiEndpoint,
-        apiKey: apiKey,
-        model: model,
-        action: 'streamGenerateContent',
-        isStreaming: true,
-      );
+      final requestBody = <String, dynamic>{
+        'model': model,
+        'input': input,
+        'stream': true,
+        'store': false,
+        if (systemPrompt.isNotEmpty) 'system_instruction': systemPrompt,
+        'generation_config': _buildGenerationConfig(
+          model: model,
+          maxTokens: maxTokens,
+          thinkingMode: thinkingMode,
+          temperature: temperature,
+        ),
+      };
 
-      yield* _sendStreamingRequest(
-        client: client,
-        url: url,
-        requestBody: requestBody,
-        l10n: l10n,
-      );
+      final request = http.Request('POST', _resolveUrl(apiEndpoint));
+      request.headers.addAll(_headers(apiKey));
+      request.body = jsonEncode(requestBody);
+
+      final streamedResponse = await client
+          .send(request)
+          .timeout(connectionTimeout);
+
+      if (streamedResponse.statusCode != 200) {
+        final errorBody = await streamedResponse.stream
+            .transform(utf8.decoder)
+            .join()
+            .timeout(readTimeout);
+        throw parseError(errorBody, streamedResponse.statusCode, l10n);
+      }
+
+      final contentType =
+          (streamedResponse.headers['content-type'] ??
+                  streamedResponse.headers['Content-Type'] ??
+                  '')
+              .toLowerCase();
+
+      if (contentType.contains('application/json')) {
+        final body = await streamedResponse.stream.bytesToString().timeout(
+          streamingTimeout,
+        );
+        final parsed = _parseResponse(body, l10n);
+        final reasoning = parsed['reasoningContent']?.toString() ?? '';
+        if (reasoning.isNotEmpty) {
+          yield {'type': 'reasoning', 'content': reasoning};
+        }
+        final content = parsed['content']?.toString() ?? '';
+        if (content.isNotEmpty) {
+          yield {'type': 'answer', 'content': content};
+        }
+        return;
+      }
+
+      if (contentType.isNotEmpty &&
+          !contentType.contains('text/event-stream')) {
+        throw Exception(
+          'Unexpected Gemini response content type: $contentType',
+        );
+      }
+
+      final decoder = SseDecoder();
+      final stepTypes = <int, String>{};
+
+      await for (final chunk
+          in streamedResponse.stream
+              .timeout(streamingTimeout)
+              .transform(utf8.decoder)) {
+        for (final event in decoder.add(chunk)) {
+          if (event.data.trim().isEmpty) continue;
+          final parsed = _parseStreamingEvent(
+            event.data.trim(),
+            event.event,
+            stepTypes,
+          );
+          for (final output in parsed.events) {
+            yield output;
+          }
+          if (parsed.terminal) return;
+        }
+      }
+
+      for (final event in decoder.flush()) {
+        if (event.data.trim().isEmpty) continue;
+        final parsed = _parseStreamingEvent(
+          event.data.trim(),
+          event.event,
+          stepTypes,
+        );
+        for (final output in parsed.events) {
+          yield output;
+        }
+        if (parsed.terminal) return;
+      }
     } finally {
       client.close();
     }
   }
 
+  ({List<Map<String, dynamic>> events, bool terminal}) _parseStreamingEvent(
+    String data,
+    String? eventName,
+    Map<int, String> stepTypes,
+  ) {
+    final events = <Map<String, dynamic>>[];
+    if (data == '[DONE]') {
+      return (events: events, terminal: true);
+    }
+
+    dynamic json;
+    try {
+      json = jsonDecode(data);
+    } catch (_) {
+      return (events: events, terminal: false);
+    }
+    if (json is! Map) {
+      return (events: events, terminal: false);
+    }
+
+    final map = json.cast<String, dynamic>();
+    final type =
+        map['type']?.toString() ?? map['event_type']?.toString() ?? eventName;
+
+    if (type == 'error' || type == 'interaction.failed') {
+      final interaction = map['interaction'];
+      final error = interaction is Map
+          ? interaction['error'] ?? interaction
+          : map['error'] ?? map;
+      throw Exception(
+        error is Map
+            ? (error['message']?.toString() ?? 'Gemini API error')
+            : error.toString(),
+      );
+    }
+
+    if (type == 'interaction.status_update') {
+      final status = map['status']?.toString() ?? '';
+      if (status == 'failed' || status == 'cancelled') {
+        throw Exception('Gemini interaction $status');
+      }
+      return (events: events, terminal: false);
+    }
+
+    if (type == 'step.start') {
+      final index = (map['index'] as num?)?.toInt() ?? 0;
+      final step = map['step'];
+      if (step is Map) {
+        final stepMap = step.cast<String, dynamic>();
+        final stepType = stepMap['type']?.toString() ?? '';
+        stepTypes[index] = stepType;
+
+        if (stepType == 'model_output') {
+          for (final text in _extractTexts(stepMap['content'])) {
+            events.add({'type': 'answer', 'content': text});
+          }
+        } else if (stepType == 'thought') {
+          for (final text in _extractTexts(stepMap['summary'])) {
+            events.add({'type': 'reasoning', 'content': text});
+          }
+        }
+      }
+    } else if (type == 'step.delta') {
+      final index = (map['index'] as num?)?.toInt() ?? 0;
+      final delta = map['delta'];
+      if (delta is Map) {
+        final deltaMap = delta.cast<String, dynamic>();
+        final deltaType = deltaMap['type']?.toString() ?? '';
+
+        if (deltaType == 'text') {
+          final text = deltaMap['text'];
+          if (text is String && text.isNotEmpty) {
+            final stepType = stepTypes[index] ?? 'model_output';
+            events.add({
+              'type': stepType == 'thought' ? 'reasoning' : 'answer',
+              'content': text,
+            });
+          }
+        } else if (deltaType == 'thought' || deltaType == 'thought_summary') {
+          final texts = _extractTexts(deltaMap['content']).toList();
+          final text = deltaMap['text'];
+          if (texts.isEmpty && text is String && text.isNotEmpty) {
+            texts.add(text);
+          }
+          for (final thought in texts) {
+            events.add({'type': 'reasoning', 'content': thought});
+          }
+        }
+      }
+    } else if (type == 'interaction.completed') {
+      final interaction = map['interaction'];
+      final status = interaction is Map
+          ? interaction['status']?.toString() ?? ''
+          : '';
+      if (status == 'failed') {
+        throw Exception('Gemini interaction failed');
+      }
+      if (status == 'cancelled') {
+        throw Exception('Gemini interaction cancelled');
+      }
+      return (events: events, terminal: true);
+    }
+
+    return (events: events, terminal: false);
+  }
+
   @override
-  Future<String> generateConversationTitle(List<Message> messages, {required AppLocalizations l10n}) async {
+  Future<String> generateConversationTitle(
+    List<Message> messages, {
+    required AppLocalizations l10n,
+  }) async {
     final apiEndpoint = await _settingsService.getApiEndpoint();
     final apiKey = await _settingsService.getApiKey();
-    final model = await _settingsService.getModel();
+    final model = _normalizeModel(await _settingsService.getModel());
 
-    // 提取对话摘要（前几轮对话）
     final summaryMessages = messages.take(6).toList();
-    final conversationSummary = summaryMessages.map((msg) {
-      final role = msg.isUser ? l10n.providerUser : l10n.providerAi;
-      return '$role: ${msg.content.trim()}';
-    }).join('\n');
-
-    final contents = [
-      {
-        'role': 'user',
-        'parts': [
-          {
-            'text': l10n.providerTitleGenUserPrompt(conversationSummary)
-          }
-        ]
-      }
-    ];
-
-    final url = _buildApiUrl(
-      apiEndpoint: apiEndpoint,
-      apiKey: apiKey,
-      model: model,
-      action: 'generateContent',
-    );
-
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'contents': contents,
-        'generationConfig': {
-          'temperature': 0.3,
-          'maxOutputTokens': 50,
-        }
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data is! Map<String, dynamic>) {
-        throw Exception(l10n.providerGeminiInvalidResponse);
-      }
-
-      final candidates = data['candidates'];
-      if (candidates is! List || candidates.isEmpty) {
-        throw Exception(l10n.providerGeminiMissingCandidates);
-      }
-
-      final candidate = candidates[0];
-      if (candidate['content'] != null &&
-          candidate['content']['parts'] != null &&
-          candidate['content']['parts'].isNotEmpty) {
-        var title = candidate['content']['parts'][0]['text'].toString().trim();
-
-        // 移除可能的引号
-        if (title.startsWith('"') || title.startsWith('\'') || title.startsWith('|')) {
-          title = title.substring(1);
-        }
-        if (title.endsWith('"') || title.endsWith('\'') || title.endsWith('|')) {
-          title = title.substring(0, title.length - 1);
-        }
-
-        // 截断过长的标题
-        if (title.length > 20) {
-          title = '${title.substring(0, 20)}...';
-        }
-        return title;
-      }
-
-      throw Exception(l10n.providerGeminiInvalidFormat);
-    } else {
-      // 响应体可能不是 JSON（网关错误页、限流页等），退回展示原始报文
-      String errorMessage = response.body;
-      try {
-        final errorData = jsonDecode(response.body);
-        errorMessage = errorData['error']?['message']?.toString() ??
-            errorData['message']?.toString() ??
-            l10n.providerUnknownError;
-      } catch (_) {
-        // 忽略解析失败，使用原始响应体
-      }
-      throw Exception(l10n.providerGeminiError(errorMessage, response.statusCode));
-    }
-  }
-
-  /// 构建符合 Gemini API 标准的请求体
-  Future<Map<String, dynamic>> _buildRequestBody({
-    required String model,
-    required String message,
-    required List<Message> chatHistory,
-    required List<Attachment> attachments,
-    required String systemPrompt,
-    required double temperature,
-    required int maxTokens,
-    required bool thinkingMode,
-    required bool enableHistory,
-    required int historyContextLength,
-    required AppLocalizations l10n,
-  }) async {
-    final contents = await _buildContents(
-      message: message,
-      chatHistory: chatHistory,
-      attachments: attachments,
-      enableHistory: enableHistory,
-      historyContextLength: historyContextLength,
-      l10n: l10n,
-    );
+    final conversationSummary = summaryMessages
+        .map((msg) {
+          final role = msg.isUser ? l10n.providerUser : l10n.providerAi;
+          return '$role: ${msg.content.trim()}';
+        })
+        .join('\n');
 
     final requestBody = <String, dynamic>{
-      'contents': contents,
-      'generationConfig': _buildGenerationConfig(
-        model: model,
-        temperature: temperature,
-        maxTokens: maxTokens,
-        thinkingMode: thinkingMode,
-      ),
+      'model': model,
+      'store': false,
+      'input': [
+        {
+          'type': 'user_input',
+          'content': [
+            {
+              'type': 'text',
+              'text': l10n.providerTitleGenUserPrompt(conversationSummary),
+            },
+          ],
+        },
+      ],
+      'system_instruction': l10n.providerTitleGenSystemPrompt,
+      'generation_config': {
+        // max_output_tokens covers thinking + answer, so leave room for
+        // reasoning before the short title is produced.
+        'max_output_tokens': 512,
+        'thinking_level': 'low',
+        'thinking_summaries': 'none',
+      },
     };
 
-    // 添加系统指令（如果提供）
-    if (systemPrompt.isNotEmpty) {
-      requestBody['system_instruction'] = {
-        'parts': [
-          {'text': systemPrompt}
-        ]
-      };
-    }
+    final client = createHttpClient();
+    try {
+      final response = await client
+          .post(
+            _resolveUrl(apiEndpoint),
+            headers: _headers(apiKey),
+            body: jsonEncode(requestBody),
+          )
+          .timeout(connectionTimeout + readTimeout);
 
-    return requestBody;
+      if (response.statusCode != 200) {
+        throw parseError(response.body, response.statusCode, l10n);
+      }
+
+      final parsed = _parseResponse(response.body, l10n);
+      var title = parsed['content']?.toString().trim() ?? '';
+
+      if (title.startsWith('"') ||
+          title.startsWith("'") ||
+          title.startsWith('|')) {
+        title = title.substring(1);
+      }
+      if (title.endsWith('"') || title.endsWith("'") || title.endsWith('|')) {
+        title = title.substring(0, title.length - 1);
+      }
+      if (title.length > 20) {
+        title = '${title.substring(0, 20)}...';
+      }
+      return title;
+    } finally {
+      client.close();
+    }
   }
 
-  /// 构建 generationConfig
-  Map<String, dynamic> _buildGenerationConfig({
-    required String model,
-    required double temperature,
-    required int maxTokens,
-    required bool thinkingMode,
-  }) {
-    final config = <String, dynamic>{
-      'temperature': temperature,
-      'maxOutputTokens': maxTokens,
-    };
-
-    // Gemini 3/4 使用 thinkingLevel；2.5 及更早模型使用 thinkingBudget。
-    final isGemini3Plus =
-        model.startsWith('gemini-3') || model.startsWith('gemini-4');
-    if (isGemini3Plus) {
-      config['thinkingConfig'] = {
-        'thinkingLevel': thinkingMode ? 'high' : 'low',
-        'includeThoughts': thinkingMode,
-      };
-    } else if (thinkingMode) {
-      config['thinkingConfig'] = {
-        'thinkingBudget': -1,
-        'includeThoughts': true,
-      };
-    }
-
-    return config;
-  }
-
-  /// 构建 contents 列表（符合 Gemini API 标准）
-  Future<List<Map<String, dynamic>>> _buildContents({
+  Future<List<Map<String, dynamic>>> _buildInput({
     required String message,
     required List<Message> chatHistory,
     required List<Attachment> attachments,
@@ -307,14 +401,15 @@ class GeminiProvider extends HttpProviderBase {
     required int historyContextLength,
     required AppLocalizations l10n,
   }) async {
-    final contents = <Map<String, dynamic>>[];
+    final input = <Map<String, dynamic>>[];
 
-    // 添加历史消息（多轮对话）
     if (enableHistory && chatHistory.isNotEmpty) {
       final recentHistory = chatHistory
-          .where((msg) =>
-              msg.status != MessageStatus.error &&
-              msg.content.trim().isNotEmpty)
+          .where(
+            (msg) =>
+                msg.status != MessageStatus.error &&
+                msg.content.trim().isNotEmpty,
+          )
           .toList()
           .reversed
           .take(historyContextLength * 2)
@@ -322,342 +417,288 @@ class GeminiProvider extends HttpProviderBase {
           .reversed
           .toList();
 
-      for (final historyMsg in recentHistory) {
-        contents.add({
-          'role': historyMsg.isUser ? 'user' : 'model',
-          'parts': <Map<String, dynamic>>[
-            {'text': historyMsg.content}
-          ]
+      for (final historyMessage in recentHistory) {
+        input.add({
+          'type': historyMessage.isUser ? 'user_input' : 'model_output',
+          'content': [
+            {'type': 'text', 'text': historyMessage.content},
+          ],
         });
       }
     }
 
-    // 构建当前用户消息的 parts
-    final userMessageParts = <Map<String, dynamic>>[];
-
+    final currentContent = <Map<String, dynamic>>[];
     if (message.isNotEmpty) {
-      userMessageParts.add({'text': message});
+      currentContent.add({'type': 'text', 'text': message});
     }
-
     if (attachments.isNotEmpty) {
-      final fileParts = await _prepareFiles(attachments, l10n);
-      userMessageParts.addAll(fileParts);
+      currentContent.addAll(await _prepareAttachments(attachments, l10n));
+    }
+    if (currentContent.isNotEmpty) {
+      input.add({'type': 'user_input', 'content': currentContent});
     }
 
-    if (userMessageParts.isNotEmpty) {
-      contents.add({'role': 'user', 'parts': userMessageParts});
-    }
-
-    return contents;
+    return input;
   }
 
-  /// 为 Gemini API 准备文件附件
-  /// 使用 inlineData 格式（兼容性更好）
-  Future<List<Map<String, dynamic>>> _prepareFiles(List<Attachment> attachments, AppLocalizations l10n) async {
-    final fileParts = <Map<String, dynamic>>[];
+  Future<List<Map<String, dynamic>>> _prepareAttachments(
+    List<Attachment> attachments,
+    AppLocalizations l10n,
+  ) async {
+    final content = <Map<String, dynamic>>[];
 
     final totalSize = attachments.fold<int>(
-        0, (sum, attachment) => sum + (attachment.fileSize ?? 0));
+      0,
+      (sum, attachment) => sum + (attachment.fileSize ?? 0),
+    );
     if (totalSize > AIProvider.maxTotalAttachmentsSize) {
-      throw Exception(l10n.providerTotalSizeExceeded(AIProvider.maxTotalAttachmentsSize ~/ (1024 * 1024)));
+      throw Exception(
+        l10n.providerTotalSizeExceeded(
+          AIProvider.maxTotalAttachmentsSize ~/ (1024 * 1024),
+        ),
+      );
     }
 
     for (final attachment in attachments) {
       try {
         if (attachment.filePath == null ||
             !await _fileService.fileExists(attachment.filePath!)) {
-          fileParts.add({'text': l10n.providerFileNotFound(attachment.fileName)});
+          content.add({
+            'type': 'text',
+            'text': l10n.providerFileNotFound(attachment.fileName),
+          });
           continue;
         }
 
         final file = File(attachment.filePath!);
-        final fileSize = attachment.fileSize ??
+        final fileSize =
+            attachment.fileSize ??
             await _fileService.getFileSize(attachment.filePath!);
 
         if (fileSize > AIProvider.maxFileSizeForBase64) {
-          fileParts.add({
-            'text': l10n.providerFileTooLarge(attachment.fileName, formatFileSize(fileSize))
+          content.add({
+            'type': 'text',
+            'text': l10n.providerFileTooLarge(
+              attachment.fileName,
+              formatFileSize(fileSize),
+            ),
           });
           continue;
         }
 
         final mimeType = attachment.mimeType?.toLowerCase() ?? '';
-        final isSupportedMedia = mimeType.startsWith('image/') ||
-            mimeType.startsWith('video/') ||
-            mimeType.startsWith('audio/');
+        final isImage = mimeType.startsWith('image/');
+        final isVideo = mimeType.startsWith('video/');
+        final isAudio = mimeType.startsWith('audio/');
+        final isPdf = mimeType == 'application/pdf';
 
-        if (isSupportedMedia) {
+        if (isImage || isVideo || isAudio || isPdf) {
           try {
             final base64Data = await _fileService.getFileBase64(file);
-            String cleanBase64 = base64Data;
+            var cleanBase64 = base64Data;
             if (base64Data.contains(',')) {
               cleanBase64 = base64Data.split(',').last;
             }
-
-            // 使用 inlineData 格式（兼容性更好）
-            fileParts.add({
-              'inlineData': {
-                'mimeType': attachment.mimeType ?? 'application/octet-stream',
-                'data': cleanBase64
-              }
+            content.add({
+              'type': isPdf
+                  ? 'document'
+                  : isImage
+                  ? 'image'
+                  : isVideo
+                  ? 'video'
+                  : 'audio',
+              'mime_type': mimeType.isNotEmpty
+                  ? mimeType
+                  : 'application/octet-stream',
+              'data': cleanBase64,
             });
-          } catch (e) {
-            fileParts.add({'text': l10n.providerFileProcessError(attachment.fileName, e.toString())});
+          } catch (error) {
+            content.add({
+              'type': 'text',
+              'text': l10n.providerFileProcessError(
+                attachment.fileName,
+                error.toString(),
+              ),
+            });
           }
-        } else {
-          // 对于非多媒体文件，提取文本内容
-          if (fileSize <= AIProvider.maxFileSizeForTextExtraction) {
-            try {
-              final content = await _fileService.readTextFile(file);
-              fileParts.add({
-                'text': l10n.providerFileContent(
-                  attachment.fileName,
-                  formatFileSize(fileSize),
-                  content
-                )
-              });
-            } catch (e) {
-              fileParts.add({
-                'text': l10n.providerAttachmentCannotRead(
-                  attachment.fileName,
-                  formatFileSize(fileSize),
-                  attachment.mimeType ?? l10n.unknownMimeType
-                )
-              });
-            }
-          } else {
-            fileParts.add({
-              'text': l10n.providerAttachmentInfo(
+        } else if (fileSize <= AIProvider.maxFileSizeForTextExtraction) {
+          try {
+            final text = await _fileService.readTextFile(file);
+            content.add({
+              'type': 'text',
+              'text': l10n.providerFileContent(
                 attachment.fileName,
                 formatFileSize(fileSize),
-                attachment.mimeType ?? l10n.unknownMimeType
-              )
+                text,
+              ),
+            });
+          } catch (error) {
+            content.add({
+              'type': 'text',
+              'text': l10n.providerAttachmentCannotRead(
+                attachment.fileName,
+                formatFileSize(fileSize),
+                attachment.mimeType ?? l10n.unknownMimeType,
+              ),
             });
           }
+        } else {
+          content.add({
+            'type': 'text',
+            'text': l10n.providerAttachmentInfo(
+              attachment.fileName,
+              formatFileSize(fileSize),
+              attachment.mimeType ?? l10n.unknownMimeType,
+            ),
+          });
         }
-      } catch (e) {
-        fileParts.add({'text': l10n.providerFileProcessError(attachment.fileName, e.toString())});
+      } catch (error) {
+        content.add({
+          'type': 'text',
+          'text': l10n.providerFileProcessError(
+            attachment.fileName,
+            error.toString(),
+          ),
+        });
       }
     }
 
-    return fileParts;
+    return content;
   }
 
-  /// 发送非流式请求
-  Future<Map<String, dynamic>> _sendNonStreamingRequest({
-    required http.Client client,
-    required String url,
-    required Map<String, dynamic> requestBody,
-    required AppLocalizations l10n,
-  }) async {
-    final response = await client.post(
-      Uri.parse(url),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(requestBody),
-    ).timeout(connectionTimeout + readTimeout);
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data is! Map<String, dynamic>) {
-        throw Exception(l10n.providerGeminiInvalidResponse);
-      }
-
-      final candidates = data['candidates'];
-      if (candidates is! List || candidates.isEmpty) {
-        throw Exception(l10n.providerGeminiMissingCandidates);
-      }
-
-      final candidate = candidates[0];
-      if (candidate['finishReason'] == 'SAFETY') {
-        throw Exception(l10n.providerResponseBlocked);
-      }
-      if (candidate['content'] != null &&
-          candidate['content']['parts'] != null &&
-          candidate['content']['parts'].isNotEmpty) {
-        final parts = candidate['content']['parts'];
-        String reasoningContent = '';
-        String content = '';
-
-        for (final part in parts) {
-          if (part is! Map<String, dynamic>) continue;
-          final text = part['text']?.toString().trim();
-          if (text == null || text.isEmpty) continue;
-
-          final isThought = part['thought'] == true;
-          if (isThought) {
-            reasoningContent += (reasoningContent.isNotEmpty ? '\n' : '') + text;
-          } else {
-            content += (content.isNotEmpty ? '\n' : '') + text;
-          }
-        }
-
-        return {
-          'reasoningContent': reasoningContent.trim(),
-          'content': content.trim(),
-        };
-      }
-
-      throw Exception(l10n.providerGeminiInvalidFormat);
-    } else {
-      final errorData = jsonDecode(response.body);
-      if (errorData is! Map<String, dynamic>) {
-        throw Exception(l10n.providerGeminiInvalidFormatWithCode(response.statusCode));
-      }
-      final errorMessage = errorData['error']?['message']?.toString() ??
-          errorData['message']?.toString() ??
-          l10n.providerUnknownError;
-      throw Exception(l10n.providerGeminiError(errorMessage, response.statusCode));
-    }
-  }
-
-  /// 发送流式请求
-  Stream<Map<String, dynamic>> _sendStreamingRequest({
-    required http.Client client,
-    required String url,
-    required Map<String, dynamic> requestBody,
-    required AppLocalizations l10n,
-  }) async* {
-    final request = http.Request('POST', Uri.parse(url));
-    request.headers['Content-Type'] = 'application/json';
-    request.headers['Accept'] = 'text/event-stream';
-    request.body = jsonEncode(requestBody);
-
-    final streamedResponse = await client.send(request).timeout(streamingTimeout);
-
-    if (streamedResponse.statusCode != 200) {
-      final errorBody =
-          await streamedResponse.stream.transform(utf8.decoder).join();
-      final errorData = jsonDecode(errorBody);
-      if (errorData is! Map<String, dynamic>) {
-        throw Exception(
-            l10n.providerGeminiInvalidFormatWithCode(streamedResponse.statusCode));
-      }
-      final errorMessage = errorData['error']?['message']?.toString() ??
-          errorData['message']?.toString() ??
-          l10n.providerUnknownError;
-      throw Exception(
-          l10n.providerGeminiError(errorMessage, streamedResponse.statusCode));
-    }
-
-    // 使用LineSplitter处理SSE流，正确处理事件边界
-    final stream = streamedResponse.stream
-        .transform(utf8.decoder)
-        .transform(const LineSplitter());
-
-    // 缓冲区用于累积SSE事件行
-    final eventLines = <String>[];
-
-    final stopwatch = Stopwatch()..start();
-    await for (final line in stream) {
-      stopwatch.reset();
-
-      if (line.isEmpty) {
-        // 空行表示SSE事件结束，处理累积的事件行
-        if (eventLines.isNotEmpty) {
-          // 从事件行中提取data:行
-          String? dataLine;
-          for (final eventLine in eventLines) {
-            if (eventLine.startsWith('data: ')) {
-              dataLine = eventLine.substring(6);
-              break;
-            }
-          }
-
-          if (dataLine != null && dataLine != '[DONE]') {
-            try {
-              final jsonData = jsonDecode(dataLine);
-              if (jsonData is! Map<String, dynamic>) {
-                eventLines.clear();
-                continue;
-              }
-              final candidates = jsonData['candidates'];
-              if (candidates is! List || candidates.isEmpty) {
-                eventLines.clear();
-                continue;
-              }
-              final candidate = candidates[0];
-              if (candidate is! Map<String, dynamic>) {
-                eventLines.clear();
-                continue;
-              }
-              final content = candidate['content'];
-              if (content is! Map<String, dynamic>) {
-                eventLines.clear();
-                continue;
-              }
-              final parts = content['parts'];
-              if (parts is! List || parts.isEmpty) {
-                eventLines.clear();
-                continue;
-              }
-              for (final part in parts) {
-                if (part is! Map<String, dynamic>) continue;
-                final text = part['text'] as String?;
-                if (text == null || text.isEmpty) continue;
-
-                final isThought = part['thought'] == true;
-                if (isThought) {
-                  yield {'type': 'reasoning', 'content': text};
-                } else {
-                  yield {'type': 'answer', 'content': text};
-                }
-              }
-            } catch (e) {
-              // 忽略解析错误
-            }
-          } else if (dataLine == '[DONE]') {
-            break;
-          }
-        }
-        eventLines.clear();
-      } else {
-        // 非空行，添加到当前事件
-        eventLines.add(line);
-      }
-
-      if (stopwatch.elapsed > streamingTimeout) {
-        throw TimeoutException(l10n.providerGeminiStreamingTimeout(streamingTimeout.inSeconds));
-      }
-    }
-  }
-
-  /// 构建完整的 API URL
-  /// 支持自定义端点和代理
-  String _buildApiUrl({
-    required String apiEndpoint,
-    required String apiKey,
+  Map<String, dynamic> _buildGenerationConfig({
     required String model,
-    required String action,
-    bool isStreaming = false,
+    required int maxTokens,
+    required bool thinkingMode,
+    required double temperature,
   }) {
-    String url = apiEndpoint;
-
-    // 如果端点不包含 /models/，则构建完整路径
-    if (!url.contains('/models/')) {
-      final modelPath = model.contains('/') ? model : 'models/$model';
-      url = url.endsWith('/')
-          ? '$url$modelPath:$action'
-          : '$url/$modelPath:$action';
-    } else if (!url.contains(':$action') && !url.contains(':generateContent') && !url.contains(':streamGenerateContent')) {
-      // 如果端点已包含 /models/ 但不包含 action，则添加 action
-      url = url.endsWith('/')
-          ? '$url$action'
-          : '$url:$action';
-    }
-
-    // 添加 API 密钥
-    if (!url.contains('?key=')) {
-      url = '$url?key=$apiKey';
-    }
-
-    // 对于流式请求，添加 alt=sse 参数
-    if (isStreaming && !url.contains('alt=sse')) {
-      url = '$url&alt=sse';
-    }
-
-    return url;
+    return {
+      'max_output_tokens': _effectiveMaxTokens(maxTokens),
+      'thinking_level': thinkingMode ? 'high' : 'low',
+      'thinking_summaries': thinkingMode ? 'auto' : 'none',
+      // Gemini 4 and 3.6+ ignore sampling parameters and warn when present.
+      if (_supportsSamplingParams(model)) 'temperature': temperature,
+    };
   }
 
+  bool _supportsSamplingParams(String model) {
+    final name = _normalizeModel(model);
+    return !(name.startsWith('gemini-4') ||
+        name.startsWith('gemini-3.6') ||
+        name.startsWith('gemini-3.7') ||
+        name.startsWith('gemini-3.8'));
+  }
+
+  int _effectiveMaxTokens(int maxTokens) {
+    // Synchronous Interactions requests are capped at 64K output tokens.
+    if (maxTokens <= 0) return 1;
+    if (maxTokens > 65536) return 65536;
+    return maxTokens;
+  }
+
+  Map<String, dynamic> _parseResponse(String body, AppLocalizations l10n) {
+    dynamic json;
+    try {
+      json = jsonDecode(body);
+    } catch (_) {
+      throw Exception(l10n.providerGeminiInvalidFormat);
+    }
+
+    if (json is! Map) {
+      throw Exception(l10n.providerGeminiInvalidFormat);
+    }
+
+    final map = json.cast<String, dynamic>();
+    final error = map['error'];
+    if (error != null) {
+      final message = error is Map
+          ? error['message']?.toString() ?? l10n.providerUnknownError
+          : error.toString();
+      throw Exception(l10n.providerGeminiError(message, 0));
+    }
+
+    final steps = map['steps'];
+    if (steps is! List) {
+      throw Exception(l10n.providerGeminiInvalidFormat);
+    }
+
+    final reasoning = StringBuffer();
+    final answer = StringBuffer();
+
+    for (final rawStep in steps) {
+      if (rawStep is! Map) continue;
+      final step = rawStep.cast<String, dynamic>();
+
+      switch (step['type']) {
+        case 'thought':
+          _collectText(step['summary'], reasoning);
+        case 'model_output':
+          _collectText(step['content'], answer);
+      }
+    }
+
+    return {
+      'reasoningContent': reasoning.toString().trim(),
+      'content': answer.toString().trim(),
+    };
+  }
+
+  Iterable<String> _extractTexts(dynamic raw) sync* {
+    if (raw == null) return;
+    final items = raw is List ? raw : [raw];
+    for (final item in items) {
+      if (item is! Map) continue;
+      final text = item['text'];
+      if (text is String && text.isNotEmpty) yield text;
+    }
+  }
+
+  void _collectText(dynamic rawContent, StringBuffer buffer) {
+    for (final text in _extractTexts(rawContent)) {
+      buffer.write(text);
+    }
+  }
+
+  String _normalizeModel(String model) {
+    final trimmed = model.trim();
+    return trimmed.startsWith('models/')
+        ? trimmed.substring('models/'.length)
+        : trimmed;
+  }
+
+  Map<String, String> _headers(String apiKey) {
+    return {
+      'Content-Type': 'application/json',
+      if (apiKey.isNotEmpty) 'x-goog-api-key': apiKey,
+    };
+  }
+
+  Uri _resolveUrl(String endpoint) {
+    final raw = endpoint.trim();
+    if (raw.isEmpty) {
+      throw Exception('Gemini API endpoint is empty');
+    }
+
+    var uri = Uri.tryParse(raw);
+    if (uri == null || !uri.hasScheme) {
+      throw Exception('Invalid Gemini API endpoint');
+    }
+
+    var path = uri.path;
+    final modelsIndex = path.indexOf('/models/');
+    if (modelsIndex >= 0) {
+      path = path.substring(0, modelsIndex);
+    }
+    if (path.endsWith('/')) {
+      path = path.substring(0, path.length - 1);
+    }
+    if (path.endsWith('/models')) {
+      path = path.substring(0, path.length - '/models'.length);
+    }
+    if (!path.endsWith('/interactions')) {
+      path = '$path/interactions';
+    }
+
+    return uri.replace(path: path);
+  }
 }
