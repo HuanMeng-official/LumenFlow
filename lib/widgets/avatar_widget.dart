@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import '../models/user_profile.dart';
 
 class AvatarWidget extends StatelessWidget {

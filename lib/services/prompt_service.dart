@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:io';
 import 'package:flutter/services.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:path/path.dart' as path;
 import '../models/prompt_preset.dart';
 import 'settings_service.dart';

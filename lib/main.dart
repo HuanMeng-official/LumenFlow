@@ -1,6 +1,8 @@
 import 'dart:io';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'
+    hide GlobalMaterialLocalizations, GlobalCupertinoLocalizations;
 import 'package:lumen_flow/l10n/fallback_localizations.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:auto_orientation_v2/auto_orientation_v2.dart';

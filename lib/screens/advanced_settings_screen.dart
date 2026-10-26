@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import '../l10n/app_localizations.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -149,15 +149,14 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
 
   Future<void> _importSettings() async {
     try {
-      final FilePickerResult? result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFile(
         type: FileType.custom,
         allowedExtensions: ['lumenflow', 'json'],
         dialogTitle: AppLocalizations.of(context)!.importSettings,
-        allowMultiple: false,
       );
 
-      if (result != null && result.files.isNotEmpty) {
-        final file = File(result.files.single.path!);
+      if (result != null && result.path != null) {
+        final file = File(result.path!);
         final jsonString = await file.readAsString();
         final data = jsonDecode(jsonString) as Map<String, dynamic>;
 

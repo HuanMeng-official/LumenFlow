@@ -4,7 +4,7 @@ publish_to: "none"
 version: 3.0.0+300
 
 environment:
-  sdk: ^3.11.1
+  sdk: ^3.13.7
 
 dependencies:
   flutter:
@@ -13,31 +13,28 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   http: ^1.6.0
-  shared_preferences: ^2.5.4
+  shared_preferences: ^2.5.6
   intl: any
-  flutter_markdown_plus: ^1.0.7
-  image_picker: ^1.2.1
-  file_picker: ^10.3.10
-  path_provider: ^2.1.5
+  flutter_markdown_plus: ^1.0.12
+  image_picker: ^1.2.4
+  file_picker: ^13.3.0
+  path_provider: ^2.1.6
   path: ^1.9.1
-  flutter_svg: ^2.2.4
-  pdf: ^3.11.3
-  archive: ^4.0.9
-  url_launcher: ^6.3.2
-  flutter_local_notifications: ^21.0.0
-  sqlite3: ^3.2.0
-  window_manager: ^0.5.1
-  auto_orientation_v2: 2.4.6
+  flutter_svg: ^2.3.0
+  pdf: ^3.13.1
+  archive: ^4.5.2
+  url_launcher: ^6.3.3
+  flutter_local_notifications: ^22.3.3
+  sqlite3: ^3.8.0
+  window_manager: ^0.5.2
+  auto_orientation_v2: 2.4.7
+  material_ui: ^1.8.0
+  cupertino_ui: ^1.1.4
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-
-dependency_overrides:
-  # image 4.11+ calls archive APIs added after 4.0.9, but pdf 3.12 caps
-  # archive at <4.1.0. Keep image at the last version compatible with 4.0.9.
-  image: 4.10.1
 
 flutter:
   uses-material-design: true

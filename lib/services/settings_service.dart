@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../ai/mcp/mcp_models.dart';
 import '../models/active_platform_config.dart';

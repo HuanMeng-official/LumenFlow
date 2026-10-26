@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 
 import '../ai/mcp/mcp_client.dart';
 import '../ai/mcp/mcp_models.dart';

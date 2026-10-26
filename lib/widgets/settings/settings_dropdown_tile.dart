@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import '../../l10n/app_localizations.dart';
 
 /// 设置页面下拉选择组件

@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import '../l10n/app_localizations.dart';
 import '../services/settings_service.dart';
 import '../widgets/settings/settings_input_tile.dart';

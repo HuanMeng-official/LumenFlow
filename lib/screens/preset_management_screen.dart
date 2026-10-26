@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/prompt_service.dart';
@@ -131,15 +131,13 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final platformFile = await FilePicker.pickFile(
         type: FileType.custom,
         allowedExtensions: ['xml'],
-        allowMultiple: false,
       );
 
-      if (result == null || result.files.isEmpty) return;
+      if (platformFile == null) return;
 
-      final platformFile = result.files.first;
       if (platformFile.path == null || platformFile.path!.isEmpty) {
         if (mounted) {
           _showErrorMessage(l10n.filePathError);

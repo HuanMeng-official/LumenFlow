@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:file_picker/file_picker.dart';
 import '../l10n/app_localizations.dart';
 import '../services/file_service.dart';
@@ -287,16 +287,13 @@ class _ChatInputState extends State<ChatInput> {
     if (!widget.enabled) return;
 
     try {
-      final FilePickerResult? result = await FilePicker.platform.pickFiles(
-        allowMultiple: true,
-        type: FileType.any,
-      );
+      final files = await FilePicker.pickFiles(type: FileType.any);
 
-      if (result != null && result.files.isNotEmpty) {
+      if (files.isNotEmpty) {
         int totalSize = 0;
         final oversizedFiles = <String>[];
 
-        for (final platformFile in result.files) {
+        for (final platformFile in files) {
           if (platformFile.path != null) {
             final file = File(platformFile.path!);
             if (await file.exists()) {
@@ -335,7 +332,7 @@ class _ChatInputState extends State<ChatInput> {
 
         final attachments = <Attachment>[];
 
-        for (final platformFile in result.files) {
+        for (final platformFile in files) {
           if (platformFile.path != null) {
             final file = File(platformFile.path!);
             try {
