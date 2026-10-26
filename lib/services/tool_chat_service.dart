@@ -17,10 +17,9 @@ import '../models/message.dart';
 class ToolChatService {
   ToolChatService({
     required this.executor,
-    AIStreamingProvider Function(ActivePlatformConfig config)?
-        providerFactory,
+    this._providerFactory,
     this.maxIterations = 5,
-  }) : _providerFactory = providerFactory;
+  });
 
   final AIToolExecutor executor;
   final AIStreamingProvider Function(ActivePlatformConfig config)?

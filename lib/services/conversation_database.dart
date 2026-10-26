@@ -35,14 +35,11 @@ class ConversationDatabase {
   factory ConversationDatabase() => _instance;
 
   ConversationDatabase._internal({
-    String? databasePath,
-    SharedPreferences? preferences,
-    bool skipLegacyFileMigration = false,
-    Future<void> Function()? beforeMigration,
-  })  : _databasePath = databasePath,
-        _preferences = preferences,
-        _skipLegacyFileMigration = skipLegacyFileMigration,
-        _beforeMigration = beforeMigration;
+    this._databasePath,
+    this._preferences,
+    this._skipLegacyFileMigration = false,
+    this._beforeMigration,
+  });
 
   /// 创建测试专用实例，使用独立数据库路径和可注入的偏好设置。
   @visibleForTesting

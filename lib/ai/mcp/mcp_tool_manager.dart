@@ -20,11 +20,10 @@ class _ServerResult {
 /// Merges tools from multiple MCP servers and routes executions by prefix.
 class McpToolManager implements AIToolExecutor {
   McpToolManager({
-    required List<McpServerConfig> servers,
-    required McpConnection Function(McpServerConfig config) connectionFactory,
+    required this._servers,
+    required this._connectionFactory,
     this.timeout = const Duration(seconds: 20),
-  })  : _servers = servers,
-        _connectionFactory = connectionFactory;
+  });
 
   final List<McpServerConfig> _servers;
   final McpConnection Function(McpServerConfig config) _connectionFactory;

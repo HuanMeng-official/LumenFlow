@@ -48,14 +48,11 @@ class AIService {
   AIService({
     SettingsService? settingsService,
     UserService? userService,
-    McpToolManager Function(List<McpServerConfig> servers)?
-        toolManagerFactory,
-    ToolChatService Function(AIToolExecutor executor)? toolChatServiceFactory,
+    this._toolManagerFactory,
+    this._toolChatServiceFactory,
     this.toolRefreshInterval = const Duration(seconds: 30),
   })  : _settingsService = settingsService ?? SettingsService(),
-        _userService = userService ?? UserService(),
-        _toolManagerFactory = toolManagerFactory,
-        _toolChatServiceFactory = toolChatServiceFactory;
+        _userService = userService ?? UserService();
 
   final SettingsService _settingsService;
   final UserService _userService;

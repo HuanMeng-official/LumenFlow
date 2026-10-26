@@ -7,30 +7,20 @@ import '../services/conversation_service.dart';
 /// persist intermediate/final states, and ignore events after finalization.
 class ChatSendController {
   ChatSendController({
-    required ConversationService conversationService,
-    required String conversationId,
-    required Message initialMessage,
+    required this._conversationService,
+    required this._conversationId,
+    required this._initialMessage,
     required List<Message> history,
-    required Stream<Map<String, dynamic>> Function() openStream,
-    required void Function(Message message) onUpdate,
-    required void Function(Message message) onComplete,
-    required void Function(Message message) onError,
-    required void Function(Message message) onStopped,
+    required this._openStream,
+    required this._onUpdate,
+    required this._onComplete,
+    required this._onError,
+    required this._onStopped,
     this.onToolEvent,
-    required String Function(Object error) errorContentBuilder,
-    required String emptyResponseContent,
-    Duration persistInterval = const Duration(milliseconds: 500),
-  })  : _conversationService = conversationService,
-        _conversationId = conversationId,
-        _initialMessage = initialMessage,
-        _openStream = openStream,
-        _onUpdate = onUpdate,
-        _onComplete = onComplete,
-        _onError = onError,
-        _onStopped = onStopped,
-        _errorContentBuilder = errorContentBuilder,
-        _emptyResponseContent = emptyResponseContent,
-        _persistInterval = persistInterval;
+    required this._errorContentBuilder,
+    required this._emptyResponseContent,
+    this._persistInterval = const Duration(milliseconds: 500),
+  });
 
   final ConversationService _conversationService;
   final String _conversationId;

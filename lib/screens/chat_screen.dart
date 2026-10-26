@@ -1,4 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'dart:io';
 import 'dart:async';
 import '../controllers/chat_send_controller.dart';
@@ -1049,7 +1050,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           // 性能优化配置
                           addAutomaticKeepAlives: true, // 启用自动保持活动状态
                           addRepaintBoundaries: true,   // 隔离重绘，避免整个列表重绘
-                          cacheExtent: 500,              // 预渲染屏幕外 500 像素的消息
+                          scrollCacheExtent:
+                              ScrollCacheExtent.pixels(500), // 预渲染屏幕外 500 像素的消息
                           itemBuilder: (context, index) {
                             if (index == _messages.length && _isLoading) {
                               return const TypingIndicator();
