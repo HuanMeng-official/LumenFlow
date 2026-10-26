@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import '../models/conversation.dart';
 import '../models/message.dart';
 import '../l10n/app_localizations.dart';
@@ -46,6 +47,19 @@ class ConversationService {
 
   /// 数据库实例
   final ConversationDatabase _db;
+
+  static pw.Font? _pdfRegularFont;
+  static pw.Font? _pdfBoldFont;
+
+  Future<(pw.Font, pw.Font)> _loadPdfFonts() async {
+    final regular = _pdfRegularFont ??= pw.Font.ttf(
+      await rootBundle.load('assets/fonts/NotoSansSC-Regular.ttf'),
+    );
+    final bold = _pdfBoldFont ??= pw.Font.ttf(
+      await rootBundle.load('assets/fonts/NotoSansSC-Bold.ttf'),
+    );
+    return (regular, bold);
+  }
 
   /// 内存缓存（由于是单例，实例变量也是全局共享的）
   List<Conversation>? _cachedConversations;
@@ -344,7 +358,15 @@ class ConversationService {
       throw Exception(l10n.exportConversationNotFound);
     }
 
-    final pdf = pw.Document();
+    final (regularFont, boldFont) = await _loadPdfFonts();
+    final pdf = pw.Document(
+      theme: pw.ThemeData.withFont(
+        base: regularFont,
+        bold: boldFont,
+        italic: regularFont,
+        boldItalic: boldFont,
+      ),
+    );
 
     // 添加元数据
     pdf.addPage(
@@ -801,7 +823,15 @@ class ConversationService {
 
   /// 导出对话为PDF（嵌入附件）
   Future<List<int>> _exportConversationToPdfWithAttachments(Conversation conversation, Map<String, Attachment> attachmentFiles, AppLocalizations l10n) async {
-    final pdf = pw.Document();
+    final (regularFont, boldFont) = await _loadPdfFonts();
+    final pdf = pw.Document(
+      theme: pw.ThemeData.withFont(
+        base: regularFont,
+        bold: boldFont,
+        italic: regularFont,
+        boldItalic: boldFont,
+      ),
+    );
 
     // 添加元数据
     pdf.addPage(

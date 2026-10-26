@@ -45,9 +45,32 @@ flutter:
     - assets/prompt/characters/en/
     - assets/prompt/characters/ja/
     - assets/prompt/characters/ko/
+    - assets/fonts/
     - assets/logo.png
     - assets/collection_code.png
     - assets/platform/
     - assets/image/
     - assets/gen/generator.html
     - pubspec.yaml
+  fonts:
+    - family: NotoSansSC
+      fonts:
+        - asset: assets/fonts/NotoSansSC-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/NotoSansSC-Bold.ttf
+          weight: 700
+    # cupertino_ui 的 ActionSheet/Dialog/ContextMenu 等组件内部硬编码了这两个
+    # 字体族，单靠 CupertinoTextThemeData 覆盖不到。把同一套 Noto 字体注册成
+    # 别名，让这些弹层也使用中文字形。
+    - family: CupertinoSystemText
+      fonts:
+        - asset: assets/fonts/NotoSansSC-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/NotoSansSC-Bold.ttf
+          weight: 700
+    - family: CupertinoSystemDisplay
+      fonts:
+        - asset: assets/fonts/NotoSansSC-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/NotoSansSC-Bold.ttf
+          weight: 700

@@ -862,7 +862,7 @@ class _MessageBubbleState extends State<MessageBubble>
                                       ),
                                     },
                                     styleSheet: MarkdownStyleSheet(
-                                      p: TextStyle(
+                                      p: materialTheme.textTheme.bodyMedium!.copyWith(
                                         fontSize: 13,
                                         height: 1.6,
                                         color: brightness == Brightness.dark
@@ -911,7 +911,7 @@ class _MessageBubbleState extends State<MessageBubble>
                                           ),
                                         ],
                                       ),
-                                      blockquote: TextStyle(
+                                      blockquote: materialTheme.textTheme.bodyMedium!.copyWith(
                                         fontSize: 13,
                                         fontStyle: FontStyle.italic,
                                         color: brightness == Brightness.dark
@@ -963,7 +963,7 @@ class _MessageBubbleState extends State<MessageBubble>
                             'pre': CodeBlockBuilder(context, brightness),
                           },
                           styleSheet: MarkdownStyleSheet(
-                            p: TextStyle(
+                            p: materialTheme.textTheme.bodyMedium!.copyWith(
                               color: widget.message.isUser
                                   ? CupertinoColors.white
                                   : (widget.message.status ==
@@ -1014,7 +1014,7 @@ class _MessageBubbleState extends State<MessageBubble>
                                 ),
                               ],
                             ),
-                            h1: TextStyle(
+                            h1: materialTheme.textTheme.bodyMedium!.copyWith(
                               color: widget.message.isUser
                                   ? CupertinoColors.white
                                   : (widget.message.status ==
@@ -1031,7 +1031,7 @@ class _MessageBubbleState extends State<MessageBubble>
                               fontWeight: FontWeight.bold,
                               height: 1.5,
                             ),
-                            h2: TextStyle(
+                            h2: materialTheme.textTheme.bodyMedium!.copyWith(
                               color: widget.message.isUser
                                   ? CupertinoColors.white
                                   : (widget.message.status ==
@@ -1048,7 +1048,7 @@ class _MessageBubbleState extends State<MessageBubble>
                               fontWeight: FontWeight.bold,
                               height: 1.5,
                             ),
-                            h3: TextStyle(
+                            h3: materialTheme.textTheme.bodyMedium!.copyWith(
                               color: widget.message.isUser
                                   ? CupertinoColors.white
                                   : (widget.message.status ==
@@ -1065,7 +1065,7 @@ class _MessageBubbleState extends State<MessageBubble>
                               fontWeight: FontWeight.bold,
                               height: 1.5,
                             ),
-                            h4: TextStyle(
+                            h4: materialTheme.textTheme.bodyMedium!.copyWith(
                               color: widget.message.isUser
                                   ? CupertinoColors.white
                                   : (widget.message.status ==
@@ -1082,7 +1082,7 @@ class _MessageBubbleState extends State<MessageBubble>
                               fontWeight: FontWeight.bold,
                               height: 1.5,
                             ),
-                            h5: TextStyle(
+                            h5: materialTheme.textTheme.bodyMedium!.copyWith(
                               color: widget.message.isUser
                                   ? CupertinoColors.white
                                   : (widget.message.status ==
@@ -1099,7 +1099,7 @@ class _MessageBubbleState extends State<MessageBubble>
                               fontWeight: FontWeight.bold,
                               height: 1.5,
                             ),
-                            h6: TextStyle(
+                            h6: materialTheme.textTheme.bodyMedium!.copyWith(
                               color: widget.message.isUser
                                   ? CupertinoColors.white
                                   : (widget.message.status ==
@@ -1116,7 +1116,7 @@ class _MessageBubbleState extends State<MessageBubble>
                               fontWeight: FontWeight.bold,
                               height: 1.5,
                             ),
-                            a: TextStyle(
+                            a: materialTheme.textTheme.bodyMedium!.copyWith(
                               color: widget.message.isUser
                                   ? CupertinoColors.label
                                   : CupertinoColors.systemBlue,
@@ -1124,7 +1124,7 @@ class _MessageBubbleState extends State<MessageBubble>
                               decoration: TextDecoration.underline,
                               height: 1.5,
                             ),
-                            blockquote: TextStyle(
+                            blockquote: materialTheme.textTheme.bodyMedium!.copyWith(
                               color: widget.message.isUser
                                   ? CupertinoColors.label
                                   : (widget.message.status ==

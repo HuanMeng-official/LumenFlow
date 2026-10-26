@@ -290,58 +290,75 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
     final l10n = AppLocalizations.of(context)!;
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => CupertinoActionSheet(
-        title: Text(conversation.title),
-        actions: [
-          CupertinoActionSheetAction(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(CupertinoIcons.pencil, size: 20),
-                const SizedBox(width: 8),
-                Text(l10n.editTitle),
-              ],
+      builder: (context) {
+        final primaryColor = CupertinoTheme.of(context).primaryColor;
+        final destructiveColor =
+            CupertinoColors.systemRed.resolveFrom(context);
+        return CupertinoActionSheet(
+          title: Text(conversation.title),
+          actions: [
+            CupertinoActionSheetAction(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    CupertinoIcons.pencil,
+                    size: 20,
+                    color: primaryColor,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(l10n.editTitle),
+                ],
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                _editConversationTitle(conversation);
+              },
             ),
-            onPressed: () {
-              Navigator.pop(context);
-              _editConversationTitle(conversation);
-            },
-          ),
-          CupertinoActionSheetAction(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(CupertinoIcons.arrow_down_doc, size: 20),
-                const SizedBox(width: 8),
-                Text(l10n.exportConversation),
-              ],
+            CupertinoActionSheetAction(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    CupertinoIcons.arrow_down_doc,
+                    size: 20,
+                    color: primaryColor,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(l10n.exportConversation),
+                ],
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                _showExportFormatDialog(conversation);
+              },
             ),
-            onPressed: () {
-              Navigator.pop(context);
-              _showExportFormatDialog(conversation);
-            },
-          ),
-          CupertinoActionSheetAction(
-            isDestructiveAction: true,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(CupertinoIcons.delete, size: 20),
-                const SizedBox(width: 8),
-                Text(l10n.deleteConversation2),
-              ],
+            CupertinoActionSheetAction(
+              isDestructiveAction: true,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    CupertinoIcons.delete,
+                    size: 20,
+                    color: destructiveColor,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(l10n.deleteConversation2),
+                ],
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                _deleteConversation(conversation);
+              },
             ),
-            onPressed: () {
-              Navigator.pop(context);
-              _deleteConversation(conversation);
-            },
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            child: Text(l10n.cancel),
+            onPressed: () => Navigator.pop(context),
           ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          child: Text(l10n.cancel),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+        );
+      },
     );
   }
 

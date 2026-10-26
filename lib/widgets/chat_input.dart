@@ -7,6 +7,7 @@ import '../services/file_service.dart';
 import '../services/ai_service.dart';
 import '../models/attachment.dart';
 import '../models/prompt_preset.dart';
+import '../utils/app_theme.dart';
 
 class ChatInput extends StatefulWidget {
   final Function(String, List<Attachment>) onSendMessage;
@@ -110,29 +111,32 @@ class _ChatInputState extends State<ChatInput> {
     final l10n = AppLocalizations.of(context)!;
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => CupertinoActionSheet(
-        title: Text(l10n.selectPresetRole),
-        message: Text(l10n.selectPresetRoleMessage),
-        actions: [
-          for (final preset in widget.presets)
-            CupertinoActionSheetAction(
-              onPressed: () {
-                Navigator.pop(context);
-                if (widget.onPresetSelected != null) {
-                  widget.onPresetSelected!(preset.id);
-                }
-                // 如果未启用预设模式，自动启用
-                if (!widget.promptPresetEnabled &&
-                    widget.onPromptPresetEnabledChanged != null) {
-                  widget.onPromptPresetEnabledChanged!(true);
-                }
-              },
-              child: Row(
-                children: [
-                  Icon(
-                    _getIconForPreset(preset.icon),
-                    size: 20,
-                  ),
+      builder: (context) {
+        final primaryColor = CupertinoTheme.of(context).primaryColor;
+        return CupertinoActionSheet(
+          title: Text(l10n.selectPresetRole),
+          message: Text(l10n.selectPresetRoleMessage),
+          actions: [
+            for (final preset in widget.presets)
+              CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.pop(context);
+                  if (widget.onPresetSelected != null) {
+                    widget.onPresetSelected!(preset.id);
+                  }
+                  // 如果未启用预设模式，自动启用
+                  if (!widget.promptPresetEnabled &&
+                      widget.onPromptPresetEnabledChanged != null) {
+                    widget.onPromptPresetEnabledChanged!(true);
+                  }
+                },
+                child: Row(
+                  children: [
+                    Icon(
+                      _getIconForPreset(preset.icon),
+                      size: 20,
+                      color: primaryColor,
+                    ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -202,12 +206,13 @@ class _ChatInputState extends State<ChatInput> {
             },
             child: Text(l10n.closePresetMode),
           ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          onPressed: () => Navigator.pop(context),
-          child: Text(l10n.cancel),
-        ),
-      ),
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.cancel),
+          ),
+        );
+      },
     );
   }
 
@@ -902,6 +907,8 @@ class _ChatInputState extends State<ChatInput> {
     required bool isActive,
   }) {
     final brightness = CupertinoTheme.of(context).brightness;
+    final locale = Localizations.maybeLocaleOf(context);
+    final fontFamily = appFontFamilyForLocale(locale);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -923,6 +930,8 @@ class _ChatInputState extends State<ChatInput> {
           style: TextStyle(
             fontSize: 17,
             fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+            fontFamily: fontFamily,
+            fontFamilyFallback: cjkFontFallbackForLocale(locale),
             color: brightness == Brightness.dark
                 ? CupertinoColors.white
                 : CupertinoColors.black,

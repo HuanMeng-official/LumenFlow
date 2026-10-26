@@ -139,6 +139,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           ],
           locale: _locale,
           theme: buildAppTheme(brightness, _locale),
+          builder: (context, child) => Theme(
+            data: buildMaterialAppTheme(brightness, _locale),
+            child: child ?? const SizedBox.shrink(),
+          ),
           home: child!,
           debugShowCheckedModeBanner: false,
         );

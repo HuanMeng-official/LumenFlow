@@ -1302,57 +1302,74 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final l10n = AppLocalizations.of(context)!;
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => CupertinoActionSheet(
-        actions: [
-          CupertinoActionSheetAction(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(CupertinoIcons.settings, size: 20),
-                const SizedBox(width: 8),
-                Text(l10n.settings),
-              ],
+      builder: (context) {
+        final primaryColor = CupertinoTheme.of(context).primaryColor;
+        final destructiveColor =
+            CupertinoColors.systemRed.resolveFrom(context);
+        return CupertinoActionSheet(
+          actions: [
+            CupertinoActionSheetAction(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    CupertinoIcons.settings,
+                    size: 20,
+                    color: primaryColor,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(l10n.settings),
+                ],
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                _openSettings();
+              },
             ),
-            onPressed: () {
-              Navigator.pop(context);
-              _openSettings();
-            },
-          ),
-          CupertinoActionSheetAction(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(CupertinoIcons.arrow_down_doc, size: 20),
-                const SizedBox(width: 8),
-                Text(l10n.exportConversation),
-              ],
+            CupertinoActionSheetAction(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    CupertinoIcons.arrow_down_doc,
+                    size: 20,
+                    color: primaryColor,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(l10n.exportConversation),
+                ],
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                _showExportFormatDialog();
+              },
             ),
-            onPressed: () {
-              Navigator.pop(context);
-              _showExportFormatDialog();
-            },
-          ),
-          CupertinoActionSheetAction(
-            isDestructiveAction: true,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(CupertinoIcons.clear, size: 20),
-                const SizedBox(width: 8),
-                Text(l10n.clearConversation),
-              ],
+            CupertinoActionSheetAction(
+              isDestructiveAction: true,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    CupertinoIcons.clear,
+                    size: 20,
+                    color: destructiveColor,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(l10n.clearConversation),
+                ],
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                _clearCurrentConversation();
+              },
             ),
-            onPressed: () {
-              Navigator.pop(context);
-              _clearCurrentConversation();
-            },
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            child: Text(l10n.cancel),
+            onPressed: () => Navigator.pop(context),
           ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          child: Text(l10n.cancel),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+        );
+      },
     );
   }
 
