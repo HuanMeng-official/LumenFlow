@@ -27,7 +27,15 @@ switch ($selected) {
         flutter build windows --release --dart-define=BUILD_DATE=$buildDate
     }
     1 {
-        Write-Output "Building Android (release, split-per-abi), BUILD_DATE=$buildDate"
+        Write-Output "Building Android universal APK (release), BUILD_DATE=$buildDate"
+        flutter build apk --release --dart-define=BUILD_DATE=$buildDate
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        Move-Item `
+            'build/app/outputs/flutter-apk/app-release.apk' `
+            'build/app/outputs/flutter-apk/app-universal-release.apk' `
+            -Force
+
+        Write-Output "Building Android split APKs (release), BUILD_DATE=$buildDate"
         flutter build apk --release --split-per-abi --dart-define=BUILD_DATE=$buildDate
     }
 }

@@ -61,7 +61,11 @@ do
             break
             ;;
         "Android")
-            echo "Building Android (release, split-per-abi), BUILD_DATE=$build_date"
+            echo "Building Android universal APK (release), BUILD_DATE=$build_date"
+            flutter build apk --release --dart-define=BUILD_DATE="$build_date"
+            mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/app-universal-release.apk
+
+            echo "Building Android split APKs (release), BUILD_DATE=$build_date"
             flutter build apk --release --split-per-abi --dart-define=BUILD_DATE="$build_date"
             break
             ;;
