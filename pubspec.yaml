@@ -45,6 +45,7 @@ flutter:
     - assets/prompt/characters/en/
     - assets/prompt/characters/ja/
     - assets/prompt/characters/ko/
+    - assets/prompt/characters/es/
     - assets/fonts/
     - assets/logo.png
     - assets/collection_code.png
