@@ -25,6 +25,12 @@ class ChatCompletionsProfile {
   final ChatTemperatureBuilder? temperatureBuilder;
   final ChatReasoningReader? reasoningReader;
 
+  /// Whether assistant history must replay `reasoning_content`.
+  final bool replaysReasoningContent;
+
+  /// Some providers reject `tool_choice` while thinking is enabled.
+  final bool supportsToolChoiceWithThinking;
+
   const ChatCompletionsProfile({
     required this.id,
     this.path = '/chat/completions',
@@ -34,6 +40,8 @@ class ChatCompletionsProfile {
     this.extraFieldsBuilder,
     this.temperatureBuilder,
     this.reasoningReader,
+    this.replaysReasoningContent = false,
+    this.supportsToolChoiceWithThinking = true,
   });
 
   Map<String, dynamic> thinkingFields(AIRequest request) {
@@ -136,6 +144,8 @@ class ChatCompletionsProfiles {
   static final ChatCompletionsProfile deepseek = ChatCompletionsProfile(
     id: 'deepseek',
     thinkingFieldsBuilder: _deepSeekThinking,
+    replaysReasoningContent: true,
+    supportsToolChoiceWithThinking: false,
   );
 
   static final ChatCompletionsProfile kimi = ChatCompletionsProfile(

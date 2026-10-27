@@ -531,7 +531,13 @@ class ChatCompletionsToolProvider implements AIStreamingProvider {
 
     final body = <String, dynamic>{
       'model': request.model,
-      'messages': request.messages.map((m) => m.toOpenAIJson()).toList(),
+      'messages': request.messages
+          .map(
+            (message) => message.toOpenAIJson(
+              includeReasoningContent: profile.replaysReasoningContent,
+            ),
+          )
+          .toList(),
       'stream': true,
       profile.tokenField: request.maxTokens,
       'temperature': profile.temperature(request),
@@ -542,7 +548,9 @@ class ChatCompletionsToolProvider implements AIStreamingProvider {
 
     if (request.tools.isNotEmpty) {
       body['tools'] = request.tools.map((t) => t.toOpenAIJson()).toList();
-      body['tool_choice'] = request.toolChoice.name;
+      if (!request.thinkingMode || profile.supportsToolChoiceWithThinking) {
+        body['tool_choice'] = request.toolChoice.name;
+      }
     }
 
     httpRequest.body = jsonEncode(body);

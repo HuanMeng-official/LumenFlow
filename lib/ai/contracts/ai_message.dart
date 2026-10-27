@@ -31,10 +31,12 @@ class AIMessage {
 
   const AIMessage.assistant(
     String content, {
+    String? reasoningContent,
     List<AIToolCall> toolCalls = const [],
   }) : this._(
           role: AIMessageRole.assistant,
           content: content,
+          reasoningContent: reasoningContent,
           toolCalls: toolCalls,
         );
 
@@ -51,11 +53,17 @@ class AIMessage {
           isError: isError,
         );
 
-  Map<String, dynamic> toOpenAIJson() {
+  Map<String, dynamic> toOpenAIJson({bool includeReasoningContent = false}) {
     final json = <String, dynamic>{
       'role': role.name,
       'content': content,
     };
+
+    // DeepSeek requires the previous assistant reasoning_content to be
+    // replayed when tools are present, even when it is empty.
+    if (includeReasoningContent && role == AIMessageRole.assistant) {
+      json['reasoning_content'] = reasoningContent ?? '';
+    }
 
     if (toolCalls.isNotEmpty) {
       json['tool_calls'] = toolCalls

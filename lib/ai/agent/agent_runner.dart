@@ -32,11 +32,15 @@ class AgentRunner {
       );
 
       final answer = StringBuffer();
+      final reasoning = StringBuffer();
       var toolCalls = const <AIToolCall>[];
 
       await for (final event in provider.stream(currentRequest)) {
         if (event is AIAnswerDelta) {
           answer.write(event.text);
+          yield event;
+        } else if (event is AIReasoningDelta) {
+          reasoning.write(event.text);
           yield event;
         } else if (event is AIToolCallsComplete) {
           toolCalls = event.calls;
@@ -60,6 +64,7 @@ class AgentRunner {
       messages.add(
         AIMessage.assistant(
           answer.toString(),
+          reasoningContent: reasoning.toString(),
           toolCalls: toolCalls,
         ),
       );

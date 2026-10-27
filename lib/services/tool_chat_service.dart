@@ -59,7 +59,10 @@ class ToolChatService {
         messages.add(
           historical.isUser
               ? AIMessage.user(historical.content)
-              : AIMessage.assistant(historical.content),
+              : AIMessage.assistant(
+                  historical.content,
+                  reasoningContent: historical.reasoningContent,
+                ),
         );
       }
     }
