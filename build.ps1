@@ -34,6 +34,10 @@ switch ($selected) {
             'build/app/outputs/flutter-apk/app-release.apk' `
             'build/app/outputs/flutter-apk/app-universal-release.apk' `
             -Force
+        Move-Item `
+            'build/app/outputs/flutter-apk/app-release.apk.sha1' `
+            'build/app/outputs/flutter-apk/app-universal-release.apk.sha1' `
+            -Force
 
         Write-Output "Building Android split APKs (release), BUILD_DATE=$buildDate"
         flutter build apk --release --split-per-abi --dart-define=BUILD_DATE=$buildDate
