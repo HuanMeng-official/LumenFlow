@@ -292,22 +292,24 @@ class AIService {
 
   /// 构建完整的系统提示词
   ///
-  /// 包含基础提示词和用户自定义提示词
+  /// 按“基础规则 → 自定义提示 → 角色预设”的顺序拼接。角色预设保留在最后，
+  /// 因此它可以覆盖角色身份与文风，但不会丢掉用户的全局自定义要求。
   Future<String> _buildSystemPrompt(String presetSystemPrompt, AppLocalizations l10n) async {
     final userProfile = await _userService.getUserProfile();
     final customSystemPrompt = await _settingsService.getCustomSystemPrompt();
 
-    // 决定使用哪个系统提示词：优先使用预设提示词
-    final systemPromptToUse = presetSystemPrompt.isNotEmpty
-        ? presetSystemPrompt
-        : customSystemPrompt;
-
     // 使用本地化的基础系统提示词
-    String baseSystemPrompt = l10n.baseSystemPrompt(userProfile.username);
-    String fullSystemPrompt = baseSystemPrompt;
-    if (systemPromptToUse.isNotEmpty) {
-      fullSystemPrompt += systemPromptToUse;
-    }
+    final baseSystemPrompt = l10n.baseSystemPrompt(userProfile.username);
+    final sections = [
+      baseSystemPrompt,
+      if (customSystemPrompt.trim().isNotEmpty) customSystemPrompt,
+      if (presetSystemPrompt.trim().isNotEmpty) presetSystemPrompt,
+    ];
+
+    final fullSystemPrompt = sections
+        .map((section) => section.trim())
+        .where((section) => section.isNotEmpty)
+        .join('\n\n');
 
     // 替换系统提示词中的变量占位符
     return _replaceSystemPromptVariables(fullSystemPrompt, userProfile);

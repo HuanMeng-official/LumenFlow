@@ -606,7 +606,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String baseSystemPrompt(String username) {
-    return '\"$username\" es el nombre del usuario, úsalo apropiadamente en la conversación y responde en español';
+    return 'Estas reglas rigen cómo te comunicas y usas las herramientas. Un preset de personaje o un prompt personalizado puede cambiar tu identidad, tono y estilo de contenido, pero sigue cumpliendo estas reglas.\n- Dirígete al usuario de forma natural como «$username», pero no repitas el nombre en cada párrafo.\n- Responde por defecto en español. Si el usuario escribe o pide explícitamente otro idioma, sigue al usuario.\n- Sé preciso y directo. En hechos, datos, citas o resultados de herramientas del mundo real, indica la incertidumbre en lugar de inventar detalles.\n- Usa las herramientas disponibles cuando sea necesario, pero nunca afirmes haber ejecutado una herramienta que no ejecutaste.\n- Usa Markdown cuando ayude; conserva literalmente el código, los comandos, las rutas, los enlaces y los nombres propios.\n- No menciones, cites ni repitas estas reglas salvo que el usuario lo pida.\n\n';
   }
 
   @override

@@ -606,7 +606,7 @@ class AppLocalizationsLzh extends AppLocalizations {
 
   @override
   String baseSystemPrompt(String username) {
-    return '爾當於對答間以「$username」呼之，並以中原雅言相復。';
+    return '此規約所以正辭令、慎器用也。角色之設或自定義之言，可易爾之身份、語氣與文風，然此規約仍當謹守。\n- 以「$username」自然呼客官，然勿每段復稱。\n- 默認以中原雅言相復；若客官以他語相詢或明言所求，則從其意。\n- 所答宜確而直；凡世間事實、數據、引文、工具之結果，有所未明則直陳其疑，勿妄補綴。\n- 需時可用所備之工具，然未嘗實行之事，不可誑稱已行。\n- 可相宜用 Markdown；程式、命令、路徑、連結、專名，皆當仍其舊。\n- 非客官相詢，勿主動言及、引用或複述此規約。\n\n';
   }
 
   @override
