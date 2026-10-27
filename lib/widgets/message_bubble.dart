@@ -598,6 +598,18 @@ class _MessageBubbleState extends State<MessageBubble>
       Localizations.maybeLocaleOf(context),
     );
     final materialTheme = Theme.of(context);
+    final assistantTableTextColor = brightness == Brightness.dark
+        ? CupertinoColors.label.darkColor
+        : CupertinoColors.label.color;
+    final reasoningTableTextColor = brightness == Brightness.dark
+        ? CupertinoColors.systemGrey2.darkColor
+        : CupertinoColors.systemGrey.color;
+    final markdownTableBorder = TableBorder.all(
+      color: brightness == Brightness.dark
+          ? CupertinoColors.systemGrey4.darkColor
+          : CupertinoColors.systemGrey4.color,
+      width: 0.5,
+    );
 
     TextStyle codeFallback(TextStyle style) {
       return style.copyWith(
@@ -920,6 +932,16 @@ class _MessageBubbleState extends State<MessageBubble>
                                                   .darkColor
                                             : CupertinoColors.systemGrey.color,
                                       ),
+                                      tableHead: materialTheme.textTheme.bodyMedium!.copyWith(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: reasoningTableTextColor,
+                                      ),
+                                      tableBody: materialTheme.textTheme.bodyMedium!.copyWith(
+                                        fontSize: 13,
+                                        color: reasoningTableTextColor,
+                                      ),
+                                      tableBorder: markdownTableBorder,
                                       blockquoteDecoration: BoxDecoration(
                                         color: brightness == Brightness.dark
                                             ? CupertinoColors
@@ -1135,6 +1157,20 @@ class _MessageBubbleState extends State<MessageBubble>
                               fontStyle: FontStyle.italic,
                               height: 1.5,
                             ),
+                            tableHead: materialTheme.textTheme.bodyMedium!.copyWith(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: widget.message.isUser
+                                  ? CupertinoColors.white
+                                  : assistantTableTextColor,
+                            ),
+                            tableBody: materialTheme.textTheme.bodyMedium!.copyWith(
+                              fontSize: 16,
+                              color: widget.message.isUser
+                                  ? CupertinoColors.white
+                                  : assistantTableTextColor,
+                            ),
+                            tableBorder: markdownTableBorder,
                             blockquoteDecoration: BoxDecoration(
                               color: widget.message.isUser
                                   ? (brightness == Brightness.dark
