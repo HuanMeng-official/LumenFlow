@@ -13,17 +13,6 @@ LumenFlow (Chinese: 流光) is a Flutter-based AI chat application for Android, 
 - **UI stack**: Flutter 3.47.8 / Dart 3.13.7, `material_ui`, `cupertino_ui`
 - **Android baseline**: compileSdk 37.2, targetSdk 37, minSdk 29 (Android 10+)
 
-## What's New in 3.0
-
-- **Current AI platforms and models** — OpenAI GPT-6, Claude 5.5, Gemini 3.8 / 4, DeepSeek V4, Kimi K3.1, MiniMax M3.1, GLM-5.3, Grok 4.7, and Xiaomi MiMo V2.6.
-- **Tool calling everywhere** — unified tool runtime for Chat Completions, Responses API, Claude Messages, and Gemini Interactions.
-- **MCP support** — Streamable HTTP JSON-RPC MCP servers with custom headers and session handling.
-- **Gemini Interactions API** — standard chat and stateful tool loops now use `/v1beta/interactions`.
-- **Design-system decoupling** — migrated to `material_ui` and `cupertino_ui` 1.x, the standalone Material/Cupertino packages introduced for Flutter 3.47+.
-- **CJK rendering and PDF export** — bundled Noto Sans SC (Regular/Bold) for consistent Chinese glyphs in the UI and embedded PDF fonts.
-- **Latest Android toolchain** — Gradle 9.3.1, AGP 9.1.0, Kotlin 2.4.0, Java 17, Android 17 target.
-- **Expanded localization** — English, Simplified Chinese, Japanese, Korean, Spanish, and Literary Chinese (`lzh`).
-
 ## Features
 
 ### AI and Providers

@@ -13,17 +13,6 @@ LumenFlow（中文名：流光）是一款使用 Flutter 构建的 AI 聊天应�
 - **UI 技术栈**：Flutter 3.47.8 / Dart 3.13.7，`material_ui`、`cupertino_ui`
 - **Android 基线**：compileSdk 37.2、targetSdk 37、minSdk 29（Android 10+）
 
-## 3.0 更新内容
-
-- **平台与模型更新**：OpenAI GPT-6、Claude 5.5、Gemini 3.8 / 4、DeepSeek V4、Kimi K3.1、MiniMax M3.1、GLM-5.3、Grok 4.7、小米 MiMo V2.6。
-- **全平台工具调用**：统一支持 Chat Completions、Responses API、Claude Messages、Gemini Interactions 四类工具协议。
-- **MCP 支持**：接入 Streamable HTTP JSON-RPC MCP 服务器，支持自定义请求头和会话管理。
-- **Gemini Interactions API**：普通聊天和带状态的工具循环均已迁移到 `/v1beta/interactions`。
-- **设计系统解耦**：迁移到 Flutter 3.47+ 独立发布的 `material_ui` 和 `cupertino_ui` 1.x。
-- **中文显示与 PDF 导出**：内置 Noto Sans SC Regular/Bold，UI 中文不再回退到日文字形，PDF 也嵌入中文字体。
-- **最新 Android 工具链**：Gradle 9.3.1、AGP 9.1.0、Kotlin 2.4.0、Java 17，目标 Android 17。
-- **本地化扩展**：英文、简体中文、日文、韩文、西班牙文和文言中文（`lzh`）。
-
 ## 功能特性
 
 ### AI 与平台
