@@ -654,9 +654,11 @@ class _MessageBubbleState extends State<MessageBubble>
   }
 
   Widget _buildMessageOptionsButton(Brightness brightness) {
-    final color = brightness == Brightness.dark
-        ? CupertinoColors.systemGrey.darkColor
-        : CupertinoColors.systemGrey.color;
+    final color = widget.message.isUser
+        ? CupertinoColors.white.withValues(alpha: 0.8)
+        : (brightness == Brightness.dark
+              ? CupertinoColors.systemGrey.darkColor
+              : CupertinoColors.systemGrey.color);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -853,880 +855,755 @@ class _MessageBubbleState extends State<MessageBubble>
                                                   .color)),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(minWidth: 36),
-                            child: Stack(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 18),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      if (!widget.message.isUser &&
-                                          widget.message.reasoningContent !=
-                                              null &&
-                                          widget
-                                              .message
-                                              .reasoningContent!
-                                              .isNotEmpty)
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (!widget.message.isUser &&
+                                  widget.message.reasoningContent != null &&
+                                  widget.message.reasoningContent!.isNotEmpty)
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          _isReasoningExpanded =
+                                              !_isReasoningExpanded;
+                                        });
+                                      },
+                                      child: AnimatedContainer(
+                                        duration: const Duration(
+                                          milliseconds: 200,
+                                        ),
+                                        curve: Curves.easeInOut,
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 8,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: brightness == Brightness.dark
+                                              ? CupertinoColors
+                                                    .systemBlue
+                                                    .darkColor
+                                                    .withAlpha(31)
+                                              : CupertinoColors.systemBlue.color
+                                                    .withAlpha(20),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          boxShadow: _isReasoningExpanded
+                                              ? [
+                                                  BoxShadow(
+                                                    color:
+                                                        brightness ==
+                                                            Brightness.dark
+                                                        ? CupertinoColors.black
+                                                              .withAlpha(77)
+                                                        : CupertinoColors
+                                                              .systemGrey
+                                                              .withAlpha(51),
+                                                    blurRadius: 6,
+                                                    offset: const Offset(0, 1),
+                                                  ),
+                                                ]
+                                              : null,
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
-                                            GestureDetector(
-                                              onTap: () {
-                                                setState(() {
-                                                  _isReasoningExpanded =
-                                                      !_isReasoningExpanded;
-                                                });
-                                              },
-                                              child: AnimatedContainer(
-                                                duration: const Duration(
-                                                  milliseconds: 200,
-                                                ),
-                                                curve: Curves.easeInOut,
-                                                width: double.infinity,
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 12,
-                                                      vertical: 8,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  color:
-                                                      brightness ==
-                                                          Brightness.dark
-                                                      ? CupertinoColors
-                                                            .systemBlue
-                                                            .darkColor
-                                                            .withAlpha(31)
-                                                      : CupertinoColors
-                                                            .systemBlue
-                                                            .color
-                                                            .withAlpha(20),
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                  boxShadow:
-                                                      _isReasoningExpanded
-                                                      ? [
-                                                          BoxShadow(
-                                                            color:
-                                                                brightness ==
-                                                                    Brightness
-                                                                        .dark
-                                                                ? CupertinoColors
-                                                                      .black
-                                                                      .withAlpha(
-                                                                        77,
-                                                                      )
-                                                                : CupertinoColors
-                                                                      .systemGrey
-                                                                      .withAlpha(
-                                                                        51,
-                                                                      ),
-                                                            blurRadius: 6,
-                                                            offset:
-                                                                const Offset(
-                                                                  0,
-                                                                  1,
-                                                                ),
-                                                          ),
-                                                        ]
-                                                      : null,
-                                                ),
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    Row(
-                                                      children: [
-                                                        Container(
-                                                          width: 24,
-                                                          height: 24,
-                                                          decoration: BoxDecoration(
-                                                            color:
-                                                                brightness ==
-                                                                    Brightness
-                                                                        .dark
-                                                                ? CupertinoColors
-                                                                      .systemBlue
-                                                                      .darkColor
-                                                                      .withAlpha(
-                                                                        51,
-                                                                      )
-                                                                : CupertinoColors
-                                                                      .systemBlue
-                                                                      .color
-                                                                      .withAlpha(
-                                                                        38,
-                                                                      ),
-                                                            shape:
-                                                                BoxShape.circle,
-                                                          ),
-                                                          child: Icon(
-                                                            CupertinoIcons
-                                                                .lightbulb,
-                                                            size: 14,
-                                                            color:
-                                                                brightness ==
-                                                                    Brightness
-                                                                        .dark
-                                                                ? CupertinoColors
-                                                                      .systemBlue
-                                                                      .darkColor
-                                                                : CupertinoColors
-                                                                      .systemBlue
-                                                                      .color,
-                                                          ),
-                                                        ),
-                                                        const SizedBox(
-                                                          width: 10,
-                                                        ),
-                                                        Column(
-                                                          crossAxisAlignment:
-                                                              CrossAxisAlignment
-                                                                  .start,
-                                                          children: [
-                                                            Text(
-                                                              l10n.thinkChain,
-                                                              style: TextStyle(
-                                                                fontSize: 14,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                                color:
-                                                                    brightness ==
-                                                                        Brightness
-                                                                            .dark
-                                                                    ? CupertinoColors
-                                                                          .label
-                                                                          .darkColor
-                                                                    : CupertinoColors
-                                                                          .label
-                                                                          .color,
-                                                              ),
-                                                            ),
-                                                            const SizedBox(
-                                                              height: 1,
-                                                            ),
-                                                            Text(
-                                                              l10n.expandChain,
-                                                              style: TextStyle(
-                                                                fontSize: 12,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w400,
-                                                                color:
-                                                                    brightness ==
-                                                                        Brightness
-                                                                            .dark
-                                                                    ? CupertinoColors
-                                                                          .systemGrey
-                                                                          .darkColor
-                                                                    : CupertinoColors
-                                                                          .systemGrey
-                                                                          .color,
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    Container(
-                                                      width: 24,
-                                                      height: 24,
-                                                      decoration: BoxDecoration(
-                                                        color:
-                                                            brightness ==
-                                                                Brightness.dark
-                                                            ? CupertinoColors
-                                                                  .systemBlue
-                                                                  .darkColor
-                                                                  .withAlpha(51)
-                                                            : CupertinoColors
-                                                                  .systemBlue
-                                                                  .color
-                                                                  .withAlpha(
-                                                                    38,
-                                                                  ),
-                                                        shape: BoxShape.circle,
-                                                      ),
-                                                      child: Icon(
-                                                        _isReasoningExpanded
-                                                            ? CupertinoIcons
-                                                                  .chevron_up
-                                                            : CupertinoIcons
-                                                                  .chevron_down,
-                                                        size: 12,
-                                                        color:
-                                                            brightness ==
-                                                                Brightness.dark
-                                                            ? CupertinoColors
-                                                                  .systemBlue
-                                                                  .darkColor
-                                                            : CupertinoColors
-                                                                  .systemBlue
-                                                                  .color,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                            AnimatedCrossFade(
-                                              duration: const Duration(
-                                                milliseconds: 200,
-                                              ),
-                                              crossFadeState:
-                                                  _isReasoningExpanded
-                                                  ? CrossFadeState.showSecond
-                                                  : CrossFadeState.showFirst,
-                                              firstChild:
-                                                  const SizedBox.shrink(),
-                                              secondChild: Container(
-                                                width: double.infinity,
-                                                margin: const EdgeInsets.only(
-                                                  top: 8,
-                                                ),
-                                                padding: const EdgeInsets.all(
-                                                  12,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color:
-                                                      brightness ==
-                                                          Brightness.dark
-                                                      ? CupertinoColors
-                                                            .systemGrey6
-                                                            .darkColor
-                                                      : CupertinoColors.white,
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color:
-                                                          brightness ==
-                                                              Brightness.dark
-                                                          ? CupertinoColors
-                                                                .black
-                                                                .withAlpha(51)
-                                                          : CupertinoColors
-                                                                .systemGrey
-                                                                .withAlpha(38),
-                                                      blurRadius: 8,
-                                                      offset: const Offset(
-                                                        0,
-                                                        2,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: SelectableRegion(
-                                                  selectionControls:
-                                                      cupertinoTextSelectionControls,
-                                                  child: MarkdownBody(
-                                                    data: widget
-                                                        .message
-                                                        .reasoningContent!,
-                                                    builders: {
-                                                      'pre': CodeBlockBuilder(
-                                                        context,
-                                                        brightness,
-                                                      ),
-                                                    },
-                                                    styleSheet: MarkdownStyleSheet(
-                                                      p: materialTheme
-                                                          .textTheme
-                                                          .bodyMedium!
-                                                          .copyWith(
-                                                            fontSize: 13,
-                                                            height: 1.6,
-                                                            color:
-                                                                brightness ==
-                                                                    Brightness
-                                                                        .dark
-                                                                ? CupertinoColors
-                                                                      .systemGrey2
-                                                                      .darkColor
-                                                                : CupertinoColors
-                                                                      .systemGrey
-                                                                      .color,
-                                                          ),
-                                                      code: codeFallback(
-                                                        TextStyle(
-                                                          fontSize: 12,
-                                                          color:
-                                                              brightness ==
-                                                                  Brightness
-                                                                      .dark
-                                                              ? CupertinoColors
-                                                                    .systemGreen
-                                                                    .darkColor
-                                                              : const Color(
-                                                                  0xFF006400,
-                                                                ), // 深绿色
-                                                          backgroundColor:
-                                                              brightness ==
-                                                                  Brightness
-                                                                      .dark
-                                                              ? const Color(
-                                                                  0xFF1E1E1E,
-                                                                )
-                                                              : const Color(
-                                                                  0xFFF8F9FA,
-                                                                ),
-                                                        ),
-                                                      ),
-                                                      codeblockPadding:
-                                                          const EdgeInsets.all(
-                                                            12,
-                                                          ),
-                                                      codeblockDecoration: BoxDecoration(
-                                                        color:
-                                                            brightness ==
-                                                                Brightness.dark
-                                                            ? const Color(
-                                                                0xFF1E1E1E,
-                                                              )
-                                                            : const Color(
-                                                                0xFFF8F9FA,
-                                                              ),
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              10,
-                                                            ),
-                                                        border: Border.all(
-                                                          color:
-                                                              brightness ==
-                                                                  Brightness
-                                                                      .dark
-                                                              ? const Color(
-                                                                  0xFF404040,
-                                                                )
-                                                              : const Color(
-                                                                  0xFFE0E0E0,
-                                                                ),
-                                                          width: 1,
-                                                        ),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                            color:
-                                                                brightness ==
-                                                                    Brightness
-                                                                        .dark
-                                                                ? CupertinoColors
-                                                                      .black
-                                                                      .withAlpha(
-                                                                        100,
-                                                                      )
-                                                                : CupertinoColors
-                                                                      .systemGrey
-                                                                      .withAlpha(
-                                                                        30,
-                                                                      ),
-                                                            blurRadius: 8,
-                                                            offset:
-                                                                const Offset(
-                                                                  0,
-                                                                  2,
-                                                                ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      blockquote: materialTheme
-                                                          .textTheme
-                                                          .bodyMedium!
-                                                          .copyWith(
-                                                            fontSize: 13,
-                                                            fontStyle: FontStyle
-                                                                .italic,
-                                                            color:
-                                                                brightness ==
-                                                                    Brightness
-                                                                        .dark
-                                                                ? CupertinoColors
-                                                                      .systemGrey2
-                                                                      .darkColor
-                                                                : CupertinoColors
-                                                                      .systemGrey
-                                                                      .color,
-                                                          ),
-                                                      tableHead: materialTheme
-                                                          .textTheme
-                                                          .bodyMedium!
-                                                          .copyWith(
-                                                            fontSize: 13,
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            color:
-                                                                reasoningTableTextColor,
-                                                          ),
-                                                      tableBody: materialTheme
-                                                          .textTheme
-                                                          .bodyMedium!
-                                                          .copyWith(
-                                                            fontSize: 13,
-                                                            color:
-                                                                reasoningTableTextColor,
-                                                          ),
-                                                      tableBorder:
-                                                          markdownTableBorder,
-                                                      blockquoteDecoration: BoxDecoration(
-                                                        color:
-                                                            brightness ==
-                                                                Brightness.dark
-                                                            ? CupertinoColors
-                                                                  .systemGrey5
-                                                                  .darkColor
-                                                                  .withAlpha(
-                                                                    128,
-                                                                  )
-                                                            : CupertinoColors
-                                                                  .systemGrey6
-                                                                  .color,
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              4,
-                                                            ),
-                                                        border: Border(
-                                                          left: BorderSide(
-                                                            color:
-                                                                brightness ==
-                                                                    Brightness
-                                                                        .dark
-                                                                ? CupertinoColors
-                                                                      .systemBlue
-                                                                      .darkColor
-                                                                : CupertinoColors
-                                                                      .systemBlue
-                                                                      .color,
-                                                            width: 3,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      blockquotePadding:
-                                                          const EdgeInsets.only(
-                                                            left: 12,
-                                                            top: 6,
-                                                            bottom: 6,
-                                                            right: 6,
-                                                          ),
-                                                    ),
+                                            Row(
+                                              children: [
+                                                Container(
+                                                  width: 24,
+                                                  height: 24,
+                                                  decoration: BoxDecoration(
+                                                    color:
+                                                        brightness ==
+                                                            Brightness.dark
+                                                        ? CupertinoColors
+                                                              .systemBlue
+                                                              .darkColor
+                                                              .withAlpha(51)
+                                                        : CupertinoColors
+                                                              .systemBlue
+                                                              .color
+                                                              .withAlpha(38),
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  child: Icon(
+                                                    CupertinoIcons.lightbulb,
+                                                    size: 14,
+                                                    color:
+                                                        brightness ==
+                                                            Brightness.dark
+                                                        ? CupertinoColors
+                                                              .systemBlue
+                                                              .darkColor
+                                                        : CupertinoColors
+                                                              .systemBlue
+                                                              .color,
                                                   ),
                                                 ),
-                                              ),
-                                            ),
-                                            const SizedBox(height: 12),
-                                          ],
-                                        ),
-                                      SelectableRegion(
-                                        selectionControls:
-                                            cupertinoTextSelectionControls,
-                                        child: MarkdownBody(
-                                          data: widget.message.content,
-                                          builders: {
-                                            'pre': CodeBlockBuilder(
-                                              context,
-                                              brightness,
-                                            ),
-                                          },
-                                          styleSheet: MarkdownStyleSheet(
-                                            p: materialTheme.textTheme.bodyMedium!.copyWith(
-                                              color: widget.message.isUser
-                                                  ? CupertinoColors.white
-                                                  : (widget.message.status ==
-                                                            MessageStatus.error
-                                                        ? (brightness ==
-                                                                  Brightness
-                                                                      .dark
-                                                              ? CupertinoColors
-                                                                    .systemRed
-                                                                    .darkColor
-                                                              : CupertinoColors
-                                                                    .systemRed
-                                                                    .color)
-                                                        : (brightness ==
-                                                                  Brightness
-                                                                      .dark
-                                                              ? CupertinoColors
-                                                                    .label
-                                                                    .darkColor
-                                                              : CupertinoColors
-                                                                    .label
-                                                                    .color)),
-                                              fontSize: 16,
-                                              height: 1.5,
-                                            ),
-                                            code: codeFallback(
-                                              TextStyle(
-                                                fontSize: 15,
-                                                color:
-                                                    brightness ==
-                                                        Brightness.dark
-                                                    ? const Color(0xFFD4D4D4)
-                                                    : const Color(0xFF24292E),
-                                                backgroundColor:
-                                                    brightness ==
-                                                        Brightness.dark
-                                                    ? const Color(0xFF1E1E1E)
-                                                    : const Color(0xFFF6F8FA),
-                                              ),
-                                            ),
-                                            codeblockPadding:
-                                                const EdgeInsets.all(16),
-                                            codeblockDecoration: BoxDecoration(
-                                              color:
-                                                  brightness == Brightness.dark
-                                                  ? const Color(0xFF1E1E1E)
-                                                  : const Color(0xFFF6F8FA),
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                              border: Border.all(
-                                                color:
-                                                    brightness ==
-                                                        Brightness.dark
-                                                    ? const Color(0xFF404040)
-                                                    : const Color(0xFFD0D7DE),
-                                                width: 1,
-                                              ),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color:
-                                                      brightness ==
-                                                          Brightness.dark
-                                                      ? CupertinoColors.black
-                                                            .withAlpha(120)
-                                                      : CupertinoColors
-                                                            .systemGrey
-                                                            .withAlpha(40),
-                                                  blurRadius: 12,
-                                                  offset: const Offset(0, 3),
+                                                const SizedBox(width: 10),
+                                                Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      l10n.thinkChain,
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color:
+                                                            brightness ==
+                                                                Brightness.dark
+                                                            ? CupertinoColors
+                                                                  .label
+                                                                  .darkColor
+                                                            : CupertinoColors
+                                                                  .label
+                                                                  .color,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 1),
+                                                    Text(
+                                                      l10n.expandChain,
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        color:
+                                                            brightness ==
+                                                                Brightness.dark
+                                                            ? CupertinoColors
+                                                                  .systemGrey
+                                                                  .darkColor
+                                                            : CupertinoColors
+                                                                  .systemGrey
+                                                                  .color,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ],
                                             ),
-                                            h1: materialTheme.textTheme.bodyMedium!.copyWith(
-                                              color: widget.message.isUser
-                                                  ? CupertinoColors.white
-                                                  : (widget.message.status ==
-                                                            MessageStatus.error
-                                                        ? (brightness ==
-                                                                  Brightness
-                                                                      .dark
-                                                              ? CupertinoColors
-                                                                    .systemRed
-                                                                    .darkColor
-                                                              : CupertinoColors
-                                                                    .systemRed
-                                                                    .color)
-                                                        : (brightness ==
-                                                                  Brightness
-                                                                      .dark
-                                                              ? CupertinoColors
-                                                                    .label
-                                                                    .darkColor
-                                                              : CupertinoColors
-                                                                    .label
-                                                                    .color)),
-                                              fontSize: 24,
-                                              fontWeight: FontWeight.bold,
-                                              height: 1.5,
-                                            ),
-                                            h2: materialTheme.textTheme.bodyMedium!.copyWith(
-                                              color: widget.message.isUser
-                                                  ? CupertinoColors.white
-                                                  : (widget.message.status ==
-                                                            MessageStatus.error
-                                                        ? (brightness ==
-                                                                  Brightness
-                                                                      .dark
-                                                              ? CupertinoColors
-                                                                    .systemRed
-                                                                    .darkColor
-                                                              : CupertinoColors
-                                                                    .systemRed
-                                                                    .color)
-                                                        : (brightness ==
-                                                                  Brightness
-                                                                      .dark
-                                                              ? CupertinoColors
-                                                                    .label
-                                                                    .darkColor
-                                                              : CupertinoColors
-                                                                    .label
-                                                                    .color)),
-                                              fontSize: 22,
-                                              fontWeight: FontWeight.bold,
-                                              height: 1.5,
-                                            ),
-                                            h3: materialTheme.textTheme.bodyMedium!.copyWith(
-                                              color: widget.message.isUser
-                                                  ? CupertinoColors.white
-                                                  : (widget.message.status ==
-                                                            MessageStatus.error
-                                                        ? (brightness ==
-                                                                  Brightness
-                                                                      .dark
-                                                              ? CupertinoColors
-                                                                    .systemRed
-                                                                    .darkColor
-                                                              : CupertinoColors
-                                                                    .systemRed
-                                                                    .color)
-                                                        : (brightness ==
-                                                                  Brightness
-                                                                      .dark
-                                                              ? CupertinoColors
-                                                                    .label
-                                                                    .darkColor
-                                                              : CupertinoColors
-                                                                    .label
-                                                                    .color)),
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                              height: 1.5,
-                                            ),
-                                            h4: materialTheme.textTheme.bodyMedium!.copyWith(
-                                              color: widget.message.isUser
-                                                  ? CupertinoColors.white
-                                                  : (widget.message.status ==
-                                                            MessageStatus.error
-                                                        ? (brightness ==
-                                                                  Brightness
-                                                                      .dark
-                                                              ? CupertinoColors
-                                                                    .systemRed
-                                                                    .darkColor
-                                                              : CupertinoColors
-                                                                    .systemRed
-                                                                    .color)
-                                                        : (brightness ==
-                                                                  Brightness
-                                                                      .dark
-                                                              ? CupertinoColors
-                                                                    .label
-                                                                    .darkColor
-                                                              : CupertinoColors
-                                                                    .label
-                                                                    .color)),
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                              height: 1.5,
-                                            ),
-                                            h5: materialTheme.textTheme.bodyMedium!.copyWith(
-                                              color: widget.message.isUser
-                                                  ? CupertinoColors.white
-                                                  : (widget.message.status ==
-                                                            MessageStatus.error
-                                                        ? (brightness ==
-                                                                  Brightness
-                                                                      .dark
-                                                              ? CupertinoColors
-                                                                    .systemRed
-                                                                    .darkColor
-                                                              : CupertinoColors
-                                                                    .systemRed
-                                                                    .color)
-                                                        : (brightness ==
-                                                                  Brightness
-                                                                      .dark
-                                                              ? CupertinoColors
-                                                                    .label
-                                                                    .darkColor
-                                                              : CupertinoColors
-                                                                    .label
-                                                                    .color)),
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              height: 1.5,
-                                            ),
-                                            h6: materialTheme.textTheme.bodyMedium!.copyWith(
-                                              color: widget.message.isUser
-                                                  ? CupertinoColors.white
-                                                  : (widget.message.status ==
-                                                            MessageStatus.error
-                                                        ? (brightness ==
-                                                                  Brightness
-                                                                      .dark
-                                                              ? CupertinoColors
-                                                                    .systemRed
-                                                                    .darkColor
-                                                              : CupertinoColors
-                                                                    .systemRed
-                                                                    .color)
-                                                        : (brightness ==
-                                                                  Brightness
-                                                                      .dark
-                                                              ? CupertinoColors
-                                                                    .label
-                                                                    .darkColor
-                                                              : CupertinoColors
-                                                                    .label
-                                                                    .color)),
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              height: 1.5,
-                                            ),
-                                            a: materialTheme
-                                                .textTheme
-                                                .bodyMedium!
-                                                .copyWith(
-                                                  color: widget.message.isUser
-                                                      ? CupertinoColors.label
-                                                      : CupertinoColors
-                                                            .systemBlue,
-                                                  fontSize: 16,
-                                                  decoration:
-                                                      TextDecoration.underline,
-                                                  height: 1.5,
-                                                ),
-                                            blockquote: materialTheme
-                                                .textTheme
-                                                .bodyMedium!
-                                                .copyWith(
-                                                  color: widget.message.isUser
-                                                      ? CupertinoColors.label
-                                                      : (widget
-                                                                    .message
-                                                                    .status ==
-                                                                MessageStatus
-                                                                    .error
-                                                            ? CupertinoColors
-                                                                  .systemRed
-                                                            : CupertinoColors
-                                                                  .systemGrey),
-                                                  fontSize: 16,
-                                                  fontStyle: FontStyle.italic,
-                                                  height: 1.5,
-                                                ),
-                                            tableHead: materialTheme
-                                                .textTheme
-                                                .bodyMedium!
-                                                .copyWith(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: widget.message.isUser
-                                                      ? CupertinoColors.white
-                                                      : assistantTableTextColor,
-                                                ),
-                                            tableBody: materialTheme
-                                                .textTheme
-                                                .bodyMedium!
-                                                .copyWith(
-                                                  fontSize: 16,
-                                                  color: widget.message.isUser
-                                                      ? CupertinoColors.white
-                                                      : assistantTableTextColor,
-                                                ),
-                                            tableBorder: markdownTableBorder,
-                                            blockquoteDecoration: BoxDecoration(
-                                              color: widget.message.isUser
-                                                  ? (brightness ==
-                                                            Brightness.dark
-                                                        ? CupertinoColors
-                                                              .systemGrey6
-                                                              .darkColor
-                                                        : CupertinoColors
-                                                              .systemGrey6
-                                                              .color)
-                                                  : (brightness ==
-                                                            Brightness.dark
-                                                        ? CupertinoColors
-                                                              .systemGrey5
-                                                              .darkColor
-                                                        : CupertinoColors
-                                                              .systemGrey5
-                                                              .color),
-                                              borderRadius:
-                                                  BorderRadius.circular(4),
-                                              border: Border(
-                                                left: BorderSide(
-                                                  color: widget.message.isUser
-                                                      ? CupertinoColors
-                                                            .systemBlue
-                                                      : CupertinoColors
-                                                            .systemGrey,
-                                                  width: 4,
-                                                ),
+                                            Container(
+                                              width: 24,
+                                              height: 24,
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    brightness ==
+                                                        Brightness.dark
+                                                    ? CupertinoColors
+                                                          .systemBlue
+                                                          .darkColor
+                                                          .withAlpha(51)
+                                                    : CupertinoColors
+                                                          .systemBlue
+                                                          .color
+                                                          .withAlpha(38),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: Icon(
+                                                _isReasoningExpanded
+                                                    ? CupertinoIcons.chevron_up
+                                                    : CupertinoIcons
+                                                          .chevron_down,
+                                                size: 12,
+                                                color:
+                                                    brightness ==
+                                                        Brightness.dark
+                                                    ? CupertinoColors
+                                                          .systemBlue
+                                                          .darkColor
+                                                    : CupertinoColors
+                                                          .systemBlue
+                                                          .color,
                                               ),
                                             ),
-                                            blockquotePadding:
-                                                const EdgeInsets.only(
-                                                  left: 16,
-                                                  top: 8,
-                                                  bottom: 8,
-                                                  right: 8,
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    AnimatedCrossFade(
+                                      duration: const Duration(
+                                        milliseconds: 200,
+                                      ),
+                                      crossFadeState: _isReasoningExpanded
+                                          ? CrossFadeState.showSecond
+                                          : CrossFadeState.showFirst,
+                                      firstChild: const SizedBox.shrink(),
+                                      secondChild: Container(
+                                        width: double.infinity,
+                                        margin: const EdgeInsets.only(top: 8),
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: brightness == Brightness.dark
+                                              ? CupertinoColors
+                                                    .systemGrey6
+                                                    .darkColor
+                                              : CupertinoColors.white,
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color:
+                                                  brightness == Brightness.dark
+                                                  ? CupertinoColors.black
+                                                        .withAlpha(51)
+                                                  : CupertinoColors.systemGrey
+                                                        .withAlpha(38),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        child: SelectableRegion(
+                                          selectionControls:
+                                              cupertinoTextSelectionControls,
+                                          child: MarkdownBody(
+                                            data: widget
+                                                .message
+                                                .reasoningContent!,
+                                            builders: {
+                                              'pre': CodeBlockBuilder(
+                                                context,
+                                                brightness,
+                                              ),
+                                            },
+                                            styleSheet: MarkdownStyleSheet(
+                                              p: materialTheme
+                                                  .textTheme
+                                                  .bodyMedium!
+                                                  .copyWith(
+                                                    fontSize: 13,
+                                                    height: 1.6,
+                                                    color:
+                                                        brightness ==
+                                                            Brightness.dark
+                                                        ? CupertinoColors
+                                                              .systemGrey2
+                                                              .darkColor
+                                                        : CupertinoColors
+                                                              .systemGrey
+                                                              .color,
+                                                  ),
+                                              code: codeFallback(
+                                                TextStyle(
+                                                  fontSize: 12,
+                                                  color:
+                                                      brightness ==
+                                                          Brightness.dark
+                                                      ? CupertinoColors
+                                                            .systemGreen
+                                                            .darkColor
+                                                      : const Color(
+                                                          0xFF006400,
+                                                        ), // 深绿色
+                                                  backgroundColor:
+                                                      brightness ==
+                                                          Brightness.dark
+                                                      ? const Color(0xFF1E1E1E)
+                                                      : const Color(0xFFF8F9FA),
                                                 ),
-                                            listBullet: TextStyle(
-                                              color: widget.message.isUser
-                                                  ? CupertinoColors.white
-                                                  : (widget.message.status ==
-                                                            MessageStatus.error
-                                                        ? (brightness ==
-                                                                  Brightness
-                                                                      .dark
-                                                              ? CupertinoColors
-                                                                    .systemRed
-                                                                    .darkColor
-                                                              : CupertinoColors
-                                                                    .systemRed
-                                                                    .color)
-                                                        : (brightness ==
-                                                                  Brightness
-                                                                      .dark
-                                                              ? CupertinoColors
-                                                                    .label
-                                                                    .darkColor
-                                                              : CupertinoColors
-                                                                    .label
-                                                                    .color)),
-                                              fontSize: 16,
-                                              height: 1.5,
+                                              ),
+                                              codeblockPadding:
+                                                  const EdgeInsets.all(12),
+                                              codeblockDecoration:
+                                                  BoxDecoration(
+                                                    color:
+                                                        brightness ==
+                                                            Brightness.dark
+                                                        ? const Color(
+                                                            0xFF1E1E1E,
+                                                          )
+                                                        : const Color(
+                                                            0xFFF8F9FA,
+                                                          ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          10,
+                                                        ),
+                                                    border: Border.all(
+                                                      color:
+                                                          brightness ==
+                                                              Brightness.dark
+                                                          ? const Color(
+                                                              0xFF404040,
+                                                            )
+                                                          : const Color(
+                                                              0xFFE0E0E0,
+                                                            ),
+                                                      width: 1,
+                                                    ),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color:
+                                                            brightness ==
+                                                                Brightness.dark
+                                                            ? CupertinoColors
+                                                                  .black
+                                                                  .withAlpha(
+                                                                    100,
+                                                                  )
+                                                            : CupertinoColors
+                                                                  .systemGrey
+                                                                  .withAlpha(
+                                                                    30,
+                                                                  ),
+                                                        blurRadius: 8,
+                                                        offset: const Offset(
+                                                          0,
+                                                          2,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                              blockquote: materialTheme
+                                                  .textTheme
+                                                  .bodyMedium!
+                                                  .copyWith(
+                                                    fontSize: 13,
+                                                    fontStyle: FontStyle.italic,
+                                                    color:
+                                                        brightness ==
+                                                            Brightness.dark
+                                                        ? CupertinoColors
+                                                              .systemGrey2
+                                                              .darkColor
+                                                        : CupertinoColors
+                                                              .systemGrey
+                                                              .color,
+                                                  ),
+                                              tableHead: materialTheme
+                                                  .textTheme
+                                                  .bodyMedium!
+                                                  .copyWith(
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w600,
+                                                    color:
+                                                        reasoningTableTextColor,
+                                                  ),
+                                              tableBody: materialTheme
+                                                  .textTheme
+                                                  .bodyMedium!
+                                                  .copyWith(
+                                                    fontSize: 13,
+                                                    color:
+                                                        reasoningTableTextColor,
+                                                  ),
+                                              tableBorder: markdownTableBorder,
+                                              blockquoteDecoration:
+                                                  BoxDecoration(
+                                                    color:
+                                                        brightness ==
+                                                            Brightness.dark
+                                                        ? CupertinoColors
+                                                              .systemGrey5
+                                                              .darkColor
+                                                              .withAlpha(128)
+                                                        : CupertinoColors
+                                                              .systemGrey6
+                                                              .color,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          4,
+                                                        ),
+                                                    border: Border(
+                                                      left: BorderSide(
+                                                        color:
+                                                            brightness ==
+                                                                Brightness.dark
+                                                            ? CupertinoColors
+                                                                  .systemBlue
+                                                                  .darkColor
+                                                            : CupertinoColors
+                                                                  .systemBlue
+                                                                  .color,
+                                                        width: 3,
+                                                      ),
+                                                    ),
+                                                  ),
+                                              blockquotePadding:
+                                                  const EdgeInsets.only(
+                                                    left: 12,
+                                                    top: 6,
+                                                    bottom: 6,
+                                                    right: 6,
+                                                  ),
                                             ),
                                           ),
                                         ),
                                       ),
-                                      if (widget
-                                          .message
-                                          .attachments
-                                          .isNotEmpty) ...[
-                                        const SizedBox(height: 8),
-                                        ...widget.message.attachments.map(
-                                          (attachment) => _buildAttachment(
-                                            attachment,
-                                            brightness,
-                                          ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                  ],
+                                ),
+                              SelectableRegion(
+                                selectionControls:
+                                    cupertinoTextSelectionControls,
+                                child: MarkdownBody(
+                                  data: widget.message.content,
+                                  builders: {
+                                    'pre': CodeBlockBuilder(
+                                      context,
+                                      brightness,
+                                    ),
+                                  },
+                                  styleSheet: MarkdownStyleSheet(
+                                    p: materialTheme.textTheme.bodyMedium!
+                                        .copyWith(
+                                          color: widget.message.isUser
+                                              ? CupertinoColors.white
+                                              : (widget.message.status ==
+                                                        MessageStatus.error
+                                                    ? (brightness ==
+                                                              Brightness.dark
+                                                          ? CupertinoColors
+                                                                .systemRed
+                                                                .darkColor
+                                                          : CupertinoColors
+                                                                .systemRed
+                                                                .color)
+                                                    : (brightness ==
+                                                              Brightness.dark
+                                                          ? CupertinoColors
+                                                                .label
+                                                                .darkColor
+                                                          : CupertinoColors
+                                                                .label
+                                                                .color)),
+                                          fontSize: 16,
+                                          height: 1.5,
+                                        ),
+                                    code: codeFallback(
+                                      TextStyle(
+                                        fontSize: 15,
+                                        color: brightness == Brightness.dark
+                                            ? const Color(0xFFD4D4D4)
+                                            : const Color(0xFF24292E),
+                                        backgroundColor:
+                                            brightness == Brightness.dark
+                                            ? const Color(0xFF1E1E1E)
+                                            : const Color(0xFFF6F8FA),
+                                      ),
+                                    ),
+                                    codeblockPadding: const EdgeInsets.all(16),
+                                    codeblockDecoration: BoxDecoration(
+                                      color: brightness == Brightness.dark
+                                          ? const Color(0xFF1E1E1E)
+                                          : const Color(0xFFF6F8FA),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: brightness == Brightness.dark
+                                            ? const Color(0xFF404040)
+                                            : const Color(0xFFD0D7DE),
+                                        width: 1,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: brightness == Brightness.dark
+                                              ? CupertinoColors.black.withAlpha(
+                                                  120,
+                                                )
+                                              : CupertinoColors.systemGrey
+                                                    .withAlpha(40),
+                                          blurRadius: 12,
+                                          offset: const Offset(0, 3),
                                         ),
                                       ],
-                                      if (!widget.message.isUser) ...[
-                                        const SizedBox(height: 4),
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                            bottom: 4,
-                                          ),
-                                          child: Text(
-                                            l10n.aiResponseDisclaimer,
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              fontStyle: FontStyle.italic,
-                                              color:
-                                                  brightness == Brightness.dark
-                                                  ? CupertinoColors
-                                                        .systemGrey
-                                                        .darkColor
-                                                  : CupertinoColors
-                                                        .systemGrey
-                                                        .color,
-                                            ),
-                                          ),
+                                    ),
+                                    h1: materialTheme.textTheme.bodyMedium!
+                                        .copyWith(
+                                          color: widget.message.isUser
+                                              ? CupertinoColors.white
+                                              : (widget.message.status ==
+                                                        MessageStatus.error
+                                                    ? (brightness ==
+                                                              Brightness.dark
+                                                          ? CupertinoColors
+                                                                .systemRed
+                                                                .darkColor
+                                                          : CupertinoColors
+                                                                .systemRed
+                                                                .color)
+                                                    : (brightness ==
+                                                              Brightness.dark
+                                                          ? CupertinoColors
+                                                                .label
+                                                                .darkColor
+                                                          : CupertinoColors
+                                                                .label
+                                                                .color)),
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                          height: 1.5,
                                         ),
-                                      ],
-                                    ],
+                                    h2: materialTheme.textTheme.bodyMedium!
+                                        .copyWith(
+                                          color: widget.message.isUser
+                                              ? CupertinoColors.white
+                                              : (widget.message.status ==
+                                                        MessageStatus.error
+                                                    ? (brightness ==
+                                                              Brightness.dark
+                                                          ? CupertinoColors
+                                                                .systemRed
+                                                                .darkColor
+                                                          : CupertinoColors
+                                                                .systemRed
+                                                                .color)
+                                                    : (brightness ==
+                                                              Brightness.dark
+                                                          ? CupertinoColors
+                                                                .label
+                                                                .darkColor
+                                                          : CupertinoColors
+                                                                .label
+                                                                .color)),
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold,
+                                          height: 1.5,
+                                        ),
+                                    h3: materialTheme.textTheme.bodyMedium!
+                                        .copyWith(
+                                          color: widget.message.isUser
+                                              ? CupertinoColors.white
+                                              : (widget.message.status ==
+                                                        MessageStatus.error
+                                                    ? (brightness ==
+                                                              Brightness.dark
+                                                          ? CupertinoColors
+                                                                .systemRed
+                                                                .darkColor
+                                                          : CupertinoColors
+                                                                .systemRed
+                                                                .color)
+                                                    : (brightness ==
+                                                              Brightness.dark
+                                                          ? CupertinoColors
+                                                                .label
+                                                                .darkColor
+                                                          : CupertinoColors
+                                                                .label
+                                                                .color)),
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          height: 1.5,
+                                        ),
+                                    h4: materialTheme.textTheme.bodyMedium!
+                                        .copyWith(
+                                          color: widget.message.isUser
+                                              ? CupertinoColors.white
+                                              : (widget.message.status ==
+                                                        MessageStatus.error
+                                                    ? (brightness ==
+                                                              Brightness.dark
+                                                          ? CupertinoColors
+                                                                .systemRed
+                                                                .darkColor
+                                                          : CupertinoColors
+                                                                .systemRed
+                                                                .color)
+                                                    : (brightness ==
+                                                              Brightness.dark
+                                                          ? CupertinoColors
+                                                                .label
+                                                                .darkColor
+                                                          : CupertinoColors
+                                                                .label
+                                                                .color)),
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          height: 1.5,
+                                        ),
+                                    h5: materialTheme.textTheme.bodyMedium!
+                                        .copyWith(
+                                          color: widget.message.isUser
+                                              ? CupertinoColors.white
+                                              : (widget.message.status ==
+                                                        MessageStatus.error
+                                                    ? (brightness ==
+                                                              Brightness.dark
+                                                          ? CupertinoColors
+                                                                .systemRed
+                                                                .darkColor
+                                                          : CupertinoColors
+                                                                .systemRed
+                                                                .color)
+                                                    : (brightness ==
+                                                              Brightness.dark
+                                                          ? CupertinoColors
+                                                                .label
+                                                                .darkColor
+                                                          : CupertinoColors
+                                                                .label
+                                                                .color)),
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          height: 1.5,
+                                        ),
+                                    h6: materialTheme.textTheme.bodyMedium!
+                                        .copyWith(
+                                          color: widget.message.isUser
+                                              ? CupertinoColors.white
+                                              : (widget.message.status ==
+                                                        MessageStatus.error
+                                                    ? (brightness ==
+                                                              Brightness.dark
+                                                          ? CupertinoColors
+                                                                .systemRed
+                                                                .darkColor
+                                                          : CupertinoColors
+                                                                .systemRed
+                                                                .color)
+                                                    : (brightness ==
+                                                              Brightness.dark
+                                                          ? CupertinoColors
+                                                                .label
+                                                                .darkColor
+                                                          : CupertinoColors
+                                                                .label
+                                                                .color)),
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          height: 1.5,
+                                        ),
+                                    a: materialTheme.textTheme.bodyMedium!
+                                        .copyWith(
+                                          color: widget.message.isUser
+                                              ? CupertinoColors.label
+                                              : CupertinoColors.systemBlue,
+                                          fontSize: 16,
+                                          decoration: TextDecoration.underline,
+                                          height: 1.5,
+                                        ),
+                                    blockquote: materialTheme
+                                        .textTheme
+                                        .bodyMedium!
+                                        .copyWith(
+                                          color: widget.message.isUser
+                                              ? CupertinoColors.label
+                                              : (widget.message.status ==
+                                                        MessageStatus.error
+                                                    ? CupertinoColors.systemRed
+                                                    : CupertinoColors
+                                                          .systemGrey),
+                                          fontSize: 16,
+                                          fontStyle: FontStyle.italic,
+                                          height: 1.5,
+                                        ),
+                                    tableHead: materialTheme
+                                        .textTheme
+                                        .bodyMedium!
+                                        .copyWith(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: widget.message.isUser
+                                              ? CupertinoColors.white
+                                              : assistantTableTextColor,
+                                        ),
+                                    tableBody: materialTheme
+                                        .textTheme
+                                        .bodyMedium!
+                                        .copyWith(
+                                          fontSize: 16,
+                                          color: widget.message.isUser
+                                              ? CupertinoColors.white
+                                              : assistantTableTextColor,
+                                        ),
+                                    tableBorder: markdownTableBorder,
+                                    blockquoteDecoration: BoxDecoration(
+                                      color: widget.message.isUser
+                                          ? (brightness == Brightness.dark
+                                                ? CupertinoColors
+                                                      .systemGrey6
+                                                      .darkColor
+                                                : CupertinoColors
+                                                      .systemGrey6
+                                                      .color)
+                                          : (brightness == Brightness.dark
+                                                ? CupertinoColors
+                                                      .systemGrey5
+                                                      .darkColor
+                                                : CupertinoColors
+                                                      .systemGrey5
+                                                      .color),
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border(
+                                        left: BorderSide(
+                                          color: widget.message.isUser
+                                              ? CupertinoColors.systemBlue
+                                              : CupertinoColors.systemGrey,
+                                          width: 4,
+                                        ),
+                                      ),
+                                    ),
+                                    blockquotePadding: const EdgeInsets.only(
+                                      left: 16,
+                                      top: 8,
+                                      bottom: 8,
+                                      right: 8,
+                                    ),
+                                    listBullet: TextStyle(
+                                      color: widget.message.isUser
+                                          ? CupertinoColors.white
+                                          : (widget.message.status ==
+                                                    MessageStatus.error
+                                                ? (brightness == Brightness.dark
+                                                      ? CupertinoColors
+                                                            .systemRed
+                                                            .darkColor
+                                                      : CupertinoColors
+                                                            .systemRed
+                                                            .color)
+                                                : (brightness == Brightness.dark
+                                                      ? CupertinoColors
+                                                            .label
+                                                            .darkColor
+                                                      : CupertinoColors
+                                                            .label
+                                                            .color)),
+                                      fontSize: 16,
+                                      height: 1.5,
+                                    ),
                                   ),
                                 ),
-                                Positioned(
-                                  right: 0,
-                                  bottom: 0,
+                              ),
+                              if (widget.message.attachments.isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                ...widget.message.attachments.map(
+                                  (attachment) =>
+                                      _buildAttachment(attachment, brightness),
+                                ),
+                              ],
+                              if (!widget.message.isUser) ...[
+                                const SizedBox(height: 4),
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 4),
                                   child: Text(
+                                    l10n.aiResponseDisclaimer,
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontStyle: FontStyle.italic,
+                                      color: brightness == Brightness.dark
+                                          ? CupertinoColors.systemGrey.darkColor
+                                          : CupertinoColors.systemGrey.color,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              if (widget.message.isUser)
+                                const SizedBox(height: 4),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
                                     DateFormat('HH:mm')
                                         .format(widget.message.timestamp),
                                     style: TextStyle(
@@ -1744,9 +1621,18 @@ class _MessageBubbleState extends State<MessageBubble>
                                       fontSize: 12,
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
+                                  if (!widget.message.isUser &&
+                                      widget.message.variants.length > 1 &&
+                                      widget.message.status !=
+                                          MessageStatus.sending) ...[
+                                    const SizedBox(width: 10),
+                                    _buildVariantControls(brightness),
+                                  ],
+                                  const SizedBox(width: 8),
+                                  _buildMessageOptionsButton(brightness),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -1772,30 +1658,6 @@ class _MessageBubbleState extends State<MessageBubble>
                         ),
                 ],
               ],
-            ),
-            Padding(
-              padding: EdgeInsets.only(
-                left: widget.message.isUser ? 0 : 40,
-                right: widget.message.isUser ? 40 : 0,
-                top: 2,
-              ),
-              child: Align(
-                alignment: widget.message.isUser
-                    ? Alignment.centerRight
-                    : Alignment.centerLeft,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (!widget.message.isUser &&
-                        widget.message.variants.length > 1 &&
-                        widget.message.status != MessageStatus.sending) ...[
-                      _buildVariantControls(brightness),
-                      const SizedBox(width: 8),
-                    ],
-                    _buildMessageOptionsButton(brightness),
-                  ],
-                ),
-              ),
             ),
           ],
         ),
