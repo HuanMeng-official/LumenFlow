@@ -95,6 +95,8 @@
     }
   },
   "editTitle": "编辑标题",
+  "pinConversation": "置顶",
+  "unpinConversation": "取消置顶",
   "deleteConversation2": "删除对话",
   "userInfo": "用户信息",
   "userProfile": "个人资料",

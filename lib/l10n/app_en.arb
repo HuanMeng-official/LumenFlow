@@ -95,6 +95,8 @@
     }
   },
   "editTitle": "Edit Title",
+  "pinConversation": "Pin",
+  "unpinConversation": "Unpin",
   "deleteConversation2": "Delete Conversation",
   "userInfo": "User Information",
   "userProfile": "User Profile",

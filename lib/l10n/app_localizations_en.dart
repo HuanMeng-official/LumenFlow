@@ -171,6 +171,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editTitle => 'Edit Title';
 
   @override
+  String get pinConversation => 'Pin';
+
+  @override
+  String get unpinConversation => 'Unpin';
+
+  @override
   String get deleteConversation2 => 'Delete Conversation';
 
   @override

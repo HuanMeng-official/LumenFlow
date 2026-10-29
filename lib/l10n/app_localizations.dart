@@ -403,6 +403,18 @@ abstract class AppLocalizations {
   /// **'Edit Title'**
   String get editTitle;
 
+  /// No description provided for @pinConversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin'**
+  String get pinConversation;
+
+  /// No description provided for @unpinConversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpin'**
+  String get unpinConversation;
+
   /// No description provided for @deleteConversation2.
   ///
   /// In en, this message translates to:

@@ -171,6 +171,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get editTitle => '제목 수정';
 
   @override
+  String get pinConversation => '고정';
+
+  @override
+  String get unpinConversation => '고정 해제';
+
+  @override
   String get deleteConversation2 => '대화 삭제';
 
   @override

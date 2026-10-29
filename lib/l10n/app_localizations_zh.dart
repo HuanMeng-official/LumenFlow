@@ -171,6 +171,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get editTitle => '编辑标题';
 
   @override
+  String get pinConversation => '置顶';
+
+  @override
+  String get unpinConversation => '取消置顶';
+
+  @override
   String get deleteConversation2 => '删除对话';
 
   @override

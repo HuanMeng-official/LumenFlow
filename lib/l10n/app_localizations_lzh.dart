@@ -171,6 +171,12 @@ class AppLocalizationsLzh extends AppLocalizations {
   String get editTitle => '修訂題名';
 
   @override
+  String get pinConversation => '置頂此談';
+
+  @override
+  String get unpinConversation => '撤其置頂';
+
+  @override
   String get deleteConversation2 => '芟除此談';
 
   @override

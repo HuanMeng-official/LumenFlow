@@ -155,17 +155,18 @@ class ConversationDatabase {
   }
 
   /// 前向迁移数据库结构。只增加版本号，不删除或重写现有数据。
+  ///
+  /// v2 尚未随正式版本发布，因此置顶字段也归入 v2；同时对已经由
+  /// 开发构建创建、但缺少 `is_pinned` 的 v2 数据库做一次补列。
   Future<void> _migrateSchema(Database db) async {
     final currentVersion =
         db.select('PRAGMA user_version').first.values.first as int;
-    if (currentVersion >= schemaVersion) return;
+    final columns = db
+        .select('PRAGMA table_info(conversations)')
+        .map((row) => row['name'] as String)
+        .toSet();
 
     if (currentVersion < 2) {
-      final columns = db
-          .select('PRAGMA table_info(conversations)')
-          .map((row) => row['name'] as String)
-          .toSet();
-
       final addedColumns = <String>[];
       if (!columns.contains('thinking_mode')) {
         db.execute(
@@ -185,6 +186,11 @@ class ConversationDatabase {
         );
         addedColumns.add('prompt_preset_id');
       }
+      if (!columns.contains('is_pinned')) {
+        db.execute(
+          'ALTER TABLE conversations ADD COLUMN is_pinned INTEGER NOT NULL DEFAULT 0',
+        );
+      }
 
       // Preserve the previous global selection for conversations that existed
       // before these settings became conversation-scoped.
@@ -200,9 +206,20 @@ class ConversationDatabase {
           ],
         );
       }
+    } else if (!columns.contains('is_pinned')) {
+      // Development-only databases created before pin support was added to v2.
+      db.execute(
+        'ALTER TABLE conversations ADD COLUMN is_pinned INTEGER NOT NULL DEFAULT 0',
+      );
     }
 
-    db.execute('PRAGMA user_version = $schemaVersion');
+    if (currentVersion < schemaVersion) {
+      db.execute('PRAGMA user_version = $schemaVersion');
+    } else if (currentVersion == 3 && schemaVersion == 2) {
+      // v3 was used only by an unreleased development build. Fold it back
+      // into v2 now that pinning is part of the v2 schema.
+      db.execute('PRAGMA user_version = $schemaVersion');
+    }
   }
 
   /// 创建数据库表
@@ -216,7 +233,8 @@ class ConversationDatabase {
         updated_at INTEGER NOT NULL,
         thinking_mode INTEGER NOT NULL DEFAULT 0,
         prompt_preset_enabled INTEGER NOT NULL DEFAULT 0,
-        prompt_preset_id TEXT NOT NULL DEFAULT ''
+        prompt_preset_id TEXT NOT NULL DEFAULT '',
+        is_pinned INTEGER NOT NULL DEFAULT 0
       )
     ''');
 
@@ -383,9 +401,9 @@ class ConversationDatabase {
 
     final result = db.select('''
       SELECT id, title, created_at, updated_at,
-             thinking_mode, prompt_preset_enabled, prompt_preset_id
+             thinking_mode, prompt_preset_enabled, prompt_preset_id, is_pinned
       FROM conversations
-      ORDER BY updated_at DESC
+      ORDER BY is_pinned DESC, updated_at DESC
     ''');
 
     return result.map((row) {
@@ -399,6 +417,7 @@ class ConversationDatabase {
         promptPresetEnabled:
             (row['prompt_preset_enabled'] as int? ?? 0) == 1,
         promptPresetId: row['prompt_preset_id'] as String? ?? '',
+        isPinned: (row['is_pinned'] as int? ?? 0) == 1,
       );
     }).toList();
   }
@@ -410,7 +429,7 @@ class ConversationDatabase {
     // 获取对话
     final conversationResult = db.select('''
       SELECT id, title, created_at, updated_at,
-             thinking_mode, prompt_preset_enabled, prompt_preset_id
+             thinking_mode, prompt_preset_enabled, prompt_preset_id, is_pinned
       FROM conversations
       WHERE id = ?
     ''', [id]);
@@ -472,6 +491,7 @@ class ConversationDatabase {
       thinkingMode: (row['thinking_mode'] as int? ?? 0) == 1,
       promptPresetEnabled: (row['prompt_preset_enabled'] as int? ?? 0) == 1,
       promptPresetId: row['prompt_preset_id'] as String? ?? '',
+      isPinned: (row['is_pinned'] as int? ?? 0) == 1,
     );
   }
 
@@ -484,6 +504,7 @@ class ConversationDatabase {
     bool thinkingMode = false,
     bool promptPresetEnabled = false,
     String promptPresetId = '',
+    bool isPinned = false,
   }) async {
     return _synchronized(() async {
       final db = await this.db;
@@ -491,9 +512,9 @@ class ConversationDatabase {
       db.execute('''
         INSERT INTO conversations (
           id, title, created_at, updated_at,
-          thinking_mode, prompt_preset_enabled, prompt_preset_id
+          thinking_mode, prompt_preset_enabled, prompt_preset_id, is_pinned
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       ''', [
         id,
         title,
@@ -502,6 +523,7 @@ class ConversationDatabase {
         thinkingMode ? 1 : 0,
         promptPresetEnabled ? 1 : 0,
         promptPresetId,
+        isPinned ? 1 : 0,
       ]);
 
       return Conversation(
@@ -513,6 +535,7 @@ class ConversationDatabase {
         thinkingMode: thinkingMode,
         promptPresetEnabled: promptPresetEnabled,
         promptPresetId: promptPresetId,
+        isPinned: isPinned,
       );
     });
   }
@@ -585,9 +608,9 @@ class ConversationDatabase {
         db.execute('''
           INSERT OR REPLACE INTO conversations (
             id, title, created_at, updated_at,
-            thinking_mode, prompt_preset_enabled, prompt_preset_id
+            thinking_mode, prompt_preset_enabled, prompt_preset_id, is_pinned
           )
-          VALUES (?, ?, ?, ?, ?, ?, ?)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ''', [
           conversation.id,
           conversation.title,
@@ -596,6 +619,7 @@ class ConversationDatabase {
           conversation.thinkingMode ? 1 : 0,
           conversation.promptPresetEnabled ? 1 : 0,
           conversation.promptPresetId,
+          conversation.isPinned ? 1 : 0,
         ]);
 
         // 删除旧消息
@@ -645,6 +669,20 @@ class ConversationDatabase {
         db.execute('ROLLBACK');
         rethrow;
       }
+    });
+  }
+
+  /// 更新会话置顶状态。
+  Future<void> updateConversationPinned(
+    String conversationId,
+    bool isPinned,
+  ) async {
+    await _synchronized(() async {
+      final db = await this.db;
+      db.execute(
+        'UPDATE conversations SET is_pinned = ? WHERE id = ?',
+        [isPinned ? 1 : 0, conversationId],
+      );
     });
   }
 

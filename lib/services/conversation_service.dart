@@ -68,6 +68,14 @@ class ConversationService {
   /// 内存缓存已加载消息的对话ID
   final Set<String> _loadedConversationIds = {};
 
+  /// 置顶会话始终排在未置顶会话之前；同组内按更新时间倒序。
+  void _sortConversations(List<Conversation> conversations) {
+    conversations.sort((a, b) {
+      if (a.isPinned != b.isPinned) return a.isPinned ? -1 : 1;
+      return b.updatedAt.compareTo(a.updatedAt);
+    });
+  }
+
   /// 从本地存储加载所有对话（带缓存）
   /// 返回按更新时间倒序排序的对话列表（最近更新的在前）
   Future<List<Conversation>> loadConversations({bool forceReload = false}) async {
@@ -77,6 +85,7 @@ class ConversationService {
     }
 
     final conversations = await _db.getConversations();
+    _sortConversations(conversations);
 
     _cachedConversations = conversations;
     // The list entries are metadata stubs, not fully loaded conversations.
@@ -124,7 +133,11 @@ class ConversationService {
     await setCurrentConversationId(conversation.id);
 
     // 更新缓存
-    _cachedConversations?.insert(0, conversation);
+    final cached = _cachedConversations;
+    if (cached != null) {
+      cached.insert(0, conversation);
+      _sortConversations(cached);
+    }
     _isCacheDirty = false;
 
     return conversation;
@@ -141,14 +154,14 @@ class ConversationService {
         _cachedConversations![index] = conversation.copyWith(
           updatedAt: conversation.updatedAt,
         );
-        // 重新排序，确保最新对话在前面
-        _cachedConversations!.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+        // 重新排序，确保置顶和最新对话在前面
+        _sortConversations(_cachedConversations!);
       } else {
         // 如果对话不存在，添加它
         _cachedConversations!.insert(0, conversation.copyWith(
           updatedAt: conversation.updatedAt,
         ));
-        _cachedConversations!.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+        _sortConversations(_cachedConversations!);
       }
       _isCacheDirty = false;
     }
@@ -184,6 +197,22 @@ class ConversationService {
     );
   }
 
+  /// 更新会话置顶状态并重排缓存。
+  Future<void> setConversationPinned(
+    String conversationId,
+    bool isPinned,
+  ) async {
+    await _db.updateConversationPinned(conversationId, isPinned);
+
+    final conversations = _cachedConversations;
+    if (conversations == null) return;
+    final index =
+        conversations.indexWhere((conversation) => conversation.id == conversationId);
+    if (index == -1) return;
+    conversations[index] = conversations[index].copyWith(isPinned: isPinned);
+    _sortConversations(conversations);
+  }
+
   /// 追加一条消息并同步已加载的缓存。
   Future<void> appendMessage(String conversationId, Message message) async {
     await _db.appendMessage(conversationId, message);
@@ -209,7 +238,7 @@ class ConversationService {
     if (!_loadedConversationIds.contains(conversationId)) {
       conversations[conversationIndex] =
           conversation.copyWith(updatedAt: message.timestamp);
-      conversations.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+      _sortConversations(conversations);
       return;
     }
 
@@ -225,7 +254,7 @@ class ConversationService {
       messages: messages,
       updatedAt: message.timestamp,
     );
-    conversations.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    _sortConversations(conversations);
   }
 
   /// 删除对话
@@ -260,7 +289,7 @@ class ConversationService {
                 _cachedConversations![index] = conversation;
               } else {
                 _cachedConversations!.add(conversation);
-                _cachedConversations!.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+                _sortConversations(_cachedConversations!);
               }
             }
             _loadedConversationIds.add(id);
@@ -284,7 +313,7 @@ class ConversationService {
           _cachedConversations![index] = conversation;
         } else {
           _cachedConversations!.add(conversation);
-          _cachedConversations!.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+          _sortConversations(_cachedConversations!);
         }
         _loadedConversationIds.add(id);
       }

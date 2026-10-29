@@ -110,6 +110,14 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
     );
   }
 
+  Future<void> _togglePinned(Conversation conversation) async {
+    await _conversationService.setConversationPinned(
+      conversation.id,
+      !conversation.isPinned,
+    );
+    await _loadConversations();
+  }
+
   Future<void> _editConversationTitle(Conversation conversation) async {
     final l10n = AppLocalizations.of(context)!;
     final TextEditingController controller =
@@ -178,6 +186,8 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                       final conversation = _conversations[index];
                       final isCurrentConversation =
                           conversation.id == _currentConversationId;
+                      final primaryColor =
+                          CupertinoTheme.of(context).primaryColor;
 
                       return Container(
                         color: isCurrentConversation
@@ -219,6 +229,15 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              if (conversation.isPinned)
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 6),
+                                  child: Icon(
+                                    CupertinoIcons.pin_fill,
+                                    size: 14,
+                                    color: primaryColor,
+                                  ),
+                                ),
                               if (conversation.messages.isNotEmpty)
                                 Text(
                                   '${conversation.messages.length}',
@@ -313,6 +332,30 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
               onPressed: () {
                 Navigator.pop(context);
                 _editConversationTitle(conversation);
+              },
+            ),
+            CupertinoActionSheetAction(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    conversation.isPinned
+                        ? CupertinoIcons.pin_slash
+                        : CupertinoIcons.pin,
+                    size: 20,
+                    color: primaryColor,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    conversation.isPinned
+                        ? l10n.unpinConversation
+                        : l10n.pinConversation,
+                  ),
+                ],
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                _togglePinned(conversation);
               },
             ),
             CupertinoActionSheetAction(

@@ -171,6 +171,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get editTitle => 'タイトルを編集';
 
   @override
+  String get pinConversation => 'ピン留め';
+
+  @override
+  String get unpinConversation => 'ピン留めを解除';
+
+  @override
   String get deleteConversation2 => '会話を削除';
 
   @override

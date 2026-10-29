@@ -95,6 +95,8 @@
     }
   },
   "editTitle": "タイトルを編集",
+  "pinConversation": "ピン留め",
+  "unpinConversation": "ピン留めを解除",
   "deleteConversation2": "会話を削除",
   "userInfo": "ユーザー情報",
   "userProfile": "ユーザープロファイル",

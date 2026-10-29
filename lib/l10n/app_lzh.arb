@@ -95,6 +95,8 @@
     }
   },
   "editTitle": "修訂題名",
+  "pinConversation": "置頂此談",
+  "unpinConversation": "撤其置頂",
   "deleteConversation2": "芟除此談",
   "userInfo": "閣下生平",
   "userProfile": "容貌名諱",

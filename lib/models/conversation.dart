@@ -14,6 +14,9 @@ class Conversation {
   final bool promptPresetEnabled;
   final String promptPresetId;
 
+  /// 是否置顶；置顶会话排在列表最前。
+  final bool isPinned;
+
   Conversation({
     required this.id,
     required this.title,
@@ -23,6 +26,7 @@ class Conversation {
     this.thinkingMode = false,
     this.promptPresetEnabled = false,
     this.promptPresetId = '',
+    this.isPinned = false,
   });
 
   Conversation copyWith({
@@ -34,6 +38,7 @@ class Conversation {
     bool? thinkingMode,
     bool? promptPresetEnabled,
     String? promptPresetId,
+    bool? isPinned,
   }) {
     return Conversation(
       id: id ?? this.id,
@@ -45,6 +50,7 @@ class Conversation {
       promptPresetEnabled:
           promptPresetEnabled ?? this.promptPresetEnabled,
       promptPresetId: promptPresetId ?? this.promptPresetId,
+      isPinned: isPinned ?? this.isPinned,
     );
   }
 
@@ -58,6 +64,7 @@ class Conversation {
       'thinkingMode': thinkingMode,
       'promptPresetEnabled': promptPresetEnabled,
       'promptPresetId': promptPresetId,
+      'isPinned': isPinned,
     };
   }
 
@@ -73,6 +80,7 @@ class Conversation {
       thinkingMode: json['thinkingMode'] as bool? ?? false,
       promptPresetEnabled: json['promptPresetEnabled'] as bool? ?? false,
       promptPresetId: json['promptPresetId'] as String? ?? '',
+      isPinned: json['isPinned'] as bool? ?? false,
     );
   }
 

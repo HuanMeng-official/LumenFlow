@@ -95,6 +95,8 @@
     }
   },
   "editTitle": "제목 수정",
+  "pinConversation": "고정",
+  "unpinConversation": "고정 해제",
   "deleteConversation2": "대화 삭제",
   "userInfo": "사용자 정보",
   "userProfile": "사용자 프로필",
