@@ -185,10 +185,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   /// 同时预加载用户头像，避免每个消息气泡重复加载
   Future<void> _checkConfiguration() async {
     final configured = await _settingsService.isConfigured();
-    final thinkingMode = await _settingsService.getThinkingMode();
     final liveUpdateEnabled = await _settingsService.getLiveUpdateEnabled();
-    final promptPresetEnabled = await _settingsService.getPromptPresetEnabled();
-    final currentPresetId = await _settingsService.getPromptPresetId();
     final presets = await _promptService.loadPresets();
     // 预加载用户头像，避免每个消息气泡重复加载
     final userProfile = await _userService.getUserProfile();
@@ -205,10 +202,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     setState(() {
       _isConfigured = configured;
-      _thinkingMode = thinkingMode;
       _liveUpdateEnabled = liveUpdateEnabled;
-      _promptPresetEnabled = promptPresetEnabled;
-      _currentPresetId = currentPresetId;
       _presets = presets;
       _userProfile = userProfile;
       _backgroundImagePath = backgroundImagePath;
@@ -281,6 +275,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           ..clear()
           ..addAll(processedMessages);
         _currentTitle = fullConversation.title;
+        _thinkingMode = fullConversation.thinkingMode;
+        _promptPresetEnabled = fullConversation.promptPresetEnabled;
+        _currentPresetId = fullConversation.promptPresetId;
         _autoTitleGenerated = false; // 重置标题生成标志
       });
 
@@ -310,6 +307,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _currentConversation = conversation;
       _messages.clear();
       _currentTitle = conversation.title;
+      _thinkingMode = conversation.thinkingMode;
+      _promptPresetEnabled = conversation.promptPresetEnabled;
+      _currentPresetId = conversation.promptPresetId;
       _autoTitleGenerated = false; // 重置标题生成标志
     });
   }
@@ -381,42 +381,53 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   /// 参数:
   ///   enabled - 思考模式是否启用
   /// 说明:
-  ///   更新思考模式状态变量，未来可以保存到设置中
+  ///   思考模式属于当前会话，切换会话时各自恢复。
   void _handleThinkingModeChanged(bool enabled) {
     setState(() {
       _thinkingMode = enabled;
     });
-    // 保存到设置服务
-    _settingsService.setThinkingMode(enabled);
+    _saveConversationPreferences();
   }
 
   /// 处理预设提示词模式开关变化
   void _handlePromptPresetEnabledChanged(bool enabled) {
     setState(() {
       _promptPresetEnabled = enabled;
-    });
-    // 保存到设置服务
-    _settingsService.setPromptPresetEnabled(enabled);
-    // 当关闭预设模式时，清空预设ID
-    if (!enabled) {
-      _settingsService.setPromptPresetId('');
-      setState(() {
+      if (!enabled) {
         _currentPresetId = '';
-      });
-    }
+      }
+    });
+    _saveConversationPreferences();
   }
 
   /// 处理预设选择变化
   void _handlePresetSelected(String presetId) {
     setState(() {
       _currentPresetId = presetId;
+      _promptPresetEnabled = true;
     });
-    // 保存到设置服务
-    _settingsService.setPromptPresetId(presetId);
-    // 如果预设模式未启用，自动启用
-    if (!_promptPresetEnabled) {
-      _handlePromptPresetEnabledChanged(true);
-    }
+    _saveConversationPreferences();
+  }
+
+  /// 将思考模式与角色预设写回当前会话。
+  void _saveConversationPreferences() {
+    final conversation = _currentConversation;
+    if (conversation == null) return;
+
+    final updated = conversation.copyWith(
+      thinkingMode: _thinkingMode,
+      promptPresetEnabled: _promptPresetEnabled,
+      promptPresetId: _currentPresetId,
+    );
+    _currentConversation = updated;
+    unawaited(
+      _conversationService.updateConversationPreferences(
+        updated.id,
+        thinkingMode: updated.thinkingMode,
+        promptPresetEnabled: updated.promptPresetEnabled,
+        promptPresetId: updated.promptPresetId,
+      ),
+    );
   }
 
   /// 自动生成对话标题

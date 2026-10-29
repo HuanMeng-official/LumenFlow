@@ -63,7 +63,7 @@ class ConversationDatabase {
   final Future<void> Function()? _beforeMigration;
 
   /// 当前数据库结构版本。
-  static const int schemaVersion = 1;
+  static const int schemaVersion = 2;
 
   Database? _db;
   Future<void>? _initFuture;
@@ -136,7 +136,7 @@ class ConversationDatabase {
 
       // 创建表
       _createTables(db);
-      _migrateSchema(db);
+      await _migrateSchema(db);
 
       // Test-only gate: pauses before prefs migration.
       await _beforeMigration?.call();
@@ -155,13 +155,51 @@ class ConversationDatabase {
   }
 
   /// 前向迁移数据库结构。只增加版本号，不删除或重写现有数据。
-  void _migrateSchema(Database db) {
+  Future<void> _migrateSchema(Database db) async {
     final currentVersion =
         db.select('PRAGMA user_version').first.values.first as int;
     if (currentVersion >= schemaVersion) return;
 
-    if (currentVersion < 1) {
-      // v1 仅引入 user_version 追踪；表结构由 _createTables 负责。
+    if (currentVersion < 2) {
+      final columns = db
+          .select('PRAGMA table_info(conversations)')
+          .map((row) => row['name'] as String)
+          .toSet();
+
+      final addedColumns = <String>[];
+      if (!columns.contains('thinking_mode')) {
+        db.execute(
+          'ALTER TABLE conversations ADD COLUMN thinking_mode INTEGER NOT NULL DEFAULT 0',
+        );
+        addedColumns.add('thinking_mode');
+      }
+      if (!columns.contains('prompt_preset_enabled')) {
+        db.execute(
+          'ALTER TABLE conversations ADD COLUMN prompt_preset_enabled INTEGER NOT NULL DEFAULT 0',
+        );
+        addedColumns.add('prompt_preset_enabled');
+      }
+      if (!columns.contains('prompt_preset_id')) {
+        db.execute(
+          "ALTER TABLE conversations ADD COLUMN prompt_preset_id TEXT NOT NULL DEFAULT ''",
+        );
+        addedColumns.add('prompt_preset_id');
+      }
+
+      // Preserve the previous global selection for conversations that existed
+      // before these settings became conversation-scoped.
+      if (addedColumns.isNotEmpty) {
+        final prefs =
+            _preferences ?? await SharedPreferences.getInstance();
+        db.execute(
+          'UPDATE conversations SET thinking_mode = ?, prompt_preset_enabled = ?, prompt_preset_id = ?',
+          [
+            (prefs.getBool('thinking_mode') ?? false) ? 1 : 0,
+            (prefs.getBool('prompt_preset_enabled') ?? false) ? 1 : 0,
+            prefs.getString('prompt_preset_id') ?? '',
+          ],
+        );
+      }
     }
 
     db.execute('PRAGMA user_version = $schemaVersion');
@@ -175,7 +213,10 @@ class ConversationDatabase {
         id TEXT PRIMARY KEY,
         title TEXT NOT NULL,
         created_at INTEGER NOT NULL,
-        updated_at INTEGER NOT NULL
+        updated_at INTEGER NOT NULL,
+        thinking_mode INTEGER NOT NULL DEFAULT 0,
+        prompt_preset_enabled INTEGER NOT NULL DEFAULT 0,
+        prompt_preset_id TEXT NOT NULL DEFAULT ''
       )
     ''');
 
@@ -341,7 +382,8 @@ class ConversationDatabase {
     final db = await this.db;
 
     final result = db.select('''
-      SELECT id, title, created_at, updated_at
+      SELECT id, title, created_at, updated_at,
+             thinking_mode, prompt_preset_enabled, prompt_preset_id
       FROM conversations
       ORDER BY updated_at DESC
     ''');
@@ -353,6 +395,10 @@ class ConversationDatabase {
         createdAt: DateTime.fromMillisecondsSinceEpoch(row['created_at'] as int),
         updatedAt: DateTime.fromMillisecondsSinceEpoch(row['updated_at'] as int),
         messages: [], // 稍后加载
+        thinkingMode: (row['thinking_mode'] as int? ?? 0) == 1,
+        promptPresetEnabled:
+            (row['prompt_preset_enabled'] as int? ?? 0) == 1,
+        promptPresetId: row['prompt_preset_id'] as String? ?? '',
       );
     }).toList();
   }
@@ -363,7 +409,8 @@ class ConversationDatabase {
 
     // 获取对话
     final conversationResult = db.select('''
-      SELECT id, title, created_at, updated_at
+      SELECT id, title, created_at, updated_at,
+             thinking_mode, prompt_preset_enabled, prompt_preset_id
       FROM conversations
       WHERE id = ?
     ''', [id]);
@@ -422,6 +469,9 @@ class ConversationDatabase {
       createdAt: DateTime.fromMillisecondsSinceEpoch(row['created_at'] as int),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row['updated_at'] as int),
       messages: messages,
+      thinkingMode: (row['thinking_mode'] as int? ?? 0) == 1,
+      promptPresetEnabled: (row['prompt_preset_enabled'] as int? ?? 0) == 1,
+      promptPresetId: row['prompt_preset_id'] as String? ?? '',
     );
   }
 
@@ -431,14 +481,28 @@ class ConversationDatabase {
     required String title,
     required DateTime createdAt,
     required DateTime updatedAt,
+    bool thinkingMode = false,
+    bool promptPresetEnabled = false,
+    String promptPresetId = '',
   }) async {
     return _synchronized(() async {
       final db = await this.db;
 
       db.execute('''
-        INSERT INTO conversations (id, title, created_at, updated_at)
-        VALUES (?, ?, ?, ?)
-      ''', [id, title, createdAt.millisecondsSinceEpoch, updatedAt.millisecondsSinceEpoch]);
+        INSERT INTO conversations (
+          id, title, created_at, updated_at,
+          thinking_mode, prompt_preset_enabled, prompt_preset_id
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      ''', [
+        id,
+        title,
+        createdAt.millisecondsSinceEpoch,
+        updatedAt.millisecondsSinceEpoch,
+        thinkingMode ? 1 : 0,
+        promptPresetEnabled ? 1 : 0,
+        promptPresetId,
+      ]);
 
       return Conversation(
         id: id,
@@ -446,6 +510,9 @@ class ConversationDatabase {
         createdAt: createdAt,
         updatedAt: updatedAt,
         messages: [],
+        thinkingMode: thinkingMode,
+        promptPresetEnabled: promptPresetEnabled,
+        promptPresetId: promptPresetId,
       );
     });
   }
@@ -516,13 +583,19 @@ class ConversationDatabase {
       db.execute('BEGIN IMMEDIATE TRANSACTION');
       try {
         db.execute('''
-          INSERT OR REPLACE INTO conversations (id, title, created_at, updated_at)
-          VALUES (?, ?, ?, ?)
+          INSERT OR REPLACE INTO conversations (
+            id, title, created_at, updated_at,
+            thinking_mode, prompt_preset_enabled, prompt_preset_id
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?)
         ''', [
           conversation.id,
           conversation.title,
           conversation.createdAt.millisecondsSinceEpoch,
           conversation.updatedAt.millisecondsSinceEpoch,
+          conversation.thinkingMode ? 1 : 0,
+          conversation.promptPresetEnabled ? 1 : 0,
+          conversation.promptPresetId,
         ]);
 
         // 删除旧消息
@@ -572,6 +645,28 @@ class ConversationDatabase {
         db.execute('ROLLBACK');
         rethrow;
       }
+    });
+  }
+
+  /// 只更新会话级偏好，不修改更新时间或消息内容。
+  Future<void> updateConversationPreferences(
+    String conversationId, {
+    required bool thinkingMode,
+    required bool promptPresetEnabled,
+    required String promptPresetId,
+  }) async {
+    await _synchronized(() async {
+      final db = await this.db;
+      db.execute('''
+        UPDATE conversations
+        SET thinking_mode = ?, prompt_preset_enabled = ?, prompt_preset_id = ?
+        WHERE id = ?
+      ''', [
+        thinkingMode ? 1 : 0,
+        promptPresetEnabled ? 1 : 0,
+        promptPresetId,
+        conversationId,
+      ]);
     });
   }
 

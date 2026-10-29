@@ -116,6 +116,9 @@ class ConversationService {
       title: conversation.title,
       createdAt: conversation.createdAt,
       updatedAt: conversation.updatedAt,
+      thinkingMode: conversation.thinkingMode,
+      promptPresetEnabled: conversation.promptPresetEnabled,
+      promptPresetId: conversation.promptPresetId,
     );
 
     await setCurrentConversationId(conversation.id);
@@ -153,6 +156,32 @@ class ConversationService {
     if (_cachedConversations != null) {
       _loadedConversationIds.add(conversation.id);
     }
+  }
+
+  /// 更新会话级思考模式与角色预设，不改变消息排序。
+  Future<void> updateConversationPreferences(
+    String conversationId, {
+    required bool thinkingMode,
+    required bool promptPresetEnabled,
+    required String promptPresetId,
+  }) async {
+    await _db.updateConversationPreferences(
+      conversationId,
+      thinkingMode: thinkingMode,
+      promptPresetEnabled: promptPresetEnabled,
+      promptPresetId: promptPresetId,
+    );
+
+    final conversations = _cachedConversations;
+    if (conversations == null) return;
+    final index =
+        conversations.indexWhere((conversation) => conversation.id == conversationId);
+    if (index == -1) return;
+    conversations[index] = conversations[index].copyWith(
+      thinkingMode: thinkingMode,
+      promptPresetEnabled: promptPresetEnabled,
+      promptPresetId: promptPresetId,
+    );
   }
 
   /// 追加一条消息并同步已加载的缓存。

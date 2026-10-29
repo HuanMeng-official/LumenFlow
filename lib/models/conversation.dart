@@ -7,12 +7,22 @@ class Conversation {
   final DateTime updatedAt;
   final List<Message> messages;
 
+  /// 会话级思考模式，不跟随全局设置。
+  final bool thinkingMode;
+
+  /// 会话级角色预设开关与预设 ID。
+  final bool promptPresetEnabled;
+  final String promptPresetId;
+
   Conversation({
     required this.id,
     required this.title,
     required this.createdAt,
     required this.updatedAt,
     required this.messages,
+    this.thinkingMode = false,
+    this.promptPresetEnabled = false,
+    this.promptPresetId = '',
   });
 
   Conversation copyWith({
@@ -21,6 +31,9 @@ class Conversation {
     DateTime? createdAt,
     DateTime? updatedAt,
     List<Message>? messages,
+    bool? thinkingMode,
+    bool? promptPresetEnabled,
+    String? promptPresetId,
   }) {
     return Conversation(
       id: id ?? this.id,
@@ -28,6 +41,10 @@ class Conversation {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       messages: messages ?? this.messages,
+      thinkingMode: thinkingMode ?? this.thinkingMode,
+      promptPresetEnabled:
+          promptPresetEnabled ?? this.promptPresetEnabled,
+      promptPresetId: promptPresetId ?? this.promptPresetId,
     );
   }
 
@@ -38,6 +55,9 @@ class Conversation {
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
       'messages': messages.map((m) => m.toJson()).toList(),
+      'thinkingMode': thinkingMode,
+      'promptPresetEnabled': promptPresetEnabled,
+      'promptPresetId': promptPresetId,
     };
   }
 
@@ -50,6 +70,9 @@ class Conversation {
       messages: (json['messages'] as List)
           .map((m) => Message.fromJson(m as Map<String, dynamic>))
           .toList(),
+      thinkingMode: json['thinkingMode'] as bool? ?? false,
+      promptPresetEnabled: json['promptPresetEnabled'] as bool? ?? false,
+      promptPresetId: json['promptPresetId'] as String? ?? '',
     );
   }
 
