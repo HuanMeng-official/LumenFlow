@@ -33,6 +33,21 @@ class AppLocalizationsLzh extends AppLocalizations {
   String get noConversations => '尚無對談之錄';
 
   @override
+  String get searchConversations => '尋此談';
+
+  @override
+  String get searchNoResults => '無相符之談';
+
+  @override
+  String get searchMessages => '尋此談之語';
+
+  @override
+  String get messageSearchHint => '書關鍵以尋本談';
+
+  @override
+  String get messageSearchNoResults => '無相符之語';
+
+  @override
   String get createNewConversation => '新闢一局對談';
 
   @override

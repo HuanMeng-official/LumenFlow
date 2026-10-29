@@ -151,6 +151,36 @@ abstract class AppLocalizations {
   /// **'No conversations yet'**
   String get noConversations;
 
+  /// No description provided for @searchConversations.
+  ///
+  /// In en, this message translates to:
+  /// **'Search conversations'**
+  String get searchConversations;
+
+  /// No description provided for @searchNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching conversations'**
+  String get searchNoResults;
+
+  /// No description provided for @searchMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Search messages'**
+  String get searchMessages;
+
+  /// No description provided for @messageSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type to search this conversation'**
+  String get messageSearchHint;
+
+  /// No description provided for @messageSearchNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching messages'**
+  String get messageSearchNoResults;
+
   /// No description provided for @createNewConversation.
   ///
   /// In en, this message translates to:

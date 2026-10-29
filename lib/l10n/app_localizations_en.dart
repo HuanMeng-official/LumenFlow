@@ -33,6 +33,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noConversations => 'No conversations yet';
 
   @override
+  String get searchConversations => 'Search conversations';
+
+  @override
+  String get searchNoResults => 'No matching conversations';
+
+  @override
+  String get searchMessages => 'Search messages';
+
+  @override
+  String get messageSearchHint => 'Type to search this conversation';
+
+  @override
+  String get messageSearchNoResults => 'No matching messages';
+
+  @override
   String get createNewConversation => 'Create new conversation';
 
   @override

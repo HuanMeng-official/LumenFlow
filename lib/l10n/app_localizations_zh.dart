@@ -33,6 +33,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get noConversations => '暂无对话记录';
 
   @override
+  String get searchConversations => '搜索对话';
+
+  @override
+  String get searchNoResults => '没有找到匹配的对话';
+
+  @override
+  String get searchMessages => '搜索消息';
+
+  @override
+  String get messageSearchHint => '输入关键词搜索当前对话';
+
+  @override
+  String get messageSearchNoResults => '没有找到匹配的消息';
+
+  @override
   String get createNewConversation => '创建新对话';
 
   @override

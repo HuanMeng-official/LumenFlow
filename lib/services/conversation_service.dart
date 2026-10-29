@@ -96,6 +96,15 @@ class ConversationService {
     return conversations;
   }
 
+  /// 搜索标题、消息正文或思考内容；空查询回退到完整列表。
+  Future<List<Conversation>> searchConversations(String query) async {
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) {
+      return loadConversations(forceReload: true);
+    }
+    return _db.searchConversations(trimmed);
+  }
+
   /// 清除缓存（用于测试或强制重新加载）
   void clearCache() {
     _cachedConversations = null;

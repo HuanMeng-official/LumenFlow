@@ -33,6 +33,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get noConversations => 'まだ会話がありません';
 
   @override
+  String get searchConversations => '会話を検索';
+
+  @override
+  String get searchNoResults => '一致する会話がありません';
+
+  @override
+  String get searchMessages => 'メッセージを検索';
+
+  @override
+  String get messageSearchHint => 'キーワードを入力して会話内を検索';
+
+  @override
+  String get messageSearchNoResults => '一致するメッセージがありません';
+
+  @override
   String get createNewConversation => '新しい会話を開始';
 
   @override

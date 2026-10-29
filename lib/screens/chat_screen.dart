@@ -21,6 +21,7 @@ import '../widgets/message_bubble.dart';
 import '../widgets/chat_input.dart';
 import 'settings_screen.dart';
 import 'conversation_list_screen.dart';
+import 'message_search_screen.dart';
 
 /// 主聊天界面，用户与AI进行交互的核心屏幕
 ///
@@ -57,6 +58,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final List<Message> _messages = [];
   final ScrollController _scrollController = ScrollController();
+  final Map<String, GlobalKey> _messageKeys = {};
   final AIService _aiService = AIService();
   final ConversationService _conversationService = ConversationService();
   final SettingsService _settingsService = SettingsService();
@@ -274,6 +276,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         _messages
           ..clear()
           ..addAll(processedMessages);
+        _messageKeys.clear();
         _currentTitle = fullConversation.title;
         _thinkingMode = fullConversation.thinkingMode;
         _promptPresetEnabled = fullConversation.promptPresetEnabled;
@@ -306,6 +309,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     setState(() {
       _currentConversation = conversation;
       _messages.clear();
+      _messageKeys.clear();
       _currentTitle = conversation.title;
       _thinkingMode = conversation.thinkingMode;
       _promptPresetEnabled = conversation.promptPresetEnabled;
@@ -363,6 +367,85 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         );
       }
     });
+  }
+
+  Future<void> _openMessageSearch() async {
+    final messageId = await Navigator.push<String>(
+      context,
+      CupertinoPageRoute(
+        builder: (context) => MessageSearchScreen(
+          messages: List<Message>.from(_messages),
+        ),
+      ),
+    );
+
+    if (messageId != null && mounted) {
+      await _scrollToMessage(messageId);
+    }
+  }
+
+  /// 搜索页返回后定位到目标消息。ListView 是懒构建的，先按索引估算滚动，
+  /// 等目标气泡进入构建范围后再用 ensureVisible 精确对齐。
+  Future<void> _scrollToMessage(String messageId) async {
+    final index = _messages.indexWhere((message) => message.id == messageId);
+    if (index == -1) return;
+
+    final key = _messageKeys.putIfAbsent(messageId, () => GlobalKey());
+    for (var attempt = 0; attempt < 12; attempt++) {
+      if (!mounted) return;
+
+      final targetContext = key.currentContext;
+      if (targetContext != null && targetContext.mounted) {
+        await Scrollable.ensureVisible(
+          targetContext,
+          alignment: 0.3,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+        return;
+      }
+
+      if (!_scrollController.hasClients) {
+        await Future<void>.delayed(const Duration(milliseconds: 80));
+        continue;
+      }
+
+      final position = _scrollController.position;
+      if (position.maxScrollExtent <= 0) {
+        await Future<void>.delayed(const Duration(milliseconds: 80));
+        continue;
+      }
+
+      // Find the messages that ListView has actually built, then move toward
+      // the target instead of repeatedly jumping to the same estimate.
+      var firstBuilt = -1;
+      var lastBuilt = -1;
+      for (var i = 0; i < _messages.length; i++) {
+        if (_messageKeys[_messages[i].id]?.currentContext != null) {
+          if (firstBuilt == -1) firstBuilt = i;
+          lastBuilt = i;
+        }
+      }
+
+      double target;
+      if (firstBuilt != -1 && index > lastBuilt) {
+        target = position.pixels + position.viewportDimension * 0.8;
+      } else if (firstBuilt != -1 && index < firstBuilt) {
+        target = position.pixels - position.viewportDimension * 0.8;
+      } else {
+        final fraction = _messages.length <= 1
+            ? 0.0
+            : index / (_messages.length - 1);
+        target = position.maxScrollExtent * fraction;
+      }
+
+      await _scrollController.animateTo(
+        target.clamp(0.0, position.maxScrollExtent),
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 80));
+    }
   }
 
   /// 处理用户选择的附件
@@ -998,6 +1081,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           children: [
             CupertinoButton(
               padding: EdgeInsets.zero,
+              onPressed: _messages.isEmpty ? null : _openMessageSearch,
+              child: const Icon(CupertinoIcons.search),
+            ),
+            CupertinoButton(
+              padding: EdgeInsets.zero,
               onPressed: _createNewConversation,
               child: const Icon(CupertinoIcons.add),
             ),
@@ -1067,8 +1155,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             if (index == _messages.length && _isLoading) {
                               return const TypingIndicator();
                             }
+                            final message = _messages[index];
                             return MessageBubble(
-                              message: _messages[index],
+                              key: _messageKeys.putIfAbsent(
+                                message.id,
+                                () => GlobalKey(),
+                              ),
+                              message: message,
                               userProfile: _userProfile,
                               onEdit: _editUserMessage,
                               onRegenerate: _regenerateAiResponse,

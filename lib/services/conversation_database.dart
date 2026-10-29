@@ -422,6 +422,46 @@ class ConversationDatabase {
     }).toList();
   }
 
+  /// 按标题、消息正文或思考内容搜索对话。
+  Future<List<Conversation>> searchConversations(String query) async {
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) return getConversations();
+
+    final db = await this.db;
+    final result = db.select('''
+      SELECT c.id, c.title, c.created_at, c.updated_at,
+             c.thinking_mode, c.prompt_preset_enabled, c.prompt_preset_id,
+             c.is_pinned
+      FROM conversations c
+      WHERE instr(lower(c.title), lower(?)) > 0
+         OR EXISTS (
+           SELECT 1
+           FROM messages m
+           WHERE m.conversation_id = c.id
+             AND (
+               instr(lower(m.content), lower(?)) > 0
+               OR instr(lower(COALESCE(m.reasoning_content, '')), lower(?)) > 0
+             )
+         )
+      ORDER BY c.is_pinned DESC, c.updated_at DESC
+    ''', [trimmed, trimmed, trimmed]);
+
+    return result.map((row) {
+      return Conversation(
+        id: row['id'] as String,
+        title: row['title'] as String,
+        createdAt: DateTime.fromMillisecondsSinceEpoch(row['created_at'] as int),
+        updatedAt: DateTime.fromMillisecondsSinceEpoch(row['updated_at'] as int),
+        messages: [],
+        thinkingMode: (row['thinking_mode'] as int? ?? 0) == 1,
+        promptPresetEnabled:
+            (row['prompt_preset_enabled'] as int? ?? 0) == 1,
+        promptPresetId: row['prompt_preset_id'] as String? ?? '',
+        isPinned: (row['is_pinned'] as int? ?? 0) == 1,
+      );
+    }).toList();
+  }
+
   /// 获取指定对话的完整数据（包含消息）
   Future<Conversation?> getConversationById(String id) async {
     final db = await this.db;

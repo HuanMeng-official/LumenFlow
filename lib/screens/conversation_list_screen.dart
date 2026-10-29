@@ -1,6 +1,8 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:material_ui/material_ui.dart' as material;
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import '../l10n/app_localizations.dart';
@@ -25,6 +27,10 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
   String? _currentConversationId;
   bool _isLoading = true;
   bool _isSelecting = false; // 防止重复选择对话
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  Timer? _searchTimer;
+  int _loadGeneration = 0;
 
   @override
   void initState() {
@@ -32,15 +38,47 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
     _loadConversations();
   }
 
+  @override
+  void dispose() {
+    _searchTimer?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadConversations() async {
-    final conversations = await _conversationService.loadConversations();
+    final generation = ++_loadGeneration;
+    final query = _searchQuery.trim();
+    final conversations = query.isEmpty
+        ? await _conversationService.loadConversations()
+        : await _conversationService.searchConversations(query);
     final currentId = await _conversationService.getCurrentConversationId();
 
+    if (!mounted || generation != _loadGeneration) return;
     setState(() {
       _conversations = conversations;
       _currentConversationId = currentId;
       _isLoading = false;
     });
+  }
+
+  void _onSearchChanged(String value) {
+    _searchTimer?.cancel();
+    final query = value.trim();
+    if (query == _searchQuery) return;
+
+    setState(() {
+      _searchQuery = query;
+    });
+
+    if (query.isEmpty) {
+      _loadConversations();
+      return;
+    }
+
+    _searchTimer = Timer(
+      const Duration(milliseconds: 250),
+      _loadConversations,
+    );
   }
 
   Future<void> _createNewConversation() async {
@@ -219,6 +257,14 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final brightness = CupertinoTheme.of(context).brightness;
+    final searchBackground = brightness == Brightness.dark
+        ? CupertinoColors.systemGrey6.darkColor
+        : CupertinoColors.systemGrey6.color;
+    final searchIconColor = brightness == Brightness.dark
+        ? CupertinoColors.systemGrey.darkColor
+        : CupertinoColors.systemGrey;
+
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: Text(l10n.conversations),
@@ -239,11 +285,74 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
         ),
       ),
       child: SafeArea(
-        child: _isLoading
-            ? const Center(child: CupertinoActivityIndicator())
-            : _conversations.isEmpty
-                ? _buildEmptyState()
-                : ListView.builder(
+        child: Column(
+          children: [
+            if (!_isLoading)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: searchBackground,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: material.Material(
+                    color: material.Colors.transparent,
+                    child: Row(
+                      children: [
+                        Icon(
+                          CupertinoIcons.search,
+                          size: 18,
+                          color: searchIconColor,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: material.TextField(
+                            controller: _searchController,
+                            onChanged: _onSearchChanged,
+                            style: const TextStyle(fontSize: 16),
+                            cursorColor: CupertinoTheme.of(
+                              context,
+                            ).primaryColor,
+                            decoration: material.InputDecoration(
+                              border: material.InputBorder.none,
+                              focusedBorder: material.InputBorder.none,
+                              enabledBorder: material.InputBorder.none,
+                              hintText: l10n.searchConversations,
+                              hintStyle: TextStyle(color: searchIconColor),
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 10,
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (_searchQuery.isNotEmpty)
+                          GestureDetector(
+                            onTap: () {
+                              _searchController.clear();
+                              _onSearchChanged('');
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: Icon(
+                                CupertinoIcons.xmark_circle_fill,
+                                size: 16,
+                                color: searchIconColor,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CupertinoActivityIndicator())
+                  : _conversations.isEmpty
+                      ? _buildEmptyState()
+                      : ListView.builder(
                     itemCount: _conversations.length,
                     itemBuilder: (context, index) {
                       final conversation = _conversations[index];
@@ -327,6 +436,9 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                       );
                     },
                   ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -344,25 +456,29 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            l10n.noConversations,
+            _searchQuery.isEmpty
+                ? l10n.noConversations
+                : l10n.searchNoResults,
             style: const TextStyle(
               fontSize: 18,
               color: CupertinoColors.systemGrey,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            l10n.createNewConversation,
-            style: const TextStyle(
-              fontSize: 14,
-              color: CupertinoColors.systemGrey2,
+          if (_searchQuery.isEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              l10n.createNewConversation,
+              style: const TextStyle(
+                fontSize: 14,
+                color: CupertinoColors.systemGrey2,
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
-          CupertinoButton.filled(
-            onPressed: _createNewConversation,
-            child: Text(l10n.newConversation),
-          ),
+            const SizedBox(height: 24),
+            CupertinoButton.filled(
+              onPressed: _createNewConversation,
+              child: Text(l10n.newConversation),
+            ),
+          ],
         ],
       ),
     );

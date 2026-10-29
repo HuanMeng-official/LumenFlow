@@ -33,6 +33,21 @@ class AppLocalizationsKo extends AppLocalizations {
   String get noConversations => '아직 대화가 없습니다';
 
   @override
+  String get searchConversations => '대화 검색';
+
+  @override
+  String get searchNoResults => '일치하는 대화가 없습니다';
+
+  @override
+  String get searchMessages => '메시지 검색';
+
+  @override
+  String get messageSearchHint => '키워드를 입력해 이 대화에서 검색';
+
+  @override
+  String get messageSearchNoResults => '일치하는 메시지가 없습니다';
+
+  @override
   String get createNewConversation => '새 대화 만들기';
 
   @override
