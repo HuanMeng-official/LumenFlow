@@ -134,6 +134,18 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get importConversation => '会話をインポート';
+
+  @override
+  String get conversationImportSuccess => '会話をインポートしました。';
+
+  @override
+  String get conversationImportFailed => '会話のインポートに失敗しました';
+
+  @override
+  String get conversationImportInvalid => '有効な LumenFlow 会話パッケージではありません。';
+
+  @override
   String get importSettings => '設定をインポート';
 
   @override

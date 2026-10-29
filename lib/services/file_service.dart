@@ -6,6 +6,7 @@ import '../utils/path_utils.dart';
 import '../models/attachment.dart';
 
 class FileService {
+  int _importedAttachmentCounter = 0;
 
   Future<String> saveAttachment(File file) async {
     final attachmentsDirPath = await PathUtils.getAttachmentsDirPath();
@@ -16,6 +17,21 @@ class FileService {
     final savedFile = File('${attachmentsDir.path}/$fileName');
 
     await file.copy(savedFile.path);
+    return savedFile.path;
+  }
+
+  /// 将导入包中的附件字节保存到本地附件目录。
+  Future<String> saveAttachmentBytes(List<int> bytes, String fileName) async {
+    final attachmentsDirPath = await PathUtils.getAttachmentsDirPath();
+    final attachmentsDir = Directory(attachmentsDirPath);
+    final extension = path.extension(fileName);
+    final stamp = DateTime.now().microsecondsSinceEpoch;
+    final counter = _importedAttachmentCounter++;
+    final savedFile = File(
+      path.join(attachmentsDir.path, 'imported_${stamp}_$counter$extension'),
+    );
+
+    await savedFile.writeAsBytes(bytes, flush: true);
     return savedFile.path;
   }
 

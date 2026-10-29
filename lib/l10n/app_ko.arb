@@ -70,6 +70,10 @@
       }
     }
   },
+  "importConversation": "대화 가져오기",
+  "conversationImportSuccess": "대화를 가져왔습니다.",
+  "conversationImportFailed": "대화 가져오기 실패",
+  "conversationImportInvalid": "유효한 LumenFlow 대화 패키지가 아닙니다.",
   "importSettings": "설정 가져오기",
   "importSettingsConfirm": "현재 설정을 덮어씁니다. 가져오시겠습니까?",
   "importSuccess": "가져오기 성공",

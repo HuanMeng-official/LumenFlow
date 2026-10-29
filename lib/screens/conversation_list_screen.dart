@@ -1,6 +1,8 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
+import 'dart:io';
 import '../l10n/app_localizations.dart';
 import '../models/conversation.dart';
 import '../services/conversation_service.dart';
@@ -54,6 +56,57 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
     widget.onConversationSelected(conversation.id);
     if (mounted) {
       Navigator.pop(context);
+    }
+  }
+
+  Future<void> _importConversation() async {
+    final l10n = AppLocalizations.of(context)!;
+
+    try {
+      final picked = await FilePicker.pickFile(
+        type: FileType.custom,
+        allowedExtensions: ['lumenflow', 'zip'],
+        dialogTitle: l10n.importConversation,
+      );
+      final path = picked?.path;
+      if (path == null) return;
+
+      final bytes = await File(path).readAsBytes();
+      await _conversationService.importConversationFromLumenflow(
+        bytes: bytes,
+        l10n: l10n,
+      );
+      await _loadConversations();
+
+      if (!mounted) return;
+      showCupertinoDialog(
+        context: context,
+        builder: (context) => CupertinoAlertDialog(
+          title: Text(l10n.importSuccess),
+          content: Text(l10n.conversationImportSuccess),
+          actions: [
+            CupertinoDialogAction(
+              child: Text(l10n.ok),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      showCupertinoDialog(
+        context: context,
+        builder: (context) => CupertinoAlertDialog(
+          title: Text(l10n.conversationImportFailed),
+          content: Text(e.toString()),
+          actions: [
+            CupertinoDialogAction(
+              child: Text(l10n.ok),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      );
     }
   }
 
@@ -169,10 +222,20 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: Text(l10n.conversations),
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: _createNewConversation,
-          child: const Icon(CupertinoIcons.add),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: _importConversation,
+              child: const Icon(CupertinoIcons.folder_open),
+            ),
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: _createNewConversation,
+              child: const Icon(CupertinoIcons.add),
+            ),
+          ],
         ),
       ),
       child: SafeArea(

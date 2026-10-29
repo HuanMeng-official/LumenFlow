@@ -134,6 +134,18 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get importConversation => '대화 가져오기';
+
+  @override
+  String get conversationImportSuccess => '대화를 가져왔습니다.';
+
+  @override
+  String get conversationImportFailed => '대화 가져오기 실패';
+
+  @override
+  String get conversationImportInvalid => '유효한 LumenFlow 대화 패키지가 아닙니다.';
+
+  @override
   String get importSettings => '설정 가져오기';
 
   @override

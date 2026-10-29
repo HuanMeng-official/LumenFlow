@@ -70,6 +70,10 @@
       }
     }
   },
+  "importConversation": "Import Conversation",
+  "conversationImportSuccess": "Conversation imported.",
+  "conversationImportFailed": "Import Conversation Failed",
+  "conversationImportInvalid": "Not a valid LumenFlow conversation package.",
   "importSettings": "Import Settings",
   "importSettingsConfirm": "This will overwrite current settings. Are you sure you want to import?",
   "importSuccess": "Import Successful",

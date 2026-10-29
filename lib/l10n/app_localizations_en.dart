@@ -134,6 +134,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get importConversation => 'Import Conversation';
+
+  @override
+  String get conversationImportSuccess => 'Conversation imported.';
+
+  @override
+  String get conversationImportFailed => 'Import Conversation Failed';
+
+  @override
+  String get conversationImportInvalid => 'Not a valid LumenFlow conversation package.';
+
+  @override
   String get importSettings => 'Import Settings';
 
   @override

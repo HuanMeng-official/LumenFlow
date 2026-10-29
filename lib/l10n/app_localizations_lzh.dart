@@ -134,6 +134,18 @@ class AppLocalizationsLzh extends AppLocalizations {
   }
 
   @override
+  String get importConversation => '納此談';
+
+  @override
+  String get conversationImportSuccess => '談已納入。';
+
+  @override
+  String get conversationImportFailed => '納談未成';
+
+  @override
+  String get conversationImportInvalid => '非 LumenFlow 談帙之正者也。';
+
+  @override
   String get importSettings => '匯入規度';
 
   @override

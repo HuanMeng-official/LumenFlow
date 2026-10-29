@@ -70,6 +70,10 @@
       }
     }
   },
+  "importConversation": "会話をインポート",
+  "conversationImportSuccess": "会話をインポートしました。",
+  "conversationImportFailed": "会話のインポートに失敗しました",
+  "conversationImportInvalid": "有効な LumenFlow 会話パッケージではありません。",
   "importSettings": "設定をインポート",
   "importSettingsConfirm": "これにより現在の設定が上書きされます。本当にインポートしますか？",
   "importSuccess": "インポートに成功しました",

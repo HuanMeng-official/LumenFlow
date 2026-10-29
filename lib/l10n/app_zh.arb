@@ -70,6 +70,10 @@
       }
     }
   },
+  "importConversation": "导入对话",
+  "conversationImportSuccess": "对话已导入。",
+  "conversationImportFailed": "导入对话失败",
+  "conversationImportInvalid": "不是有效的 LumenFlow 对话包。",
   "importSettings": "导入设置",
   "importSettingsConfirm": "这将覆盖当前设置，确定要导入吗？",
   "importSuccess": "导入成功",

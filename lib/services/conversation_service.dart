@@ -10,10 +10,12 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:archive/archive.dart';
 import 'package:archive/archive_io.dart';
+import 'package:path/path.dart' as path;
 import '../models/attachment.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'conversation_database.dart';
+import 'file_service.dart';
 
 /// 对话服务，管理对话的持久化存储和CRUD操作
 ///
@@ -371,6 +373,192 @@ class ConversationService {
     };
 
     return lumenflowData;
+  }
+
+  /// 导入 LumenFlow 对话包。
+  ///
+  /// 支持会话列表导出的裸 `.lumenflow` 文件，也支持聊天页导出的 ZIP
+  /// （内含 `conversation.lumenflow` 和 `attachments/`）。
+  Future<Conversation> importConversationFromLumenflow({
+    required List<int> bytes,
+    required AppLocalizations l10n,
+  }) async {
+    final package = _decodeLumenflowPackage(bytes, l10n);
+    final rawConversation = package.data['conversation'];
+    Conversation imported;
+    try {
+      imported = Conversation.fromJson(
+        (rawConversation as Map).cast<String, dynamic>(),
+      );
+    } catch (_) {
+      throw FormatException(l10n.conversationImportInvalid);
+    }
+
+    final stamp = DateTime.now().microsecondsSinceEpoch;
+    final conversationId = 'imported_$stamp';
+    final attachmentEntries = <String, List<int>>{};
+    if (package.archive != null) {
+      for (final file in package.archive!.files) {
+        if (!file.isFile) continue;
+        final entryName = file.name.replaceAll('\\', '/');
+        if (!entryName.startsWith('attachments/')) continue;
+        attachmentEntries[entryName] =
+            List<int>.from(file.content as List<int>);
+      }
+    }
+
+    final fileService = FileService();
+    final usedAttachmentEntries = <String>{};
+    final messages = <Message>[];
+    var messageIndex = 0;
+
+    for (final message in imported.messages) {
+      final messageId = '${conversationId}_m${messageIndex++}';
+      final attachments = <Attachment>[];
+      var attachmentIndex = 0;
+
+      for (final attachment in message.attachments) {
+        final entryName = _findAttachmentEntry(
+          attachmentEntries,
+          usedAttachmentEntries,
+          attachment.fileName,
+        );
+        String? savedPath;
+        int? importedSize;
+        if (entryName != null) {
+          usedAttachmentEntries.add(entryName);
+          final data = attachmentEntries[entryName]!;
+          savedPath = await fileService.saveAttachmentBytes(
+            data,
+            attachment.fileName,
+          );
+          importedSize = data.length;
+        }
+
+        attachments.add(
+          Attachment(
+            id: '${messageId}_a${attachmentIndex++}',
+            fileName: attachment.fileName,
+            filePath: savedPath,
+            url: attachment.url,
+            type: attachment.type,
+            fileSize: importedSize ?? attachment.fileSize,
+            mimeType: attachment.mimeType,
+            createdAt: attachment.createdAt,
+          ),
+        );
+      }
+
+      messages.add(
+        Message(
+          id: messageId,
+          content: message.content,
+          reasoningContent: message.reasoningContent,
+          isUser: message.isUser,
+          timestamp: message.timestamp,
+          status: message.status == MessageStatus.sending
+              ? MessageStatus.sent
+              : message.status,
+          attachments: attachments,
+        ),
+      );
+    }
+
+    final conversation = Conversation(
+      id: conversationId,
+      title: imported.title.trim().isEmpty
+          ? l10n.newConversation
+          : imported.title,
+      createdAt: imported.createdAt,
+      updatedAt: DateTime.now(),
+      messages: messages,
+      thinkingMode: imported.thinkingMode,
+      promptPresetEnabled: imported.promptPresetEnabled,
+      promptPresetId: imported.promptPresetId,
+      isPinned: imported.isPinned,
+    );
+
+    await _db.importConversation(conversation);
+
+    final cached = _cachedConversations;
+    if (cached != null) {
+      cached.add(conversation);
+      _loadedConversationIds.add(conversation.id);
+      _sortConversations(cached);
+      _isCacheDirty = false;
+    } else {
+      _isCacheDirty = true;
+    }
+
+    return conversation;
+  }
+
+  _LumenflowPackage _decodeLumenflowPackage(
+    List<int> bytes,
+    AppLocalizations l10n,
+  ) {
+    Archive? archive;
+    dynamic decoded;
+
+    try {
+      if (bytes.length >= 2 && bytes[0] == 0x50 && bytes[1] == 0x4B) {
+        archive = ZipDecoder().decodeBytes(bytes);
+        ArchiveFile? conversationFile;
+        for (final file in archive.files) {
+          if (file.isFile &&
+              file.name.toLowerCase().endsWith('.lumenflow')) {
+            conversationFile = file;
+            break;
+          }
+        }
+        if (conversationFile == null) {
+          throw FormatException(l10n.conversationImportInvalid);
+        }
+        decoded = jsonDecode(
+          utf8.decode(List<int>.from(conversationFile.content as List<int>)),
+        );
+      } else {
+        decoded = jsonDecode(utf8.decode(bytes));
+      }
+    } catch (_) {
+      throw FormatException(l10n.conversationImportInvalid);
+    }
+
+    if (decoded is! Map) {
+      throw FormatException(l10n.conversationImportInvalid);
+    }
+    final data = decoded.cast<String, dynamic>();
+    if (data['_format'] != 'lumenflow' ||
+        data['_type'] != 'conversation' ||
+        data['conversation'] is! Map) {
+      throw FormatException(l10n.conversationImportInvalid);
+    }
+
+    return _LumenflowPackage(data: data, archive: archive);
+  }
+
+  String? _findAttachmentEntry(
+    Map<String, List<int>> entries,
+    Set<String> used,
+    String fileName,
+  ) {
+    final baseName = path.basename(fileName);
+    final exact = 'attachments/$baseName';
+    if (entries.containsKey(exact) && !used.contains(exact)) {
+      return exact;
+    }
+
+    for (final name in entries.keys) {
+      if (used.contains(name) || !name.startsWith('attachments/')) continue;
+      final zipName = name.substring('attachments/'.length);
+      if (zipName == baseName) return name;
+      final normalized = zipName.replaceFirst(
+        RegExp(r'_\(\d+\)(?=\.[^.]+$)'),
+        '',
+      );
+      if (normalized == baseName) return name;
+    }
+    return null;
   }
 
   /// 导出对话为纯文本格式
@@ -1046,4 +1234,11 @@ class ConversationService {
       'locationType': locationType,
     };
   }
+}
+
+class _LumenflowPackage {
+  final Map<String, dynamic> data;
+  final Archive? archive;
+
+  const _LumenflowPackage({required this.data, this.archive});
 }

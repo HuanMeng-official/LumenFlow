@@ -134,6 +134,18 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get importConversation => '导入对话';
+
+  @override
+  String get conversationImportSuccess => '对话已导入。';
+
+  @override
+  String get conversationImportFailed => '导入对话失败';
+
+  @override
+  String get conversationImportInvalid => '不是有效的 LumenFlow 对话包。';
+
+  @override
   String get importSettings => '导入设置';
 
   @override

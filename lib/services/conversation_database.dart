@@ -540,6 +540,45 @@ class ConversationDatabase {
     });
   }
 
+  /// 原子导入一个完整对话（包含消息和附件）。
+  Future<void> importConversation(Conversation conversation) async {
+    await _synchronized(() async {
+      final db = await this.db;
+
+      db.execute('BEGIN IMMEDIATE TRANSACTION');
+      try {
+        db.execute('''
+          INSERT INTO conversations (
+            id, title, created_at, updated_at,
+            thinking_mode, prompt_preset_enabled, prompt_preset_id, is_pinned
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', [
+          conversation.id,
+          conversation.title,
+          conversation.createdAt.millisecondsSinceEpoch,
+          conversation.updatedAt.millisecondsSinceEpoch,
+          conversation.thinkingMode ? 1 : 0,
+          conversation.promptPresetEnabled ? 1 : 0,
+          conversation.promptPresetId,
+          conversation.isPinned ? 1 : 0,
+        ]);
+
+        for (final message in conversation.messages) {
+          _insertMessageRow(db, conversation.id, message);
+          for (final attachment in message.attachments) {
+            _insertAttachmentRow(db, message.id, attachment);
+          }
+        }
+
+        db.execute('COMMIT');
+      } catch (_) {
+        db.execute('ROLLBACK');
+        rethrow;
+      }
+    });
+  }
+
   /// 插入一条消息记录。
   void _insertMessageRow(
     Database db,

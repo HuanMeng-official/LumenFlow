@@ -337,6 +337,30 @@ abstract class AppLocalizations {
   /// **'Error exporting settings: {error}\n\nPlease ensure the app has storage permission and check available storage space.'**
   String exportError(String error);
 
+  /// No description provided for @importConversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Conversation'**
+  String get importConversation;
+
+  /// No description provided for @conversationImportSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversation imported.'**
+  String get conversationImportSuccess;
+
+  /// No description provided for @conversationImportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Conversation Failed'**
+  String get conversationImportFailed;
+
+  /// No description provided for @conversationImportInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a valid LumenFlow conversation package.'**
+  String get conversationImportInvalid;
+
   /// No description provided for @importSettings.
   ///
   /// In en, this message translates to:

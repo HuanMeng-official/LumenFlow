@@ -70,6 +70,10 @@
       }
     }
   },
+  "importConversation": "納此談",
+  "conversationImportSuccess": "談已納入。",
+  "conversationImportFailed": "納談未成",
+  "conversationImportInvalid": "非 LumenFlow 談帙之正者也。",
   "importSettings": "匯入規度",
   "importSettingsConfirm": "此舉將覆故有之規度，確欲匯入乎？",
   "importSuccess": "匯入已妥",
