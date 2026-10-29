@@ -593,57 +593,72 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final l10n = AppLocalizations.of(context)!;
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => CupertinoActionSheet(
-        title: Text(l10n.selectAvatar),
-        actions: [
-          CupertinoActionSheetAction(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(CupertinoIcons.photo_on_rectangle, size: 20),
-                const SizedBox(width: 8),
-                Text(l10n.selectFromGallery),
-              ],
+      builder: (context) {
+        final primaryColor = CupertinoTheme.of(context).primaryColor;
+        return CupertinoActionSheet(
+          title: Text(l10n.selectAvatar),
+          actions: [
+            CupertinoActionSheetAction(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    CupertinoIcons.photo_on_rectangle,
+                    size: 20,
+                    color: primaryColor,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(l10n.selectFromGallery),
+                ],
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                _pickImageFromGallery();
+              },
             ),
-            onPressed: () {
-              Navigator.pop(context);
-              _pickImageFromGallery();
-            },
-          ),
-          CupertinoActionSheetAction(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(CupertinoIcons.camera, size: 20),
-                const SizedBox(width: 8),
-                Text(l10n.takePhoto),
-              ],
+            CupertinoActionSheetAction(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    CupertinoIcons.camera,
+                    size: 20,
+                    color: primaryColor,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(l10n.takePhoto),
+                ],
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                _pickImageFromCamera();
+              },
             ),
-            onPressed: () {
-              Navigator.pop(context);
-              _pickImageFromCamera();
-            },
-          ),
-          CupertinoActionSheetAction(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(CupertinoIcons.smiley, size: 20),
-                const SizedBox(width: 8),
-                Text(l10n.selectEmoji),
-              ],
+            CupertinoActionSheetAction(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    CupertinoIcons.smiley,
+                    size: 20,
+                    color: primaryColor,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(l10n.selectEmoji),
+                ],
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                _selectEmojiAvatar();
+              },
             ),
-            onPressed: () {
-              Navigator.pop(context);
-              _selectEmojiAvatar();
-            },
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            child: Text(l10n.cancel),
+            onPressed: () => Navigator.pop(context),
           ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          child: Text(l10n.cancel),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+        );
+      },
     );
   }
 
