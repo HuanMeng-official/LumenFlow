@@ -1078,6 +1078,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get regenerateConfirm => 'このAI応答を再生成しますか？';
 
   @override
+  String get continueGeneration => '生成を続ける';
+
+  @override
+  String get continueGenerationPrompt => '前のアシスタントの応答の続きを、止まったところから生成してください。すでに書かれた内容を繰り返さないでください。';
+
+  @override
+  String get forkConversation => 'ここから分岐';
+
+  @override
+  String get deleteMessage => 'メッセージを削除';
+
+  @override
+  String get deleteMessageConfirm => 'このメッセージを削除しますか？';
+
+  @override
   String get messageOptions => 'メッセージオプション';
 
   @override

@@ -1078,6 +1078,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get regenerateConfirm => '重新生成此AI响应？';
 
   @override
+  String get continueGeneration => '继续生成';
+
+  @override
+  String get continueGenerationPrompt => '请从这条回复中断的地方继续生成，不要重复已经写过的内容。';
+
+  @override
+  String get forkConversation => '从此处分支';
+
+  @override
+  String get deleteMessage => '删除消息';
+
+  @override
+  String get deleteMessageConfirm => '确定删除这条消息吗？';
+
+  @override
   String get messageOptions => '消息选项';
 
   @override

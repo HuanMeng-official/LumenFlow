@@ -1078,6 +1078,21 @@ class AppLocalizationsLzh extends AppLocalizations {
   String get regenerateConfirm => '確欲重求靈犀之言乎？';
 
   @override
+  String get continueGeneration => '續生成';
+
+  @override
+  String get continueGenerationPrompt => '續此答於所止之處，勿復已書之言。';
+
+  @override
+  String get forkConversation => '自此分岔';
+
+  @override
+  String get deleteMessage => '刪此語';
+
+  @override
+  String get deleteMessageConfirm => '確欲刪此語乎？';
+
+  @override
   String get messageOptions => '言辭之度';
 
   @override

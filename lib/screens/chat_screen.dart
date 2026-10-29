@@ -569,8 +569,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   ///   6. 实时更新AI消息内容（流式输出）
   ///   7. 处理完成和错误状态
   ///   8. 保存对话到本地存储
-  Future<void> _sendMessage(String content,
-      {List<Attachment> attachments = const [], bool skipUserMessage = false}) async {
+  Future<void> _sendMessage(
+    String content, {
+    List<Attachment> attachments = const [],
+    bool skipUserMessage = false,
+    Message? targetAiMessage,
+    List<Message>? historyOverride,
+    String initialAnswer = '',
+    String initialReasoning = '',
+  }) async {
     final l10n = AppLocalizations.of(context)!;
     if (content.trim().isEmpty && attachments.isEmpty) return;
 
@@ -650,24 +657,32 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       await _liveUpdateService.startLiveUpdate(title: l10n.liveUpdateAIResponse);
     }
 
-    final aiMessage = Message(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      content: '',
-      reasoningContent: null,
-      isUser: false,
-      timestamp: DateTime.now(),
-      status: MessageStatus.sending,
-    );
+    final aiMessage = targetAiMessage ??
+        Message(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          content: '',
+          reasoningContent: null,
+          isUser: false,
+          timestamp: DateTime.now(),
+          status: MessageStatus.sending,
+        );
 
     setState(() {
-      _messages.add(aiMessage);
+      if (targetAiMessage == null) {
+        _messages.add(aiMessage);
+      } else {
+        final index = _findMessageIndexById(aiMessage.id);
+        if (index != -1) {
+          _messages[index] = aiMessage;
+        }
+      }
       _isLoading = false;
     });
     _scrollToBottom();
 
     final conversationId = _currentConversation!.id;
     final titleAtSend = _currentTitle;
-    final history = ChatSendController.buildHistory(_messages);
+    final history = historyOverride ?? ChatSendController.buildHistory(_messages);
 
     ChatSendController? controllerRef;
     final controller = ChatSendController(
@@ -675,6 +690,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       conversationId: conversationId,
       initialMessage: aiMessage,
       history: history,
+      initialAnswer: initialAnswer,
+      initialReasoning: initialReasoning,
+      appendInitialMessage: targetAiMessage == null,
       openStream: () => _aiService.sendMessageStreaming(
         content,
         history,
@@ -943,26 +961,174 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
 
     final messageIndex = _findMessageIndexById(message.id);
-    if (messageIndex == -1) {
-      debugPrint('消息未找到: ${message.id}');
+    if (messageIndex <= 0 || !_messages[messageIndex - 1].isUser) {
+      debugPrint('消息未找到或前面没有用户消息: ${message.id}');
       return;
     }
 
-    // 删除该AI消息及其之后的所有消息，避免新回复追加到旧上下文末尾
-    final truncated =
-        ChatSendController.truncateForRegenerate(_messages, message.id);
+    final userMessage = _messages[messageIndex - 1];
+    final target = _messages[messageIndex];
+    final variants = target.variants.isNotEmpty
+        ? List<MessageVariant>.from(target.variants)
+        : [
+            MessageVariant(
+              content: target.content,
+              reasoningContent: target.reasoningContent,
+              timestamp: target.timestamp,
+              status: target.status,
+            ),
+          ];
+    final newVariant = MessageVariant(
+      content: '',
+      reasoningContent: null,
+      timestamp: DateTime.now(),
+      status: MessageStatus.sending,
+    );
+    final prepared = target.copyWith(
+      content: '',
+      reasoningContent: '',
+      timestamp: newVariant.timestamp,
+      status: MessageStatus.sending,
+      variants: [...variants, newVariant],
+      activeVariantIndex: variants.length,
+    );
+    final history = messageIndex <= 1
+        ? <Message>[]
+        : List<Message>.from(_messages.sublist(0, messageIndex - 1));
+
+    // 保留目标消息并追加新版本，删除它之后的消息。
     setState(() {
-      _messages
-        ..clear()
-        ..addAll(truncated);
+      _messages.removeRange(messageIndex + 1, _messages.length);
+      _messages[messageIndex] = prepared;
+    });
+    await _saveCurrentConversation();
+
+    await _sendMessage(
+      userMessage.content,
+      attachments: userMessage.attachments,
+      skipUserMessage: true,
+      targetAiMessage: prepared,
+      historyOverride: history,
+    );
+  }
+
+  /// 从当前回复末尾继续生成。
+  Future<void> _continueGeneration(Message message) async {
+    if (_isGenerating || message.isUser) return;
+
+    final l10n = AppLocalizations.of(context)!;
+    final messageIndex = _findMessageIndexById(message.id);
+    if (messageIndex == -1 || messageIndex != _messages.length - 1) {
+      return;
+    }
+
+    final variants = message.variants.isNotEmpty
+        ? List<MessageVariant>.from(message.variants)
+        : [
+            MessageVariant(
+              content: message.content,
+              reasoningContent: message.reasoningContent,
+              timestamp: message.timestamp,
+              status: message.status,
+            ),
+          ];
+    final activeIndex = message.variants.isEmpty
+        ? 0
+        : message.activeVariantIndex.clamp(0, variants.length - 1);
+    final target = message.copyWith(
+      variants: variants,
+      activeVariantIndex: activeIndex,
+    );
+
+    setState(() {
+      _messages[messageIndex] = target;
+    });
+    await _saveCurrentConversation();
+
+    await _sendMessage(
+      l10n.continueGenerationPrompt,
+      skipUserMessage: true,
+      targetAiMessage: target,
+      historyOverride: List<Message>.from(
+        _messages.sublist(0, messageIndex + 1),
+      ),
+      initialAnswer: target.content,
+      initialReasoning: target.reasoningContent ?? '',
+    );
+  }
+
+  /// 切换 AI 回复版本。
+  Future<void> _switchMessageVariant(Message message, int index) async {
+    if (index < 0 || index >= message.variants.length) return;
+    final messageIndex = _findMessageIndexById(message.id);
+    if (messageIndex == -1) return;
+
+    final variant = message.variants[index];
+    final updated = message.copyWith(
+      content: variant.content,
+      reasoningContent: variant.reasoningContent ?? '',
+      timestamp: variant.timestamp,
+      status: variant.status,
+      activeVariantIndex: index,
+    );
+
+    setState(() {
+      _messages[messageIndex] = updated;
     });
 
-    // 查找前一条用户消息
-    if (messageIndex > 0 && _messages[messageIndex - 1].isUser) {
-      final userMessage = _messages[messageIndex - 1];
-      // 使用前一条用户消息重新发送，保留原始附件，跳过用户消息添加
-      await _sendMessage(userMessage.content, attachments: userMessage.attachments, skipUserMessage: true);
+    final conversation = _currentConversation;
+    if (conversation != null) {
+      await _conversationService.updateMessage(conversation.id, updated);
     }
+  }
+
+  /// 删除单条消息。
+  Future<void> _deleteMessage(Message message) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text(l10n.deleteMessage),
+        content: Text(l10n.deleteMessageConfirm),
+        actions: [
+          CupertinoDialogAction(
+            child: Text(l10n.cancel),
+            onPressed: () => Navigator.pop(context, false),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            child: Text(l10n.delete),
+            onPressed: () => Navigator.pop(context, true),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    if (_isGenerating) {
+      _stopGenerating();
+    }
+    setState(() {
+      _messages.removeWhere((item) => item.id == message.id);
+      _messageKeys.remove(message.id);
+    });
+    await _saveCurrentConversation();
+  }
+
+  /// 从指定消息处分叉出新会话。
+  Future<void> _forkConversation(Message message) async {
+    final conversation = _currentConversation;
+    if (conversation == null || _isGenerating) return;
+    final index = _findMessageIndexById(message.id);
+    if (index == -1) return;
+
+    final l10n = AppLocalizations.of(context)!;
+    final fork = await _conversationService.forkConversation(
+      sourceConversationId: conversation.id,
+      messageIndex: index,
+      title: '$_currentTitle · ${l10n.forkConversation}',
+    );
+    await _setCurrentConversation(fork.id);
   }
 
   /// 显示配置提示对话框
@@ -1166,6 +1332,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                               onEdit: _editUserMessage,
                               onRegenerate: _regenerateAiResponse,
                               onResubmit: (msg) => _resubmitMessage(msg, msg.content),
+                              onVariantChanged: _switchMessageVariant,
+                              onDelete: _deleteMessage,
+                              onContinue:
+                                  index == _messages.length - 1 &&
+                                      !message.isUser &&
+                                      !_isGenerating
+                                  ? _continueGeneration
+                                  : null,
+                              onFork: _forkConversation,
                             );
                           },
                         ),

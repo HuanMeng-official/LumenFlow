@@ -1078,6 +1078,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get regenerateConfirm => 'Regenerate this AI response?';
 
   @override
+  String get continueGeneration => 'Continue generating';
+
+  @override
+  String get continueGenerationPrompt => 'Continue the previous assistant response from where it stopped. Do not repeat content that has already been written.';
+
+  @override
+  String get forkConversation => 'Fork from here';
+
+  @override
+  String get deleteMessage => 'Delete message';
+
+  @override
+  String get deleteMessageConfirm => 'Delete this message?';
+
+  @override
   String get messageOptions => 'Message options';
 
   @override

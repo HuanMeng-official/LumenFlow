@@ -1078,6 +1078,21 @@ class AppLocalizationsKo extends AppLocalizations {
   String get regenerateConfirm => '이 AI 응답을 다시 생성할까요？';
 
   @override
+  String get continueGeneration => '계속 생성';
+
+  @override
+  String get continueGenerationPrompt => '이전 어시스턴트 응답이 중단된 지점부터 이어서 생성하세요. 이미 작성된 내용을 반복하지 마세요.';
+
+  @override
+  String get forkConversation => '여기서 분기';
+
+  @override
+  String get deleteMessage => '메시지 삭제';
+
+  @override
+  String get deleteMessageConfirm => '이 메시지를 삭제할까요?';
+
+  @override
   String get messageOptions => '메시지 옵션';
 
   @override

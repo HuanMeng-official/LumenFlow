@@ -20,7 +20,11 @@ class ChatSendController {
     required this._errorContentBuilder,
     required this._emptyResponseContent,
     this._persistInterval = const Duration(milliseconds: 500),
-  });
+    String initialAnswer = '',
+    String initialReasoning = '',
+    this._appendInitialMessage = true,
+  }) : _answer = StringBuffer(initialAnswer),
+       _reasoning = StringBuffer(initialReasoning);
 
   final ConversationService _conversationService;
   final String _conversationId;
@@ -34,9 +38,10 @@ class ChatSendController {
   final String Function(Object error) _errorContentBuilder;
   final String _emptyResponseContent;
   final Duration _persistInterval;
+  final bool _appendInitialMessage;
 
-  final StringBuffer _answer = StringBuffer();
-  final StringBuffer _reasoning = StringBuffer();
+  final StringBuffer _answer;
+  final StringBuffer _reasoning;
 
   StreamSubscription<Map<String, dynamic>>? _subscription;
   Timer? _persistTimer;
@@ -70,10 +75,12 @@ class ChatSendController {
     if (_started || _finalized) return;
     _started = true;
 
-    await _conversationService.appendMessage(
-      _conversationId,
-      _initialMessage,
-    );
+    if (_appendInitialMessage) {
+      await _conversationService.appendMessage(
+        _conversationId,
+        _initialMessage,
+      );
+    }
 
     if (_finalized) return;
 
@@ -157,18 +164,18 @@ class ChatSendController {
   Future<void> _finalizeError(Object? error, {bool empty = false}) async {
     if (_finalized) return;
 
-    final content = empty
+    final errorContent = empty
         ? _emptyResponseContent
         : _errorContentBuilder(error ?? 'Unknown error');
+    final content = _answer.isEmpty
+        ? errorContent
+        : '${_answer.toString()}\n\n$errorContent';
 
-    final message = Message(
-      id: _initialMessage.id,
-      content: content,
-      isUser: false,
-      timestamp: _initialMessage.timestamp,
-      status: MessageStatus.error,
+    final message = _buildMessage(
+      content,
+      _reasoning.isEmpty ? null : _reasoning.toString(),
+      MessageStatus.error,
     );
-
     await _finalize(message, _onError);
   }
 
@@ -197,14 +204,44 @@ class ChatSendController {
   }
 
   Message _build(MessageStatus status) {
+    return _buildMessage(
+      _answer.toString(),
+      _reasoning.isEmpty ? null : _reasoning.toString(),
+      status,
+    );
+  }
+
+  Message _buildMessage(
+    String content,
+    String? reasoning,
+    MessageStatus status,
+  ) {
+    var variants = _initialMessage.variants;
+    var activeVariantIndex = _initialMessage.activeVariantIndex;
+
+    if (variants.isNotEmpty) {
+      final updated = List<MessageVariant>.from(variants);
+      final index = activeVariantIndex.clamp(0, updated.length - 1);
+      updated[index] = MessageVariant(
+        content: content,
+        reasoningContent: reasoning,
+        timestamp: _initialMessage.timestamp,
+        status: status,
+      );
+      variants = updated;
+      activeVariantIndex = index;
+    }
+
     return Message(
       id: _initialMessage.id,
-      content: _answer.toString(),
-      reasoningContent:
-          _reasoning.isEmpty ? null : _reasoning.toString(),
-      isUser: false,
+      content: content,
+      reasoningContent: reasoning,
+      isUser: _initialMessage.isUser,
       timestamp: _initialMessage.timestamp,
       status: status,
+      attachments: _initialMessage.attachments,
+      variants: variants,
+      activeVariantIndex: activeVariantIndex,
     );
   }
 

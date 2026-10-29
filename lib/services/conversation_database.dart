@@ -213,6 +213,19 @@ class ConversationDatabase {
       );
     }
 
+    final messageColumns = db
+        .select('PRAGMA table_info(messages)')
+        .map((row) => row['name'] as String)
+        .toSet();
+    if (!messageColumns.contains('variants')) {
+      db.execute('ALTER TABLE messages ADD COLUMN variants TEXT');
+    }
+    if (!messageColumns.contains('active_variant_index')) {
+      db.execute(
+        'ALTER TABLE messages ADD COLUMN active_variant_index INTEGER NOT NULL DEFAULT 0',
+      );
+    }
+
     if (currentVersion < schemaVersion) {
       db.execute('PRAGMA user_version = $schemaVersion');
     } else if (currentVersion == 3 && schemaVersion == 2) {
@@ -248,6 +261,8 @@ class ConversationDatabase {
         is_user INTEGER NOT NULL,
         timestamp INTEGER NOT NULL,
         status INTEGER NOT NULL,
+        variants TEXT,
+        active_variant_index INTEGER NOT NULL DEFAULT 0,
         FOREIGN KEY (conversation_id) REFERENCES conversations (id) ON DELETE CASCADE
       )
     ''');
@@ -347,8 +362,11 @@ class ConversationDatabase {
         // 插入消息
         for (final message in conversation.messages) {
           db.execute('''
-            INSERT OR REPLACE INTO messages (id, conversation_id, content, reasoning_content, is_user, timestamp, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO messages (
+              id, conversation_id, content, reasoning_content, is_user,
+              timestamp, status, variants, active_variant_index
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
           ''', [
             message.id,
             conversation.id,
@@ -357,6 +375,10 @@ class ConversationDatabase {
             message.isUser ? 1 : 0,
             message.timestamp.millisecondsSinceEpoch,
             message.status.index,
+            message.variants.isEmpty
+                ? null
+                : jsonEncode(message.variants.map((v) => v.toJson()).toList()),
+            message.activeVariantIndex,
           ]);
 
           // 插入附件
@@ -480,7 +502,8 @@ class ConversationDatabase {
 
     // 获取消息
     final messagesResult = db.select('''
-      SELECT id, content, reasoning_content, is_user, timestamp, status
+      SELECT id, content, reasoning_content, is_user, timestamp, status,
+             variants, active_variant_index
       FROM messages
       WHERE conversation_id = ?
       ORDER BY timestamp ASC
@@ -511,6 +534,21 @@ class ConversationDatabase {
         );
       }).toList();
 
+      final variantsJson = msgRow['variants'] as String?;
+      final variants = variantsJson == null || variantsJson.isEmpty
+          ? <MessageVariant>[]
+          : (jsonDecode(variantsJson) as List)
+                .map(
+                  (value) => MessageVariant.fromJson(
+                    (value as Map).cast<String, dynamic>(),
+                  ),
+                )
+                .toList();
+      final rawVariantIndex = msgRow['active_variant_index'] as int? ?? 0;
+      final activeVariantIndex = variants.isEmpty
+          ? 0
+          : rawVariantIndex.clamp(0, variants.length - 1);
+
       messages.add(Message(
         id: messageId,
         content: msgRow['content'] as String,
@@ -519,6 +557,8 @@ class ConversationDatabase {
         timestamp: DateTime.fromMillisecondsSinceEpoch(msgRow['timestamp'] as int),
         status: MessageStatus.values[msgRow['status'] as int],
         attachments: attachments,
+        variants: variants,
+        activeVariantIndex: activeVariantIndex,
       ));
     }
 
@@ -628,8 +668,11 @@ class ConversationDatabase {
   }) {
     final verb = replace ? 'INSERT OR REPLACE' : 'INSERT';
     db.execute('''
-      $verb INTO messages (id, conversation_id, content, reasoning_content, is_user, timestamp, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      $verb INTO messages (
+        id, conversation_id, content, reasoning_content, is_user,
+        timestamp, status, variants, active_variant_index
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', [
       message.id,
       conversationId,
@@ -638,6 +681,10 @@ class ConversationDatabase {
       message.isUser ? 1 : 0,
       message.timestamp.millisecondsSinceEpoch,
       message.status.index,
+      message.variants.isEmpty
+          ? null
+          : jsonEncode(message.variants.map((v) => v.toJson()).toList()),
+      message.activeVariantIndex,
     ]);
   }
 
@@ -708,8 +755,11 @@ class ConversationDatabase {
         // 插入新消息
         for (final message in conversation.messages) {
           db.execute('''
-            INSERT OR REPLACE INTO messages (id, conversation_id, content, reasoning_content, is_user, timestamp, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO messages (
+              id, conversation_id, content, reasoning_content, is_user,
+              timestamp, status, variants, active_variant_index
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
           ''', [
             message.id,
             conversation.id,
@@ -718,6 +768,10 @@ class ConversationDatabase {
             message.isUser ? 1 : 0,
             message.timestamp.millisecondsSinceEpoch,
             message.status.index,
+            message.variants.isEmpty
+                ? null
+                : jsonEncode(message.variants.map((v) => v.toJson()).toList()),
+            message.activeVariantIndex,
           ]);
 
           // 删除旧附件
@@ -828,7 +882,8 @@ class ConversationDatabase {
 
         db.execute('''
           UPDATE messages
-          SET content = ?, reasoning_content = ?, is_user = ?, timestamp = ?, status = ?
+          SET content = ?, reasoning_content = ?, is_user = ?, timestamp = ?,
+              status = ?, variants = ?, active_variant_index = ?
           WHERE id = ?
         ''', [
           message.content,
@@ -836,6 +891,10 @@ class ConversationDatabase {
           message.isUser ? 1 : 0,
           message.timestamp.millisecondsSinceEpoch,
           message.status.index,
+          message.variants.isEmpty
+              ? null
+              : jsonEncode(message.variants.map((v) => v.toJson()).toList()),
+          message.activeVariantIndex,
           message.id,
         ]);
 

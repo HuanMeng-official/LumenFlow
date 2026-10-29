@@ -23,6 +23,10 @@ class Message {
   final MessageStatus status;
   final List<Attachment> attachments;
 
+  /// AI 回复的多个版本；用户消息通常为空。
+  final List<MessageVariant> variants;
+  final int activeVariantIndex;
+
   Message({
     required this.id,
     required this.content,
@@ -31,6 +35,8 @@ class Message {
     required this.timestamp,
     this.status = MessageStatus.sent,
     this.attachments = const [],
+    this.variants = const [],
+    this.activeVariantIndex = 0,
   });
 
   Map<String, dynamic> toJson() {
@@ -42,11 +48,22 @@ class Message {
       'timestamp': timestamp.toIso8601String(),
       'status': status.index,
       'attachments': attachments.map((a) => a.toJson()).toList(),
+      'variants': variants.map((v) => v.toJson()).toList(),
+      'activeVariantIndex': activeVariantIndex,
     };
   }
 
   factory Message.fromJson(Map<String, dynamic> json) {
     final attachmentsJson = json['attachments'] as List? ?? [];
+    final variantsJson = json['variants'] as List? ?? [];
+    final variants = variantsJson
+        .map((v) => MessageVariant.fromJson((v as Map).cast<String, dynamic>()))
+        .toList();
+    final rawIndex = json['activeVariantIndex'] as int? ?? 0;
+    final activeIndex = variants.isEmpty
+        ? 0
+        : rawIndex.clamp(0, variants.length - 1);
+
     return Message(
       id: json['id'],
       content: json['content'],
@@ -55,6 +72,8 @@ class Message {
       timestamp: DateTime.parse(json['timestamp']),
       status: MessageStatus.values[json['status']],
       attachments: attachmentsJson.map((a) => Attachment.fromJson(a)).toList(),
+      variants: variants,
+      activeVariantIndex: activeIndex,
     );
   }
 
@@ -66,6 +85,8 @@ class Message {
     DateTime? timestamp,
     MessageStatus? status,
     List<Attachment>? attachments,
+    List<MessageVariant>? variants,
+    int? activeVariantIndex,
   }) {
     return Message(
       id: id ?? this.id,
@@ -75,7 +96,42 @@ class Message {
       timestamp: timestamp ?? this.timestamp,
       status: status ?? this.status,
       attachments: attachments ?? this.attachments,
+      variants: variants ?? this.variants,
+      activeVariantIndex: activeVariantIndex ?? this.activeVariantIndex,
     );
+  }
+}
+
+/// AI 回复的一个版本。
+class MessageVariant {
+  final String content;
+  final String? reasoningContent;
+  final DateTime timestamp;
+  final MessageStatus status;
+
+  const MessageVariant({
+    required this.content,
+    this.reasoningContent,
+    required this.timestamp,
+    required this.status,
+  });
+
+  factory MessageVariant.fromJson(Map<String, dynamic> json) {
+    return MessageVariant(
+      content: json['content'] as String? ?? '',
+      reasoningContent: json['reasoningContent'] as String?,
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      status: MessageStatus.values[json['status'] as int],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'content': content,
+      'reasoningContent': reasoningContent,
+      'timestamp': timestamp.toIso8601String(),
+      'status': status.index,
+    };
   }
 }
 

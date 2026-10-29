@@ -2077,6 +2077,36 @@ abstract class AppLocalizations {
   /// **'Regenerate this AI response?'**
   String get regenerateConfirm;
 
+  /// No description provided for @continueGeneration.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue generating'**
+  String get continueGeneration;
+
+  /// No description provided for @continueGenerationPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue the previous assistant response from where it stopped. Do not repeat content that has already been written.'**
+  String get continueGenerationPrompt;
+
+  /// No description provided for @forkConversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Fork from here'**
+  String get forkConversation;
+
+  /// No description provided for @deleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete message'**
+  String get deleteMessage;
+
+  /// No description provided for @deleteMessageConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this message?'**
+  String get deleteMessageConfirm;
+
   /// No description provided for @messageOptions.
   ///
   /// In en, this message translates to:

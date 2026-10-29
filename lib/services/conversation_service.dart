@@ -384,6 +384,88 @@ class ConversationService {
     return lumenflowData;
   }
 
+  /// 从指定消息处分叉出一个新会话，源会话保持不变。
+  Future<Conversation> forkConversation({
+    required String sourceConversationId,
+    required int messageIndex,
+    required String title,
+  }) async {
+    final source = await getConversationById(sourceConversationId);
+    if (source == null || source.messages.isEmpty) {
+      throw StateError('Conversation not found');
+    }
+    if (messageIndex < 0 || messageIndex >= source.messages.length) {
+      throw StateError('Message not found');
+    }
+
+    final stamp = DateTime.now().microsecondsSinceEpoch;
+    final forkId = 'fork_$stamp';
+    final messages = <Message>[];
+    for (var index = 0; index <= messageIndex; index++) {
+      final sourceMessage = source.messages[index];
+      final messageId = '${forkId}_m$index';
+      final attachments = <Attachment>[];
+      for (var attachmentIndex = 0;
+          attachmentIndex < sourceMessage.attachments.length;
+          attachmentIndex++) {
+        final attachment = sourceMessage.attachments[attachmentIndex];
+        attachments.add(
+          Attachment(
+            id: '${messageId}_a$attachmentIndex',
+            fileName: attachment.fileName,
+            filePath: attachment.filePath,
+            url: attachment.url,
+            type: attachment.type,
+            fileSize: attachment.fileSize,
+            mimeType: attachment.mimeType,
+            createdAt: attachment.createdAt,
+          ),
+        );
+      }
+
+      messages.add(
+        Message(
+          id: messageId,
+          content: sourceMessage.content,
+          reasoningContent: sourceMessage.reasoningContent,
+          isUser: sourceMessage.isUser,
+          timestamp: sourceMessage.timestamp,
+          status: sourceMessage.status == MessageStatus.sending
+              ? MessageStatus.sent
+              : sourceMessage.status,
+          attachments: attachments,
+          variants: sourceMessage.variants,
+          activeVariantIndex: sourceMessage.activeVariantIndex,
+        ),
+      );
+    }
+
+    final fork = Conversation(
+      id: forkId,
+      title: title,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      messages: messages,
+      thinkingMode: source.thinkingMode,
+      promptPresetEnabled: source.promptPresetEnabled,
+      promptPresetId: source.promptPresetId,
+    );
+
+    await _db.importConversation(fork);
+
+    final cached = _cachedConversations;
+    if (cached != null) {
+      cached.add(fork);
+      _loadedConversationIds.add(fork.id);
+      _sortConversations(cached);
+      _isCacheDirty = false;
+    } else {
+      _isCacheDirty = true;
+    }
+    await setCurrentConversationId(fork.id);
+    return fork;
+  }
+
   /// 导入 LumenFlow 对话包。
   ///
   /// 支持会话列表导出的裸 `.lumenflow` 文件，也支持聊天页导出的 ZIP
@@ -469,6 +551,8 @@ class ConversationService {
               ? MessageStatus.sent
               : message.status,
           attachments: attachments,
+          variants: message.variants,
+          activeVariantIndex: message.activeVariantIndex,
         ),
       );
     }
