@@ -1,8 +1,6 @@
 import 'dart:convert';
-import 'dart:math';
 import 'dart:io';
 import 'package:flutter/services.dart';
-import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:path/path.dart' as path;
 import '../models/prompt_preset.dart';
 import 'settings_service.dart';
@@ -22,34 +20,20 @@ class PromptService {
   Future<String> _loadFileContent(String filePath) async {
     try {
       final fullPath = 'assets/prompt/$filePath';
-      debugPrint('Attempting to load file from: $fullPath');
 
       // 方法1: 使用rootBundle
       final content = await rootBundle.loadString(fullPath);
-      debugPrint('Successfully loaded file via rootBundle: $fullPath, length: ${content.length} chars, ${utf8.encode(content).length} bytes');
-      debugPrint('First 100 chars: ${content.substring(0, min(content.length, 100))}');
-      if (content.length > 200) {
-        debugPrint('Last 100 chars: ${content.substring(max(0, content.length - 100))}');
-      }
       return content;
-    } catch (e) {
-      debugPrint('Failed to load file at assets/prompt/$filePath via rootBundle: $e');
-      debugPrint('Error type: ${e.runtimeType}');
-
+    } catch (_) {
       // 方法2: 尝试直接文件读取作为备用
       try {
         final directPath = '${Directory.current.path}/$filePath';
-        debugPrint('Trying alternative method with direct file path: $directPath');
         final file = File(directPath);
         if (await file.exists()) {
-          final content = await file.readAsString();
-          debugPrint('Successfully loaded file via direct file access, length: ${content.length}');
-          return content;
-        } else {
-          debugPrint('File does not exist at: $directPath');
+          return await file.readAsString();
         }
-      } catch (e2) {
-        debugPrint('Alternative file loading also failed: $e2');
+      } catch (_) {
+        // Direct file access is a best-effort fallback.
       }
 
       return '';
@@ -95,15 +79,6 @@ class PromptService {
         final fileContent = await _loadUserFileContent(trimmedPrompt);
         if (fileContent.isNotEmpty) {
           systemPrompt = fileContent;
-        } else {
-          // 检查是否是文件路径
-          final bool looksLikeFilePath = trimmedPrompt.contains('/') ||
-                                         trimmedPrompt.contains('\\') ||
-                                         trimmedPrompt.contains('.xml') ||
-                                         trimmedPrompt.contains('.txt');
-          if (looksLikeFilePath) {
-            debugPrint('Warning: User file path "$trimmedPrompt" could not be loaded or is empty');
-          }
         }
         final processedPreset = PromptPreset(
           id: preset.id,
@@ -118,7 +93,6 @@ class PromptService {
       }
       return processedPresets;
     } catch (e) {
-      debugPrint('Failed to load user presets: $e');
       return [];
     }
   }
@@ -133,8 +107,8 @@ class PromptService {
         final content = await file.readAsString();
         return content;
       }
-    } catch (e) {
-      debugPrint('Failed to load user file: $e');
+    } catch (_) {
+      // Missing or unreadable files are expected.
     }
     return '';
   }
@@ -146,8 +120,8 @@ class PromptService {
       final jsonList = presets.map((preset) => preset.toJson()).toList();
       final jsonString = jsonEncode(jsonList);
       await userPresetsFile.writeAsString(jsonString);
-    } catch (e) {
-      debugPrint('Failed to save user presets: $e');
+    } catch (_) {
+      // Persisting presets is best-effort.
     }
   }
 
@@ -196,10 +170,8 @@ class PromptService {
       currentPresets.add(preset);
       await _saveUserPresets(currentPresets);
 
-      debugPrint('Preset imported successfully: ${preset.name} (ID: ${preset.id})');
       return preset;
     } catch (e) {
-      debugPrint('Failed to import preset from XML: $e');
       rethrow;
     }
   }
@@ -211,8 +183,8 @@ class PromptService {
       if (roleNameMatch != null) {
         return roleNameMatch.group(1)!.trim();
       }
-    } catch (e) {
-      debugPrint('Failed to extract role name from XML: $e');
+    } catch (_) {
+      // Invalid XML falls back to an empty role name.
     }
     return '';
   }
@@ -235,9 +207,7 @@ class PromptService {
       currentPresets.removeWhere((preset) => preset.id == id);
       await _saveUserPresets(currentPresets);
 
-      debugPrint('User preset deleted: $id');
     } catch (e) {
-      debugPrint('Failed to delete user preset: $e');
       rethrow;
     }
   }
@@ -246,11 +216,8 @@ class PromptService {
   Future<List<PromptPreset>> _loadBuiltInPresets() async {
     try {
       final presetsPath = await _getPresetsPath();
-      debugPrint('Loading built-in presets from: $presetsPath');
       final String jsonString = await rootBundle.loadString(presetsPath);
-      debugPrint('JSON loaded, length: ${jsonString.length}');
       final List<dynamic> jsonList = jsonDecode(jsonString) as List<dynamic>;
-      debugPrint('JSON parsed, ${jsonList.length} preset(s) found');
       final List<PromptPreset> presets = jsonList
           .map((item) => PromptPreset.fromJson(item as Map<String, dynamic>))
           .toList();
@@ -259,14 +226,11 @@ class PromptService {
       final List<PromptPreset> processedPresets = [];
       for (final preset in presets) {
         String systemPrompt = preset.systemPrompt;
-        debugPrint('Processing preset: ${preset.name}, systemPrompt: ${systemPrompt.length > 50 ? '${systemPrompt.substring(0, 50)}...' : systemPrompt}');
 
         final trimmedPrompt = systemPrompt.trim();
         // 尝试将system_prompt作为文件路径加载
-        debugPrint('Attempting to load file content from path: "$trimmedPrompt"');
         final fileContent = await _loadFileContent(trimmedPrompt);
         if (fileContent.isNotEmpty) {
-          debugPrint('File content loaded successfully, length: ${fileContent.length} chars');
           systemPrompt = fileContent;
         } else {
           // 文件加载失败，检查是否是文件路径（包含路径分隔符或扩展名）
@@ -275,10 +239,8 @@ class PromptService {
                                          trimmedPrompt.contains('.xml') ||
                                          trimmedPrompt.contains('.txt');
           if (looksLikeFilePath) {
-            debugPrint('Warning: File path "$trimmedPrompt" exists but file could not be loaded or is empty');
             // 保持原始路径字符串，让用户知道问题
           } else {
-            debugPrint('No file path detected, using as direct system prompt text');
             // 当作直接文本使用
           }
         }
@@ -295,16 +257,8 @@ class PromptService {
         processedPresets.add(processedPreset);
       }
 
-      debugPrint('Built-in presets loading completed, ${processedPresets.length} preset(s) processed');
-      // 调试：检查最终处理后的预设
-      for (final preset in processedPresets) {
-        final length = preset.systemPrompt.length;
-        final preview = length > 100 ? '${preset.systemPrompt.substring(0, 100)}...' : preset.systemPrompt;
-        debugPrint('Final preset: ${preset.name}, systemPrompt length: $length, preview: "$preview"');
-      }
       return processedPresets;
     } catch (e) {
-      debugPrint('Failed to load built-in presets from JSON: $e');
       return [];
     }
   }
@@ -314,7 +268,6 @@ class PromptService {
     final builtInPresets = await _loadBuiltInPresets();
     final userPresets = await loadUserPresets();
     final allPresets = [...builtInPresets, ...userPresets];
-    debugPrint('Total presets loaded: ${allPresets.length} (${builtInPresets.length} built-in, ${userPresets.length} user)');
     return allPresets;
   }
 

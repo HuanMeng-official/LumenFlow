@@ -346,8 +346,8 @@ class _ChatInputState extends State<ChatInput> {
               if (attachment != null) {
                 attachments.add(attachment);
               }
-            } catch (e) {
-              debugPrint('Error processing file ${platformFile.name}: $e');
+            } catch (_) {
+              // Skip files that cannot be saved.
             }
           }
         }
@@ -368,7 +368,6 @@ class _ChatInputState extends State<ChatInput> {
         }
       }
     } catch (e) {
-      debugPrint('Error picking file: $e');
       if (!mounted) return;
       final l10n = AppLocalizations.of(context);
       if (l10n != null) {

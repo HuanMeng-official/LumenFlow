@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import '../models/message.dart';
 import '../services/conversation_service.dart';
 
@@ -196,8 +195,8 @@ class ChatSendController {
 
     try {
       await _conversationService.updateMessage(_conversationId, message);
-    } catch (error) {
-      debugPrint('ChatSendController: failed to persist final state: $error');
+    } catch (_) {
+      // Final persistence is best-effort; the UI callback still runs.
     }
 
     callback(message);
@@ -278,11 +277,9 @@ class ChatSendController {
     unawaited(
       _conversationService
           .updateMessage(_conversationId, message)
-          .catchError((Object error) {
-        debugPrint(
-          'ChatSendController: failed to persist intermediate state: $error',
-        );
-      }),
+          .catchError((Object _) {
+            // Intermediate persistence failures are non-fatal.
+          }),
     );
   }
 }

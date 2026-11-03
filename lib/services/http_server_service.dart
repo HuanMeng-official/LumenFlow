@@ -30,7 +30,6 @@ class HttpServerService {
 
   Future<void> start() async {
     if (_isRunning) {
-      debugPrint('HTTP服务器已经在运行');
       return;
     }
 
@@ -44,13 +43,10 @@ class HttpServerService {
       isRunningNotifier.value = true;
       serverUrlNotifier.value = _serverUrl;
 
-      debugPrint('HTTP服务器启动在 $_serverUrl');
-      debugPrint('服务文件: $_htmlFilePath');
 
       // 处理请求
       _server!.listen(_handleRequest);
     } catch (e) {
-      debugPrint('启动HTTP服务器失败: $e');
       rethrow;
     }
   }
@@ -67,7 +63,6 @@ class HttpServerService {
     isRunningNotifier.value = false;
     serverUrlNotifier.value = null;
 
-    debugPrint('HTTP服务器已停止');
   }
 
   Future<void> _handleRequest(HttpRequest request) async {
@@ -79,7 +74,6 @@ class HttpServerService {
         await _sendNotFound(request);
       }
     } catch (e) {
-      debugPrint('处理请求时出错: $e');
       await _sendError(request, e.toString());
     }
   }
@@ -96,9 +90,7 @@ class HttpServerService {
         ..write(htmlContent);
 
       await request.response.close();
-      debugPrint('已提供文件: $_htmlFilePath');
     } catch (e) {
-      debugPrint('加载HTML文件失败: $e');
       await _sendNotFound(request);
     }
   }

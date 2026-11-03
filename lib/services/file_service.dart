@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 import '../utils/path_utils.dart';
 import '../models/attachment.dart';
@@ -92,7 +91,6 @@ class FileService {
       final savedFile = File(savedPath);
       return await createAttachmentFromFile(savedFile);
     } catch (e) {
-      debugPrint('Error saving file and creating attachment: $e');
       return null;
     }
   }

@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
-import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:http/http.dart' as http;
 import 'ai_provider.dart';
 import 'http_provider_base.dart';
@@ -85,9 +84,6 @@ class ZhiPuProvider extends HttpProviderBase {
         } finally {
           client.close();
         }
-      },
-      onRetry: (error, retryCount, delayMs) {
-        debugPrint('ZhiPu API请求失败，第$retryCount次重试，延迟${delayMs}ms: $error');
       },
       l10n: l10n,
     );

@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 /// 通知服务类
@@ -60,14 +59,11 @@ class NotificationService {
               .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
 
       if (androidImplementation != null) {
-        final bool? granted =
-            await androidImplementation.requestNotificationsPermission();
-        debugPrint('通知权限请求结果: $granted');
+        await androidImplementation.requestNotificationsPermission();
       }
     }
 
     _isInitialized = true;
-    debugPrint('通知服务初始化成功');
   }
 
   /// 显示 AI 响应完成的通知
@@ -80,13 +76,11 @@ class NotificationService {
     String? conversationTitle,
   }) async {
     if (!_isInitialized) {
-      debugPrint('通知服务未初始化');
       return;
     }
 
     // 如果应用在前台，则不显示通知
     if (_isAppInForeground) {
-      debugPrint('应用在前台，跳过通知');
       return;
     }
 
@@ -137,13 +131,11 @@ class NotificationService {
       payload: content, // 点击时传递完整内容
     );
 
-    debugPrint('已发送 AI 响应完成通知: $preview (标题: $title)');
   }
 
   /// 清除所有通知
   Future<void> cancelAll() async {
     await _notificationsPlugin.cancelAll();
-    debugPrint('已清除所有通知');
   }
 
   /// 清除指定通知

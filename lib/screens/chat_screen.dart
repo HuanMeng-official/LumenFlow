@@ -159,7 +159,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       case AppLifecycleState.resumed:
         // 应用回到前台
         _notificationService.setAppForegroundState(true);
-        debugPrint('应用回到前台');
         break;
       case AppLifecycleState.paused:
       case AppLifecycleState.inactive:
@@ -167,7 +166,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       case AppLifecycleState.hidden:
         // 应用进入后台或隐藏
         _notificationService.setAppForegroundState(false);
-        debugPrint('应用进入后台');
         break;
     }
   }
@@ -194,14 +192,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     // 加载聊天背景设置
     final backgroundImagePath = await _settingsService.getBackgroundImagePath();
     final backgroundImageOpacity = await _settingsService.getBackgroundImageOpacity();
-    // 调试日志：检查加载的预设
-    debugPrint('Loaded ${presets.length} preset(s)');
-    for (final preset in presets) {
-      final length = preset.systemPrompt.length;
-      final preview = length > 50 ? '${preset.systemPrompt.substring(0, 50)}...' : preset.systemPrompt;
-      debugPrint('Preset: ${preset.name}, systemPrompt length: $length, starts with: "$preview"');
-    }
-
     setState(() {
       _isConfigured = configured;
       _liveUpdateEnabled = liveUpdateEnabled;
@@ -550,7 +540,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         }
       } catch (e) {
         // 生成标题失败不影响对话继续
-        debugPrint('自动生成标题失败: $e');
       }
     }
   }
@@ -598,26 +587,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     // 获取预设提示词内容（如果预设模式启用）
     String presetSystemPrompt = '';
     if (_promptPresetEnabled && _currentPresetId.isNotEmpty) {
-      debugPrint('Preset mode enabled, currentPresetId: $_currentPresetId');
-      debugPrint('Available presets count: ${_presets.length}');
-      for (final p in _presets) {
-        debugPrint('  - ${p.id}: ${p.name}, systemPrompt length: ${p.systemPrompt.length}');
-      }
-
       final preset = _presets.firstWhere(
         (preset) => preset.id == _currentPresetId,
         orElse: () => PromptPreset(id: '', name: '', description: '', author: '', version: '', systemPrompt: ''),
       );
       if (preset.id.isNotEmpty) {
         presetSystemPrompt = preset.systemPrompt;
-        debugPrint('Found preset: ${preset.name}, systemPrompt: ${preset.systemPrompt.length > 50 ? '${preset.systemPrompt.substring(0, 50)}...' : preset.systemPrompt}');
-      } else {
-        debugPrint('Preset not found for id: $_currentPresetId');
       }
-    } else {
-      debugPrint('Preset mode disabled or no preset selected. enabled: $_promptPresetEnabled, presetId: $_currentPresetId');
     }
-    debugPrint('Final presetSystemPrompt to use: ${presetSystemPrompt.isNotEmpty ? "length: ${presetSystemPrompt.length}" : "empty"}');
 
     Message? userMessage;
     if (!skipUserMessage) {
@@ -908,7 +885,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     final messageIndex = _findMessageIndexById(message.id);
     if (messageIndex == -1) {
-      debugPrint('消息未找到: ${message.id}');
       return;
     }
 
@@ -962,7 +938,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     final messageIndex = _findMessageIndexById(message.id);
     if (messageIndex <= 0 || !_messages[messageIndex - 1].isUser) {
-      debugPrint('消息未找到或前面没有用户消息: ${message.id}');
       return;
     }
 

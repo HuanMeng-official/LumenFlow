@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// 路径工具类，提供跨平台的应用数据目录访问
@@ -97,7 +96,6 @@ class PathUtils {
     final newDbFile = File('${newAppDir.path}/conversations.db');
 
     if (await oldDbFile.exists() && !await newDbFile.exists()) {
-      debugPrint('迁移数据库文件: ${oldDbFile.path} -> ${newDbFile.path}');
       await oldDbFile.copy(newDbFile.path);
     }
 
@@ -105,7 +103,6 @@ class PathUtils {
     final oldAttachmentsDir = Directory('${oldAppDir.path}/attachments');
     final newAttachmentsDir = Directory('${newAppDir.path}/attachments');
     if (await oldAttachmentsDir.exists() && !await newAttachmentsDir.exists()) {
-      debugPrint('迁移附件目录: ${oldAttachmentsDir.path} -> ${newAttachmentsDir.path}');
       await _copyDirectory(oldAttachmentsDir, newAttachmentsDir);
     }
 
@@ -113,7 +110,6 @@ class PathUtils {
     final oldAvatarsDir = Directory('${oldAppDir.path}/avatars');
     final newAvatarsDir = Directory('${newAppDir.path}/avatars');
     if (await oldAvatarsDir.exists() && !await newAvatarsDir.exists()) {
-      debugPrint('迁移头像目录: ${oldAvatarsDir.path} -> ${newAvatarsDir.path}');
       await _copyDirectory(oldAvatarsDir, newAvatarsDir);
     }
 
@@ -121,7 +117,6 @@ class PathUtils {
     final oldUserPresetsDir = Directory('${oldAppDir.path}/user_prompts');
     final newUserPresetsDir = Directory('${newAppDir.path}/user_prompts');
     if (await oldUserPresetsDir.exists() && !await newUserPresetsDir.exists()) {
-      debugPrint('迁移用户预设目录: ${oldUserPresetsDir.path} -> ${newUserPresetsDir.path}');
       await _copyDirectory(oldUserPresetsDir, newUserPresetsDir);
     }
 
@@ -129,7 +124,6 @@ class PathUtils {
     final oldBackgroundsDir = Directory('${oldAppDir.path}/backgrounds');
     final newBackgroundsDir = Directory('${newAppDir.path}/backgrounds');
     if (await oldBackgroundsDir.exists() && !await newBackgroundsDir.exists()) {
-      debugPrint('迁移背景图片目录: ${oldBackgroundsDir.path} -> ${newBackgroundsDir.path}');
       await _copyDirectory(oldBackgroundsDir, newBackgroundsDir);
     }
   }

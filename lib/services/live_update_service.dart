@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 /// Android 16 Live Update 服务
@@ -28,13 +27,10 @@ class LiveUpdateService {
     if (Platform.isAndroid) {
       try {
         _isAvailable = await _channel.invokeMethod<bool>('isLiveUpdateAvailable') ?? false;
-        debugPrint('Android 16 Live Update 可用: $_isAvailable');
       } catch (e) {
-        debugPrint('检查Live Update可用性失败: $e');
         _isAvailable = false;
       }
     } else {
-      debugPrint('Live Update 仅支持 Android 16+');
       _isAvailable = false;
     }
 
@@ -50,16 +46,13 @@ class LiveUpdateService {
   /// [title] - 通知标题前缀，默认为 "LumenFlow"
   Future<bool> startLiveUpdate({String title = 'LumenFlow'}) async {
     if (!_isAvailable) {
-      debugPrint('Live Update 不可用，当前平台或SDK版本不支持');
       return false;
     }
 
     try {
       await _channel.invokeMethod('startLiveUpdate', {'title': title});
-      debugPrint('Live Update 通知已启动: $title');
       return true;
     } catch (e) {
-      debugPrint('启动 Live Update 失败: $e');
       return false;
     }
   }
@@ -76,7 +69,6 @@ class LiveUpdateService {
       await _channel.invokeMethod('updateContent', {'content': content});
       return true;
     } catch (e) {
-      debugPrint('更新 Live Update 内容失败: $e');
       return false;
     }
   }
@@ -89,10 +81,8 @@ class LiveUpdateService {
 
     try {
       await _channel.invokeMethod('completeLiveUpdate');
-      debugPrint('Live Update 已标记为完成');
       return true;
     } catch (e) {
-      debugPrint('完成 Live Update 失败: $e');
       return false;
     }
   }
@@ -105,10 +95,8 @@ class LiveUpdateService {
 
     try {
       await _channel.invokeMethod('stopLiveUpdate');
-      debugPrint('Live Update 通知已停止');
       return true;
     } catch (e) {
-      debugPrint('停止 Live Update 失败: $e');
       return false;
     }
   }

@@ -63,14 +63,6 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
     final platforms = await _settingsService.getPlatforms();
     final currentId = await _settingsService.getCurrentPlatformId();
 
-    debugPrint('加载平台数据完成: ${platforms.length}个平台');
-    for (var i = 0; i < platforms.length; i++) {
-      final p = platforms[i];
-      debugPrint(
-        '平台[$i]: id=${p.id}, name=${p.name}, 默认模型=${p.defaultModel}, 模型数=${p.availableModels.length}',
-      );
-    }
-
     setState(() {
       _platforms = platforms;
       _currentPlatformId = currentId;
@@ -601,10 +593,6 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
         defaultModel: selectedModel ?? '',
         lastModelUpdate: DateTime.now(),
       );
-      debugPrint('保存平台配置: id=${platform.id}, name=${platform.name}');
-      debugPrint('原默认模型: ${platform.defaultModel}, 新默认模型: $selectedModel');
-      debugPrint('原模型列表: ${platform.availableModels.length}个');
-      debugPrint('新模型列表: ${models.length}个');
       await _settingsService.savePlatform(updatedPlatform);
 
       // 如果更新的平台是当前平台，同步更新全局模型设置

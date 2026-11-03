@@ -707,26 +707,16 @@ class SettingsService {
     final platforms = await getPlatforms();
     final index = platforms.indexWhere((p) => p.id == platform.id);
 
-    debugPrint(
-      '保存平台: id=${platform.id}, name=${platform.name}, defaultModel=${platform.defaultModel}',
-    );
-    debugPrint('找到索引: $index, 总平台数: ${platforms.length}');
 
     if (index >= 0) {
       // 更新现有平台
-      debugPrint('更新现有平台: ${platforms[index].name} -> ${platform.name}');
-      debugPrint(
-        '原默认模型: ${platforms[index].defaultModel}, 新默认模型: ${platform.defaultModel}',
-      );
       platforms[index] = platform;
     } else {
       // 添加新平台
-      debugPrint('添加新平台: ${platform.name}');
       platforms.add(platform);
     }
 
     await savePlatforms(platforms);
-    debugPrint('保存完成');
   }
 
   /// 保存单平台配置：更新同类型平台或创建新平台，并设为当前平台。

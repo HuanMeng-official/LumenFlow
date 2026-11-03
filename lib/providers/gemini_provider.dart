@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'ai_provider.dart';
 import 'http_provider_base.dart';
@@ -76,9 +75,6 @@ class GeminiProvider extends HttpProviderBase {
         } finally {
           client.close();
         }
-      },
-      onRetry: (error, retryCount, delayMs) {
-        debugPrint('Gemini API请求失败，第$retryCount次重试，延迟${delayMs}ms: $error');
       },
       l10n: l10n,
     );
