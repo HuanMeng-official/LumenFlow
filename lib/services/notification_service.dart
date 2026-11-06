@@ -4,7 +4,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 /// 通知服务类
 ///
 /// 负责处理应用的所有本地通知功能
-/// 支持 Android、Windows、Linux 平台
+/// 支持 Android、iOS、macOS、Windows、Linux 平台
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
@@ -34,6 +34,10 @@ class NotificationService {
     const initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
+    // iOS / macOS 共用的 Darwin 配置。
+    // 初始化时会向用户请求通知权限（首次启动会弹出系统授权框）。
+    const initializationSettingsDarwin = DarwinInitializationSettings();
+
     final initializationSettingsWindows = WindowsInitializationSettings(
       appName: 'LumenFlow',
       appUserModelId: 'com.lumenflow.app',
@@ -46,6 +50,8 @@ class NotificationService {
 
     final initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
+      iOS: initializationSettingsDarwin,
+      macOS: initializationSettingsDarwin,
       windows: initializationSettingsWindows,
       linux: initializationSettingsLinux,
     );
@@ -113,12 +119,20 @@ class NotificationService {
       ),
     );
 
+    final darwinDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentSound: true,
+      presentBanner: true,
+    );
+
     final windowsDetails = WindowsNotificationDetails();
 
     final linuxDetails = LinuxNotificationDetails();
 
     final notificationDetails = NotificationDetails(
       android: androidDetails,
+      iOS: darwinDetails,
+      macOS: darwinDetails,
       windows: windowsDetails,
       linux: linuxDetails,
     );

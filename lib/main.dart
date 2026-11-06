@@ -17,8 +17,13 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // 初始化通知服务
+  // 通知初始化失败不应阻止应用启动（否则窗口会一直黑屏）
   final notificationService = NotificationService();
-  await notificationService.initialize();
+  try {
+    await notificationService.initialize();
+  } catch (e) {
+    debugPrint('通知服务初始化失败: $e');
+  }
 
   if (Platform.isWindows || Platform.isLinux) {
     await windowManager.ensureInitialized();
