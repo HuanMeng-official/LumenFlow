@@ -7,11 +7,16 @@ class PathUtils {
   ///
   /// 平台特定行为：
   /// - Android: 返回应用文档目录 (getApplicationDocumentsDirectory)
+  /// - iOS: 返回应用支持目录 (Library/Application Support)
   /// - Windows/Linux/macOS: 返回用户主目录下的 `.lumenflow` 隐藏文件夹
   static Future<Directory> getAppDataDirectory() async {
     if (Platform.isAndroid) {
       // Android 平台使用标准应用文档目录
       return await getApplicationDocumentsDirectory();
+    } else if (Platform.isIOS) {
+      // iOS 沙盒不允许在应用容器根目录下创建自定义目录，
+      // 必须使用系统提供的可写目录（Library/Application Support）
+      return await getApplicationSupportDirectory();
     } else {
       // 桌面平台使用用户主目录下的 .lumenflow 文件夹
       final String? homeDir;
