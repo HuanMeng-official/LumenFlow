@@ -8,7 +8,7 @@ import '../../utils/conversation_utils.dart';
 import '../../widgets/desktop/sidebar_footer.dart';
 import '../chat_screen.dart';
 import '../conversation_list_screen.dart';
-import '../settings_screen.dart';
+import 'desktop_settings_screen.dart';
 
 class DesktopHomeScreen extends StatefulWidget {
   const DesktopHomeScreen({super.key});
@@ -71,7 +71,7 @@ class _DesktopHomeScreenState extends State<DesktopHomeScreen> {
   Future<void> _openSettings() async {
     await Navigator.push(
       context,
-      CupertinoPageRoute(builder: (context) => const SettingsScreen()),
+      CupertinoPageRoute(builder: (context) => const DesktopSettingsScreen()),
     );
     _chatController.refreshConfiguration();
     final profile = await _userService.getUserProfile();

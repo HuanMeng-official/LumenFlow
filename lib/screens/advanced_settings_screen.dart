@@ -7,12 +7,18 @@ import 'package:path_provider/path_provider.dart';
 import '../services/settings_service.dart';
 import 'about_screen.dart';
 import 'credits_screen.dart';
+import '../widgets/settings/settings_page_scaffold.dart';
 import '../widgets/settings/settings_section.dart';
 import '../widgets/settings/settings_action_tile.dart';
 import '../widgets/settings/settings_switch_tile.dart';
 
 class AdvancedSettingsScreen extends StatefulWidget {
-  const AdvancedSettingsScreen({super.key});
+  final bool embedded;
+
+  const AdvancedSettingsScreen({
+    super.key,
+    this.embedded = false,
+  });
 
   @override
   State<AdvancedSettingsScreen> createState() => _AdvancedSettingsScreenState();
@@ -225,13 +231,11 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: Text(l10n.advancedSettings),
-      ),
-      child: SafeArea(
-        child: ListView(
-          children: [
+    return SettingsPageScaffold(
+      title: l10n.advancedSettings,
+      embedded: widget.embedded,
+      child: ListView(
+        children: [
             SettingsSection(
               title: l10n.notificationSettings,
               children: [
@@ -287,7 +291,6 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
             ),
           ],
         ),
-      ),
     );
   }
 }

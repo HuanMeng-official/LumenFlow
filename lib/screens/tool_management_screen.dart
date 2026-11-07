@@ -8,6 +8,7 @@ import '../ai/providers/chat_completions_profile.dart';
 import '../ai/providers/responses_tool_provider.dart';
 import '../l10n/app_localizations.dart';
 import '../services/settings_service.dart';
+import '../widgets/settings/settings_page_scaffold.dart';
 import '../widgets/settings/settings_section.dart';
 import '../widgets/settings/settings_switch_tile.dart';
 
@@ -19,7 +20,12 @@ import '../widgets/settings/settings_switch_tile.dart';
 ///
 /// 设置更改实时保存，无需手动点击保存按钮
 class ToolManagementScreen extends StatefulWidget {
-  const ToolManagementScreen({super.key});
+  final bool embedded;
+
+  const ToolManagementScreen({
+    super.key,
+    this.embedded = false,
+  });
 
   @override
   State<ToolManagementScreen> createState() => _ToolManagementScreenState();
@@ -373,21 +379,18 @@ class _ToolManagementScreenState extends State<ToolManagementScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     if (_isLoading) {
-      return CupertinoPageScaffold(
-        navigationBar: CupertinoNavigationBar(
-          middle: Text(l10n.toolManagement),
-        ),
+      return SettingsPageScaffold(
+        title: l10n.toolManagement,
+        embedded: widget.embedded,
         child: const Center(child: CupertinoActivityIndicator()),
       );
     }
 
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: Text(l10n.toolManagement),
-      ),
-      child: SafeArea(
-        child: ListView(
-          children: [
+    return SettingsPageScaffold(
+      title: l10n.toolManagement,
+      embedded: widget.embedded,
+      child: ListView(
+        children: [
             SettingsSection(
               title: l10n.promptTools,
               children: [
@@ -460,7 +463,6 @@ class _ToolManagementScreenState extends State<ToolManagementScreen> {
             ),
           ],
         ),
-      ),
     );
   }
 }

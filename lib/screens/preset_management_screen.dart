@@ -8,12 +8,18 @@ import '../services/http_server_service.dart';
 import '../models/prompt_preset.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/app_theme.dart';
+import '../widgets/settings/settings_page_scaffold.dart';
 
 /// 预设管理界面
 ///
 /// 显示内置预设和用户预设，支持导入XML文件作为新预设
 class PresetManagementScreen extends StatefulWidget {
-  const PresetManagementScreen({super.key});
+  final bool embedded;
+
+  const PresetManagementScreen({
+    super.key,
+    this.embedded = false,
+  });
 
   @override
   State<PresetManagementScreen> createState() => _PresetManagementScreenState();
@@ -533,17 +539,15 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: Text(l10n.presetManagement),
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: _importXmlFile,
-          child: const Icon(CupertinoIcons.add),
-        ),
+    return SettingsPageScaffold(
+      title: l10n.presetManagement,
+      embedded: widget.embedded,
+      trailing: CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: _importXmlFile,
+        child: const Icon(CupertinoIcons.add),
       ),
-      child: SafeArea(
-        child: _isLoading
+      child: _isLoading
             ? const Center(child: CupertinoActivityIndicator())
             : _errorMessage != null
                 ? Center(child: Text(_errorMessage!))
@@ -672,7 +676,6 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
                       ),
                     ],
                   ),
-      ),
     );
   }
 }

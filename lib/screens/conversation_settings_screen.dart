@@ -2,6 +2,7 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import '../l10n/app_localizations.dart';
 import '../services/settings_service.dart';
 import '../widgets/settings/settings_input_tile.dart';
+import '../widgets/settings/settings_page_scaffold.dart';
 import '../widgets/settings/settings_section.dart';
 import '../widgets/settings/settings_slider_tile.dart';
 import '../widgets/settings/settings_switch_tile.dart';
@@ -14,7 +15,12 @@ import '../widgets/settings/settings_switch_tile.dart';
 ///
 /// 设置更改实时保存，无需手动点击保存按钮
 class ConversationSettingsScreen extends StatefulWidget {
-  const ConversationSettingsScreen({super.key});
+  final bool embedded;
+
+  const ConversationSettingsScreen({
+    super.key,
+    this.embedded = false,
+  });
 
   @override
   State<ConversationSettingsScreen> createState() =>
@@ -50,6 +56,7 @@ class _ConversationSettingsScreenState
     final autoTitleEnabled = await _settingsService.getAutoTitleEnabled();
     final autoTitleRounds = await _settingsService.getAutoTitleRounds();
 
+    if (!mounted) return;
     setState(() {
       _enableHistory = enableHistory;
       _historyContextLengthController.text = historyContextLength.toString();
@@ -96,21 +103,20 @@ class _ConversationSettingsScreenState
     final l10n = AppLocalizations.of(context)!;
 
     if (_isLoading) {
-      return CupertinoPageScaffold(
-        navigationBar: CupertinoNavigationBar(
-          middle: Text(l10n.basicSettings),
-        ),
+      return SettingsPageScaffold(
+        title: l10n.basicSettings,
+        embeddedTitle: l10n.historyConversation,
+        embedded: widget.embedded,
         child: const Center(child: CupertinoActivityIndicator()),
       );
     }
 
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: Text(l10n.basicSettings),
-      ),
-      child: SafeArea(
-        child: ListView(
-          children: [
+    return SettingsPageScaffold(
+      title: l10n.basicSettings,
+      embeddedTitle: l10n.historyConversation,
+      embedded: widget.embedded,
+      child: ListView(
+        children: [
             SettingsSection(
               title: l10n.historyConversation,
               children: [
@@ -157,7 +163,6 @@ class _ConversationSettingsScreenState
             ),
           ],
         ),
-      ),
     );
   }
 }

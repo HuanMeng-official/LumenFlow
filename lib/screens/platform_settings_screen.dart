@@ -6,6 +6,7 @@ import '../l10n/app_localizations.dart';
 import '../models/ai_platform.dart';
 import '../services/settings_service.dart';
 import '../providers/claude_provider.dart';
+import '../widgets/settings/settings_page_scaffold.dart';
 
 /// 模型与平台配置界面
 ///
@@ -16,7 +17,12 @@ import '../providers/claude_provider.dart';
 /// - 选择默认模型
 /// - 点击切换当前使用的平台
 class PlatformSettingsScreen extends StatefulWidget {
-  const PlatformSettingsScreen({super.key});
+  final bool embedded;
+
+  const PlatformSettingsScreen({
+    super.key,
+    this.embedded = false,
+  });
 
   @override
   State<PlatformSettingsScreen> createState() => _PlatformSettingsScreenState();
@@ -63,6 +69,7 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
     final platforms = await _settingsService.getPlatforms();
     final currentId = await _settingsService.getCurrentPlatformId();
 
+    if (!mounted) return;
     setState(() {
       _platforms = platforms;
       _currentPlatformId = currentId;
@@ -949,31 +956,28 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: Text(l10n.platformAndModel),
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: _showPlatformDialog,
-          child: const Icon(CupertinoIcons.add),
-        ),
+    return SettingsPageScaffold(
+      title: l10n.platformAndModel,
+      embedded: widget.embedded,
+      trailing: CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: _showPlatformDialog,
+        child: const Icon(CupertinoIcons.add),
       ),
-      child: SafeArea(
-        child: _isLoading
-            ? const Center(child: CupertinoActivityIndicator())
-            : _platforms.isEmpty
-            ? _buildEmptyState()
-            : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: _platforms.length,
-                itemBuilder: (context, index) {
-                  final platform = _platforms[index];
-                  final isCurrent = platform.id == _currentPlatformId;
-                  final isLoading = _loadingPlatforms.contains(platform.id);
-                  return _buildPlatformCard(platform, isCurrent, isLoading);
-                },
-              ),
-      ),
+      child: _isLoading
+          ? const Center(child: CupertinoActivityIndicator())
+          : _platforms.isEmpty
+          ? _buildEmptyState()
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: _platforms.length,
+              itemBuilder: (context, index) {
+                final platform = _platforms[index];
+                final isCurrent = platform.id == _currentPlatformId;
+                final isLoading = _loadingPlatforms.contains(platform.id);
+                return _buildPlatformCard(platform, isCurrent, isLoading);
+              },
+            ),
     );
   }
 

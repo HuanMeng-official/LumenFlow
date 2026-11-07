@@ -6,6 +6,7 @@ import '../services/settings_service.dart';
 import '../utils/app_theme.dart';
 import '../utils/path_utils.dart';
 import '../widgets/settings/settings_section.dart';
+import '../widgets/settings/settings_page_scaffold.dart';
 import '../widgets/settings/settings_switch_tile.dart';
 import '../widgets/settings/settings_action_tile.dart';
 import '../widgets/settings/settings_slider_tile.dart';
@@ -20,7 +21,12 @@ import '../widgets/settings/settings_slider_tile.dart';
 /// 设置更改实时保存，无需手动点击保存按钮
 /// 注意：更改语言后需要重启应用才能生效
 class AppearanceSettingsScreen extends StatefulWidget {
-  const AppearanceSettingsScreen({super.key});
+  final bool embedded;
+
+  const AppearanceSettingsScreen({
+    super.key,
+    this.embedded = false,
+  });
 
   @override
   State<AppearanceSettingsScreen> createState() =>
@@ -67,6 +73,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen>
     final backgroundImagePath = await _settingsService.getBackgroundImagePath();
     final backgroundImageOpacity = await _settingsService.getBackgroundImageOpacity();
 
+    if (!mounted) return;
     setState(() {
       _followSystemTheme = followSystemTheme;
       _appTheme = appTheme;
@@ -274,21 +281,18 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen>
     final l10n = AppLocalizations.of(context)!;
 
     if (_isLoading) {
-      return CupertinoPageScaffold(
-        navigationBar: CupertinoNavigationBar(
-          middle: Text(l10n.appearance),
-        ),
+      return SettingsPageScaffold(
+        title: l10n.appearance,
+        embedded: widget.embedded,
         child: const Center(child: CupertinoActivityIndicator()),
       );
     }
 
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: Text(l10n.appearance),
-      ),
-      child: SafeArea(
-        child: ListView(
-          children: [
+    return SettingsPageScaffold(
+      title: l10n.appearance,
+      embedded: widget.embedded,
+      child: ListView(
+        children: [
             SettingsSection(
               title: l10n.appearance,
               children: [
@@ -367,7 +371,6 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen>
             ),
           ],
         ),
-      ),
     );
   }
 }

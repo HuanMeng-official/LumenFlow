@@ -6,12 +6,18 @@ import '../l10n/app_localizations.dart';
 import '../models/user_profile.dart';
 import '../services/user_service.dart';
 import '../widgets/avatar_widget.dart';
+import '../widgets/settings/settings_page_scaffold.dart';
 
 /// 用户信息设置页面
 ///
 /// 设置更改实时保存，无需手动点击保存按钮
 class UserProfileScreen extends StatefulWidget {
-  const UserProfileScreen({super.key});
+  final bool embedded;
+
+  const UserProfileScreen({
+    super.key,
+    this.embedded = false,
+  });
 
   @override
   State<UserProfileScreen> createState() => _UserProfileScreenState();
@@ -76,6 +82,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   Future<void> _loadUserProfile() async {
     final profile = await _userService.getUserProfile();
+    if (!mounted) return;
     setState(() {
       _userProfile = profile;
       _usernameController.text = profile.username;
@@ -685,29 +692,28 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final brightness = CupertinoTheme.of(context).brightness;
 
     if (_isLoading) {
-      return CupertinoPageScaffold(
-        navigationBar: CupertinoNavigationBar(
-          middle: Text(l10n.userInfo),
-        ),
+      return SettingsPageScaffold(
+        title: l10n.userInfo,
+        embeddedTitle: l10n.userProfile,
+        embedded: widget.embedded,
         child: const Center(child: CupertinoActivityIndicator()),
       );
     }
     if (_userProfile == null) {
-      return CupertinoPageScaffold(
-        navigationBar: CupertinoNavigationBar(
-          middle: Text(l10n.userInfo),
-        ),
+      return SettingsPageScaffold(
+        title: l10n.userInfo,
+        embeddedTitle: l10n.userProfile,
+        embedded: widget.embedded,
         child: Center(child: Text(l10n.loading)),
       );
     }
 
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: Text(l10n.userInfo),
-      ),
-      child: SafeArea(
-        child: ListView(
-          children: [
+    return SettingsPageScaffold(
+      title: l10n.userInfo,
+      embeddedTitle: l10n.userProfile,
+      embedded: widget.embedded,
+      child: ListView(
+        children: [
             const SizedBox(height: 32),
             Center(
               child: Column(
@@ -897,7 +903,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ),
           ],
         ),
-      ),
     );
   }
 }

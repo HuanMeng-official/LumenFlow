@@ -2,6 +2,7 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import '../l10n/app_localizations.dart';
 import '../services/settings_service.dart';
 import '../widgets/settings/settings_input_tile.dart';
+import '../widgets/settings/settings_page_scaffold.dart';
 import '../widgets/settings/settings_section.dart';
 import '../widgets/settings/settings_slider_tile.dart';
 
@@ -13,7 +14,12 @@ import '../widgets/settings/settings_slider_tile.dart';
 /// - 温度控制
 /// - 系统提示词
 class ModelSettingsScreen extends StatefulWidget {
-  const ModelSettingsScreen({super.key});
+  final bool embedded;
+
+  const ModelSettingsScreen({
+    super.key,
+    this.embedded = false,
+  });
 
   @override
   State<ModelSettingsScreen> createState() => _ModelSettingsScreenState();
@@ -57,6 +63,7 @@ class _ModelSettingsScreenState extends State<ModelSettingsScreen> {
     final maxTokens = await _settingsService.getMaxTokens();
     final customPrompt = await _settingsService.getCustomSystemPrompt();
 
+    if (!mounted) return;
     setState(() {
       _modelController.text = model;
       _temperature = temperature;
@@ -152,30 +159,28 @@ class _ModelSettingsScreenState extends State<ModelSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final saveButton = _isSaving
+        ? const CupertinoActivityIndicator()
+        : CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: _save,
+            child: Text(l10n.save),
+          );
 
     if (_isLoading) {
-      return CupertinoPageScaffold(
-        navigationBar: CupertinoNavigationBar(
-          middle: Text(l10n.modelSettings),
-        ),
+      return SettingsPageScaffold(
+        title: l10n.modelSettings,
+        embedded: widget.embedded,
         child: const Center(child: CupertinoActivityIndicator()),
       );
     }
 
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: Text(l10n.modelSettings),
-        trailing: _isSaving
-            ? const CupertinoActivityIndicator()
-            : CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: _save,
-                child: Text(l10n.save),
-              ),
-      ),
-      child: SafeArea(
-        child: ListView(
-          children: [
+    return SettingsPageScaffold(
+      title: l10n.modelSettings,
+      embedded: widget.embedded,
+      trailing: saveButton,
+      child: ListView(
+        children: [
             SettingsSection(
               title: l10n.modelSettings,
               children: [
@@ -225,7 +230,6 @@ class _ModelSettingsScreenState extends State<ModelSettingsScreen> {
             ),
           ],
         ),
-      ),
     );
   }
 }
