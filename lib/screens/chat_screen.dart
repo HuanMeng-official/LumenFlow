@@ -3,6 +3,7 @@ import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'dart:io';
 import 'dart:async';
 import '../controllers/chat_send_controller.dart';
+import '../controllers/chat_screen_controller.dart';
 import '../l10n/app_localizations.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
@@ -36,7 +37,21 @@ import 'message_search_screen.dart';
 /// 设计模式:
 /// 使用StatefulWidget管理本地状态，包括消息列表、加载状态、当前对话等
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  const ChatScreen({
+    super.key,
+    this.embedded = false,
+    this.controller,
+    this.onConversationChanged,
+    this.onConversationListChanged,
+    this.onOpenSettings,
+  });
+
+  /// 桌面嵌入模式：不渲染移动端导航栏。
+  final bool embedded;
+  final ChatScreenController? controller;
+  final ValueChanged<String?>? onConversationChanged;
+  final VoidCallback? onConversationListChanged;
+  final VoidCallback? onOpenSettings;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -103,6 +118,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     // 添加生命周期观察者
     WidgetsBinding.instance.addObserver(this);
 
+    widget.controller?.attach(
+      openConversation: _setCurrentConversation,
+      createNewConversation: _createNewConversation,
+      refreshConfiguration: () => unawaited(_checkConfiguration()),
+    );
+
     // 监听用户滚动状态
     _scrollListener = () {
       _isUserScrolling = _scrollController.position.isScrollingNotifier.value;
@@ -132,6 +153,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    widget.controller?.detach();
     // 取消所有定时器
     _setStateTimer?.cancel();
     // 释放发送控制器
@@ -192,6 +214,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     // 加载聊天背景设置
     final backgroundImagePath = await _settingsService.getBackgroundImagePath();
     final backgroundImageOpacity = await _settingsService.getBackgroundImageOpacity();
+    if (!mounted) return;
     setState(() {
       _isConfigured = configured;
       _liveUpdateEnabled = liveUpdateEnabled;
@@ -281,6 +304,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         );
       }
 
+      await _conversationService.setCurrentConversationId(fullConversation.id);
+      widget.onConversationChanged?.call(fullConversation.id);
       _scrollToBottom();
     } finally {
       _isLoadingConversation = false;
@@ -296,6 +321,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final conversation = await _conversationService.createNewConversation(
       title: l10n.newConversation,
     );
+    if (!mounted) return;
     setState(() {
       _currentConversation = conversation;
       _messages.clear();
@@ -306,6 +332,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _currentPresetId = conversation.promptPresetId;
       _autoTitleGenerated = false; // 重置标题生成标志
     });
+    widget.onConversationChanged?.call(conversation.id);
   }
 
   /// 保存当前对话
@@ -319,9 +346,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         updatedAt: DateTime.now(),
       );
       await _conversationService.updateConversation(updatedConversation);
+      if (!mounted) return;
       setState(() {
         _currentConversation = updatedConversation;
       });
+      widget.onConversationListChanged?.call();
     }
   }
 
@@ -537,6 +566,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             _currentConversation = _currentConversation!.copyWith(title: newTitle);
             _autoTitleGenerated = true; // 标记已生成
           });
+          widget.onConversationListChanged?.call();
         }
       } catch (e) {
         // 生成标题失败不影响对话继续
@@ -619,6 +649,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           _currentTitle = newTitle;
           _currentConversation = _currentConversation!.copyWith(title: newTitle);
         });
+        widget.onConversationListChanged?.call();
       }
     } else {
       setState(() {
@@ -1139,6 +1170,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   /// 使用CupertinoPageRoute导航到SettingsScreen
   /// 返回后重新检查配置状态
   Future<void> _openSettings() async {
+    final openSettings = widget.onOpenSettings;
+    if (openSettings != null) {
+      openSettings();
+      return;
+    }
     await Navigator.push(
       context,
       CupertinoPageRoute(
@@ -1209,37 +1245,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
     /// 构建聊天界面布局
     /// 包含：导航栏、消息列表、输入框、配置提示等组件
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        leading: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: _openConversationList,
-          child: const Icon(CupertinoIcons.chat_bubble_2),
-        ),
-        middle: Text(_currentTitle.isEmpty ? l10n.aiAssistant : _currentTitle),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CupertinoButton(
-              padding: EdgeInsets.zero,
-              onPressed: _messages.isEmpty ? null : _openMessageSearch,
-              child: const Icon(CupertinoIcons.search),
-            ),
-            CupertinoButton(
-              padding: EdgeInsets.zero,
-              onPressed: _createNewConversation,
-              child: const Icon(CupertinoIcons.add),
-            ),
-            CupertinoButton(
-              padding: EdgeInsets.zero,
-              onPressed: _showMoreOptions,
-              child: const Icon(CupertinoIcons.ellipsis),
-            ),
-          ],
-        ),
-      ),
-      child: Stack(
-        children: [
+    final chatBody = Stack(
+      children: [
           // 背景层
           if (_backgroundImagePath.isNotEmpty)
             Positioned.fill(
@@ -1365,6 +1372,109 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               ],
             ),
           ),
+      ],
+    );
+
+    if (widget.embedded) {
+      return SafeArea(
+        bottom: false,
+        child: ColoredBox(
+          color: CupertinoColors.systemBackground.resolveFrom(context),
+          child: Column(
+            children: [
+              _buildDesktopTopBar(context),
+              Expanded(
+                child: MediaQuery.removePadding(
+                  context: context,
+                  removeTop: true,
+                  child: chatBody,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return CupertinoPageScaffold(
+      navigationBar: _buildMobileNavigationBar(context),
+      child: chatBody,
+    );
+  }
+
+  CupertinoNavigationBar _buildMobileNavigationBar(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return CupertinoNavigationBar(
+      leading: CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: _openConversationList,
+        child: const Icon(CupertinoIcons.chat_bubble_2),
+      ),
+      middle: Text(_currentTitle.isEmpty ? l10n.aiAssistant : _currentTitle),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: _messages.isEmpty ? null : _openMessageSearch,
+            child: const Icon(CupertinoIcons.search),
+          ),
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: _createNewConversation,
+            child: const Icon(CupertinoIcons.add),
+          ),
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: _showMoreOptions,
+            child: const Icon(CupertinoIcons.ellipsis),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopTopBar(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final iconColor = CupertinoTheme.of(context).primaryColor;
+    final searchColor = _messages.isEmpty
+        ? CupertinoColors.systemGrey.resolveFrom(context)
+        : iconColor;
+    return Container(
+      height: 52,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: CupertinoColors.systemGrey4.resolveFrom(context),
+            width: 0.5,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              _currentTitle.isEmpty ? l10n.aiAssistant : _currentTitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: _messages.isEmpty ? null : _openMessageSearch,
+            child: Icon(CupertinoIcons.search, color: searchColor),
+          ),
+          const SizedBox(width: 8),
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: _showMoreOptions,
+            child: Icon(CupertinoIcons.ellipsis, color: iconColor),
+          ),
         ],
       ),
     );
@@ -1404,6 +1514,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   /// 加载当前模型
   Future<void> _loadCurrentModel() async {
     final currentPlatform = await _settingsService.getCurrentPlatform();
+    if (!mounted) return;
     if (currentPlatform != null && currentPlatform.defaultModel.isNotEmpty) {
       setState(() {
         _currentModel = currentPlatform.defaultModel;
@@ -1411,6 +1522,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     } else {
       // 如果没有配置平台，使用旧版本的模型设置
       final oldModel = await _settingsService.getModel();
+      if (!mounted) return;
       setState(() {
         _currentModel = oldModel;
       });

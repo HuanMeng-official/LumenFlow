@@ -9,7 +9,7 @@ import 'l10n/app_localizations.dart';
 import 'services/settings_service.dart';
 import 'services/notification_service.dart';
 import 'services/live_update_service.dart';
-import 'screens/chat_screen.dart';
+import 'screens/adaptive_home.dart';
 import 'utils/app_theme.dart';
 
 void main() async {
@@ -28,8 +28,8 @@ void main() async {
     await windowManager.ensureInitialized();
 
     WindowOptions windowOptions = WindowOptions(
-      size: Size(493, 793),
-      minimumSize: Size(400, 700),
+      size: Size(1120, 760),
+      minimumSize: Size(900, 600),
       center: true,
       skipTaskbar: false,
     );
@@ -145,11 +145,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             data: buildMaterialAppTheme(brightness, _locale),
             child: child ?? const SizedBox.shrink(),
           ),
-          home: child!,
+          home: const AdaptiveHome(),
           debugShowCheckedModeBanner: false,
         );
       },
-      child: ChatScreen(),
     );
   }
 }

@@ -11,10 +11,20 @@ import '../services/conversation_service.dart';
 
 class ConversationListScreen extends StatefulWidget {
   final Function(String? conversationId) onConversationSelected;
+  final bool embedded;
+  final bool compact;
+  final int refreshToken;
+  final String? selectedConversationId;
+  final ConversationService? service;
 
   const ConversationListScreen({
     super.key,
     required this.onConversationSelected,
+    this.embedded = false,
+    this.compact = false,
+    this.refreshToken = 0,
+    this.selectedConversationId,
+    this.service,
   });
 
   @override
@@ -22,7 +32,7 @@ class ConversationListScreen extends StatefulWidget {
 }
 
 class _ConversationListScreenState extends State<ConversationListScreen> {
-  final ConversationService _conversationService = ConversationService();
+  late final ConversationService _conversationService;
   List<Conversation> _conversations = [];
   String? _currentConversationId;
   bool _isLoading = true;
@@ -35,7 +45,16 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
   @override
   void initState() {
     super.initState();
+    _conversationService = widget.service ?? ConversationService();
     _loadConversations();
+  }
+
+  @override
+  void didUpdateWidget(covariant ConversationListScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.refreshToken != widget.refreshToken) {
+      _loadConversations();
+    }
   }
 
   @override
@@ -92,7 +111,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
     });
     // 只传递对话 ID，由 ChatScreen 负责加载完整对话
     widget.onConversationSelected(conversation.id);
-    if (mounted) {
+    if (!widget.embedded && mounted) {
       Navigator.pop(context);
     }
   }
@@ -163,7 +182,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
       });
       // 只传递对话 ID，由 ChatScreen 负责加载完整对话
       widget.onConversationSelected(conversation.id);
-      if (mounted) {
+      if (!widget.embedded && mounted) {
         Navigator.pop(context);
       }
     } finally {
@@ -187,11 +206,12 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
             isDestructiveAction: true,
             child: Text(l10n.delete),
             onPressed: () async {
+              final wasCurrent = conversation.id == _currentConversationId;
               Navigator.pop(context);
               await _conversationService.deleteConversation(conversation.id);
               await _loadConversations();
 
-              if (conversation.id == _currentConversationId) {
+              if (wasCurrent) {
                 widget.onConversationSelected(null);
               }
             },
@@ -256,15 +276,27 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final brightness = CupertinoTheme.of(context).brightness;
-    final searchBackground = brightness == Brightness.dark
-        ? CupertinoColors.systemGrey6.darkColor
-        : CupertinoColors.systemGrey6.color;
-    final searchIconColor = brightness == Brightness.dark
-        ? CupertinoColors.systemGrey.darkColor
-        : CupertinoColors.systemGrey;
+    final listBody = _buildListBody(context);
 
+    if (widget.embedded) {
+      return ColoredBox(
+        color: brightness == Brightness.dark
+            ? CupertinoColors.systemGrey6.darkColor
+            : CupertinoColors.systemGrey6.color,
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              _buildEmbeddedHeader(context),
+              Expanded(child: SafeArea(top: false, child: listBody)),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final l10n = AppLocalizations.of(context)!;
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: Text(l10n.conversations),
@@ -284,12 +316,95 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
           ],
         ),
       ),
-      child: SafeArea(
-        child: Column(
-          children: [
+      child: SafeArea(child: listBody),
+    );
+  }
+
+  Widget _buildEmbeddedHeader(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(14, 16, 8, 10),
+          child: Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'LumenFlow',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                ),
+              ),
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: _importConversation,
+                child: const Icon(CupertinoIcons.folder_open, size: 18),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: _createNewConversation,
+            child: Container(
+              height: 30,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: CupertinoTheme.of(context).primaryColor,
+                borderRadius: BorderRadius.circular(7),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    CupertinoIcons.add,
+                    size: 13,
+                    color: CupertinoColors.white,
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    l10n.newConversation,
+                    style: const TextStyle(
+                      color: CupertinoColors.white,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildListBody(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final brightness = CupertinoTheme.of(context).brightness;
+    final searchBackground = widget.embedded
+        ? (brightness == Brightness.dark
+              ? CupertinoColors.systemGrey5.darkColor
+              : CupertinoColors.systemGrey5.color)
+        : (brightness == Brightness.dark
+              ? CupertinoColors.systemGrey6.darkColor
+              : CupertinoColors.systemGrey6.color);
+    final searchIconColor = brightness == Brightness.dark
+        ? CupertinoColors.systemGrey.darkColor
+        : CupertinoColors.systemGrey;
+    final highlightId = widget.embedded
+        ? (widget.selectedConversationId ?? _currentConversationId)
+        : _currentConversationId;
+
+    return Column(
+      children: [
             if (!_isLoading)
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                padding: widget.embedded
+                    ? const EdgeInsets.fromLTRB(12, 4, 12, 20)
+                    : const EdgeInsets.fromLTRB(16, 8, 16, 4),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   decoration: BoxDecoration(
@@ -357,7 +472,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                     itemBuilder: (context, index) {
                       final conversation = _conversations[index];
                       final isCurrentConversation =
-                          conversation.id == _currentConversationId;
+                          conversation.id == highlightId;
                       final primaryColor =
                           CupertinoTheme.of(context).primaryColor;
 
@@ -369,6 +484,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                           title: Text(
                             conversation.title,
                             style: TextStyle(
+                              fontSize: widget.compact ? 13 : null,
                               fontWeight: isCurrentConversation
                                   ? FontWeight.w600
                                   : FontWeight.normal,
@@ -376,28 +492,30 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                           ),
                           subtitle: Text(
                             _formatDate(conversation.updatedAt),
-                            style: const TextStyle(
-                              fontSize: 13,
+                            style: TextStyle(
+                              fontSize: widget.compact ? 10.5 : 13,
                               color: CupertinoColors.systemGrey,
                             ),
                           ),
-                          leading: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: isCurrentConversation
-                                  ? CupertinoColors.systemBlue
-                                  : CupertinoColors.systemGrey5,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Icon(
-                              CupertinoIcons.chat_bubble_2,
-                              color: isCurrentConversation
-                                  ? CupertinoColors.white
-                                  : CupertinoColors.systemGrey,
-                              size: 20,
-                            ),
-                          ),
+                          leading: widget.compact
+                              ? null
+                              : Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: isCurrentConversation
+                                        ? CupertinoColors.systemBlue
+                                        : CupertinoColors.systemGrey5,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Icon(
+                                    CupertinoIcons.chat_bubble_2,
+                                    color: isCurrentConversation
+                                        ? CupertinoColors.white
+                                        : CupertinoColors.systemGrey,
+                                    size: 20,
+                                  ),
+                                ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -410,7 +528,8 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                                     color: primaryColor,
                                   ),
                                 ),
-                              if (conversation.messages.isNotEmpty)
+                              if (!widget.compact &&
+                                  conversation.messages.isNotEmpty)
                                 Text(
                                   '${conversation.messages.length}',
                                   style: const TextStyle(
@@ -438,8 +557,6 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                   ),
             ),
           ],
-        ),
-      ),
     );
   }
 
