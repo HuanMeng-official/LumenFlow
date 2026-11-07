@@ -25,7 +25,7 @@ void main() async {
     debugPrint('通知服务初始化失败: $e');
   }
 
-  if (Platform.isWindows || Platform.isLinux) {
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     await windowManager.ensureInitialized();
 
     WindowOptions windowOptions = WindowOptions(
