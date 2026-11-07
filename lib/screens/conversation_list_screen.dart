@@ -325,8 +325,17 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(14, 16, 8, 10),
+        Container(
+          height: 52,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: CupertinoColors.systemGrey4.resolveFrom(context),
+                width: 0.5,
+              ),
+            ),
+          ),
           child: Row(
             children: [
               const Expanded(
@@ -337,6 +346,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
               ),
               CupertinoButton(
                 padding: EdgeInsets.zero,
+                minimumSize: const Size(28, 28),
                 onPressed: _importConversation,
                 child: const Icon(CupertinoIcons.folder_open, size: 18),
               ),
@@ -344,7 +354,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
+          padding: const EdgeInsets.fromLTRB(12, 20, 12, 6),
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: _createNewConversation,
