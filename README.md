@@ -8,7 +8,6 @@
 
 LumenFlow (Chinese: 流光) is a Flutter-based AI chat application for Android, iOS, Windows, Linux, and macOS. It combines multi-platform model access, a tool-calling agent runtime, local SQLite storage, and a Cupertino-style interface.
 
-- **Version**: 3.0.0+300
 - **License**: MIT (bundled Noto Sans SC fonts are OFL-1.1)
 - **UI stack**: Flutter 3.47.8 / Dart 3.13.7, `material_ui`, `cupertino_ui`
 - **Android baseline**: compileSdk 37.2, targetSdk 37, minSdk 29 (Android 10+)
@@ -205,7 +204,9 @@ The character-card generator opens a local web page served by the app (`HttpServ
 SQLite database location:
 
 - **Android**: application documents directory (`conversations.db`).
-- **Windows/Linux/macOS/iOS**: the platform home directory under `~/.lumenflow/conversations.db`.
+- **Windows/Linux**: `~/.lumenflow/conversations.db` (`%USERPROFILE%\.lumenflow\conversations.db` on Windows).
+- **macOS**: inside the App Sandbox container at `~/Library/Containers/me.huanmeng.lumenFlow/Data/.lumenflow/conversations.db`.
+- **iOS**: `Library/Application Support/conversations.db` inside the app data container.
 
 Tables: `conversations`, `messages`, `attachments`, and application metadata/settings.
 
@@ -228,26 +229,45 @@ All conversation data, API keys, and profiles stay on the device. Use the settin
 - Windows: Visual Studio 2022 with Desktop development with C++
 - Linux: GTK 3, clang, cmake, ninja, pkg-config
 
+Linux / macOS:  
 ```bash
 flutter pub get
 
-# Android
-flutter build apk --release
-# or split by ABI
-flutter build apk --split-per-abi
-
-# Windows
-flutter build windows --release
-
-# Linux
-flutter build linux --release
-
-# macOS / iOS
-flutter build macos --release
-flutter build ios --release
+sudo chmod +x ./build.sh
 ```
 
-Release Android signing is read from `android/key.properties`. Keep that file and your keystore out of source control.
+Windows:  
+```bash
+flutter pub get
+
+./build.ps1
+```
+
+Release Android signing is read from `android/key.properties`.
+
+### macOS and iOS signing
+
+This repository does not include any distribution certificates. macOS and iOS artifacts are signed as described below.
+
+**macOS**
+
+- `flutter build macos --release` produces an ad-hoc signed `.app` that runs on the build machine.
+- `./build.sh` packages the app into `app-universal-release.dmg` and writes a `app-universal-release.dmg.sha1` checksum.
+- The DMG is **not notarized**. On other Macs, Gatekeeper may block the first launch. Remove the quarantine flag with:
+
+  ```bash
+  xattr -cr /Applications/LumenFlow.app
+  ```
+
+  or open it from System Settings → Privacy & Security → Open Anyway.
+
+**iOS**
+
+- Simulator builds run without signing.
+- Device builds (`flutter build ios` / `flutter build ipa`) require a signing identity and provisioning profile. Configure an Apple Developer Team in Xcode before using the `iOS (Signed .ipa)` option in `build.sh`.
+- `flutter build ios --no-codesign` (the `iOS (Unsigned .ipa)` option) produces `app-arm64-release.ipa`, which **cannot be installed on stock devices**. It is intended for TrollStore, jailbroken devices with AppSync Unified, or re-signing with tools such as Sideloadly or AltStore.
+- Installing on a regular device requires either a free Apple ID personal team (expires after 7 days) or a paid Apple Developer account.
+- App Store / TestFlight distribution requires a paid Apple Developer account, a configured signing team, and `flutter build ipa` (or Xcode Organizer).
 
 ### Notes
 

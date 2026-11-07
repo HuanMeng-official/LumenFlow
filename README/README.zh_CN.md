@@ -8,7 +8,6 @@
 
 LumenFlow（中文名：流光）是一款使用 Flutter 构建的 AI 聊天应用，支持 Android、iOS、Windows、Linux 和 macOS。它把多平台模型接入、工具调用 Agent、本地 SQLite 存储和 Cupertino 风格界面整合在一起。
 
-- **版本**：3.0.0+300
 - **许可证**：MIT（内置 Noto Sans SC 字体为 OFL-1.1）
 - **UI 技术栈**：Flutter 3.47.8 / Dart 3.13.7，`material_ui`、`cupertino_ui`
 - **Android 基线**：compileSdk 37.2、targetSdk 37、minSdk 29（Android 10+）
@@ -205,7 +204,9 @@ MCP 工具会带上服务器前缀，避免不同服务器的同名工具冲突�
 SQLite 数据库位置：
 
 - **Android**：应用文档目录（`conversations.db`）。
-- **Windows/Linux/macOS/iOS**：平台主目录下的 `~/.lumenflow/conversations.db`。
+- **Windows/Linux**：`~/.lumenflow/conversations.db`（Windows 为 `%USERPROFILE%\.lumenflow\conversations.db`）。
+- **macOS**：App Sandbox 容器内 `~/Library/Containers/me.huanmeng.lumenFlow/Data/.lumenflow/conversations.db`。
+- **iOS**：应用数据容器内的 `Library/Application Support/conversations.db`。
 
 表：`conversations`、`messages`、`attachments` 以及应用元数据/设置。
 
@@ -228,26 +229,45 @@ SQLite 数据库位置：
 - Windows：Visual Studio 2022，安装“使用 C++ 的桌面开发”
 - Linux：GTK 3、clang、cmake、ninja、pkg-config
 
+Linux / macOS:  
 ```bash
 flutter pub get
 
-# Android
-flutter build apk --release
-# 或按 ABI 拆分
-flutter build apk --split-per-abi
-
-# Windows
-flutter build windows --release
-
-# Linux
-flutter build linux --release
-
-# macOS / iOS
-flutter build macos --release
-flutter build ios --release
+sudo chmod +x ./build.sh
 ```
 
-Android release 签名从 `android/key.properties` 读取；该文件和 keystore 不要提交到仓库。
+Windows:  
+```bash
+flutter pub get
+
+./build.ps1
+```
+
+Android release 签名从 `android/key.properties` 读取。
+
+### macOS 与 iOS 签名
+
+仓库不包含任何分发证书，macOS 和 iOS 产物需要按下述方式处理签名。
+
+**macOS**
+
+- `flutter build macos --release` 生成 ad-hoc 签名的 `.app`，可在构建机上直接运行。
+- `./build.sh` 会把应用打包为 `app-universal-release.dmg`，并生成 `app-universal-release.dmg.sha1` 校验文件。
+- DMG **未经公证（notarization）**。在其他 Mac 上首次打开可能被 Gatekeeper 拦截，可执行：
+
+  ```bash
+  xattr -cr /Applications/LumenFlow.app
+  ```
+
+  或在“系统设置 → 隐私与安全性”中点击“仍要打开”。
+
+**iOS**
+
+- 模拟器构建无需签名。
+- 真机构建（`flutter build ios` / `flutter build ipa`）需要签名证书和描述文件。使用 `build.sh` 的 `iOS (Signed .ipa)` 选项前，需先在 Xcode 中配置 Apple Developer Team。
+- `flutter build ios --no-codesign`（即 `iOS (Unsigned .ipa)` 选项）产出 `app-arm64-release.ipa`，**无法直接安装到未越狱设备**。该包仅适用于 TrollStore、越狱 + AppSync Unified，或使用 Sideloadly、AltStore 等工具重新签名。
+- 普通设备安装需要免费 Apple ID 个人签名（7 天后过期）或付费 Apple Developer 账号。
+- 上架 App Store / TestFlight 需要付费 Apple Developer 账号、配置好签名，并使用 `flutter build ipa`（或 Xcode Organizer）。
 
 ### 说明
 
