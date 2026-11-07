@@ -5,7 +5,6 @@ import 'package:flutter_localizations/flutter_localizations.dart'
     hide GlobalMaterialLocalizations, GlobalCupertinoLocalizations;
 import 'package:lumen_flow/l10n/fallback_localizations.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:auto_orientation_v2/auto_orientation_v2.dart';
 import 'l10n/app_localizations.dart';
 import 'services/settings_service.dart';
 import 'services/notification_service.dart';
@@ -38,8 +37,6 @@ void main() async {
       await windowManager.show();
       await windowManager.focus();
     });
-  } else if (Platform.isAndroid) {
-    AutoOrientation.portraitUpMode();
   }
 
   // 初始化Live Update服务

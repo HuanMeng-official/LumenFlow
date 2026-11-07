@@ -33,14 +33,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.13.1"
-  auto_orientation_v2:
-    dependency: "direct main"
-    description:
-      name: auto_orientation_v2
-      sha256: "7a3870f0fba5a451f5a5f119d13ba4c949ec63b1d2caf90394801e24001ed978"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "2.4.7"
   barcode:
     dependency: transitive
     description:
