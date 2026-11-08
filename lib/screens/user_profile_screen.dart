@@ -598,6 +598,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   void _showAvatarOptions() {
     final l10n = AppLocalizations.of(context)!;
+    // 模拟器没有摄像头硬件；macOS 的 image_picker 也不支持相机。
+    final bool isIosSimulator = Platform.isIOS &&
+        Platform.environment.containsKey('SIMULATOR_DEVICE_NAME');
+    final bool cameraAvailable = !isIosSimulator &&
+        _imagePicker.supportsImageSource(ImageSource.camera);
     showCupertinoModalPopup(
       context: context,
       builder: (context) {
@@ -623,24 +628,25 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 _pickImageFromGallery();
               },
             ),
-            CupertinoActionSheetAction(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    CupertinoIcons.camera,
-                    size: 20,
-                    color: primaryColor,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(l10n.takePhoto),
-                ],
+            if (cameraAvailable)
+              CupertinoActionSheetAction(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      CupertinoIcons.camera,
+                      size: 20,
+                      color: primaryColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(l10n.takePhoto),
+                  ],
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                  _pickImageFromCamera();
+                },
               ),
-              onPressed: () {
-                Navigator.pop(context);
-                _pickImageFromCamera();
-              },
-            ),
             CupertinoActionSheetAction(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
