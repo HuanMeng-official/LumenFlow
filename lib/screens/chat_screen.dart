@@ -1824,29 +1824,37 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       final filePath = result['filePath']!;
       final locationType = result['locationType']!;
 
-      // 根据位置类型获取本地化的目录名称
-      String locationName;
-      switch (locationType) {
-        case 'download':
-          locationName = l10n.downloadDirectory;
-          break;
-        case 'external':
-          locationName = l10n.externalStorageDirectory;
-          break;
-        case 'app':
-          locationName = l10n.appDocumentsDirectory;
-          break;
-        default:
-          locationName = l10n.downloadDirectory;
+      // 用户取消了保存
+      if (locationType == 'cancelled') {
+        return;
       }
 
       // 显示成功消息
       if (mounted) {
+        final String content;
+        if (locationType == 'saved') {
+          content = l10n.exportSaved;
+        } else {
+          // 根据位置类型获取本地化的目录名称
+          String locationName;
+          switch (locationType) {
+            case 'external':
+              locationName = l10n.externalStorageDirectory;
+              break;
+            case 'app':
+              locationName = l10n.appDocumentsDirectory;
+              break;
+            default:
+              locationName = l10n.downloadDirectory;
+          }
+          content = l10n.exportLocation(locationName, filePath);
+        }
+
         showCupertinoDialog(
           context: context,
           builder: (context) => CupertinoAlertDialog(
             title: Text(l10n.exportConversationSuccess),
-            content: Text(l10n.exportLocation(locationName, filePath)),
+            content: Text(content),
             actions: [
               CupertinoDialogAction(
                 child: Text(l10n.ok),

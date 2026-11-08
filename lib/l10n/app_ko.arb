@@ -56,6 +56,7 @@
   "exportSettings": "설정 내보내기",
   "exportSuccess": "내보내기 성공",
   "exportLocation": "설정이 다음 위치에 성공적으로 내보내졌습니다: {location}\n{path}",
+  "exportSaved": "선택한 위치에 저장되었습니다",
   "@exportLocation": {
     "placeholders": {
       "location": {

@@ -3,7 +3,6 @@ import 'package:flutter/services.dart' show rootBundle;
 import '../models/conversation.dart';
 import '../models/message.dart';
 import '../l10n/app_localizations.dart';
-import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'version_service.dart';
 import 'package:pdf/pdf.dart';
@@ -12,6 +11,7 @@ import 'package:archive/archive.dart';
 import 'package:archive/archive_io.dart';
 import 'package:path/path.dart' as path;
 import '../models/attachment.dart';
+import '../utils/file_save_utils.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'conversation_database.dart';
@@ -1296,35 +1296,12 @@ class ConversationService {
 
   /// 保存文件到设备
   /// 返回包含文件路径和位置标识的Map
-  /// locationType: 'download', 'external', 'app'
+  /// locationType: 'download', 'external', 'app', 'saved', 'cancelled'
   Future<Map<String, String>> saveExportFile(String fileName, List<int> bytes) async {
-    // 优先尝试保存到下载目录
-    Directory? targetDir = await getDownloadsDirectory();
-    String locationType = 'download';
-
-    // 如果下载目录不可用，尝试外部存储目录
-    if (targetDir == null) {
-      targetDir = await getExternalStorageDirectory();
-      locationType = 'external';
-    }
-
-    // 如果外部存储目录也不可用，使用应用文档目录
-    if (targetDir == null) {
-      targetDir = await getApplicationDocumentsDirectory();
-      locationType = 'app';
-    }
-
-    // 确保目录存在
-    if (!await targetDir.exists()) {
-      await targetDir.create(recursive: true);
-    }
-
-    final targetFile = File('${targetDir.path}/$fileName');
-    await targetFile.writeAsBytes(bytes);
-
+    final result = await saveExportBytes(fileName: fileName, bytes: bytes);
     return {
-      'filePath': targetFile.path,
-      'locationType': locationType,
+      'filePath': result.filePath,
+      'locationType': result.locationType,
     };
   }
 }

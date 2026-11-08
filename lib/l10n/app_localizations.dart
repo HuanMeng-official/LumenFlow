@@ -355,6 +355,12 @@ abstract class AppLocalizations {
   /// **'Settings have been successfully exported to {location}:\n{path}'**
   String exportLocation(String location, String path);
 
+  /// Shown after the user saves an exported file through the system save panel.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to the selected location'**
+  String get exportSaved;
+
   /// No description provided for @exportFailed.
   ///
   /// In en, this message translates to:

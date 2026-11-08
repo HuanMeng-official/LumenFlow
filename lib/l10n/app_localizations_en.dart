@@ -141,6 +141,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get exportSaved => 'Saved to the selected location';
+
+  @override
   String get exportFailed => 'Export Failed';
 
   @override

@@ -141,6 +141,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get exportSaved => '已保存到你选择的位置';
+
+  @override
   String get exportFailed => '导出失败';
 
   @override

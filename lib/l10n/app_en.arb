@@ -56,6 +56,10 @@
   "exportSettings": "Export Settings",
   "exportSuccess": "Export Successful",
   "exportLocation": "Settings have been successfully exported to {location}:\n{path}",
+  "exportSaved": "Saved to the selected location",
+  "@exportSaved": {
+    "description": "Shown after the user saves an exported file through the system save panel."
+  },
   "@exportLocation": {
     "placeholders": {
       "location": {

@@ -56,6 +56,7 @@
   "exportSettings": "导出设置",
   "exportSuccess": "导出成功",
   "exportLocation": "设置已成功导出到{location}：\n{path}",
+  "exportSaved": "已保存到你选择的位置",
   "@exportLocation": {
     "placeholders": {
       "location": {

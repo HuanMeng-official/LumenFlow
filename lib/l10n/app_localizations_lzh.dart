@@ -141,6 +141,9 @@ class AppLocalizationsLzh extends AppLocalizations {
   }
 
   @override
+  String get exportSaved => '已謄於所擇之處';
+
+  @override
   String get exportFailed => '謄錄未果';
 
   @override

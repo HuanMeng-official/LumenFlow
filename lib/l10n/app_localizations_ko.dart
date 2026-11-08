@@ -141,6 +141,9 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get exportSaved => '선택한 위치에 저장되었습니다';
+
+  @override
   String get exportFailed => '내보내기 실패';
 
   @override

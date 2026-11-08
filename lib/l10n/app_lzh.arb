@@ -56,6 +56,7 @@
   "exportSettings": "謄錄規度",
   "exportSuccess": "謄錄已妥",
   "exportLocation": "規度已謄於{location}之中：\n{path}",
+  "exportSaved": "已謄於所擇之處",
   "@exportLocation": {
     "placeholders": {
       "location": {

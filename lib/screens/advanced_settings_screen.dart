@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import '../l10n/app_localizations.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:path_provider/path_provider.dart';
 import '../services/settings_service.dart';
+import '../utils/file_save_utils.dart';
 import 'about_screen.dart';
 import 'credits_screen.dart';
 import '../widgets/settings/settings_page_scaffold.dart';
@@ -96,35 +96,38 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
         throw Exception('字节数据为空，无法保存文件');
       }
 
-      Directory? targetDir = await getDownloadsDirectory();
-      String locationName = l10n.downloadDirectory;
-
-      if (targetDir == null) {
-        targetDir = await getExternalStorageDirectory();
-        locationName = l10n.externalStorageDirectory;
-      }
-
-      if (targetDir == null) {
-        targetDir = await getApplicationDocumentsDirectory();
-        locationName = l10n.appDocumentsDirectory;
-      }
-
-      if (!await targetDir.exists()) {
-        await targetDir.create(recursive: true);
-      }
-
       final fileName =
           'lumenflow_settings_${DateTime.now().toIso8601String().substring(0, 10)}.lumenflow';
-      final targetFile = File('${targetDir.path}/$fileName');
 
-      await targetFile.writeAsBytes(bytes);
+      final result = await saveExportBytes(fileName: fileName, bytes: bytes);
+      if (result.isCancelled) {
+        return;
+      }
 
       if (mounted) {
+        final String content;
+        if (result.locationType == 'saved') {
+          content = l10n.exportSaved;
+        } else {
+          final String locationName;
+          switch (result.locationType) {
+            case 'external':
+              locationName = l10n.externalStorageDirectory;
+              break;
+            case 'app':
+              locationName = l10n.appDocumentsDirectory;
+              break;
+            default:
+              locationName = l10n.downloadDirectory;
+          }
+          content = l10n.exportLocation(locationName, result.filePath);
+        }
+
         showCupertinoDialog(
           context: context,
           builder: (context) => CupertinoAlertDialog(
             title: Text(l10n.exportSuccess),
-            content: Text(l10n.exportLocation(locationName, targetFile.path)),
+            content: Text(content),
             actions: [
               CupertinoDialogAction(
                 child: Text(l10n.ok),

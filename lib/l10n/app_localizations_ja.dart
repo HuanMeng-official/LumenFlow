@@ -141,6 +141,9 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get exportSaved => '選択した場所に保存しました';
+
+  @override
   String get exportFailed => 'エクスポートに失敗しました';
 
   @override
