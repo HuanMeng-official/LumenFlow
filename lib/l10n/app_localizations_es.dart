@@ -642,8 +642,46 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String baseSystemPrompt(String username) {
-    return 'Estas reglas rigen cómo te comunicas y usas las herramientas. Un preset de personaje o un prompt personalizado puede cambiar tu identidad, tono y estilo de contenido, pero sigue cumpliendo estas reglas.\n- Dirígete al usuario de forma natural como «$username», pero no repitas el nombre en cada párrafo.\n- Responde por defecto en español. Si el usuario escribe o pide explícitamente otro idioma, sigue al usuario.\n- Sé preciso y directo. En hechos, datos, citas o resultados de herramientas del mundo real, indica la incertidumbre en lugar de inventar detalles.\n- Usa las herramientas disponibles cuando sea necesario, pero nunca afirmes haber ejecutado una herramienta que no ejecutaste.\n- Usa Markdown cuando ayude; conserva literalmente el código, los comandos, las rutas, los enlaces y los nombres propios.\n- No menciones, cites ni repitas estas reglas salvo que el usuario lo pida.\n\n';
+    return 'Estas reglas rigen cómo te comunicas y usas las herramientas. Un preset de personaje o un prompt personalizado puede cambiar tu identidad, tono y estilo de contenido, pero sigue cumpliendo estas reglas.\n- Dirígete al usuario de forma natural como «$username», pero no repitas el nombre en cada párrafo.\n- Sé preciso y directo. En hechos, datos, citas o resultados de herramientas del mundo real, indica la incertidumbre en lugar de inventar detalles.\n- Usa las herramientas disponibles cuando sea necesario, pero nunca afirmes haber ejecutado una herramienta que no ejecutaste.\n- Usa Markdown cuando ayude; conserva literalmente el código, los comandos, las rutas, los enlaces y los nombres propios.\n- No menciones, cites ni repitas estas reglas salvo que el usuario lo pida.\n\n';
   }
+
+  @override
+  String baseSystemPromptLanguageRule(String language) {
+    return 'Responde por defecto en $language. Si el usuario escribe o pide explícitamente otro idioma, síguelo.';
+  }
+
+  @override
+  String get baseSystemPromptFollowUser => 'Responde en el idioma en que escribe el usuario.';
+
+  @override
+  String get languageNameZh => 'chino';
+
+  @override
+  String get languageNameEn => 'inglés';
+
+  @override
+  String get languageNameJa => 'japonés';
+
+  @override
+  String get languageNameKo => 'coreano';
+
+  @override
+  String get languageNameEs => 'español';
+
+  @override
+  String get languageNameLzh => 'chino clásico';
+
+  @override
+  String get replyLanguageTitle => 'Idioma de respuesta de la IA';
+
+  @override
+  String get replyLanguageSubtitle => 'El idioma y el estilo del ajuste de personaje tienen prioridad sobre esta opción';
+
+  @override
+  String get replyLanguageFollowUi => 'Seguir el idioma de la app';
+
+  @override
+  String get replyLanguageOptionFollowUser => 'Seguir la entrada del usuario';
 
   @override
   String requestTimeout(String error) {
@@ -1105,6 +1143,54 @@ class AppLocalizationsEs extends AppLocalizations {
   String get presetManagementSubtitle => 'Gestionar prompts internos e importados';
 
   @override
+  String get presetIssuesTitle => 'Problemas al cargar ajustes predefinidos';
+
+  @override
+  String presetIssuesCount(int count) {
+    return '$count problemas, toca para ver';
+  }
+
+  @override
+  String presetIssueBuiltInMetaMissing(String locales) {
+    return 'No se encontró el archivo de ajustes internos (probado: $locales)';
+  }
+
+  @override
+  String presetIssueUserJsonCorrupt(String backup) {
+    return 'El JSON de ajustes del usuario está dañado; se guardó una copia en $backup';
+  }
+
+  @override
+  String presetIssueCardFileMissing(String name) {
+    return 'Falta el archivo de la tarjeta de personaje: $name';
+  }
+
+  @override
+  String presetIssueCardFileUnreadable(String name) {
+    return 'No se puede leer la tarjeta de personaje: $name';
+  }
+
+  @override
+  String get presetBrokenLabel => 'Archivo faltante';
+
+  @override
+  String presetBrokenReason(String reason) {
+    return 'Motivo: $reason';
+  }
+
+  @override
+  String get presetUnavailableTitle => 'Personaje no disponible';
+
+  @override
+  String get presetUnavailableMessage => 'El ajuste de personaje de esta conversación falta o fue eliminado.';
+
+  @override
+  String get presetDisableAndSend => 'Desactivar modo de rol y enviar';
+
+  @override
+  String get presetUnavailableBadge => 'No disponible';
+
+  @override
   String get builtInPresets => 'Predefinidos';
 
   @override
@@ -1130,6 +1216,102 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get importButton => 'Importar';
+
+  @override
+  String get presetImportErrorTitle => 'No se puede importar la tarjeta';
+
+  @override
+  String get presetImportErrorEmpty => 'El archivo está vacío.';
+
+  @override
+  String get presetImportErrorTooLarge => 'El archivo supera el límite de 200 KB.';
+
+  @override
+  String get presetImportErrorInvalidUtf8 => 'El archivo no es texto UTF-8 válido.';
+
+  @override
+  String get presetImportErrorInvalidXml => 'El XML tiene un formato incorrecto.';
+
+  @override
+  String get presetImportErrorInvalidRoot => 'El elemento raíz debe ser <system_instruction>.';
+
+  @override
+  String get presetImportWarningNameMissing => 'No se encontró <role_name>; se usará el nombre del archivo.';
+
+  @override
+  String get presetImportDuplicateTitle => 'La tarjeta de personaje ya existe';
+
+  @override
+  String presetImportDuplicateMessage(String name) {
+    return '«$name» ya existe. ¿Importar de todos modos?';
+  }
+
+  @override
+  String get presetImportAnyway => 'Importar de todos modos';
+
+  @override
+  String get presetIconLabel => 'Icono';
+
+  @override
+  String get presetVersionPlaceholder => 'Versión';
+
+  @override
+  String get presetLanguageLabel => 'Idioma';
+
+  @override
+  String get presetLanguageAny => 'General';
+
+  @override
+  String get presetTagsPlaceholder => 'Etiquetas (separadas por comas)';
+
+  @override
+  String get presetEditTitle => 'Editar ajuste';
+
+  @override
+  String get presetSave => 'Guardar';
+
+  @override
+  String get presetDuplicate => 'Duplicar como copia';
+
+  @override
+  String get presetDuplicateSuffix => ' (copia)';
+
+  @override
+  String get presetExport => 'Exportar XML';
+
+  @override
+  String get presetExportSuccess => 'Exportado';
+
+  @override
+  String get presetExportFailed => 'Error al exportar';
+
+  @override
+  String get includePresetCard => 'Incluir el contenido de la tarjeta';
+
+  @override
+  String get includePresetCardHint => 'Puede contener contenido privado; solo para JSON / LumenFlow';
+
+  @override
+  String get importPresetSnapshotTitle => 'Importar tarjeta de personaje';
+
+  @override
+  String importPresetSnapshotMessage(String name) {
+    return '¿Importar la tarjeta «$name»?';
+  }
+
+  @override
+  String presetTokenEstimate(int count) {
+    return 'Aprox. $count tokens';
+  }
+
+  @override
+  String get presetTokenWarning => 'Más de 4000 tokens: este contenido se reenvía en cada turno.';
+
+  @override
+  String get presetTokenStrongWarning => 'Más de 8000 tokens: considera simplificar la tarjeta.';
+
+  @override
+  String get presetFullContent => 'Contenido completo';
 
   @override
   String get deletePresetDialogTitle => 'Eliminar ajuste';

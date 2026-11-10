@@ -311,7 +311,7 @@
   "selectModelFirst": "먼저 모델을 선택해주세요",
   "messageInputPlaceholder": "메시지를 입력하세요...",
   "configureApiSettingsFirst": "먼저 API 설정을 구성해주세요",
-  "baseSystemPrompt": "이 규칙은 대화 방식과 도구 사용을 규정합니다. 캐릭터 설정이나 사용자 지정 프롬프트는 당신의 역할, 말투, 내용 스타일을 바꿀 수 있지만, 이 규칙은 계속 지켜야 합니다.\n- 사용자를 「{username}」이라고 자연스럽게 부르되, 모든 문단에서 이름을 반복하지 마세요.\n- 기본적으로 한국어로 답변합니다. 사용자가 다른 언어로 쓰거나 명시적으로 다른 언어를 요청하면 사용자를 따르세요.\n- 정확하고 직접적으로 답하세요. 현실 세계의 사실, 데이터, 인용 또는 도구 결과가 불확실하면 지어내지 말고 불확실하다고 밝히세요.\n- 필요할 때 사용 가능한 도구를 사용하세요. 단, 실제로 실행하지 않은 도구를 실행했다고 말하지 마세요.\n- 가독성에 도움이 될 때 Markdown을 사용하세요. 코드, 명령, 경로, 링크, 고유 명사는 그대로 유지하세요.\n- 사용자가 요청하지 않는 한 이 규칙을 언급하거나 인용하거나 반복하지 마세요.\n\n",
+  "baseSystemPrompt": "이 규칙은 대화 방식과 도구 사용을 규정합니다. 캐릭터 설정이나 사용자 지정 프롬프트는 당신의 역할, 말투, 내용 스타일을 바꿀 수 있지만, 이 규칙은 계속 지켜야 합니다.\n- 사용자를 「{username}」이라고 자연스럽게 부르되, 모든 문단에서 이름을 반복하지 마세요.\n- 정확하고 직접적으로 답하세요. 현실 세계의 사실, 데이터, 인용 또는 도구 결과가 불확실하면 지어내지 말고 불확실하다고 밝히세요.\n- 필요할 때 사용 가능한 도구를 사용하세요. 단, 실제로 실행하지 않은 도구를 실행했다고 말하지 마세요.\n- 가독성에 도움이 될 때 Markdown을 사용하세요. 코드, 명령, 경로, 링크, 고유 명사는 그대로 유지하세요.\n- 사용자가 요청하지 않는 한 이 규칙을 언급하거나 인용하거나 반복하지 마세요.\n\n",
   "@baseSystemPrompt": {
     "placeholders": {
       "username": {
@@ -319,6 +319,25 @@
       }
     }
   },
+  "baseSystemPromptLanguageRule": "기본적으로 {language}(으)로 답합니다. 사용자가 다른 언어로 쓰거나 명시적으로 다른 언어를 요청하면 사용자를 따르세요.",
+  "@baseSystemPromptLanguageRule": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "baseSystemPromptFollowUser": "사용자가 입력한 언어로 답하세요.",
+  "languageNameZh": "중국어",
+  "languageNameEn": "영어",
+  "languageNameJa": "일본어",
+  "languageNameKo": "한국어",
+  "languageNameEs": "스페인어",
+  "languageNameLzh": "문어",
+  "replyLanguageTitle": "AI 답변 언어",
+  "replyLanguageSubtitle": "캐릭터 카드의 언어와 문체 설정이 이 옵션보다 우선합니다",
+  "replyLanguageFollowUi": "앱 언어 따르기",
+  "replyLanguageOptionFollowUser": "사용자 입력 따르기",
   "requestTimeout": "요청 시간 초과: 서버 응답이 너무 오래 걸립니다. 네트워크 연결을 확인하거나 나중에 다시 시도하세요. 오류 세부 정보: {error}",
   "@requestTimeout": {
     "placeholders": {
@@ -675,6 +694,60 @@
   "messageOptions": "메시지 옵션",
   "presetManagement": "프리셋 관리",
   "presetManagementSubtitle": "내장 및 사용자 가져온 프롬프트 관리",
+  "presetIssuesTitle": "프리셋 로드 문제",
+  "presetIssuesCount": "{count}개 문제, 눌러서 보기",
+  "@presetIssuesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "presetIssueBuiltInMetaMissing": "내장 프리셋 파일을 찾을 수 없습니다(시도: {locales})",
+  "@presetIssueBuiltInMetaMissing": {
+    "placeholders": {
+      "locales": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueUserJsonCorrupt": "사용자 프리셋 JSON이 손상되어 {backup}에 백업했습니다",
+  "@presetIssueUserJsonCorrupt": {
+    "placeholders": {
+      "backup": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueCardFileMissing": "캐릭터 카드 파일이 없습니다: {name}",
+  "@presetIssueCardFileMissing": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueCardFileUnreadable": "캐릭터 카드 파일을 읽을 수 없습니다: {name}",
+  "@presetIssueCardFileUnreadable": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "presetBrokenLabel": "파일 없음",
+  "presetBrokenReason": "원인: {reason}",
+  "@presetBrokenReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "presetUnavailableTitle": "캐릭터 사용 불가",
+  "presetUnavailableMessage": "이 대화에서 사용 중인 캐릭터 프리셋 파일이 없거나 삭제되었습니다.",
+  "presetDisableAndSend": "역할 모드를 끄고 보내기",
+  "presetUnavailableBadge": "사용 불가",
   "builtInPresets": "내장 프리셋",
   "userPresets": "사용자 프리셋",
   "noPresetsAvailable": "사용 가능한 프리셋이 없습니다",
@@ -684,6 +757,57 @@
   "descriptionPlaceholder": "설명",
   "authorPlaceholder": "작성자",
   "importButton": "가져오기",
+  "presetImportErrorTitle": "캐릭터 카드를 가져올 수 없습니다",
+  "presetImportErrorEmpty": "파일이 비어 있습니다.",
+  "presetImportErrorTooLarge": "파일이 200KB 제한을 초과합니다.",
+  "presetImportErrorInvalidUtf8": "파일이 유효한 UTF-8 텍스트가 아닙니다.",
+  "presetImportErrorInvalidXml": "XML 형식이 올바르지 않습니다.",
+  "presetImportErrorInvalidRoot": "루트 요소는 <system_instruction>여야 합니다.",
+  "presetImportWarningNameMissing": "<role_name>을 찾지 못했습니다. 파일 이름을 이름으로 사용합니다.",
+  "presetImportDuplicateTitle": "캐릭터 카드가 이미 있습니다",
+  "presetImportDuplicateMessage": "「{name}」이(가) 이미 있습니다. 그래도 가져올까요?",
+  "@presetImportDuplicateMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "presetImportAnyway": "그래도 가져오기",
+  "presetIconLabel": "아이콘",
+  "presetVersionPlaceholder": "버전",
+  "presetLanguageLabel": "언어",
+  "presetLanguageAny": "공통",
+  "presetTagsPlaceholder": "태그(쉼표로 구분)",
+  "presetEditTitle": "프리셋 편집",
+  "presetSave": "저장",
+  "presetDuplicate": "내 사본으로 복제",
+  "presetDuplicateSuffix": "(사본)",
+  "presetExport": "XML 내보내기",
+  "presetExportSuccess": "내보냈습니다",
+  "presetExportFailed": "내보내기 실패",
+  "includePresetCard": "캐릭터 카드 본문 포함",
+  "includePresetCardHint": "비공개 내용이 포함될 수 있습니다. JSON / LumenFlow에만 적용",
+  "importPresetSnapshotTitle": "캐릭터 카드 가져오기",
+  "importPresetSnapshotMessage": "캐릭터 카드 「{name}」을(를) 가져올까요?",
+  "@importPresetSnapshotMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "presetTokenEstimate": "약 {count} tokens",
+  "@presetTokenEstimate": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "presetTokenWarning": "4000 tokens 초과: 이 내용은 매 턴 다시 전송됩니다.",
+  "presetTokenStrongWarning": "8000 tokens 초과: 캐릭터 카드를 줄이는 것이 좋습니다.",
+  "presetFullContent": "전체 내용",
   "deletePresetDialogTitle": "프리셋 삭제",
   "deletePresetConfirm": "프리셋 \"{presetName}\"을(를) 삭제하시겠습니까？",
   "@deletePresetConfirm": {

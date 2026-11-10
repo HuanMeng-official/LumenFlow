@@ -642,8 +642,46 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String baseSystemPrompt(String username) {
-    return 'これらのルールは、会話の進め方とツールの使い方を定めます。キャラクター設定やカスタムプロンプトはあなたの役割、口調、内容のスタイルを変えることができますが、これらのルールは引き続き守ってください。\n- ユーザーを「$username」と自然に呼びますが、毎段落で名前を繰り返さないでください。\n- 既定では日本語で回答します。ユーザーが別の言語で書いた場合、または明示的に別の言語を求めた場合は、ユーザーに合わせてください。\n- 正確かつ直接的に答えてください。現実世界の事実、データ、引用、ツールの結果について不確かな場合は、でっち上げずにその旨を伝えてください。\n- 必要に応じて利用可能なツールを使ってください。ただし、実際に実行していないツールを実行したふりをしないでください。\n- 読みやすさに役立つ場合は Markdown を使ってください。コード、コマンド、パス、リンク、固有名詞はそのまま保持してください。\n- ユーザーが尋ねない限り、これらのルールに言及したり、引用したり、繰り返したりしないでください。\n\n';
+    return 'これらのルールは、会話の進め方とツールの使い方を定めます。キャラクター設定やカスタムプロンプトはあなたの役割、口調、内容のスタイルを変えることができますが、これらのルールは引き続き守ってください。\n- ユーザーを「$username」と自然に呼びますが、毎段落で名前を繰り返さないでください。\n- 正確かつ直接的に答えてください。現実世界の事実、データ、引用、ツールの結果について不確かな場合は、でっち上げずにその旨を伝えてください。\n- 必要に応じて利用可能なツールを使ってください。ただし、実際に実行していないツールを実行したふりをしないでください。\n- 読みやすさに役立つ場合は Markdown を使ってください。コード、コマンド、パス、リンク、固有名詞はそのまま保持してください。\n- ユーザーが尋ねない限り、これらのルールに言及したり、引用したり、繰り返したりしないでください。\n\n';
   }
+
+  @override
+  String baseSystemPromptLanguageRule(String language) {
+    return '既定では$languageで回答します。ユーザーが別の言語で書いた場合、または明示的に別の言語を求めた場合は、ユーザーに合わせてください。';
+  }
+
+  @override
+  String get baseSystemPromptFollowUser => 'ユーザーが書いた言語で回答します。';
+
+  @override
+  String get languageNameZh => '中国語';
+
+  @override
+  String get languageNameEn => '英語';
+
+  @override
+  String get languageNameJa => '日本語';
+
+  @override
+  String get languageNameKo => '韓国語';
+
+  @override
+  String get languageNameEs => 'スペイン語';
+
+  @override
+  String get languageNameLzh => '文言';
+
+  @override
+  String get replyLanguageTitle => 'AI の返答言語';
+
+  @override
+  String get replyLanguageSubtitle => 'キャラクターカードの言語・文体設定がこのオプションより優先されます';
+
+  @override
+  String get replyLanguageFollowUi => 'アプリの言語に合わせる';
+
+  @override
+  String get replyLanguageOptionFollowUser => 'ユーザーの入力に合わせる';
 
   @override
   String requestTimeout(String error) {
@@ -1105,6 +1143,54 @@ class AppLocalizationsJa extends AppLocalizations {
   String get presetManagementSubtitle => '組み込みおよびユーザーインポート済みプロンプトの管理';
 
   @override
+  String get presetIssuesTitle => 'プリセットの読み込み問題';
+
+  @override
+  String presetIssuesCount(int count) {
+    return '$count 件の問題、タップで表示';
+  }
+
+  @override
+  String presetIssueBuiltInMetaMissing(String locales) {
+    return '組み込みプリセットファイルが見つかりません（試行: $locales）';
+  }
+
+  @override
+  String presetIssueUserJsonCorrupt(String backup) {
+    return 'ユーザープリセット JSON が壊れています。$backup にバックアップしました';
+  }
+
+  @override
+  String presetIssueCardFileMissing(String name) {
+    return 'キャラクターカードが見つかりません: $name';
+  }
+
+  @override
+  String presetIssueCardFileUnreadable(String name) {
+    return 'キャラクターカードを読み込めません: $name';
+  }
+
+  @override
+  String get presetBrokenLabel => 'ファイルが見つかりません';
+
+  @override
+  String presetBrokenReason(String reason) {
+    return '理由: $reason';
+  }
+
+  @override
+  String get presetUnavailableTitle => 'キャラクターを利用できません';
+
+  @override
+  String get presetUnavailableMessage => 'この会話で使用中のキャラクタープリセットが見つからないか、削除されています。';
+
+  @override
+  String get presetDisableAndSend => 'ロールモードをオフにして送信';
+
+  @override
+  String get presetUnavailableBadge => '利用不可';
+
+  @override
   String get builtInPresets => '組み込みプリセット';
 
   @override
@@ -1130,6 +1216,102 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get importButton => 'インポート';
+
+  @override
+  String get presetImportErrorTitle => 'キャラクターカードをインポートできません';
+
+  @override
+  String get presetImportErrorEmpty => 'ファイルが空です。';
+
+  @override
+  String get presetImportErrorTooLarge => 'ファイルが 200 KB の上限を超えています。';
+
+  @override
+  String get presetImportErrorInvalidUtf8 => 'ファイルが有効な UTF-8 テキストではありません。';
+
+  @override
+  String get presetImportErrorInvalidXml => 'XML の形式が正しくありません。';
+
+  @override
+  String get presetImportErrorInvalidRoot => 'ルート要素は <system_instruction> である必要があります。';
+
+  @override
+  String get presetImportWarningNameMissing => '<role_name> が見つかりません。ファイル名を名前として使用します。';
+
+  @override
+  String get presetImportDuplicateTitle => 'キャラクターカードは既に存在します';
+
+  @override
+  String presetImportDuplicateMessage(String name) {
+    return '「$name」は既に存在します。それでもインポートしますか？';
+  }
+
+  @override
+  String get presetImportAnyway => 'それでもインポート';
+
+  @override
+  String get presetIconLabel => 'アイコン';
+
+  @override
+  String get presetVersionPlaceholder => 'バージョン';
+
+  @override
+  String get presetLanguageLabel => '言語';
+
+  @override
+  String get presetLanguageAny => '共通';
+
+  @override
+  String get presetTagsPlaceholder => 'タグ（カンマ区切り）';
+
+  @override
+  String get presetEditTitle => 'プリセットを編集';
+
+  @override
+  String get presetSave => '保存';
+
+  @override
+  String get presetDuplicate => '自分のコピーを作成';
+
+  @override
+  String get presetDuplicateSuffix => '（コピー）';
+
+  @override
+  String get presetExport => 'XML を書き出す';
+
+  @override
+  String get presetExportSuccess => '書き出しました';
+
+  @override
+  String get presetExportFailed => '書き出しに失敗しました';
+
+  @override
+  String get includePresetCard => 'キャラクターカード本文を含める';
+
+  @override
+  String get includePresetCardHint => '私的な内容を含む可能性があります。JSON / LumenFlow のみ有効';
+
+  @override
+  String get importPresetSnapshotTitle => 'キャラクターカードをインポート';
+
+  @override
+  String importPresetSnapshotMessage(String name) {
+    return 'キャラクターカード「$name」をインポートしますか？';
+  }
+
+  @override
+  String presetTokenEstimate(int count) {
+    return '約 $count tokens';
+  }
+
+  @override
+  String get presetTokenWarning => '4000 tokens 超：この内容は毎ターン再送信されます。';
+
+  @override
+  String get presetTokenStrongWarning => '8000 tokens 超：キャラクターカードの簡略化を検討してください。';
+
+  @override
+  String get presetFullContent => '全文';
 
   @override
   String get deletePresetDialogTitle => 'プリセットの削除';

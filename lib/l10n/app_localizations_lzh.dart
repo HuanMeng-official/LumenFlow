@@ -642,8 +642,46 @@ class AppLocalizationsLzh extends AppLocalizations {
 
   @override
   String baseSystemPrompt(String username) {
-    return '此規約所以正辭令、慎器用也。角色之設或自定義之言，可易爾之身份、語氣與文風，然此規約仍當謹守。\n- 以「$username」自然呼客官，然勿每段復稱。\n- 默認以中原雅言相復；若客官以他語相詢或明言所求，則從其意。\n- 所答宜確而直；凡世間事實、數據、引文、工具之結果，有所未明則直陳其疑，勿妄補綴。\n- 需時可用所備之工具，然未嘗實行之事，不可誑稱已行。\n- 可相宜用 Markdown；程式、命令、路徑、連結、專名，皆當仍其舊。\n- 非客官相詢，勿主動言及、引用或複述此規約。\n\n';
+    return '此規約所以正辭令、慎器用也。角色之設或自定義之言，可易爾之身份、語氣與文風，然此規約仍當謹守。\n- 以「$username」自然呼客官，然勿每段復稱。\n- 所答宜確而直；凡世間事實、數據、引文、工具之結果，有所未明則直陳其疑，勿妄補綴。\n- 需時可用所備之工具，然未嘗實行之事，不可誑稱已行。\n- 可相宜用 Markdown；程式、命令、路徑、連結、專名，皆當仍其舊。\n- 非客官相詢，勿主動言及、引用或複述此規約。\n\n';
   }
+
+  @override
+  String baseSystemPromptLanguageRule(String language) {
+    return '默認以$language相復；若客官以他語相詢或明言所求，則從其意。';
+  }
+
+  @override
+  String get baseSystemPromptFollowUser => '從客官所用之語相復。';
+
+  @override
+  String get languageNameZh => '華文';
+
+  @override
+  String get languageNameEn => '英文';
+
+  @override
+  String get languageNameJa => '日文';
+
+  @override
+  String get languageNameKo => '韓文';
+
+  @override
+  String get languageNameEs => '西班牙文';
+
+  @override
+  String get languageNameLzh => '文言';
+
+  @override
+  String get replyLanguageTitle => 'AI 復言之語';
+
+  @override
+  String get replyLanguageSubtitle => '錦囊所定之語與文風，優先於此選';
+
+  @override
+  String get replyLanguageFollowUi => '從界面之語';
+
+  @override
+  String get replyLanguageOptionFollowUser => '從客官所輸入';
 
   @override
   String requestTimeout(String error) {
@@ -1105,6 +1143,54 @@ class AppLocalizationsLzh extends AppLocalizations {
   String get presetManagementSubtitle => '總理本器及閣下所納之錦囊';
 
   @override
+  String get presetIssuesTitle => '錦囊載入之虞';
+
+  @override
+  String presetIssuesCount(int count) {
+    return '凡 $count 端，點此覽之';
+  }
+
+  @override
+  String presetIssueBuiltInMetaMissing(String locales) {
+    return '本器錦囊之文未得（嘗詢：$locales）';
+  }
+
+  @override
+  String presetIssueUserJsonCorrupt(String backup) {
+    return '閣下錦囊之冊已損，已備份為 $backup';
+  }
+
+  @override
+  String presetIssueCardFileMissing(String name) {
+    return '角色之卡失其文：$name';
+  }
+
+  @override
+  String presetIssueCardFileUnreadable(String name) {
+    return '角色之卡不可讀：$name';
+  }
+
+  @override
+  String get presetBrokenLabel => '其文已失';
+
+  @override
+  String presetBrokenReason(String reason) {
+    return '其故：$reason';
+  }
+
+  @override
+  String get presetUnavailableTitle => '角色不可用';
+
+  @override
+  String get presetUnavailableMessage => '此會所用之錦囊已失或已刪。';
+
+  @override
+  String get presetDisableAndSend => '罷角色之式而遣';
+
+  @override
+  String get presetUnavailableBadge => '角色不可用';
+
+  @override
   String get builtInPresets => '本器錦囊';
 
   @override
@@ -1130,6 +1216,102 @@ class AppLocalizationsLzh extends AppLocalizations {
 
   @override
   String get importButton => '納入';
+
+  @override
+  String get presetImportErrorTitle => '角色之卡不可納';
+
+  @override
+  String get presetImportErrorEmpty => '其文空矣。';
+
+  @override
+  String get presetImportErrorTooLarge => '其文逾二百千字之限。';
+
+  @override
+  String get presetImportErrorInvalidUtf8 => '其文非 UTF-8 之正。';
+
+  @override
+  String get presetImportErrorInvalidXml => 'XML 之式有誤。';
+
+  @override
+  String get presetImportErrorInvalidRoot => '根節當為 <system_instruction>。';
+
+  @override
+  String get presetImportWarningNameMissing => '未見 <role_name>，將以文件名為稱。';
+
+  @override
+  String get presetImportDuplicateTitle => '角色之卡已存';
+
+  @override
+  String presetImportDuplicateMessage(String name) {
+    return '「$name」已存，猶欲納之乎？';
+  }
+
+  @override
+  String get presetImportAnyway => '猶欲納之';
+
+  @override
+  String get presetIconLabel => '圖標';
+
+  @override
+  String get presetVersionPlaceholder => '版本';
+
+  @override
+  String get presetLanguageLabel => '語言';
+
+  @override
+  String get presetLanguageAny => '通用';
+
+  @override
+  String get presetTagsPlaceholder => '標籤（以逗號分之）';
+
+  @override
+  String get presetEditTitle => '修錦囊';
+
+  @override
+  String get presetSave => '存之';
+
+  @override
+  String get presetDuplicate => '錄為己有';
+
+  @override
+  String get presetDuplicateSuffix => '（副本）';
+
+  @override
+  String get presetExport => '出 XML';
+
+  @override
+  String get presetExportSuccess => '已出';
+
+  @override
+  String get presetExportFailed => '出之不成';
+
+  @override
+  String get includePresetCard => '附角色之卡文';
+
+  @override
+  String get includePresetCardHint => '或含私密之文；唯 JSON / LumenFlow 有效';
+
+  @override
+  String get importPresetSnapshotTitle => '納角色之卡';
+
+  @override
+  String importPresetSnapshotMessage(String name) {
+    return '納角色之卡「$name」乎？';
+  }
+
+  @override
+  String presetTokenEstimate(int count) {
+    return '約 $count tokens';
+  }
+
+  @override
+  String get presetTokenWarning => '逾四千 tokens：每輪皆重遣此文。';
+
+  @override
+  String get presetTokenStrongWarning => '逾八千 tokens：宜刪繁就簡。';
+
+  @override
+  String get presetFullContent => '全文';
 
   @override
   String get deletePresetDialogTitle => '焚毀錦囊';

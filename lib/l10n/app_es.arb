@@ -311,7 +311,7 @@
   "selectModelFirst": "Selecciona un modelo primero",
   "messageInputPlaceholder": "Escribe un mensaje...",
   "configureApiSettingsFirst": "Configura los ajustes de la API primero",
-  "baseSystemPrompt": "Estas reglas rigen cómo te comunicas y usas las herramientas. Un preset de personaje o un prompt personalizado puede cambiar tu identidad, tono y estilo de contenido, pero sigue cumpliendo estas reglas.\n- Dirígete al usuario de forma natural como «{username}», pero no repitas el nombre en cada párrafo.\n- Responde por defecto en español. Si el usuario escribe o pide explícitamente otro idioma, sigue al usuario.\n- Sé preciso y directo. En hechos, datos, citas o resultados de herramientas del mundo real, indica la incertidumbre en lugar de inventar detalles.\n- Usa las herramientas disponibles cuando sea necesario, pero nunca afirmes haber ejecutado una herramienta que no ejecutaste.\n- Usa Markdown cuando ayude; conserva literalmente el código, los comandos, las rutas, los enlaces y los nombres propios.\n- No menciones, cites ni repitas estas reglas salvo que el usuario lo pida.\n\n",
+  "baseSystemPrompt": "Estas reglas rigen cómo te comunicas y usas las herramientas. Un preset de personaje o un prompt personalizado puede cambiar tu identidad, tono y estilo de contenido, pero sigue cumpliendo estas reglas.\n- Dirígete al usuario de forma natural como «{username}», pero no repitas el nombre en cada párrafo.\n- Sé preciso y directo. En hechos, datos, citas o resultados de herramientas del mundo real, indica la incertidumbre en lugar de inventar detalles.\n- Usa las herramientas disponibles cuando sea necesario, pero nunca afirmes haber ejecutado una herramienta que no ejecutaste.\n- Usa Markdown cuando ayude; conserva literalmente el código, los comandos, las rutas, los enlaces y los nombres propios.\n- No menciones, cites ni repitas estas reglas salvo que el usuario lo pida.\n\n",
   "@baseSystemPrompt": {
     "placeholders": {
       "username": {
@@ -319,6 +319,25 @@
       }
     }
   },
+  "baseSystemPromptLanguageRule": "Responde por defecto en {language}. Si el usuario escribe o pide explícitamente otro idioma, síguelo.",
+  "@baseSystemPromptLanguageRule": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "baseSystemPromptFollowUser": "Responde en el idioma en que escribe el usuario.",
+  "languageNameZh": "chino",
+  "languageNameEn": "inglés",
+  "languageNameJa": "japonés",
+  "languageNameKo": "coreano",
+  "languageNameEs": "español",
+  "languageNameLzh": "chino clásico",
+  "replyLanguageTitle": "Idioma de respuesta de la IA",
+  "replyLanguageSubtitle": "El idioma y el estilo del ajuste de personaje tienen prioridad sobre esta opción",
+  "replyLanguageFollowUi": "Seguir el idioma de la app",
+  "replyLanguageOptionFollowUser": "Seguir la entrada del usuario",
   "requestTimeout": "Tiempo de espera agotado: El servidor tardó demasiado en responder. Revisa tu conexión. Error: {error}",
   "@requestTimeout": {
     "placeholders": {
@@ -675,6 +694,60 @@
   "messageOptions": "Opciones del mensaje",
   "presetManagement": "Gestión de ajustes predefinidos",
   "presetManagementSubtitle": "Gestionar prompts internos e importados",
+  "presetIssuesTitle": "Problemas al cargar ajustes predefinidos",
+  "presetIssuesCount": "{count} problemas, toca para ver",
+  "@presetIssuesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "presetIssueBuiltInMetaMissing": "No se encontró el archivo de ajustes internos (probado: {locales})",
+  "@presetIssueBuiltInMetaMissing": {
+    "placeholders": {
+      "locales": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueUserJsonCorrupt": "El JSON de ajustes del usuario está dañado; se guardó una copia en {backup}",
+  "@presetIssueUserJsonCorrupt": {
+    "placeholders": {
+      "backup": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueCardFileMissing": "Falta el archivo de la tarjeta de personaje: {name}",
+  "@presetIssueCardFileMissing": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueCardFileUnreadable": "No se puede leer la tarjeta de personaje: {name}",
+  "@presetIssueCardFileUnreadable": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "presetBrokenLabel": "Archivo faltante",
+  "presetBrokenReason": "Motivo: {reason}",
+  "@presetBrokenReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "presetUnavailableTitle": "Personaje no disponible",
+  "presetUnavailableMessage": "El ajuste de personaje de esta conversación falta o fue eliminado.",
+  "presetDisableAndSend": "Desactivar modo de rol y enviar",
+  "presetUnavailableBadge": "No disponible",
   "builtInPresets": "Predefinidos",
   "userPresets": "Ajustes de usuario",
   "noPresetsAvailable": "No hay ajustes disponibles",
@@ -684,6 +757,57 @@
   "descriptionPlaceholder": "Descripción",
   "authorPlaceholder": "Autor",
   "importButton": "Importar",
+  "presetImportErrorTitle": "No se puede importar la tarjeta",
+  "presetImportErrorEmpty": "El archivo está vacío.",
+  "presetImportErrorTooLarge": "El archivo supera el límite de 200 KB.",
+  "presetImportErrorInvalidUtf8": "El archivo no es texto UTF-8 válido.",
+  "presetImportErrorInvalidXml": "El XML tiene un formato incorrecto.",
+  "presetImportErrorInvalidRoot": "El elemento raíz debe ser <system_instruction>.",
+  "presetImportWarningNameMissing": "No se encontró <role_name>; se usará el nombre del archivo.",
+  "presetImportDuplicateTitle": "La tarjeta de personaje ya existe",
+  "presetImportDuplicateMessage": "«{name}» ya existe. ¿Importar de todos modos?",
+  "@presetImportDuplicateMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "presetImportAnyway": "Importar de todos modos",
+  "presetIconLabel": "Icono",
+  "presetVersionPlaceholder": "Versión",
+  "presetLanguageLabel": "Idioma",
+  "presetLanguageAny": "General",
+  "presetTagsPlaceholder": "Etiquetas (separadas por comas)",
+  "presetEditTitle": "Editar ajuste",
+  "presetSave": "Guardar",
+  "presetDuplicate": "Duplicar como copia",
+  "presetDuplicateSuffix": " (copia)",
+  "presetExport": "Exportar XML",
+  "presetExportSuccess": "Exportado",
+  "presetExportFailed": "Error al exportar",
+  "includePresetCard": "Incluir el contenido de la tarjeta",
+  "includePresetCardHint": "Puede contener contenido privado; solo para JSON / LumenFlow",
+  "importPresetSnapshotTitle": "Importar tarjeta de personaje",
+  "importPresetSnapshotMessage": "¿Importar la tarjeta «{name}»?",
+  "@importPresetSnapshotMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "presetTokenEstimate": "Aprox. {count} tokens",
+  "@presetTokenEstimate": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "presetTokenWarning": "Más de 4000 tokens: este contenido se reenvía en cada turno.",
+  "presetTokenStrongWarning": "Más de 8000 tokens: considera simplificar la tarjeta.",
+  "presetFullContent": "Contenido completo",
   "deletePresetDialogTitle": "Eliminar ajuste",
   "deletePresetConfirm": "¿Estás seguro de que quieres eliminar el ajuste \"{presetName}\"?",
   "@deletePresetConfirm": {

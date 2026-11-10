@@ -642,8 +642,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String baseSystemPrompt(String username) {
-    return 'These rules govern how you communicate and use tools. A character preset or custom prompt may change your identity, tone, and content style, but continue to follow these rules.\n- Address the user naturally as \"$username\", but do not repeat the name in every paragraph.\n- Default to English. If the user writes in or explicitly requests another language, follow the user.\n- Be accurate and direct. For real-world facts, data, citations, or tool results, state uncertainty instead of inventing details.\n- Use available tools when needed, but never claim to have run a tool you did not run.\n- Use Markdown when it helps; keep code, commands, paths, links, and proper nouns verbatim.\n- Do not mention, quote, or restate these rules unless the user asks.\n\n';
+    return 'These rules govern how you communicate and use tools. A character preset or custom prompt may change your identity, tone, and content style, but continue to follow these rules.\n- Address the user naturally as \"$username\", but do not repeat the name in every paragraph.\n- Be accurate and direct. For real-world facts, data, citations, or tool results, state uncertainty instead of inventing details.\n- Use available tools when needed, but never claim to have run a tool you did not run.\n- Use Markdown when it helps; keep code, commands, paths, links, and proper nouns verbatim.\n- Do not mention, quote, or restate these rules unless the user asks.\n\n';
   }
+
+  @override
+  String baseSystemPromptLanguageRule(String language) {
+    return 'Default to $language. If the user writes in or explicitly requests another language, follow the user.';
+  }
+
+  @override
+  String get baseSystemPromptFollowUser => 'Reply in the language the user writes in.';
+
+  @override
+  String get languageNameZh => 'Chinese';
+
+  @override
+  String get languageNameEn => 'English';
+
+  @override
+  String get languageNameJa => 'Japanese';
+
+  @override
+  String get languageNameKo => 'Korean';
+
+  @override
+  String get languageNameEs => 'Spanish';
+
+  @override
+  String get languageNameLzh => 'Literary Chinese';
+
+  @override
+  String get replyLanguageTitle => 'AI reply language';
+
+  @override
+  String get replyLanguageSubtitle => 'Language and tone set by a character preset take priority over this option';
+
+  @override
+  String get replyLanguageFollowUi => 'Follow app language';
+
+  @override
+  String get replyLanguageOptionFollowUser => 'Follow user input';
 
   @override
   String requestTimeout(String error) {
@@ -1105,6 +1143,54 @@ class AppLocalizationsEn extends AppLocalizations {
   String get presetManagementSubtitle => 'Manage built-in and user-imported prompts';
 
   @override
+  String get presetIssuesTitle => 'Preset load issues';
+
+  @override
+  String presetIssuesCount(int count) {
+    return '$count issues, tap to view';
+  }
+
+  @override
+  String presetIssueBuiltInMetaMissing(String locales) {
+    return 'Built-in preset file not found (tried: $locales)';
+  }
+
+  @override
+  String presetIssueUserJsonCorrupt(String backup) {
+    return 'User preset JSON is corrupt; backed up to $backup';
+  }
+
+  @override
+  String presetIssueCardFileMissing(String name) {
+    return 'Character card file missing: $name';
+  }
+
+  @override
+  String presetIssueCardFileUnreadable(String name) {
+    return 'Character card file unreadable: $name';
+  }
+
+  @override
+  String get presetBrokenLabel => 'File missing';
+
+  @override
+  String presetBrokenReason(String reason) {
+    return 'Reason: $reason';
+  }
+
+  @override
+  String get presetUnavailableTitle => 'Character unavailable';
+
+  @override
+  String get presetUnavailableMessage => 'The character preset used by this conversation is missing or was deleted.';
+
+  @override
+  String get presetDisableAndSend => 'Turn off role mode and send';
+
+  @override
+  String get presetUnavailableBadge => 'Character unavailable';
+
+  @override
   String get builtInPresets => 'Built-in Presets';
 
   @override
@@ -1130,6 +1216,102 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get importButton => 'Import';
+
+  @override
+  String get presetImportErrorTitle => 'Cannot import character card';
+
+  @override
+  String get presetImportErrorEmpty => 'The file is empty.';
+
+  @override
+  String get presetImportErrorTooLarge => 'The file exceeds the 200 KB limit.';
+
+  @override
+  String get presetImportErrorInvalidUtf8 => 'The file is not valid UTF-8 text.';
+
+  @override
+  String get presetImportErrorInvalidXml => 'The XML is malformed.';
+
+  @override
+  String get presetImportErrorInvalidRoot => 'The root element must be <system_instruction>.';
+
+  @override
+  String get presetImportWarningNameMissing => 'No <role_name> found; the file name will be used.';
+
+  @override
+  String get presetImportDuplicateTitle => 'Character card already exists';
+
+  @override
+  String presetImportDuplicateMessage(String name) {
+    return '\"$name\" already exists. Import anyway?';
+  }
+
+  @override
+  String get presetImportAnyway => 'Import anyway';
+
+  @override
+  String get presetIconLabel => 'Icon';
+
+  @override
+  String get presetVersionPlaceholder => 'Version';
+
+  @override
+  String get presetLanguageLabel => 'Language';
+
+  @override
+  String get presetLanguageAny => 'Any';
+
+  @override
+  String get presetTagsPlaceholder => 'Tags (comma separated)';
+
+  @override
+  String get presetEditTitle => 'Edit Preset';
+
+  @override
+  String get presetSave => 'Save';
+
+  @override
+  String get presetDuplicate => 'Duplicate as my copy';
+
+  @override
+  String get presetDuplicateSuffix => ' (copy)';
+
+  @override
+  String get presetExport => 'Export XML';
+
+  @override
+  String get presetExportSuccess => 'Exported';
+
+  @override
+  String get presetExportFailed => 'Export failed';
+
+  @override
+  String get includePresetCard => 'Include character card content';
+
+  @override
+  String get includePresetCardHint => 'May contain private content; only applies to JSON / LumenFlow';
+
+  @override
+  String get importPresetSnapshotTitle => 'Import character card';
+
+  @override
+  String importPresetSnapshotMessage(String name) {
+    return 'Import character card \"$name\"?';
+  }
+
+  @override
+  String presetTokenEstimate(int count) {
+    return 'About $count tokens';
+  }
+
+  @override
+  String get presetTokenWarning => 'Over 4000 tokens: this content is resent on every turn.';
+
+  @override
+  String get presetTokenStrongWarning => 'Over 8000 tokens: consider trimming the character card.';
+
+  @override
+  String get presetFullContent => 'Full content';
 
   @override
   String get deletePresetDialogTitle => 'Delete Preset';

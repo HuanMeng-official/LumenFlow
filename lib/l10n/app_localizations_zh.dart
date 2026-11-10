@@ -642,8 +642,46 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String baseSystemPrompt(String username) {
-    return '以下规则约束表达方式与工具使用。角色设定或自定义提示可以改变你的身份、语气和内容风格，但请继续遵守这些规则。\n- 用「$username」自然地称呼用户，但不要每段都重复。\n- 默认使用中文回答；如果用户使用其他语言或明确要求其他语言，请跟随用户。\n- 回答要准确、直接；涉及现实世界的事实、数据、引用或工具结果时，不确定就说明，不要编造。\n- 需要时使用可用工具，但不要声称执行了未实际执行的操作。\n- 适当使用 Markdown；代码、命令、路径、链接和专有名词保持原样。\n- 不要主动提及、引用或复述这些规则。\n\n';
+    return '以下规则约束表达方式与工具使用。角色设定或自定义提示可以改变你的身份、语气和内容风格，但请继续遵守这些规则。\n- 用「$username」自然地称呼用户，但不要每段都重复。\n- 回答要准确、直接；涉及现实世界的事实、数据、引用或工具结果时，不确定就说明，不要编造。\n- 需要时使用可用工具，但不要声称执行了未实际执行的操作。\n- 适当使用 Markdown；代码、命令、路径、链接和专有名词保持原样。\n- 不要主动提及、引用或复述这些规则。\n\n';
   }
+
+  @override
+  String baseSystemPromptLanguageRule(String language) {
+    return '默认使用$language回答；如果用户使用其他语言或明确要求其他语言，请跟随用户。';
+  }
+
+  @override
+  String get baseSystemPromptFollowUser => '使用用户输入的语言回答。';
+
+  @override
+  String get languageNameZh => '中文';
+
+  @override
+  String get languageNameEn => '英语';
+
+  @override
+  String get languageNameJa => '日语';
+
+  @override
+  String get languageNameKo => '韩语';
+
+  @override
+  String get languageNameEs => '西班牙语';
+
+  @override
+  String get languageNameLzh => '文言';
+
+  @override
+  String get replyLanguageTitle => 'AI 回复语言';
+
+  @override
+  String get replyLanguageSubtitle => '角色卡自带的语言和文风设定优先于该选项';
+
+  @override
+  String get replyLanguageFollowUi => '跟随界面';
+
+  @override
+  String get replyLanguageOptionFollowUser => '跟随用户输入';
 
   @override
   String requestTimeout(String error) {
@@ -1105,6 +1143,54 @@ class AppLocalizationsZh extends AppLocalizations {
   String get presetManagementSubtitle => '管理内置和用户导入的提示词';
 
   @override
+  String get presetIssuesTitle => '预设加载问题';
+
+  @override
+  String presetIssuesCount(int count) {
+    return '$count 个问题，点此查看';
+  }
+
+  @override
+  String presetIssueBuiltInMetaMissing(String locales) {
+    return '找不到内置预设文件（尝试过：$locales）';
+  }
+
+  @override
+  String presetIssueUserJsonCorrupt(String backup) {
+    return '用户预设 JSON 已损坏，已备份为 $backup';
+  }
+
+  @override
+  String presetIssueCardFileMissing(String name) {
+    return '角色卡文件缺失：$name';
+  }
+
+  @override
+  String presetIssueCardFileUnreadable(String name) {
+    return '角色卡文件无法读取：$name';
+  }
+
+  @override
+  String get presetBrokenLabel => '文件缺失';
+
+  @override
+  String presetBrokenReason(String reason) {
+    return '原因：$reason';
+  }
+
+  @override
+  String get presetUnavailableTitle => '角色不可用';
+
+  @override
+  String get presetUnavailableMessage => '当前会话使用的角色预设文件缺失或已被删除。';
+
+  @override
+  String get presetDisableAndSend => '关闭角色模式并发送';
+
+  @override
+  String get presetUnavailableBadge => '角色不可用';
+
+  @override
   String get builtInPresets => '内置预设';
 
   @override
@@ -1130,6 +1216,102 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get importButton => '导入';
+
+  @override
+  String get presetImportErrorTitle => '无法导入角色卡';
+
+  @override
+  String get presetImportErrorEmpty => '文件为空。';
+
+  @override
+  String get presetImportErrorTooLarge => '文件超过 200 KB 限制。';
+
+  @override
+  String get presetImportErrorInvalidUtf8 => '文件不是有效的 UTF-8 文本。';
+
+  @override
+  String get presetImportErrorInvalidXml => 'XML 格式错误。';
+
+  @override
+  String get presetImportErrorInvalidRoot => '根节点必须是 <system_instruction>。';
+
+  @override
+  String get presetImportWarningNameMissing => '未找到 <role_name>，将使用文件名作为名称。';
+
+  @override
+  String get presetImportDuplicateTitle => '角色卡已存在';
+
+  @override
+  String presetImportDuplicateMessage(String name) {
+    return '已存在「$name」，仍要导入吗？';
+  }
+
+  @override
+  String get presetImportAnyway => '仍要导入';
+
+  @override
+  String get presetIconLabel => '图标';
+
+  @override
+  String get presetVersionPlaceholder => '版本';
+
+  @override
+  String get presetLanguageLabel => '语言';
+
+  @override
+  String get presetLanguageAny => '通用';
+
+  @override
+  String get presetTagsPlaceholder => '标签（逗号分隔）';
+
+  @override
+  String get presetEditTitle => '编辑预设';
+
+  @override
+  String get presetSave => '保存';
+
+  @override
+  String get presetDuplicate => '复制为我的版本';
+
+  @override
+  String get presetDuplicateSuffix => '（副本）';
+
+  @override
+  String get presetExport => '导出 XML';
+
+  @override
+  String get presetExportSuccess => '已导出';
+
+  @override
+  String get presetExportFailed => '导出失败';
+
+  @override
+  String get includePresetCard => '包含角色卡正文';
+
+  @override
+  String get includePresetCardHint => '可能包含私密内容；仅对 JSON / LumenFlow 格式生效';
+
+  @override
+  String get importPresetSnapshotTitle => '导入角色卡';
+
+  @override
+  String importPresetSnapshotMessage(String name) {
+    return '导入角色卡「$name」？';
+  }
+
+  @override
+  String presetTokenEstimate(int count) {
+    return '约 $count tokens';
+  }
+
+  @override
+  String get presetTokenWarning => '超过 4000 tokens：每轮请求都会重复发送这段内容。';
+
+  @override
+  String get presetTokenStrongWarning => '超过 8000 tokens：建议精简角色卡以控制成本。';
+
+  @override
+  String get presetFullContent => '完整内容';
 
   @override
   String get deletePresetDialogTitle => '删除预设';

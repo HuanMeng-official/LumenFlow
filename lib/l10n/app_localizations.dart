@@ -1318,8 +1318,80 @@ abstract class AppLocalizations {
   /// No description provided for @baseSystemPrompt.
   ///
   /// In en, this message translates to:
-  /// **'These rules govern how you communicate and use tools. A character preset or custom prompt may change your identity, tone, and content style, but continue to follow these rules.\n- Address the user naturally as \"{username}\", but do not repeat the name in every paragraph.\n- Default to English. If the user writes in or explicitly requests another language, follow the user.\n- Be accurate and direct. For real-world facts, data, citations, or tool results, state uncertainty instead of inventing details.\n- Use available tools when needed, but never claim to have run a tool you did not run.\n- Use Markdown when it helps; keep code, commands, paths, links, and proper nouns verbatim.\n- Do not mention, quote, or restate these rules unless the user asks.\n\n'**
+  /// **'These rules govern how you communicate and use tools. A character preset or custom prompt may change your identity, tone, and content style, but continue to follow these rules.\n- Address the user naturally as \"{username}\", but do not repeat the name in every paragraph.\n- Be accurate and direct. For real-world facts, data, citations, or tool results, state uncertainty instead of inventing details.\n- Use available tools when needed, but never claim to have run a tool you did not run.\n- Use Markdown when it helps; keep code, commands, paths, links, and proper nouns verbatim.\n- Do not mention, quote, or restate these rules unless the user asks.\n\n'**
   String baseSystemPrompt(String username);
+
+  /// No description provided for @baseSystemPromptLanguageRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Default to {language}. If the user writes in or explicitly requests another language, follow the user.'**
+  String baseSystemPromptLanguageRule(String language);
+
+  /// No description provided for @baseSystemPromptFollowUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply in the language the user writes in.'**
+  String get baseSystemPromptFollowUser;
+
+  /// No description provided for @languageNameZh.
+  ///
+  /// In en, this message translates to:
+  /// **'Chinese'**
+  String get languageNameZh;
+
+  /// No description provided for @languageNameEn.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get languageNameEn;
+
+  /// No description provided for @languageNameJa.
+  ///
+  /// In en, this message translates to:
+  /// **'Japanese'**
+  String get languageNameJa;
+
+  /// No description provided for @languageNameKo.
+  ///
+  /// In en, this message translates to:
+  /// **'Korean'**
+  String get languageNameKo;
+
+  /// No description provided for @languageNameEs.
+  ///
+  /// In en, this message translates to:
+  /// **'Spanish'**
+  String get languageNameEs;
+
+  /// No description provided for @languageNameLzh.
+  ///
+  /// In en, this message translates to:
+  /// **'Literary Chinese'**
+  String get languageNameLzh;
+
+  /// No description provided for @replyLanguageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI reply language'**
+  String get replyLanguageTitle;
+
+  /// No description provided for @replyLanguageSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Language and tone set by a character preset take priority over this option'**
+  String get replyLanguageSubtitle;
+
+  /// No description provided for @replyLanguageFollowUi.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow app language'**
+  String get replyLanguageFollowUi;
+
+  /// No description provided for @replyLanguageOptionFollowUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow user input'**
+  String get replyLanguageOptionFollowUser;
 
   /// No description provided for @requestTimeout.
   ///
@@ -2131,6 +2203,78 @@ abstract class AppLocalizations {
   /// **'Manage built-in and user-imported prompts'**
   String get presetManagementSubtitle;
 
+  /// No description provided for @presetIssuesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Preset load issues'**
+  String get presetIssuesTitle;
+
+  /// No description provided for @presetIssuesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} issues, tap to view'**
+  String presetIssuesCount(int count);
+
+  /// No description provided for @presetIssueBuiltInMetaMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in preset file not found (tried: {locales})'**
+  String presetIssueBuiltInMetaMissing(String locales);
+
+  /// No description provided for @presetIssueUserJsonCorrupt.
+  ///
+  /// In en, this message translates to:
+  /// **'User preset JSON is corrupt; backed up to {backup}'**
+  String presetIssueUserJsonCorrupt(String backup);
+
+  /// No description provided for @presetIssueCardFileMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Character card file missing: {name}'**
+  String presetIssueCardFileMissing(String name);
+
+  /// No description provided for @presetIssueCardFileUnreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'Character card file unreadable: {name}'**
+  String presetIssueCardFileUnreadable(String name);
+
+  /// No description provided for @presetBrokenLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'File missing'**
+  String get presetBrokenLabel;
+
+  /// No description provided for @presetBrokenReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason: {reason}'**
+  String presetBrokenReason(String reason);
+
+  /// No description provided for @presetUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Character unavailable'**
+  String get presetUnavailableTitle;
+
+  /// No description provided for @presetUnavailableMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The character preset used by this conversation is missing or was deleted.'**
+  String get presetUnavailableMessage;
+
+  /// No description provided for @presetDisableAndSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off role mode and send'**
+  String get presetDisableAndSend;
+
+  /// No description provided for @presetUnavailableBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Character unavailable'**
+  String get presetUnavailableBadge;
+
   /// No description provided for @builtInPresets.
   ///
   /// In en, this message translates to:
@@ -2184,6 +2328,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Import'**
   String get importButton;
+
+  /// No description provided for @presetImportErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot import character card'**
+  String get presetImportErrorTitle;
+
+  /// No description provided for @presetImportErrorEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'The file is empty.'**
+  String get presetImportErrorEmpty;
+
+  /// No description provided for @presetImportErrorTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'The file exceeds the 200 KB limit.'**
+  String get presetImportErrorTooLarge;
+
+  /// No description provided for @presetImportErrorInvalidUtf8.
+  ///
+  /// In en, this message translates to:
+  /// **'The file is not valid UTF-8 text.'**
+  String get presetImportErrorInvalidUtf8;
+
+  /// No description provided for @presetImportErrorInvalidXml.
+  ///
+  /// In en, this message translates to:
+  /// **'The XML is malformed.'**
+  String get presetImportErrorInvalidXml;
+
+  /// No description provided for @presetImportErrorInvalidRoot.
+  ///
+  /// In en, this message translates to:
+  /// **'The root element must be <system_instruction>.'**
+  String get presetImportErrorInvalidRoot;
+
+  /// No description provided for @presetImportWarningNameMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'No <role_name> found; the file name will be used.'**
+  String get presetImportWarningNameMissing;
+
+  /// No description provided for @presetImportDuplicateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Character card already exists'**
+  String get presetImportDuplicateTitle;
+
+  /// No description provided for @presetImportDuplicateMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\" already exists. Import anyway?'**
+  String presetImportDuplicateMessage(String name);
+
+  /// No description provided for @presetImportAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Import anyway'**
+  String get presetImportAnyway;
+
+  /// No description provided for @presetIconLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Icon'**
+  String get presetIconLabel;
+
+  /// No description provided for @presetVersionPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get presetVersionPlaceholder;
+
+  /// No description provided for @presetLanguageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get presetLanguageLabel;
+
+  /// No description provided for @presetLanguageAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get presetLanguageAny;
+
+  /// No description provided for @presetTagsPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags (comma separated)'**
+  String get presetTagsPlaceholder;
+
+  /// No description provided for @presetEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Preset'**
+  String get presetEditTitle;
+
+  /// No description provided for @presetSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get presetSave;
+
+  /// No description provided for @presetDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate as my copy'**
+  String get presetDuplicate;
+
+  /// No description provided for @presetDuplicateSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **' (copy)'**
+  String get presetDuplicateSuffix;
+
+  /// No description provided for @presetExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export XML'**
+  String get presetExport;
+
+  /// No description provided for @presetExportSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Exported'**
+  String get presetExportSuccess;
+
+  /// No description provided for @presetExportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Export failed'**
+  String get presetExportFailed;
+
+  /// No description provided for @includePresetCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Include character card content'**
+  String get includePresetCard;
+
+  /// No description provided for @includePresetCardHint.
+  ///
+  /// In en, this message translates to:
+  /// **'May contain private content; only applies to JSON / LumenFlow'**
+  String get includePresetCardHint;
+
+  /// No description provided for @importPresetSnapshotTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import character card'**
+  String get importPresetSnapshotTitle;
+
+  /// No description provided for @importPresetSnapshotMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Import character card \"{name}\"?'**
+  String importPresetSnapshotMessage(String name);
+
+  /// No description provided for @presetTokenEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'About {count} tokens'**
+  String presetTokenEstimate(int count);
+
+  /// No description provided for @presetTokenWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Over 4000 tokens: this content is resent on every turn.'**
+  String get presetTokenWarning;
+
+  /// No description provided for @presetTokenStrongWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Over 8000 tokens: consider trimming the character card.'**
+  String get presetTokenStrongWarning;
+
+  /// No description provided for @presetFullContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Full content'**
+  String get presetFullContent;
 
   /// No description provided for @deletePresetDialogTitle.
   ///

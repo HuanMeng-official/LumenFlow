@@ -311,7 +311,7 @@
   "selectModelFirst": "请先选择一个模型",
   "messageInputPlaceholder": "输入消息...",
   "configureApiSettingsFirst": "请先配置API设置",
-  "baseSystemPrompt": "以下规则约束表达方式与工具使用。角色设定或自定义提示可以改变你的身份、语气和内容风格，但请继续遵守这些规则。\n- 用「{username}」自然地称呼用户，但不要每段都重复。\n- 默认使用中文回答；如果用户使用其他语言或明确要求其他语言，请跟随用户。\n- 回答要准确、直接；涉及现实世界的事实、数据、引用或工具结果时，不确定就说明，不要编造。\n- 需要时使用可用工具，但不要声称执行了未实际执行的操作。\n- 适当使用 Markdown；代码、命令、路径、链接和专有名词保持原样。\n- 不要主动提及、引用或复述这些规则。\n\n",
+  "baseSystemPrompt": "以下规则约束表达方式与工具使用。角色设定或自定义提示可以改变你的身份、语气和内容风格，但请继续遵守这些规则。\n- 用「{username}」自然地称呼用户，但不要每段都重复。\n- 回答要准确、直接；涉及现实世界的事实、数据、引用或工具结果时，不确定就说明，不要编造。\n- 需要时使用可用工具，但不要声称执行了未实际执行的操作。\n- 适当使用 Markdown；代码、命令、路径、链接和专有名词保持原样。\n- 不要主动提及、引用或复述这些规则。\n\n",
   "@baseSystemPrompt": {
     "placeholders": {
       "username": {
@@ -319,6 +319,25 @@
       }
     }
   },
+  "baseSystemPromptLanguageRule": "默认使用{language}回答；如果用户使用其他语言或明确要求其他语言，请跟随用户。",
+  "@baseSystemPromptLanguageRule": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "baseSystemPromptFollowUser": "使用用户输入的语言回答。",
+  "languageNameZh": "中文",
+  "languageNameEn": "英语",
+  "languageNameJa": "日语",
+  "languageNameKo": "韩语",
+  "languageNameEs": "西班牙语",
+  "languageNameLzh": "文言",
+  "replyLanguageTitle": "AI 回复语言",
+  "replyLanguageSubtitle": "角色卡自带的语言和文风设定优先于该选项",
+  "replyLanguageFollowUi": "跟随界面",
+  "replyLanguageOptionFollowUser": "跟随用户输入",
   "requestTimeout": "请求超时：服务器响应时间过长，请检查网络连接或稍后重试。错误详情: {error}",
   "@requestTimeout": {
     "placeholders": {
@@ -675,6 +694,60 @@
   "messageOptions": "消息选项",
   "presetManagement": "预设管理",
   "presetManagementSubtitle": "管理内置和用户导入的提示词",
+  "presetIssuesTitle": "预设加载问题",
+  "presetIssuesCount": "{count} 个问题，点此查看",
+  "@presetIssuesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "presetIssueBuiltInMetaMissing": "找不到内置预设文件（尝试过：{locales}）",
+  "@presetIssueBuiltInMetaMissing": {
+    "placeholders": {
+      "locales": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueUserJsonCorrupt": "用户预设 JSON 已损坏，已备份为 {backup}",
+  "@presetIssueUserJsonCorrupt": {
+    "placeholders": {
+      "backup": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueCardFileMissing": "角色卡文件缺失：{name}",
+  "@presetIssueCardFileMissing": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueCardFileUnreadable": "角色卡文件无法读取：{name}",
+  "@presetIssueCardFileUnreadable": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "presetBrokenLabel": "文件缺失",
+  "presetBrokenReason": "原因：{reason}",
+  "@presetBrokenReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "presetUnavailableTitle": "角色不可用",
+  "presetUnavailableMessage": "当前会话使用的角色预设文件缺失或已被删除。",
+  "presetDisableAndSend": "关闭角色模式并发送",
+  "presetUnavailableBadge": "角色不可用",
   "builtInPresets": "内置预设",
   "userPresets": "用户预设",
   "noPresetsAvailable": "暂无预设",
@@ -684,6 +757,57 @@
   "descriptionPlaceholder": "描述",
   "authorPlaceholder": "作者",
   "importButton": "导入",
+  "presetImportErrorTitle": "无法导入角色卡",
+  "presetImportErrorEmpty": "文件为空。",
+  "presetImportErrorTooLarge": "文件超过 200 KB 限制。",
+  "presetImportErrorInvalidUtf8": "文件不是有效的 UTF-8 文本。",
+  "presetImportErrorInvalidXml": "XML 格式错误。",
+  "presetImportErrorInvalidRoot": "根节点必须是 <system_instruction>。",
+  "presetImportWarningNameMissing": "未找到 <role_name>，将使用文件名作为名称。",
+  "presetImportDuplicateTitle": "角色卡已存在",
+  "presetImportDuplicateMessage": "已存在「{name}」，仍要导入吗？",
+  "@presetImportDuplicateMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "presetImportAnyway": "仍要导入",
+  "presetIconLabel": "图标",
+  "presetVersionPlaceholder": "版本",
+  "presetLanguageLabel": "语言",
+  "presetLanguageAny": "通用",
+  "presetTagsPlaceholder": "标签（逗号分隔）",
+  "presetEditTitle": "编辑预设",
+  "presetSave": "保存",
+  "presetDuplicate": "复制为我的版本",
+  "presetDuplicateSuffix": "（副本）",
+  "presetExport": "导出 XML",
+  "presetExportSuccess": "已导出",
+  "presetExportFailed": "导出失败",
+  "includePresetCard": "包含角色卡正文",
+  "includePresetCardHint": "可能包含私密内容；仅对 JSON / LumenFlow 格式生效",
+  "importPresetSnapshotTitle": "导入角色卡",
+  "importPresetSnapshotMessage": "导入角色卡「{name}」？",
+  "@importPresetSnapshotMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "presetTokenEstimate": "约 {count} tokens",
+  "@presetTokenEstimate": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "presetTokenWarning": "超过 4000 tokens：每轮请求都会重复发送这段内容。",
+  "presetTokenStrongWarning": "超过 8000 tokens：建议精简角色卡以控制成本。",
+  "presetFullContent": "完整内容",
   "deletePresetDialogTitle": "删除预设",
   "deletePresetConfirm": "确定要删除预设 \"{presetName}\" 吗？",
   "@deletePresetConfirm": {

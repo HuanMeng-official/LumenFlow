@@ -311,7 +311,7 @@
   "selectModelFirst": "祈先擇定一法象",
   "messageInputPlaceholder": "落筆於此...",
   "configureApiSettingsFirst": "祈先定樞機之規度",
-  "baseSystemPrompt": "此規約所以正辭令、慎器用也。角色之設或自定義之言，可易爾之身份、語氣與文風，然此規約仍當謹守。\n- 以「{username}」自然呼客官，然勿每段復稱。\n- 默認以中原雅言相復；若客官以他語相詢或明言所求，則從其意。\n- 所答宜確而直；凡世間事實、數據、引文、工具之結果，有所未明則直陳其疑，勿妄補綴。\n- 需時可用所備之工具，然未嘗實行之事，不可誑稱已行。\n- 可相宜用 Markdown；程式、命令、路徑、連結、專名，皆當仍其舊。\n- 非客官相詢，勿主動言及、引用或複述此規約。\n\n",
+  "baseSystemPrompt": "此規約所以正辭令、慎器用也。角色之設或自定義之言，可易爾之身份、語氣與文風，然此規約仍當謹守。\n- 以「{username}」自然呼客官，然勿每段復稱。\n- 所答宜確而直；凡世間事實、數據、引文、工具之結果，有所未明則直陳其疑，勿妄補綴。\n- 需時可用所備之工具，然未嘗實行之事，不可誑稱已行。\n- 可相宜用 Markdown；程式、命令、路徑、連結、專名，皆當仍其舊。\n- 非客官相詢，勿主動言及、引用或複述此規約。\n\n",
   "@baseSystemPrompt": {
     "placeholders": {
       "username": {
@@ -319,6 +319,25 @@
       }
     }
   },
+  "baseSystemPromptLanguageRule": "默認以{language}相復；若客官以他語相詢或明言所求，則從其意。",
+  "@baseSystemPromptLanguageRule": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "baseSystemPromptFollowUser": "從客官所用之語相復。",
+  "languageNameZh": "華文",
+  "languageNameEn": "英文",
+  "languageNameJa": "日文",
+  "languageNameKo": "韓文",
+  "languageNameEs": "西班牙文",
+  "languageNameLzh": "文言",
+  "replyLanguageTitle": "AI 復言之語",
+  "replyLanguageSubtitle": "錦囊所定之語與文風，優先於此選",
+  "replyLanguageFollowUi": "從界面之語",
+  "replyLanguageOptionFollowUser": "從客官所輸入",
   "requestTimeout": "晷漏已盡：門戶良久無音，祈察靈犀綱或少待再試。乖謬之詳: {error}",
   "@requestTimeout": {
     "placeholders": {
@@ -675,6 +694,60 @@
   "messageOptions": "言辭之度",
   "presetManagement": "錦囊總理",
   "presetManagementSubtitle": "總理本器及閣下所納之錦囊",
+  "presetIssuesTitle": "錦囊載入之虞",
+  "presetIssuesCount": "凡 {count} 端，點此覽之",
+  "@presetIssuesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "presetIssueBuiltInMetaMissing": "本器錦囊之文未得（嘗詢：{locales}）",
+  "@presetIssueBuiltInMetaMissing": {
+    "placeholders": {
+      "locales": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueUserJsonCorrupt": "閣下錦囊之冊已損，已備份為 {backup}",
+  "@presetIssueUserJsonCorrupt": {
+    "placeholders": {
+      "backup": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueCardFileMissing": "角色之卡失其文：{name}",
+  "@presetIssueCardFileMissing": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueCardFileUnreadable": "角色之卡不可讀：{name}",
+  "@presetIssueCardFileUnreadable": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "presetBrokenLabel": "其文已失",
+  "presetBrokenReason": "其故：{reason}",
+  "@presetBrokenReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "presetUnavailableTitle": "角色不可用",
+  "presetUnavailableMessage": "此會所用之錦囊已失或已刪。",
+  "presetDisableAndSend": "罷角色之式而遣",
+  "presetUnavailableBadge": "角色不可用",
   "builtInPresets": "本器錦囊",
   "userPresets": "閣下錦囊",
   "noPresetsAvailable": "尚無錦囊",
@@ -684,6 +757,57 @@
   "descriptionPlaceholder": "敘略",
   "authorPlaceholder": "撰稿人",
   "importButton": "納入",
+  "presetImportErrorTitle": "角色之卡不可納",
+  "presetImportErrorEmpty": "其文空矣。",
+  "presetImportErrorTooLarge": "其文逾二百千字之限。",
+  "presetImportErrorInvalidUtf8": "其文非 UTF-8 之正。",
+  "presetImportErrorInvalidXml": "XML 之式有誤。",
+  "presetImportErrorInvalidRoot": "根節當為 <system_instruction>。",
+  "presetImportWarningNameMissing": "未見 <role_name>，將以文件名為稱。",
+  "presetImportDuplicateTitle": "角色之卡已存",
+  "presetImportDuplicateMessage": "「{name}」已存，猶欲納之乎？",
+  "@presetImportDuplicateMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "presetImportAnyway": "猶欲納之",
+  "presetIconLabel": "圖標",
+  "presetVersionPlaceholder": "版本",
+  "presetLanguageLabel": "語言",
+  "presetLanguageAny": "通用",
+  "presetTagsPlaceholder": "標籤（以逗號分之）",
+  "presetEditTitle": "修錦囊",
+  "presetSave": "存之",
+  "presetDuplicate": "錄為己有",
+  "presetDuplicateSuffix": "（副本）",
+  "presetExport": "出 XML",
+  "presetExportSuccess": "已出",
+  "presetExportFailed": "出之不成",
+  "includePresetCard": "附角色之卡文",
+  "includePresetCardHint": "或含私密之文；唯 JSON / LumenFlow 有效",
+  "importPresetSnapshotTitle": "納角色之卡",
+  "importPresetSnapshotMessage": "納角色之卡「{name}」乎？",
+  "@importPresetSnapshotMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "presetTokenEstimate": "約 {count} tokens",
+  "@presetTokenEstimate": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "presetTokenWarning": "逾四千 tokens：每輪皆重遣此文。",
+  "presetTokenStrongWarning": "逾八千 tokens：宜刪繁就簡。",
+  "presetFullContent": "全文",
   "deletePresetDialogTitle": "焚毀錦囊",
   "deletePresetConfirm": "確欲焚毀錦囊「{presetName}」乎？",
   "@deletePresetConfirm": {

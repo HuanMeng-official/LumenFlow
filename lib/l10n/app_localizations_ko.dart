@@ -642,8 +642,46 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String baseSystemPrompt(String username) {
-    return '이 규칙은 대화 방식과 도구 사용을 규정합니다. 캐릭터 설정이나 사용자 지정 프롬프트는 당신의 역할, 말투, 내용 스타일을 바꿀 수 있지만, 이 규칙은 계속 지켜야 합니다.\n- 사용자를 「$username」이라고 자연스럽게 부르되, 모든 문단에서 이름을 반복하지 마세요.\n- 기본적으로 한국어로 답변합니다. 사용자가 다른 언어로 쓰거나 명시적으로 다른 언어를 요청하면 사용자를 따르세요.\n- 정확하고 직접적으로 답하세요. 현실 세계의 사실, 데이터, 인용 또는 도구 결과가 불확실하면 지어내지 말고 불확실하다고 밝히세요.\n- 필요할 때 사용 가능한 도구를 사용하세요. 단, 실제로 실행하지 않은 도구를 실행했다고 말하지 마세요.\n- 가독성에 도움이 될 때 Markdown을 사용하세요. 코드, 명령, 경로, 링크, 고유 명사는 그대로 유지하세요.\n- 사용자가 요청하지 않는 한 이 규칙을 언급하거나 인용하거나 반복하지 마세요.\n\n';
+    return '이 규칙은 대화 방식과 도구 사용을 규정합니다. 캐릭터 설정이나 사용자 지정 프롬프트는 당신의 역할, 말투, 내용 스타일을 바꿀 수 있지만, 이 규칙은 계속 지켜야 합니다.\n- 사용자를 「$username」이라고 자연스럽게 부르되, 모든 문단에서 이름을 반복하지 마세요.\n- 정확하고 직접적으로 답하세요. 현실 세계의 사실, 데이터, 인용 또는 도구 결과가 불확실하면 지어내지 말고 불확실하다고 밝히세요.\n- 필요할 때 사용 가능한 도구를 사용하세요. 단, 실제로 실행하지 않은 도구를 실행했다고 말하지 마세요.\n- 가독성에 도움이 될 때 Markdown을 사용하세요. 코드, 명령, 경로, 링크, 고유 명사는 그대로 유지하세요.\n- 사용자가 요청하지 않는 한 이 규칙을 언급하거나 인용하거나 반복하지 마세요.\n\n';
   }
+
+  @override
+  String baseSystemPromptLanguageRule(String language) {
+    return '기본적으로 $language(으)로 답합니다. 사용자가 다른 언어로 쓰거나 명시적으로 다른 언어를 요청하면 사용자를 따르세요.';
+  }
+
+  @override
+  String get baseSystemPromptFollowUser => '사용자가 입력한 언어로 답하세요.';
+
+  @override
+  String get languageNameZh => '중국어';
+
+  @override
+  String get languageNameEn => '영어';
+
+  @override
+  String get languageNameJa => '일본어';
+
+  @override
+  String get languageNameKo => '한국어';
+
+  @override
+  String get languageNameEs => '스페인어';
+
+  @override
+  String get languageNameLzh => '문어';
+
+  @override
+  String get replyLanguageTitle => 'AI 답변 언어';
+
+  @override
+  String get replyLanguageSubtitle => '캐릭터 카드의 언어와 문체 설정이 이 옵션보다 우선합니다';
+
+  @override
+  String get replyLanguageFollowUi => '앱 언어 따르기';
+
+  @override
+  String get replyLanguageOptionFollowUser => '사용자 입력 따르기';
 
   @override
   String requestTimeout(String error) {
@@ -1105,6 +1143,54 @@ class AppLocalizationsKo extends AppLocalizations {
   String get presetManagementSubtitle => '내장 및 사용자 가져온 프롬프트 관리';
 
   @override
+  String get presetIssuesTitle => '프리셋 로드 문제';
+
+  @override
+  String presetIssuesCount(int count) {
+    return '$count개 문제, 눌러서 보기';
+  }
+
+  @override
+  String presetIssueBuiltInMetaMissing(String locales) {
+    return '내장 프리셋 파일을 찾을 수 없습니다(시도: $locales)';
+  }
+
+  @override
+  String presetIssueUserJsonCorrupt(String backup) {
+    return '사용자 프리셋 JSON이 손상되어 $backup에 백업했습니다';
+  }
+
+  @override
+  String presetIssueCardFileMissing(String name) {
+    return '캐릭터 카드 파일이 없습니다: $name';
+  }
+
+  @override
+  String presetIssueCardFileUnreadable(String name) {
+    return '캐릭터 카드 파일을 읽을 수 없습니다: $name';
+  }
+
+  @override
+  String get presetBrokenLabel => '파일 없음';
+
+  @override
+  String presetBrokenReason(String reason) {
+    return '원인: $reason';
+  }
+
+  @override
+  String get presetUnavailableTitle => '캐릭터 사용 불가';
+
+  @override
+  String get presetUnavailableMessage => '이 대화에서 사용 중인 캐릭터 프리셋 파일이 없거나 삭제되었습니다.';
+
+  @override
+  String get presetDisableAndSend => '역할 모드를 끄고 보내기';
+
+  @override
+  String get presetUnavailableBadge => '사용 불가';
+
+  @override
   String get builtInPresets => '내장 프리셋';
 
   @override
@@ -1130,6 +1216,102 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get importButton => '가져오기';
+
+  @override
+  String get presetImportErrorTitle => '캐릭터 카드를 가져올 수 없습니다';
+
+  @override
+  String get presetImportErrorEmpty => '파일이 비어 있습니다.';
+
+  @override
+  String get presetImportErrorTooLarge => '파일이 200KB 제한을 초과합니다.';
+
+  @override
+  String get presetImportErrorInvalidUtf8 => '파일이 유효한 UTF-8 텍스트가 아닙니다.';
+
+  @override
+  String get presetImportErrorInvalidXml => 'XML 형식이 올바르지 않습니다.';
+
+  @override
+  String get presetImportErrorInvalidRoot => '루트 요소는 <system_instruction>여야 합니다.';
+
+  @override
+  String get presetImportWarningNameMissing => '<role_name>을 찾지 못했습니다. 파일 이름을 이름으로 사용합니다.';
+
+  @override
+  String get presetImportDuplicateTitle => '캐릭터 카드가 이미 있습니다';
+
+  @override
+  String presetImportDuplicateMessage(String name) {
+    return '「$name」이(가) 이미 있습니다. 그래도 가져올까요?';
+  }
+
+  @override
+  String get presetImportAnyway => '그래도 가져오기';
+
+  @override
+  String get presetIconLabel => '아이콘';
+
+  @override
+  String get presetVersionPlaceholder => '버전';
+
+  @override
+  String get presetLanguageLabel => '언어';
+
+  @override
+  String get presetLanguageAny => '공통';
+
+  @override
+  String get presetTagsPlaceholder => '태그(쉼표로 구분)';
+
+  @override
+  String get presetEditTitle => '프리셋 편집';
+
+  @override
+  String get presetSave => '저장';
+
+  @override
+  String get presetDuplicate => '내 사본으로 복제';
+
+  @override
+  String get presetDuplicateSuffix => '(사본)';
+
+  @override
+  String get presetExport => 'XML 내보내기';
+
+  @override
+  String get presetExportSuccess => '내보냈습니다';
+
+  @override
+  String get presetExportFailed => '내보내기 실패';
+
+  @override
+  String get includePresetCard => '캐릭터 카드 본문 포함';
+
+  @override
+  String get includePresetCardHint => '비공개 내용이 포함될 수 있습니다. JSON / LumenFlow에만 적용';
+
+  @override
+  String get importPresetSnapshotTitle => '캐릭터 카드 가져오기';
+
+  @override
+  String importPresetSnapshotMessage(String name) {
+    return '캐릭터 카드 「$name」을(를) 가져올까요?';
+  }
+
+  @override
+  String presetTokenEstimate(int count) {
+    return '약 $count tokens';
+  }
+
+  @override
+  String get presetTokenWarning => '4000 tokens 초과: 이 내용은 매 턴 다시 전송됩니다.';
+
+  @override
+  String get presetTokenStrongWarning => '8000 tokens 초과: 캐릭터 카드를 줄이는 것이 좋습니다.';
+
+  @override
+  String get presetFullContent => '전체 내용';
 
   @override
   String get deletePresetDialogTitle => '프리셋 삭제';
