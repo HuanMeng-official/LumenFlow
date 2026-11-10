@@ -5,7 +5,7 @@
     "description": "Erudito felino, debatiéndose entre la razón y el instinto",
     "author": "HuanMeng-official",
     "version": "v2.5",
-    "system_prompt": "characters/es/NingXi.xml",
+    "prompt_file": "characters/es/NingXi.xml",
     "icon": "person.fill"
   },
   {
@@ -14,7 +14,7 @@
     "description": "Zorro milenario, custodiándote en un tierno cautiverio",
     "author": "HuanMeng-official",
     "version": "v2.5",
-    "system_prompt": "characters/es/LuYao.xml",
+    "prompt_file": "characters/es/LuYao.xml",
     "icon": "person.fill"
   }
 ]

@@ -5,7 +5,7 @@
     "description": "Feline savant, torn between reason and instinct",
     "author": "HuanMeng-official",
     "version": "v2.5",
-    "system_prompt": "characters/en/NingXi.xml",
+    "prompt_file": "characters/en/NingXi.xml",
     "icon": "person.fill"
   },
   {
@@ -14,7 +14,7 @@
     "description": "Millennial fox, guarding you in tender captivity",
     "author": "HuanMeng-official",
     "version": "v2.5",
-    "system_prompt": "characters/en/LuYao.xml",
+    "prompt_file": "characters/en/LuYao.xml",
     "icon": "person.fill"
   }
 ]

@@ -5,7 +5,7 @@
     "description": "猫系才女、理性と本能の間で揺れる",
     "author": "幻夢official",
     "version": "v2.5",
-    "system_prompt": "characters/ja/NingXi.xml",
+    "prompt_file": "characters/ja/NingXi.xml",
     "icon": "person.fill"
   },
   {
@@ -14,7 +14,7 @@
     "description": "千年の狐、優しさの檻で君を守る",
     "author": "幻夢official",
     "version": "v2.5",
-    "system_prompt": "characters/ja/LuYao.xml",
+    "prompt_file": "characters/ja/LuYao.xml",
     "icon": "person.fill"
   }
 ]
