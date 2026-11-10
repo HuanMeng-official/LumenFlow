@@ -735,6 +735,38 @@
       }
     }
   },
+  "presetIssueUserEntryInvalid": "用户预设中有一条无法读取：{detail}",
+  "@presetIssueUserEntryInvalid": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueUserJsonWriteFailed": "用户预设保存失败：{detail}",
+  "@presetIssueUserJsonWriteFailed": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueUserMigrationBackupFailed": "旧预设备份失败，已停止迁移：{detail}",
+  "@presetIssueUserMigrationBackupFailed": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueUserJsonCorruptNoBackup": "用户预设 JSON 已损坏且备份失败：{detail}",
+  "@presetIssueUserJsonCorruptNoBackup": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
   "presetBrokenLabel": "文件缺失",
   "presetBrokenReason": "原因：{reason}",
   "@presetBrokenReason": {
@@ -779,6 +811,8 @@
   "presetLanguageLabel": "语言",
   "presetLanguageAny": "通用",
   "presetTagsPlaceholder": "标签（逗号分隔）",
+  "presetFilterAll": "全部",
+  "presetFilterNoResults": "没有符合筛选条件的预设",
   "presetEditTitle": "编辑预设",
   "presetSave": "保存",
   "presetDuplicate": "复制为我的版本",

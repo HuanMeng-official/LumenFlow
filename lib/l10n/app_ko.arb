@@ -735,6 +735,38 @@
       }
     }
   },
+  "presetIssueUserEntryInvalid": "사용자 프리셋 항목 하나를 읽을 수 없습니다: {detail}",
+  "@presetIssueUserEntryInvalid": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueUserJsonWriteFailed": "사용자 프리셋 저장 실패: {detail}",
+  "@presetIssueUserJsonWriteFailed": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueUserMigrationBackupFailed": "이전 프리셋 백업 실패로 마이그레이션을 중단했습니다: {detail}",
+  "@presetIssueUserMigrationBackupFailed": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueUserJsonCorruptNoBackup": "사용자 프리셋 JSON이 손상되었고 백업도 실패했습니다: {detail}",
+  "@presetIssueUserJsonCorruptNoBackup": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
   "presetBrokenLabel": "파일 없음",
   "presetBrokenReason": "원인: {reason}",
   "@presetBrokenReason": {
@@ -779,6 +811,8 @@
   "presetLanguageLabel": "언어",
   "presetLanguageAny": "공통",
   "presetTagsPlaceholder": "태그(쉼표로 구분)",
+  "presetFilterAll": "전체",
+  "presetFilterNoResults": "필터 조건에 맞는 프리셋이 없습니다",
   "presetEditTitle": "프리셋 편집",
   "presetSave": "저장",
   "presetDuplicate": "내 사본으로 복제",

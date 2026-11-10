@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -392,13 +393,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get commonApiEndpoints => '常用 API 端点';
 
   @override
-  String get commonApiEndpointsContent => 'OpenAI: https://api.openai.com/v1\n\nDeepSeek: https://api.deepseek.com\n\n阿里云: https://dashscope.aliyuncs.com/api/v1\n\n请根据您使用的 AI 服务提供商填写相应的端点地址。';
+  String get commonApiEndpointsContent =>
+      'OpenAI: https://api.openai.com/v1\n\nDeepSeek: https://api.deepseek.com\n\n阿里云: https://dashscope.aliyuncs.com/api/v1\n\n请根据您使用的 AI 服务提供商填写相应的端点地址。';
 
   @override
   String get commonModels => '常用模型';
 
   @override
-  String get commonModelsContent => 'OpenAI:\n• gpt-6.1-sol\n• gpt-6-astra\n\nDeepSeek:\n• deepseek-flash\n• deepseek-v4-pro\n\n请根据您的 API 端点选择相应的模型。';
+  String get commonModelsContent =>
+      'OpenAI:\n• gpt-6.1-sol\n• gpt-6-astra\n\nDeepSeek:\n• deepseek-flash\n• deepseek-v4-pro\n\n请根据您的 API 端点选择相应的模型。';
 
   @override
   String get appInfo => '应用信息';
@@ -517,7 +520,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get aboutUserProfile => '关于用户信息';
 
   @override
-  String get aboutUserProfileContent => '• 头像：可以选择照片或表情作为头像，会在聊天界面显示\n• 用户名：AI会在对话中使用这个名字称呼你\n• 所有信息仅存储在本地，不会上传到服务器';
+  String get aboutUserProfileContent =>
+      '• 头像：可以选择照片或表情作为头像，会在聊天界面显示\n• 用户名：AI会在对话中使用这个名字称呼你\n• 所有信息仅存储在本地，不会上传到服务器';
 
   @override
   String get selectPresetRole => '选择预设角色';
@@ -734,12 +738,20 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String providerAttachmentCannotRead(String fileName, String fileSize, String mimeType) {
+  String providerAttachmentCannotRead(
+    String fileName,
+    String fileSize,
+    String mimeType,
+  ) {
     return '附件: $fileName ($fileSize, $mimeType) - 无法读取内容';
   }
 
   @override
-  String providerAttachmentInfo(String fileName, String fileSize, String mimeType) {
+  String providerAttachmentInfo(
+    String fileName,
+    String fileSize,
+    String mimeType,
+  ) {
     return '附件: $fileName ($fileSize, $mimeType)';
   }
 
@@ -779,7 +791,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get providerAi => 'AI';
 
   @override
-  String get providerTitleGenSystemPrompt => '根据用户的语言和对话内容生成一个简短、准确的中文标题，不超过15个字。只返回标题，不要加引号或其他格式。';
+  String get providerTitleGenSystemPrompt =>
+      '根据用户的语言和对话内容生成一个简短、准确的中文标题，不超过15个字。只返回标题，不要加引号或其他格式。';
 
   @override
   String providerTitleGenUserPrompt(String conversationSummary) {
@@ -787,7 +800,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get providerMultimediaNotSupported => '\n提示: DeepSeek 不支持处理视频、音频等多媒体文件';
+  String get providerMultimediaNotSupported =>
+      '\n提示: DeepSeek 不支持处理视频、音频等多媒体文件';
 
   @override
   String get providerGeminiInvalidResponse => 'Gemini API返回了无效的响应格式';
@@ -1171,6 +1185,26 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String presetIssueUserEntryInvalid(String detail) {
+    return '用户预设中有一条无法读取：$detail';
+  }
+
+  @override
+  String presetIssueUserJsonWriteFailed(String detail) {
+    return '用户预设保存失败：$detail';
+  }
+
+  @override
+  String presetIssueUserMigrationBackupFailed(String detail) {
+    return '旧预设备份失败，已停止迁移：$detail';
+  }
+
+  @override
+  String presetIssueUserJsonCorruptNoBackup(String detail) {
+    return '用户预设 JSON 已损坏且备份失败：$detail';
+  }
+
+  @override
   String get presetBrokenLabel => '文件缺失';
 
   @override
@@ -1263,6 +1297,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get presetTagsPlaceholder => '标签（逗号分隔）';
+
+  @override
+  String get presetFilterAll => '全部';
+
+  @override
+  String get presetFilterNoResults => '没有符合筛选条件的预设';
 
   @override
   String get presetEditTitle => '编辑预设';

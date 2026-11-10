@@ -41,7 +41,11 @@ class PresetRepository extends ChangeNotifier {
     final active = _loadFuture;
     if (active != null) {
       await active;
-      if (!force) return;
+      if (!force) {
+        // 等待期间语言可能已经变化；重新检查后再决定是否返回。
+        final locale = await _settingsService.getLocale();
+        if (_isLoaded && _loadedLocale == locale) return;
+      }
     }
 
     final future = _ensureLoaded(force: force);

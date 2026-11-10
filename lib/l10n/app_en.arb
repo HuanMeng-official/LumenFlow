@@ -738,6 +738,38 @@
       }
     }
   },
+  "presetIssueUserEntryInvalid": "One user preset entry could not be read: {detail}",
+  "@presetIssueUserEntryInvalid": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueUserJsonWriteFailed": "Failed to save user presets: {detail}",
+  "@presetIssueUserJsonWriteFailed": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueUserMigrationBackupFailed": "Could not back up legacy presets; migration skipped: {detail}",
+  "@presetIssueUserMigrationBackupFailed": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueUserJsonCorruptNoBackup": "User preset JSON is corrupt and the backup failed: {detail}",
+  "@presetIssueUserJsonCorruptNoBackup": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
   "presetBrokenLabel": "File missing",
   "presetBrokenReason": "Reason: {reason}",
   "@presetBrokenReason": {
@@ -782,6 +814,8 @@
   "presetLanguageLabel": "Language",
   "presetLanguageAny": "Any",
   "presetTagsPlaceholder": "Tags (comma separated)",
+  "presetFilterAll": "All",
+  "presetFilterNoResults": "No presets match this filter",
   "presetEditTitle": "Edit Preset",
   "presetSave": "Save",
   "presetDuplicate": "Duplicate as my copy",

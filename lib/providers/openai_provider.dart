@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../utils/cache_usage.dart';
 import 'ai_provider.dart';
 import 'http_provider_base.dart';
 import '../models/message.dart';
@@ -207,6 +209,13 @@ class OpenAIProvider extends HttpProviderBase {
           try {
             final jsonData = jsonDecode(dataLine);
             final type = jsonData['type'] as String?;
+
+            if (type == 'response.completed') {
+              final response = jsonData['response'];
+              if (response is Map) {
+                _logCacheUsage(response['usage']);
+              }
+            }
 
             // 处理响应API的流式事件
             if (type == 'response.output_text.delta') {
@@ -498,8 +507,19 @@ class OpenAIProvider extends HttpProviderBase {
   }
 
   /// 解析响应
+  void _logCacheUsage(Object? usage) {
+    if (!kDebugMode) return;
+    final summary = describeCacheUsage(usage);
+    if (summary != null) {
+      debugPrint('OpenAI usage: $summary');
+    }
+  }
+
   Map<String, dynamic> _parseResponse(String responseBody, AppLocalizations l10n) {
     final data = jsonDecode(responseBody);
+    if (data is Map<String, dynamic>) {
+      _logCacheUsage(data['usage']);
+    }
 
     // 处理响应API格式
     if (data is Map<String, dynamic> && data['object'] == 'response') {

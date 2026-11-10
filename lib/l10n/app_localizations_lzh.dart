@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -392,13 +393,15 @@ class AppLocalizationsLzh extends AppLocalizations {
   String get commonApiEndpoints => '常見樞機渡口';
 
   @override
-  String get commonApiEndpointsContent => 'OpenAI: https://api.openai.com/v1\n\nDeepSeek: https://api.deepseek.com\n\n阿里雲: https://dashscope.aliyuncs.com/api/v1\n\n祈察閣下所用之靈犀門戶，填其相應渡口。';
+  String get commonApiEndpointsContent =>
+      'OpenAI: https://api.openai.com/v1\n\nDeepSeek: https://api.deepseek.com\n\n阿里雲: https://dashscope.aliyuncs.com/api/v1\n\n祈察閣下所用之靈犀門戶，填其相應渡口。';
 
   @override
   String get commonModels => '常見法象';
 
   @override
-  String get commonModelsContent => 'OpenAI:\n• gpt-6.1-sol\n• gpt-6-astra\n\nDeepSeek:\n• deepseek-flash\n• deepseek-v4-pro\n\n祈察渡口以擇相應法象。';
+  String get commonModelsContent =>
+      'OpenAI:\n• gpt-6.1-sol\n• gpt-6-astra\n\nDeepSeek:\n• deepseek-flash\n• deepseek-v4-pro\n\n祈察渡口以擇相應法象。';
 
   @override
   String get appInfo => '本器綱要';
@@ -517,7 +520,8 @@ class AppLocalizationsLzh extends AppLocalizations {
   String get aboutUserProfile => '生平敘略';
 
   @override
-  String get aboutUserProfileContent => '• 小像：可擇畫像或面譜，示於對談之卷首\n• 尊號：靈犀對答時以此相稱\n• 諸般底細皆藏於本地，不登聞於雲端';
+  String get aboutUserProfileContent =>
+      '• 小像：可擇畫像或面譜，示於對談之卷首\n• 尊號：靈犀對答時以此相稱\n• 諸般底細皆藏於本地，不登聞於雲端';
 
   @override
   String get selectPresetRole => '擇定先哲';
@@ -734,12 +738,20 @@ class AppLocalizationsLzh extends AppLocalizations {
   }
 
   @override
-  String providerAttachmentCannotRead(String fileName, String fileSize, String mimeType) {
+  String providerAttachmentCannotRead(
+    String fileName,
+    String fileSize,
+    String mimeType,
+  ) {
     return '隨附: $fileName ($fileSize, $mimeType) - 字跡莫辨';
   }
 
   @override
-  String providerAttachmentInfo(String fileName, String fileSize, String mimeType) {
+  String providerAttachmentInfo(
+    String fileName,
+    String fileSize,
+    String mimeType,
+  ) {
     return '隨附: $fileName ($fileSize, $mimeType)';
   }
 
@@ -779,7 +791,8 @@ class AppLocalizationsLzh extends AppLocalizations {
   String get providerAi => '靈犀';
 
   @override
-  String get providerTitleGenSystemPrompt => '循閣下之言及對談之本末，擬一中原雅言之題，止於十五字。單賜題名，勿加匡廓雜飾。';
+  String get providerTitleGenSystemPrompt =>
+      '循閣下之言及對談之本末，擬一中原雅言之題，止於十五字。單賜題名，勿加匡廓雜飾。';
 
   @override
   String providerTitleGenUserPrompt(String conversationSummary) {
@@ -1171,6 +1184,26 @@ class AppLocalizationsLzh extends AppLocalizations {
   }
 
   @override
+  String presetIssueUserEntryInvalid(String detail) {
+    return '閣下錦囊中有一端不可讀：$detail';
+  }
+
+  @override
+  String presetIssueUserJsonWriteFailed(String detail) {
+    return '閣下錦囊存之不成：$detail';
+  }
+
+  @override
+  String presetIssueUserMigrationBackupFailed(String detail) {
+    return '舊錦囊備份不成，已罷遷：$detail';
+  }
+
+  @override
+  String presetIssueUserJsonCorruptNoBackup(String detail) {
+    return '閣下錦囊之冊已損，且備份不成：$detail';
+  }
+
+  @override
   String get presetBrokenLabel => '其文已失';
 
   @override
@@ -1263,6 +1296,12 @@ class AppLocalizationsLzh extends AppLocalizations {
 
   @override
   String get presetTagsPlaceholder => '標籤（以逗號分之）';
+
+  @override
+  String get presetFilterAll => '盡';
+
+  @override
+  String get presetFilterNoResults => '無合此選之錦囊';
 
   @override
   String get presetEditTitle => '修錦囊';

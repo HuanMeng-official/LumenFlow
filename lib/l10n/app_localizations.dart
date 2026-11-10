@@ -66,7 +66,8 @@ import 'app_localizations_zh.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale)
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -74,7 +75,8 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -86,12 +88,13 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
@@ -100,7 +103,7 @@ abstract class AppLocalizations {
     Locale('ja'),
     Locale('ko'),
     Locale('lzh'),
-    Locale('zh')
+    Locale('zh'),
   ];
 
   /// No description provided for @appTitle.
@@ -1457,13 +1460,21 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Attachment: {fileName} ({fileSize}, {mimeType}) - Cannot read content'**
-  String providerAttachmentCannotRead(String fileName, String fileSize, String mimeType);
+  String providerAttachmentCannotRead(
+    String fileName,
+    String fileSize,
+    String mimeType,
+  );
 
   /// No description provided for @providerAttachmentInfo.
   ///
   /// In en, this message translates to:
   /// **'Attachment: {fileName} ({fileSize}, {mimeType})'**
-  String providerAttachmentInfo(String fileName, String fileSize, String mimeType);
+  String providerAttachmentInfo(
+    String fileName,
+    String fileSize,
+    String mimeType,
+  );
 
   /// No description provided for @providerTotalSizeExceeded.
   ///
@@ -2239,6 +2250,30 @@ abstract class AppLocalizations {
   /// **'Character card file unreadable: {name}'**
   String presetIssueCardFileUnreadable(String name);
 
+  /// No description provided for @presetIssueUserEntryInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'One user preset entry could not be read: {detail}'**
+  String presetIssueUserEntryInvalid(String detail);
+
+  /// No description provided for @presetIssueUserJsonWriteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save user presets: {detail}'**
+  String presetIssueUserJsonWriteFailed(String detail);
+
+  /// No description provided for @presetIssueUserMigrationBackupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not back up legacy presets; migration skipped: {detail}'**
+  String presetIssueUserMigrationBackupFailed(String detail);
+
+  /// No description provided for @presetIssueUserJsonCorruptNoBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'User preset JSON is corrupt and the backup failed: {detail}'**
+  String presetIssueUserJsonCorruptNoBackup(String detail);
+
   /// No description provided for @presetBrokenLabel.
   ///
   /// In en, this message translates to:
@@ -2418,6 +2453,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tags (comma separated)'**
   String get presetTagsPlaceholder;
+
+  /// No description provided for @presetFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get presetFilterAll;
+
+  /// No description provided for @presetFilterNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No presets match this filter'**
+  String get presetFilterNoResults;
 
   /// No description provided for @presetEditTitle.
   ///
@@ -2792,7 +2839,8 @@ abstract class AppLocalizations {
   String get builtinTextToolsDesc;
 }
 
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -2801,29 +2849,40 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['en', 'es', 'ja', 'ko', 'lzh', 'zh'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>[
+    'en',
+    'es',
+    'ja',
+    'ko',
+    'lzh',
+    'zh',
+  ].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
-
-
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'en': return AppLocalizationsEn();
-    case 'es': return AppLocalizationsEs();
-    case 'ja': return AppLocalizationsJa();
-    case 'ko': return AppLocalizationsKo();
-    case 'lzh': return AppLocalizationsLzh();
-    case 'zh': return AppLocalizationsZh();
+    case 'en':
+      return AppLocalizationsEn();
+    case 'es':
+      return AppLocalizationsEs();
+    case 'ja':
+      return AppLocalizationsJa();
+    case 'ko':
+      return AppLocalizationsKo();
+    case 'lzh':
+      return AppLocalizationsLzh();
+    case 'zh':
+      return AppLocalizationsZh();
   }
 
   throw FlutterError(
     'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
     'an issue with the localizations generation tool. Please file an issue '
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.'
+    'that was used.',
   );
 }

@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../utils/cache_usage.dart';
 import 'ai_provider.dart';
 import 'http_provider_base.dart';
 import '../models/message.dart';
@@ -183,6 +185,7 @@ class DeepSeekProvider extends HttpProviderBase {
 
           try {
             final jsonData = jsonDecode(dataLine);
+            _logCacheUsage(jsonData['usage']);
             final delta = jsonData['choices']?[0]?['delta'];
 
             if (delta != null) {
@@ -459,8 +462,19 @@ class DeepSeekProvider extends HttpProviderBase {
   }
 
   /// 解析响应
+  void _logCacheUsage(Object? usage) {
+    if (!kDebugMode) return;
+    final summary = describeCacheUsage(usage);
+    if (summary != null) {
+      debugPrint('DeepSeek usage: $summary');
+    }
+  }
+
   Map<String, dynamic> _parseResponse(String responseBody, AppLocalizations l10n) {
     final data = jsonDecode(responseBody);
+    if (data is Map<String, dynamic>) {
+      _logCacheUsage(data['usage']);
+    }
     if (data is! Map<String, dynamic> ||
         data['choices'] == null ||
         (data['choices'] as List).isEmpty) {

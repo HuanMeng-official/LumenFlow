@@ -19,14 +19,17 @@ class PromptService {
     SettingsService? settingsService,
     AssetBundle? assetBundle,
     Future<Directory> Function()? appDataDirectoryProvider,
+    Future<String?> Function(File)? backupUserPresets,
   }) : _settingsService = settingsService ?? SettingsService(),
        _assetBundle = assetBundle ?? rootBundle,
        _appDataDirectoryProvider =
-           appDataDirectoryProvider ?? PathUtils.getAppDataDirectory;
+           appDataDirectoryProvider ?? PathUtils.getAppDataDirectory,
+       _backupOverride = backupUserPresets;
 
   final SettingsService _settingsService;
   final AssetBundle _assetBundle;
   final Future<Directory> Function() _appDataDirectoryProvider;
+  final Future<String?> Function(File)? _backupOverride;
 
   /// 当前语言对应的预设文件路径
   String _getPresetsPath(String locale) {
@@ -128,14 +131,39 @@ class PromptService {
         throw const FormatException('Invalid user preset document');
       }
 
-      final presets = jsonList
-          .map(
-            (item) => PromptPreset.fromJson(
-              item as Map<String, dynamic>,
+      final presets = <PromptPreset>[];
+      var hasInvalidEntries = false;
+      for (var index = 0; index < jsonList.length; index++) {
+        final item = jsonList[index];
+        if (item is! Map) {
+          hasInvalidEntries = true;
+          issues.add(
+            PresetLoadIssue(
+              type: PresetIssueType.userEntryInvalid,
+              message: '#$index: not an object',
+            ),
+          );
+          continue;
+        }
+        final entry = item.cast<String, dynamic>();
+        try {
+          presets.add(
+            PromptPreset.fromJson(
+              entry,
               legacySystemPromptAsFile: needsMigration,
             ),
-          )
-          .toList();
+          );
+        } catch (error) {
+          hasInvalidEntries = true;
+          issues.add(
+            PresetLoadIssue(
+              type: PresetIssueType.userEntryInvalid,
+              presetId: entry['id']?.toString(),
+              message: '#$index: $error',
+            ),
+          );
+        }
+      }
 
       final List<PromptPreset> processedPresets = [];
       for (final preset in presets) {
@@ -175,23 +203,43 @@ class PromptService {
         );
       }
 
-      if (needsMigration) {
-        await _backupUserPresets(userPresetsFile);
-        // 保存的是解析后的元数据，而不是把文件正文回写进 system_prompt。
-        await _saveUserPresets(presets);
+      // 有坏条目时保留原文件，避免迁移把坏条目永久丢弃。
+      if (needsMigration && !hasInvalidEntries) {
+        final backupName = await _backupUserPresets(userPresetsFile);
+        if (backupName == null) {
+          issues.add(
+            const PresetLoadIssue(
+              type: PresetIssueType.userMigrationBackupFailed,
+              message: 'backup failed; migration skipped',
+            ),
+          );
+        } else {
+          try {
+            // 保存解析后的元数据，而不是把文件正文回写进 system_prompt。
+            await _saveUserPresets(presets);
+          } catch (error) {
+            issues.add(
+              PresetLoadIssue(
+                type: PresetIssueType.userJsonWriteFailed,
+                message: error.toString(),
+              ),
+            );
+          }
+        }
       }
 
       return PresetLoadResult(presets: processedPresets, issues: issues);
     } catch (e) {
-      String detail = e.toString();
+      String? backupName;
       if (userPresetsFile != null && await userPresetsFile.exists()) {
-        final backupName = await _backupUserPresets(userPresetsFile);
-        if (backupName != null) {
-          detail = '已备份为 $backupName；$detail';
-        }
+        backupName = await _backupUserPresets(userPresetsFile);
       }
       issues.add(
-        PresetLoadIssue(type: PresetIssueType.userJsonCorrupt, message: detail),
+        PresetLoadIssue(
+          type: PresetIssueType.userJsonCorrupt,
+          message: e.toString(),
+          backupName: backupName,
+        ),
       );
       return PresetLoadResult(presets: const [], issues: issues);
     }
@@ -235,6 +283,8 @@ class PromptService {
 
   /// 把用户预设 JSON 复制为带时间戳的备份，只保留最近 3 份。
   Future<String?> _backupUserPresets(File file) async {
+    final override = _backupOverride;
+    if (override != null) return override(file);
     try {
       final stamp = DateTime.now().millisecondsSinceEpoch;
       var backup = File('${file.path}.bak.$stamp');
@@ -272,24 +322,21 @@ class PromptService {
 
   /// 保存用户预设列表到 JSON 文件（schema v2）。
   Future<void> _saveUserPresets(List<PromptPreset> presets) async {
-    try {
-      final userPresetsFile = await _getUserPresetsFile();
-      final jsonString = jsonEncode({
-        'schema_version': 2,
-        'presets': presets
-            .map(
-              (preset) =>
-                  (preset.hasPromptFile
-                          ? preset.copyWith(systemPrompt: '')
-                          : preset)
-                      .toJson(),
-            )
-            .toList(),
-      });
-      await userPresetsFile.writeAsString(jsonString);
-    } catch (_) {
-      // Persisting presets is best-effort.
-    }
+    final userPresetsFile = await _getUserPresetsFile();
+    final jsonString = jsonEncode({
+      'schema_version': 2,
+      'presets': presets
+          .map(
+            (preset) =>
+                (preset.hasPromptFile
+                        ? preset.copyWith(systemPrompt: '')
+                        : preset)
+                    .toJson(),
+          )
+          .toList(),
+    });
+    // 写失败必须让调用方知道，否则 UI 会误报导入/编辑成功。
+    await userPresetsFile.writeAsString(jsonString);
   }
 
   /// 角色卡文件大小上限（200 KB）。
@@ -541,7 +588,7 @@ class PromptService {
     }
 
     // 生成唯一ID
-    final id = 'user_${DateTime.now().millisecondsSinceEpoch}';
+    final id = 'user_${DateTime.now().microsecondsSinceEpoch}';
     final userPresetsDir = await _getUserPresetsDirectory();
     final fileName = '$id.$extension';
     final destFile = File(path.join(userPresetsDir.path, fileName));
@@ -581,10 +628,25 @@ class PromptService {
     String? contentHash,
   }) async {
     final normalized = normalizePresetContent(content);
+    final normalizedBytes = utf8.encode(normalized);
     if (normalized.isEmpty) {
-      throw StateError('Preset snapshot has no content');
+      throw const PresetValidationException(
+        PresetValidationResult(
+          errors: [PresetValidationError.emptyFile],
+          warnings: [],
+        ),
+      );
     }
-    final id = 'user_${DateTime.now().millisecondsSinceEpoch}';
+    if (normalizedBytes.length > maxPresetFileBytes) {
+      throw const PresetValidationException(
+        PresetValidationResult(
+          errors: [PresetValidationError.fileTooLarge],
+          warnings: [],
+        ),
+      );
+    }
+
+    final id = 'user_${DateTime.now().microsecondsSinceEpoch}';
     final extension = normalized.contains('<system_instruction')
         ? 'xml'
         : 'txt';
@@ -597,13 +659,12 @@ class PromptService {
     final preset = PromptPreset(
       id: id,
       name: name,
-      description: '从会话快照导入',
+      description: '',
       author: author ?? '',
       version: version ?? 'v1.0',
       promptFile: fileName,
       icon: 'person.fill',
-      contentHash:
-          contentHash ?? sha256.convert(utf8.encode(normalized)).toString(),
+      contentHash: contentHash ?? sha256.convert(normalizedBytes).toString(),
       createdAt: now,
       updatedAt: now,
     );
@@ -643,7 +704,7 @@ class PromptService {
       throw StateError('Preset has no content: ${source.id}');
     }
 
-    final id = 'user_${DateTime.now().millisecondsSinceEpoch}';
+    final id = 'user_${DateTime.now().microsecondsSinceEpoch}';
     final extension = source.promptFile?.toLowerCase().endsWith('.txt') ?? false
         ? 'txt'
         : 'xml';

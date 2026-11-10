@@ -11,6 +11,7 @@ import '../models/attachment.dart';
 import '../models/prompt_preset.dart';
 import '../utils/app_theme.dart';
 import '../utils/preset_icons.dart';
+import 'preset_unavailable_dialog.dart';
 
 class ChatInput extends StatefulWidget {
   final Function(String, List<Attachment>) onSendMessage;
@@ -441,25 +442,8 @@ class _ChatInputState extends State<ChatInput> {
         widget.currentPresetId.isNotEmpty &&
         widget.currentPresetUnavailable) {
       final l10n = AppLocalizations.of(context)!;
-      final disableAndSend = await showCupertinoDialog<bool>(
-        context: context,
-        builder: (dialogContext) => CupertinoAlertDialog(
-          title: Text(l10n.presetUnavailableTitle),
-          content: Text(l10n.presetUnavailableMessage),
-          actions: [
-            CupertinoDialogAction(
-              child: Text(l10n.cancel),
-              onPressed: () => Navigator.pop(dialogContext, false),
-            ),
-            CupertinoDialogAction(
-              isDefaultAction: true,
-              child: Text(l10n.presetDisableAndSend),
-              onPressed: () => Navigator.pop(dialogContext, true),
-            ),
-          ],
-        ),
-      );
-      if (disableAndSend != true) return;
+      final disableAndSend = await showPresetUnavailableDialog(context, l10n);
+      if (!disableAndSend) return;
       widget.onPromptPresetEnabledChanged?.call(false);
     }
 

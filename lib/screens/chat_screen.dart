@@ -22,6 +22,7 @@ import '../services/user_service.dart';
 import '../utils/app_theme.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/chat_input.dart';
+import '../widgets/preset_unavailable_dialog.dart';
 import 'settings_screen.dart';
 import 'conversation_list_screen.dart';
 import 'message_search_screen.dart';
@@ -543,27 +544,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   /// 发送前确认：关闭不可用的角色模式继续发送，或取消。
-  Future<bool> _confirmDisableUnavailablePreset() async {
+  Future<bool> _confirmDisableUnavailablePreset() {
     final l10n = AppLocalizations.of(context)!;
-    final disableAndSend = await showCupertinoDialog<bool>(
-      context: context,
-      builder: (dialogContext) => CupertinoAlertDialog(
-        title: Text(l10n.presetUnavailableTitle),
-        content: Text(l10n.presetUnavailableMessage),
-        actions: [
-          CupertinoDialogAction(
-            child: Text(l10n.cancel),
-            onPressed: () => Navigator.pop(dialogContext, false),
-          ),
-          CupertinoDialogAction(
-            isDefaultAction: true,
-            child: Text(l10n.presetDisableAndSend),
-            onPressed: () => Navigator.pop(dialogContext, true),
-          ),
-        ],
-      ),
-    );
-    return disableAndSend == true;
+    return showPresetUnavailableDialog(context, l10n);
   }
 
   /// 将思考模式与角色预设写回当前会话。
@@ -670,7 +653,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     // 角色预设已被删除或角色卡文件缺失时，禁止把空预设静默发送出去。
     if (_isCurrentPresetUnavailable) {
       final disableAndSend = await _confirmDisableUnavailablePreset();
-      if (!disableAndSend) return;
+      if (!disableAndSend || !mounted) return;
       setState(() {
         _promptPresetEnabled = false;
         _currentPresetId = '';

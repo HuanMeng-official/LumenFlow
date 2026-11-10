@@ -16,9 +16,11 @@ import '../models/prompt_preset.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/app_theme.dart';
 import '../utils/file_save_utils.dart';
+import '../utils/preset_filter.dart';
 import '../utils/preset_icons.dart';
 import '../utils/preset_tags.dart';
 import '../utils/token_estimator.dart';
+import '../widgets/preset_metadata_fields.dart';
 import '../widgets/settings/settings_page_scaffold.dart';
 
 /// 预设管理界面
@@ -42,6 +44,8 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
   List<PromptPreset> _userPresets = [];
   List<PresetLoadIssue> _issues = const [];
   bool _showIssues = false;
+  String? _filterLanguage;
+  String? _filterTag;
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -258,8 +262,6 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
   }) async {
     if (!mounted) return null;
     final l10n = AppLocalizations.of(context)!;
-    String? description;
-    String? author;
     String? language;
     String selectedIcon = 'person.fill';
     final nameController = TextEditingController(
@@ -267,8 +269,11 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
           validation.extractedName ??
           path.basenameWithoutExtension(sourceFile.path),
     );
+    final descriptionController = TextEditingController();
+    final authorController = TextEditingController();
     final versionController = TextEditingController(text: 'v1.0');
     final tagsController = TextEditingController();
+    var isImporting = false;
 
     List<String> parsedTags() {
       return parsePresetTags(tagsController.text);
@@ -280,8 +285,8 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
           return await _presetRepository.importTextPreset(
             sourceFile,
             name: nameController.text,
-            description: description,
-            author: author,
+            description: descriptionController.text,
+            author: authorController.text,
             version: versionController.text,
             icon: selectedIcon,
             language: language,
@@ -292,8 +297,8 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
         return await _presetRepository.importPreset(
           sourceFile,
           name: nameController.text,
-          description: description,
-          author: author,
+          description: descriptionController.text,
+          author: authorController.text,
           version: versionController.text,
           icon: selectedIcon,
           language: language,
@@ -341,119 +346,18 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CupertinoTextField(
-                        controller: nameController,
-                        placeholder: l10n.presetNamePlaceholder,
-                      ),
-                      const SizedBox(height: 8),
-                      CupertinoTextField(
-                        placeholder: l10n.descriptionPlaceholder,
-                        onChanged: (value) => description = value,
-                      ),
-                      const SizedBox(height: 8),
-                      CupertinoTextField(
-                        placeholder: l10n.authorPlaceholder,
-                        onChanged: (value) => author = value,
-                      ),
-                      const SizedBox(height: 8),
-                      CupertinoTextField(
-                        controller: versionController,
-                        placeholder: l10n.presetVersionPlaceholder,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        l10n.presetIconLabel,
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                      const SizedBox(height: 4),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          for (final iconName in presetIconNames)
-                            GestureDetector(
-                              onTap: () =>
-                                  setSheetState(() => selectedIcon = iconName),
-                              child: Container(
-                                width: 32,
-                                height: 32,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: selectedIcon == iconName
-                                      ? CupertinoColors.activeBlue.withAlpha(38)
-                                      : CupertinoColors.systemGrey6.resolveFrom(
-                                          sheetContext,
-                                        ),
-                                  border: Border.all(
-                                    color: selectedIcon == iconName
-                                        ? CupertinoColors.activeBlue
-                                        : CupertinoColors.systemGrey4,
-                                    width: 0.5,
-                                  ),
-                                ),
-                                child: Icon(
-                                  presetIconForName(iconName),
-                                  size: 17,
-                                  color: selectedIcon == iconName
-                                      ? CupertinoColors.activeBlue
-                                      : CupertinoColors.systemGrey,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        l10n.presetLanguageLabel,
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                      const SizedBox(height: 4),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: [
-                          for (final locale in <String?>[
-                            null,
-                            'zh',
-                            'en',
-                            'ja',
-                            'ko',
-                            'es',
-                            'lzh',
-                          ])
-                            GestureDetector(
-                              onTap: () =>
-                                  setSheetState(() => language = locale),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: language == locale
-                                      ? CupertinoColors.activeBlue.withAlpha(38)
-                                      : CupertinoColors.systemGrey6.resolveFrom(
-                                          sheetContext,
-                                        ),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Text(
-                                  locale ?? l10n.presetLanguageAny,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: language == locale
-                                        ? CupertinoColors.activeBlue
-                                        : CupertinoColors.systemGrey,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      CupertinoTextField(
-                        controller: tagsController,
-                        placeholder: l10n.presetTagsPlaceholder,
+                      PresetMetadataFields(
+                        nameController: nameController,
+                        descriptionController: descriptionController,
+                        authorController: authorController,
+                        versionController: versionController,
+                        tagsController: tagsController,
+                        selectedIcon: selectedIcon,
+                        language: language,
+                        onIconChanged: (value) =>
+                            setSheetState(() => selectedIcon = value),
+                        onLanguageChanged: (value) =>
+                            setSheetState(() => language = value),
                       ),
                       const SizedBox(height: 8),
                       Builder(
@@ -509,8 +413,12 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
                   onPressed: () => Navigator.pop(dialogContext),
                 ),
                 CupertinoDialogAction(
-                  child: Text(l10n.importButton),
+                  child: isImporting
+                      ? const CupertinoActivityIndicator(radius: 7)
+                      : Text(l10n.importButton),
                   onPressed: () async {
+                    if (isImporting) return;
+                    setSheetState(() => isImporting = true);
                     try {
                       final preset = await import(allowDuplicate: false);
                       if (preset != null && mounted) {
@@ -531,6 +439,10 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
                           l10n.importFailedError(error.toString()),
                         );
                       }
+                    } finally {
+                      if (dialogContext.mounted) {
+                        setSheetState(() => isImporting = false);
+                      }
                     }
                   },
                 ),
@@ -542,6 +454,8 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
     );
 
     nameController.dispose();
+    descriptionController.dispose();
+    authorController.dispose();
     versionController.dispose();
     tagsController.dispose();
     return result;
@@ -655,7 +569,16 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
       case PresetIssueType.builtInMetaMissing:
         return l10n.presetIssueBuiltInMetaMissing(issue.message);
       case PresetIssueType.userJsonCorrupt:
-        return l10n.presetIssueUserJsonCorrupt(issue.message);
+        final backupName = issue.backupName;
+        return backupName != null
+            ? l10n.presetIssueUserJsonCorrupt(backupName)
+            : l10n.presetIssueUserJsonCorruptNoBackup(issue.message);
+      case PresetIssueType.userEntryInvalid:
+        return l10n.presetIssueUserEntryInvalid(issue.message);
+      case PresetIssueType.userJsonWriteFailed:
+        return l10n.presetIssueUserJsonWriteFailed(issue.message);
+      case PresetIssueType.userMigrationBackupFailed:
+        return l10n.presetIssueUserMigrationBackupFailed(issue.message);
       case PresetIssueType.cardFileMissing:
         return l10n.presetIssueCardFileMissing(_issuePresetName(issue));
       case PresetIssueType.cardFileUnreadable:
@@ -721,6 +644,81 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
                 ),
               ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _filterChip(String label, bool selected, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(right: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: selected
+              ? CupertinoColors.activeBlue.withAlpha(38)
+              : CupertinoColors.systemGrey6.resolveFrom(context),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: selected
+                ? CupertinoColors.activeBlue
+                : CupertinoColors.secondaryLabel.resolveFrom(context),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterBar(AppLocalizations l10n) {
+    final all = [..._builtInPresets, ..._userPresets];
+    final languages =
+        all
+            .map((preset) => preset.language)
+            .whereType<String>()
+            .toSet()
+            .toList()
+          ..sort();
+    final tags = all.expand((preset) => preset.tags).toSet().toList()..sort();
+    if (languages.isEmpty && tags.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Row(
+        children: [
+          _filterChip(
+            l10n.presetFilterAll,
+            _filterLanguage == null && _filterTag == null,
+            () => setState(() {
+              _filterLanguage = null;
+              _filterTag = null;
+            }),
+          ),
+          for (final language in languages)
+            _filterChip(
+              language.toUpperCase(),
+              _filterLanguage == language && _filterTag == null,
+              () => setState(() {
+                _filterLanguage = language;
+                _filterTag = null;
+              }),
+            ),
+          for (final tag in tags)
+            _filterChip(
+              '#$tag',
+              _filterTag == tag,
+              () => setState(() {
+                _filterTag = tag;
+                _filterLanguage = null;
+              }),
+            ),
         ],
       ),
     );
@@ -1109,118 +1107,18 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CupertinoTextField(
-                    controller: nameController,
-                    placeholder: l10n.presetNamePlaceholder,
-                  ),
-                  const SizedBox(height: 8),
-                  CupertinoTextField(
-                    controller: descriptionController,
-                    placeholder: l10n.descriptionPlaceholder,
-                  ),
-                  const SizedBox(height: 8),
-                  CupertinoTextField(
-                    controller: authorController,
-                    placeholder: l10n.authorPlaceholder,
-                  ),
-                  const SizedBox(height: 8),
-                  CupertinoTextField(
-                    controller: versionController,
-                    placeholder: l10n.presetVersionPlaceholder,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    l10n.presetIconLabel,
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                  const SizedBox(height: 4),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      for (final iconName in presetIconNames)
-                        GestureDetector(
-                          onTap: () =>
-                              setSheetState(() => selectedIcon = iconName),
-                          child: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: selectedIcon == iconName
-                                  ? CupertinoColors.activeBlue.withAlpha(38)
-                                  : CupertinoColors.systemGrey6.resolveFrom(
-                                      sheetContext,
-                                    ),
-                              border: Border.all(
-                                color: selectedIcon == iconName
-                                    ? CupertinoColors.activeBlue
-                                    : CupertinoColors.systemGrey4,
-                                width: 0.5,
-                              ),
-                            ),
-                            child: Icon(
-                              presetIconForName(iconName),
-                              size: 17,
-                              color: selectedIcon == iconName
-                                  ? CupertinoColors.activeBlue
-                                  : CupertinoColors.systemGrey,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    l10n.presetLanguageLabel,
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                  const SizedBox(height: 4),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: [
-                      for (final locale in <String?>[
-                        null,
-                        'zh',
-                        'en',
-                        'ja',
-                        'ko',
-                        'es',
-                        'lzh',
-                      ])
-                        GestureDetector(
-                          onTap: () => setSheetState(() => language = locale),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: language == locale
-                                  ? CupertinoColors.activeBlue.withAlpha(38)
-                                  : CupertinoColors.systemGrey6.resolveFrom(
-                                      sheetContext,
-                                    ),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              locale ?? l10n.presetLanguageAny,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: language == locale
-                                    ? CupertinoColors.activeBlue
-                                    : CupertinoColors.systemGrey,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  CupertinoTextField(
-                    controller: tagsController,
-                    placeholder: l10n.presetTagsPlaceholder,
+                  PresetMetadataFields(
+                    nameController: nameController,
+                    descriptionController: descriptionController,
+                    authorController: authorController,
+                    versionController: versionController,
+                    tagsController: tagsController,
+                    selectedIcon: selectedIcon,
+                    language: language,
+                    onIconChanged: (value) =>
+                        setSheetState(() => selectedIcon = value),
+                    onLanguageChanged: (value) =>
+                        setSheetState(() => language = value),
                   ),
                 ],
               ),
@@ -1235,22 +1133,28 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
               child: Text(l10n.presetSave),
               onPressed: () async {
                 final name = nameController.text.trim();
-                await _presetRepository.updatePreset(
-                  preset.copyWith(
-                    name: name.isEmpty ? preset.name : name,
-                    description: descriptionController.text.trim(),
-                    author: authorController.text.trim(),
-                    version: versionController.text.trim().isEmpty
-                        ? 'v1.0'
-                        : versionController.text.trim(),
-                    icon: selectedIcon,
-                    language: language,
-                    clearLanguage: language == null,
-                    tags: parsePresetTags(tagsController.text),
-                  ),
-                );
-                if (dialogContext.mounted) {
-                  Navigator.pop(dialogContext);
+                try {
+                  await _presetRepository.updatePreset(
+                    preset.copyWith(
+                      name: name.isEmpty ? preset.name : name,
+                      description: descriptionController.text.trim(),
+                      author: authorController.text.trim(),
+                      version: versionController.text.trim().isEmpty
+                          ? 'v1.0'
+                          : versionController.text.trim(),
+                      icon: selectedIcon,
+                      language: language,
+                      clearLanguage: language == null,
+                      tags: parsePresetTags(tagsController.text),
+                    ),
+                  );
+                  if (dialogContext.mounted) {
+                    Navigator.pop(dialogContext);
+                  }
+                } catch (error) {
+                  if (mounted) {
+                    _showErrorMessage(l10n.importFailedError(error.toString()));
+                  }
                 }
               },
             ),
@@ -1334,6 +1238,18 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final builtIn = filterPresets(
+      _builtInPresets,
+      language: _filterLanguage,
+      tag: _filterTag,
+    );
+    final userPresets = filterPresets(
+      _userPresets,
+      language: _filterLanguage,
+      tag: _filterTag,
+    );
+    final hasAnyPresets = _builtInPresets.isNotEmpty || _userPresets.isNotEmpty;
+    final hasActiveFilter = _filterLanguage != null || _filterTag != null;
 
     return SettingsPageScaffold(
       title: l10n.presetManagement,
@@ -1350,26 +1266,43 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
           : ListView(
               children: [
                 if (_issues.isNotEmpty) _buildIssuesBanner(l10n),
+                if (hasAnyPresets) _buildFilterBar(l10n),
                 // 内置预设部分
-                if (_builtInPresets.isNotEmpty)
+                if (builtIn.isNotEmpty)
                   _buildSection(
                     context,
                     l10n.builtInPresets,
-                    _builtInPresets
+                    builtIn
                         .map((preset) => _buildPresetItem(preset, false))
                         .toList(),
                   ),
                 // 用户预设部分
-                if (_userPresets.isNotEmpty)
+                if (userPresets.isNotEmpty)
                   _buildSection(
                     context,
                     l10n.userPresets,
-                    _userPresets
+                    userPresets
                         .map((preset) => _buildPresetItem(preset, true))
                         .toList(),
                   ),
+                if (hasAnyPresets &&
+                    builtIn.isEmpty &&
+                    userPresets.isEmpty &&
+                    hasActiveFilter)
+                  Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Text(
+                      l10n.presetFilterNoResults,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: CupertinoColors.secondaryLabel.resolveFrom(
+                          context,
+                        ),
+                      ),
+                    ),
+                  ),
                 // 空状态
-                if (_builtInPresets.isEmpty && _userPresets.isEmpty)
+                if (!hasAnyPresets)
                   Padding(
                     padding: const EdgeInsets.all(32),
                     child: Column(

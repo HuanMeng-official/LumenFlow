@@ -735,6 +735,38 @@
       }
     }
   },
+  "presetIssueUserEntryInvalid": "ユーザープリセットの 1 件を読み込めません: {detail}",
+  "@presetIssueUserEntryInvalid": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueUserJsonWriteFailed": "ユーザープリセットの保存に失敗しました: {detail}",
+  "@presetIssueUserJsonWriteFailed": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueUserMigrationBackupFailed": "旧プリセットのバックアップに失敗したため、移行を中止しました: {detail}",
+  "@presetIssueUserMigrationBackupFailed": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueUserJsonCorruptNoBackup": "ユーザープリセット JSON が壊れており、バックアップにも失敗しました: {detail}",
+  "@presetIssueUserJsonCorruptNoBackup": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
   "presetBrokenLabel": "ファイルが見つかりません",
   "presetBrokenReason": "理由: {reason}",
   "@presetBrokenReason": {
@@ -779,6 +811,8 @@
   "presetLanguageLabel": "言語",
   "presetLanguageAny": "共通",
   "presetTagsPlaceholder": "タグ（カンマ区切り）",
+  "presetFilterAll": "すべて",
+  "presetFilterNoResults": "条件に合うプリセットがありません",
   "presetEditTitle": "プリセットを編集",
   "presetSave": "保存",
   "presetDuplicate": "自分のコピーを作成",

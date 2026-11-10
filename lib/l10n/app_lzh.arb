@@ -735,6 +735,38 @@
       }
     }
   },
+  "presetIssueUserEntryInvalid": "閣下錦囊中有一端不可讀：{detail}",
+  "@presetIssueUserEntryInvalid": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueUserJsonWriteFailed": "閣下錦囊存之不成：{detail}",
+  "@presetIssueUserJsonWriteFailed": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueUserMigrationBackupFailed": "舊錦囊備份不成，已罷遷：{detail}",
+  "@presetIssueUserMigrationBackupFailed": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueUserJsonCorruptNoBackup": "閣下錦囊之冊已損，且備份不成：{detail}",
+  "@presetIssueUserJsonCorruptNoBackup": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
   "presetBrokenLabel": "其文已失",
   "presetBrokenReason": "其故：{reason}",
   "@presetBrokenReason": {
@@ -779,6 +811,8 @@
   "presetLanguageLabel": "語言",
   "presetLanguageAny": "通用",
   "presetTagsPlaceholder": "標籤（以逗號分之）",
+  "presetFilterAll": "盡",
+  "presetFilterNoResults": "無合此選之錦囊",
   "presetEditTitle": "修錦囊",
   "presetSave": "存之",
   "presetDuplicate": "錄為己有",

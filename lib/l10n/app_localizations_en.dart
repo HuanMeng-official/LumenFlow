@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -57,7 +58,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get startChatting => 'Start chatting with AI!';
 
   @override
-  String get pleaseConfigureAPI => 'Please configure API settings to start chatting';
+  String get pleaseConfigureAPI =>
+      'Please configure API settings to start chatting';
 
   @override
   String get settingsButton => 'Settings';
@@ -66,7 +68,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get needConfiguration => 'Configuration Required';
 
   @override
-  String get configureAPIPrompt => 'Please configure API endpoint and key in settings';
+  String get configureAPIPrompt =>
+      'Please configure API endpoint and key in settings';
 
   @override
   String get cancel => 'Cancel';
@@ -93,7 +96,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clearConversation => 'Clear Current Conversation';
 
   @override
-  String get clearConversationConfirm => 'Are you sure you want to clear all messages in the current conversation?';
+  String get clearConversationConfirm =>
+      'Are you sure you want to clear all messages in the current conversation?';
 
   @override
   String get deleteConversation => 'Delete Conversation';
@@ -127,7 +131,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resetSettings => 'Reset Settings';
 
   @override
-  String get resetSettingsConfirm => 'Are you sure you want to restore default settings? This will clear all current configurations.';
+  String get resetSettingsConfirm =>
+      'Are you sure you want to restore default settings? This will clear all current configurations.';
 
   @override
   String get exportSettings => 'Export Settings';
@@ -161,13 +166,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get conversationImportFailed => 'Import Conversation Failed';
 
   @override
-  String get conversationImportInvalid => 'Not a valid LumenFlow conversation package.';
+  String get conversationImportInvalid =>
+      'Not a valid LumenFlow conversation package.';
 
   @override
   String get importSettings => 'Import Settings';
 
   @override
-  String get importSettingsConfirm => 'This will overwrite current settings. Are you sure you want to import?';
+  String get importSettingsConfirm =>
+      'This will overwrite current settings. Are you sure you want to import?';
 
   @override
   String get importSuccess => 'Import Successful';
@@ -187,7 +194,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get error => 'Error';
 
   @override
-  String get responseInterrupted => 'Response interrupted, app may have exited unexpectedly';
+  String get responseInterrupted =>
+      'Response interrupted, app may have exited unexpectedly';
 
   @override
   String get yesterday => 'Yesterday';
@@ -282,7 +290,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get apiKeyPlaceholder => 'API key';
 
   @override
-  String get apiKeyDesc => 'Authentication key obtained from AI service provider';
+  String get apiKeyDesc =>
+      'Authentication key obtained from AI service provider';
 
   @override
   String get modelSettings => 'Model Settings';
@@ -303,7 +312,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get maxTokensPlaceholder => 'Enter max tokens';
 
   @override
-  String get maxTokensDesc => 'Limit the length of single response, recommended 6000-10000';
+  String get maxTokensDesc =>
+      'Limit the length of single response, recommended 6000-10000';
 
   @override
   String get systemPrompt => 'System Prompt';
@@ -318,7 +328,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get temperature => 'Temperature';
 
   @override
-  String get temperatureDesc => 'Control response randomness, 0.0-2.0, higher value means more creative responses';
+  String get temperatureDesc =>
+      'Control response randomness, 0.0-2.0, higher value means more creative responses';
 
   @override
   String get historyConversation => 'History Conversation';
@@ -327,7 +338,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enableHistory => 'Enable History';
 
   @override
-  String get enableHistoryDesc => 'When enabled, AI will remember previous conversation context and provide more coherent responses';
+  String get enableHistoryDesc =>
+      'When enabled, AI will remember previous conversation context and provide more coherent responses';
 
   @override
   String get historyRounds => 'History Rounds';
@@ -336,7 +348,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historyRoundsPlaceholder => 'Enter number of history rounds';
 
   @override
-  String get historyRoundsDesc => 'Number of conversation rounds AI remembers, recommended 5-20 rounds. Too many may exceed token limit';
+  String get historyRoundsDesc =>
+      'Number of conversation rounds AI remembers, recommended 5-20 rounds. Too many may exceed token limit';
 
   @override
   String get conversationTitle => 'Conversation Title';
@@ -345,13 +358,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get autoGenerateTitle => 'Auto Generate Title';
 
   @override
-  String get autoGenerateTitleDesc => 'After several rounds of conversation, AI will automatically generate title based on content';
+  String get autoGenerateTitleDesc =>
+      'After several rounds of conversation, AI will automatically generate title based on content';
 
   @override
   String get generateTiming => 'Generate Timing';
 
   @override
-  String get generateTimingDesc => 'Set how many rounds of conversation before auto-generating title';
+  String get generateTimingDesc =>
+      'Set how many rounds of conversation before auto-generating title';
 
   @override
   String get rounds => 'rounds';
@@ -392,13 +407,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonApiEndpoints => 'Common API Endpoints';
 
   @override
-  String get commonApiEndpointsContent => 'OpenAI: https://api.openai.com/v1\n\nDeepSeek: https://api.deepseek.com\n\nAlibaba Cloud: https://dashscope.aliyuncs.com/api/v1\n\nPlease fill in the corresponding endpoint address based on the AI service provider you use.';
+  String get commonApiEndpointsContent =>
+      'OpenAI: https://api.openai.com/v1\n\nDeepSeek: https://api.deepseek.com\n\nAlibaba Cloud: https://dashscope.aliyuncs.com/api/v1\n\nPlease fill in the corresponding endpoint address based on the AI service provider you use.';
 
   @override
   String get commonModels => 'Common Models';
 
   @override
-  String get commonModelsContent => 'OpenAI:\n• gpt-6.1-sol\n• gpt-6-astra\n\nDeepSeek:\n• deepseek-flash\n• deepseek-v4-pro\n\nPlease select the corresponding model based on your API endpoint.';
+  String get commonModelsContent =>
+      'OpenAI:\n• gpt-6.1-sol\n• gpt-6-astra\n\nDeepSeek:\n• deepseek-flash\n• deepseek-v4-pro\n\nPlease select the corresponding model based on your API endpoint.';
 
   @override
   String get appInfo => 'App Information';
@@ -419,25 +436,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get intelligentConversation => 'Intelligent Conversation';
 
   @override
-  String get intelligentConversationDesc => 'Support natural language conversations with various AI models';
+  String get intelligentConversationDesc =>
+      'Support natural language conversations with various AI models';
 
   @override
   String get fileProcessing => 'File Processing';
 
   @override
-  String get fileProcessingDesc => 'Support uploading multiple file formats such as images and documents';
+  String get fileProcessingDesc =>
+      'Support uploading multiple file formats such as images and documents';
 
   @override
   String get historyRecords => 'History Records';
 
   @override
-  String get historyRecordsDesc => 'Automatically save conversation history with context memory';
+  String get historyRecordsDesc =>
+      'Automatically save conversation history with context memory';
 
   @override
   String get customSettings => 'Custom Settings';
 
   @override
-  String get customSettingsDesc => 'Flexibly configure API parameters, themes and personalized options';
+  String get customSettingsDesc =>
+      'Flexibly configure API parameters, themes and personalized options';
 
   @override
   String get licenses => 'Licenses';
@@ -446,16 +467,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sponsor => 'Sponsor';
 
   @override
-  String get sponsorDesc => 'If you find this app helpful, please scan the code to sponsor and support development';
+  String get sponsorDesc =>
+      'If you find this app helpful, please scan the code to sponsor and support development';
 
   @override
   String get copyright => '© 2026 幻梦official';
 
   @override
-  String get copyrightNotice => 'This application is for learning and research purposes only';
+  String get copyrightNotice =>
+      'This application is for learning and research purposes only';
 
   @override
-  String get copyrightTerms => 'Please ensure compliance with relevant API service terms before use';
+  String get copyrightTerms =>
+      'Please ensure compliance with relevant API service terms before use';
 
   @override
   String get profileSaved => 'User profile has been saved';
@@ -517,13 +541,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aboutUserProfile => 'About User Profile';
 
   @override
-  String get aboutUserProfileContent => '• Avatar: Choose a photo or emoji as your avatar, displayed in chat interface\n• Username: AI will use this name to address you in conversations\n• All information is stored locally only, never uploaded to server';
+  String get aboutUserProfileContent =>
+      '• Avatar: Choose a photo or emoji as your avatar, displayed in chat interface\n• Username: AI will use this name to address you in conversations\n• All information is stored locally only, never uploaded to server';
 
   @override
   String get selectPresetRole => 'Select Preset Role';
 
   @override
-  String get selectPresetRoleMessage => 'Select a preset role to apply the corresponding system prompt';
+  String get selectPresetRoleMessage =>
+      'Select a preset role to apply the corresponding system prompt';
 
   @override
   String get closePresetMode => 'Close Preset Mode';
@@ -590,7 +616,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noValidFiles => 'No Valid Files';
 
   @override
-  String get noValidFilesMessage => 'No files were successfully processed. Please try again.';
+  String get noValidFilesMessage =>
+      'No files were successfully processed. Please try again.';
 
   @override
   String get selectFileFailed => 'Select File Failed';
@@ -629,7 +656,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get configureApiKeyFirst => 'Please configure API key in settings first';
+  String get configureApiKeyFirst =>
+      'Please configure API key in settings first';
 
   @override
   String get selectModelFirst => 'Please select a model first';
@@ -651,7 +679,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get baseSystemPromptFollowUser => 'Reply in the language the user writes in.';
+  String get baseSystemPromptFollowUser =>
+      'Reply in the language the user writes in.';
 
   @override
   String get languageNameZh => 'Chinese';
@@ -675,7 +704,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get replyLanguageTitle => 'AI reply language';
 
   @override
-  String get replyLanguageSubtitle => 'Language and tone set by a character preset take priority over this option';
+  String get replyLanguageSubtitle =>
+      'Language and tone set by a character preset take priority over this option';
 
   @override
   String get replyLanguageFollowUi => 'Follow app language';
@@ -734,12 +764,20 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String providerAttachmentCannotRead(String fileName, String fileSize, String mimeType) {
+  String providerAttachmentCannotRead(
+    String fileName,
+    String fileSize,
+    String mimeType,
+  ) {
     return 'Attachment: $fileName ($fileSize, $mimeType) - Cannot read content';
   }
 
   @override
-  String providerAttachmentInfo(String fileName, String fileSize, String mimeType) {
+  String providerAttachmentInfo(
+    String fileName,
+    String fileSize,
+    String mimeType,
+  ) {
     return 'Attachment: $fileName ($fileSize, $mimeType)';
   }
 
@@ -749,10 +787,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get providerInvalidResponseFormat => 'API returned invalid response format';
+  String get providerInvalidResponseFormat =>
+      'API returned invalid response format';
 
   @override
-  String get providerMissingMessageField => 'API response is missing message field';
+  String get providerMissingMessageField =>
+      'API response is missing message field';
 
   @override
   String providerInvalidResponseFormatWithCode(int statusCode) {
@@ -779,7 +819,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get providerAi => 'AI';
 
   @override
-  String get providerTitleGenSystemPrompt => 'Generate a short, accurate English title based on the user’s language and conversation content. No more than 15 words. Only return the title, without quotes or other formatting.';
+  String get providerTitleGenSystemPrompt =>
+      'Generate a short, accurate English title based on the user’s language and conversation content. No more than 15 words. Only return the title, without quotes or other formatting.';
 
   @override
   String providerTitleGenUserPrompt(String conversationSummary) {
@@ -787,16 +828,20 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get providerMultimediaNotSupported => '\nNote: DeepSeek does not support processing multimedia files such as videos and audio';
+  String get providerMultimediaNotSupported =>
+      '\nNote: DeepSeek does not support processing multimedia files such as videos and audio';
 
   @override
-  String get providerGeminiInvalidResponse => 'Gemini API returned invalid response format';
+  String get providerGeminiInvalidResponse =>
+      'Gemini API returned invalid response format';
 
   @override
-  String get providerGeminiMissingCandidates => 'Gemini API response is missing candidates field';
+  String get providerGeminiMissingCandidates =>
+      'Gemini API response is missing candidates field';
 
   @override
-  String get providerGeminiInvalidFormat => 'Invalid Gemini API response format';
+  String get providerGeminiInvalidFormat =>
+      'Invalid Gemini API response format';
 
   @override
   String providerGeminiError(String message, int statusCode) {
@@ -820,7 +865,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get platformAndModel => 'Platforms & Models';
 
   @override
-  String get platformAndModelDesc => 'Manage multiple AI platforms and model configurations';
+  String get platformAndModelDesc =>
+      'Manage multiple AI platforms and model configurations';
 
   @override
   String get addPlatform => 'Add Platform';
@@ -927,7 +973,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noPlatformsConfigured => 'No platforms configured';
 
   @override
-  String get addPlatformHint => 'Tap the + button in the top right to add your first AI platform';
+  String get addPlatformHint =>
+      'Tap the + button in the top right to add your first AI platform';
 
   @override
   String get exportConversation => 'Export Conversation';
@@ -997,7 +1044,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enableNotification => 'Enable Notifications';
 
   @override
-  String get enableNotificationDesc => 'Receive notification when AI response is completed';
+  String get enableNotificationDesc =>
+      'Receive notification when AI response is completed';
 
   @override
   String get dataManagement => 'Data Management';
@@ -1009,13 +1057,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enableLiveUpdate => 'Live Update';
 
   @override
-  String get enableLiveUpdateDesc => 'Show Android 16 live update notification during AI response';
+  String get enableLiveUpdateDesc =>
+      'Show Android 16 live update notification during AI response';
 
   @override
   String get languageChanged => 'Language Changed';
 
   @override
-  String get restartAppToApplyLanguage => 'Please restart the app to apply the language change';
+  String get restartAppToApplyLanguage =>
+      'Please restart the app to apply the language change';
 
   @override
   String get loading => 'Loading';
@@ -1047,7 +1097,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get copied => 'Copied';
 
   @override
-  String get aiResponseDisclaimer => 'Content is for reference only, please verify carefully';
+  String get aiResponseDisclaimer =>
+      'Content is for reference only, please verify carefully';
 
   @override
   String get advancedSettings => 'Advanced';
@@ -1092,7 +1143,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get creditsBugTestingAndCode => 'Bug Testing and Partial Code';
 
   @override
-  String get creditsDescription => 'Special thanks to the following contributors for their invaluable support:';
+  String get creditsDescription =>
+      'Special thanks to the following contributors for their invaluable support:';
 
   @override
   String get contributors => 'Contributors';
@@ -1122,7 +1174,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get continueGeneration => 'Continue generating';
 
   @override
-  String get continueGenerationPrompt => 'Continue the previous assistant response from where it stopped. Do not repeat content that has already been written.';
+  String get continueGenerationPrompt =>
+      'Continue the previous assistant response from where it stopped. Do not repeat content that has already been written.';
 
   @override
   String get forkConversation => 'Fork from here';
@@ -1140,7 +1193,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get presetManagement => 'Preset Management';
 
   @override
-  String get presetManagementSubtitle => 'Manage built-in and user-imported prompts';
+  String get presetManagementSubtitle =>
+      'Manage built-in and user-imported prompts';
 
   @override
   String get presetIssuesTitle => 'Preset load issues';
@@ -1171,6 +1225,26 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String presetIssueUserEntryInvalid(String detail) {
+    return 'One user preset entry could not be read: $detail';
+  }
+
+  @override
+  String presetIssueUserJsonWriteFailed(String detail) {
+    return 'Failed to save user presets: $detail';
+  }
+
+  @override
+  String presetIssueUserMigrationBackupFailed(String detail) {
+    return 'Could not back up legacy presets; migration skipped: $detail';
+  }
+
+  @override
+  String presetIssueUserJsonCorruptNoBackup(String detail) {
+    return 'User preset JSON is corrupt and the backup failed: $detail';
+  }
+
+  @override
   String get presetBrokenLabel => 'File missing';
 
   @override
@@ -1182,7 +1256,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get presetUnavailableTitle => 'Character unavailable';
 
   @override
-  String get presetUnavailableMessage => 'The character preset used by this conversation is missing or was deleted.';
+  String get presetUnavailableMessage =>
+      'The character preset used by this conversation is missing or was deleted.';
 
   @override
   String get presetDisableAndSend => 'Turn off role mode and send';
@@ -1200,7 +1275,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noPresetsAvailable => 'No presets available';
 
   @override
-  String get importXmlHint => 'Tap the + button in the top right to import XML files';
+  String get importXmlHint =>
+      'Tap the + button in the top right to import XML files';
 
   @override
   String get importPresetDialogTitle => 'Import Preset';
@@ -1227,16 +1303,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get presetImportErrorTooLarge => 'The file exceeds the 200 KB limit.';
 
   @override
-  String get presetImportErrorInvalidUtf8 => 'The file is not valid UTF-8 text.';
+  String get presetImportErrorInvalidUtf8 =>
+      'The file is not valid UTF-8 text.';
 
   @override
   String get presetImportErrorInvalidXml => 'The XML is malformed.';
 
   @override
-  String get presetImportErrorInvalidRoot => 'The root element must be <system_instruction>.';
+  String get presetImportErrorInvalidRoot =>
+      'The root element must be <system_instruction>.';
 
   @override
-  String get presetImportWarningNameMissing => 'No <role_name> found; the file name will be used.';
+  String get presetImportWarningNameMissing =>
+      'No <role_name> found; the file name will be used.';
 
   @override
   String get presetImportDuplicateTitle => 'Character card already exists';
@@ -1265,6 +1344,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get presetTagsPlaceholder => 'Tags (comma separated)';
 
   @override
+  String get presetFilterAll => 'All';
+
+  @override
+  String get presetFilterNoResults => 'No presets match this filter';
+
+  @override
   String get presetEditTitle => 'Edit Preset';
 
   @override
@@ -1289,7 +1374,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get includePresetCard => 'Include character card content';
 
   @override
-  String get includePresetCardHint => 'May contain private content; only applies to JSON / LumenFlow';
+  String get includePresetCardHint =>
+      'May contain private content; only applies to JSON / LumenFlow';
 
   @override
   String get importPresetSnapshotTitle => 'Import character card';
@@ -1305,10 +1391,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get presetTokenWarning => 'Over 4000 tokens: this content is resent on every turn.';
+  String get presetTokenWarning =>
+      'Over 4000 tokens: this content is resent on every turn.';
 
   @override
-  String get presetTokenStrongWarning => 'Over 8000 tokens: consider trimming the character card.';
+  String get presetTokenStrongWarning =>
+      'Over 8000 tokens: consider trimming the character card.';
 
   @override
   String get presetFullContent => 'Full content';
@@ -1375,13 +1463,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get openGeneratorButton => 'Open Generator';
 
   @override
-  String get httpServerDescription => 'Server running on port 5050, serving the role card generator page.';
+  String get httpServerDescription =>
+      'Server running on port 5050, serving the role card generator page.';
 
   @override
   String get httpServerNotRunningTitle => 'Server Not Running';
 
   @override
-  String get httpServerNotRunningMessage => 'The role card generator server is not running. Do you want to start the server?';
+  String get httpServerNotRunningMessage =>
+      'The role card generator server is not running. Do you want to start the server?';
 
   @override
   String get startServerButton => 'Start';
@@ -1395,7 +1485,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get currentTime => 'The following is the current time; do not proactively state the time unless the user asks:';
+  String get currentTime =>
+      'The following is the current time; do not proactively state the time unless the user asks:';
 
   @override
   String httpServerOperationFailed(String error) {
@@ -1433,7 +1524,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clearBackgroundImage => 'Clear Background Image';
 
   @override
-  String get clearBackgroundImageConfirm => 'Are you sure you want to clear the background image?';
+  String get clearBackgroundImageConfirm =>
+      'Are you sure you want to clear the background image?';
 
   @override
   String get birthday => 'Birthday';

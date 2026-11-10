@@ -735,6 +735,38 @@
       }
     }
   },
+  "presetIssueUserEntryInvalid": "No se pudo leer una entrada de ajustes del usuario: {detail}",
+  "@presetIssueUserEntryInvalid": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueUserJsonWriteFailed": "No se pudieron guardar los ajustes del usuario: {detail}",
+  "@presetIssueUserJsonWriteFailed": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueUserMigrationBackupFailed": "No se pudo respaldar los ajustes antiguos; migración cancelada: {detail}",
+  "@presetIssueUserMigrationBackupFailed": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "presetIssueUserJsonCorruptNoBackup": "El JSON de ajustes del usuario está dañado y el respaldo falló: {detail}",
+  "@presetIssueUserJsonCorruptNoBackup": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
   "presetBrokenLabel": "Archivo faltante",
   "presetBrokenReason": "Motivo: {reason}",
   "@presetBrokenReason": {
@@ -779,6 +811,8 @@
   "presetLanguageLabel": "Idioma",
   "presetLanguageAny": "General",
   "presetTagsPlaceholder": "Etiquetas (separadas por comas)",
+  "presetFilterAll": "Todos",
+  "presetFilterNoResults": "Ningún ajuste coincide con el filtro",
   "presetEditTitle": "Editar ajuste",
   "presetSave": "Guardar",
   "presetDuplicate": "Duplicar como copia",
