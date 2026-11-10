@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+
 import 'ai_provider.dart';
 import 'http_provider_base.dart';
 import '../models/message.dart';
@@ -35,6 +38,18 @@ class ClaudeProvider extends HttpProviderBase {
         model.startsWith('claude-mythos-5');
   }
 
+  /// 原生 Claude 通道使用 content block 数组，并在 system 末尾标记缓存断点。
+  /// 过短的 system 由服务端静默忽略，不会报错。OpenAI 兼容通道不走这里。
+  List<Map<String, dynamic>> _cachedSystem(String systemPrompt) {
+    return [
+      {
+        'type': 'text',
+        'text': systemPrompt,
+        'cache_control': {'type': 'ephemeral'},
+      },
+    ];
+  }
+
   Map<String, dynamic> _thinkingFields(
     String model,
     bool thinkingMode,
@@ -64,56 +79,55 @@ class ClaudeProvider extends HttpProviderBase {
     bool thinkingMode = false,
     required AppLocalizations l10n,
   }) async {
-    return await executeWithRetry<Map<String, dynamic>>(
-      () async {
-        final client = createHttpClient();
-        try {
-          final apiEndpoint = await _settingsService.getApiEndpoint();
-          final apiKey = await _settingsService.getApiKey();
-          final model = await _settingsService.getModel();
-          final enableHistory = await _settingsService.getEnableHistory();
-          final historyContextLength =
-              await _settingsService.getHistoryContextLength();
+    return await executeWithRetry<Map<String, dynamic>>(() async {
+      final client = createHttpClient();
+      try {
+        final apiEndpoint = await _settingsService.getApiEndpoint();
+        final apiKey = await _settingsService.getApiKey();
+        final model = await _settingsService.getModel();
+        final enableHistory = await _settingsService.getEnableHistory();
+        final historyContextLength = await _settingsService
+            .getHistoryContextLength();
 
-          final messages = await _buildMessages(
-            message: message,
-            chatHistory: chatHistory,
-            attachments: attachments,
-            systemPrompt: systemPrompt,
-            enableHistory: enableHistory,
-            historyContextLength: historyContextLength,
-            l10n: l10n,
-          );
+        final messages = await _buildMessages(
+          message: message,
+          chatHistory: chatHistory,
+          attachments: attachments,
+          systemPrompt: systemPrompt,
+          enableHistory: enableHistory,
+          historyContextLength: historyContextLength,
+          l10n: l10n,
+        );
 
-          final requestBody = {
-            'model': model,
-            'messages': messages,
-            'max_tokens': maxTokens,
-            if (systemPrompt.isNotEmpty) 'system': systemPrompt,
-            ..._thinkingFields(model, thinkingMode, maxTokens),
-          };
+        final requestBody = {
+          'model': model,
+          'messages': messages,
+          'max_tokens': maxTokens,
+          if (systemPrompt.isNotEmpty) 'system': _cachedSystem(systemPrompt),
+          ..._thinkingFields(model, thinkingMode, maxTokens),
+        };
 
-          final response = await client.post(
-            Uri.parse('$apiEndpoint/messages'),
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Api-Key': apiKey,
-              'anthropic-version': anthropicVersion,
-            },
-            body: jsonEncode(requestBody),
-          ).timeout(connectionTimeout + readTimeout);
+        final response = await client
+            .post(
+              Uri.parse('$apiEndpoint/messages'),
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Api-Key': apiKey,
+                'anthropic-version': anthropicVersion,
+              },
+              body: jsonEncode(requestBody),
+            )
+            .timeout(connectionTimeout + readTimeout);
 
-          if (response.statusCode == 200) {
-            return _parseResponse(response.body, l10n);
-          } else {
-            throw parseError(response.body, response.statusCode, l10n);
-          }
-        } finally {
-          client.close();
+        if (response.statusCode == 200) {
+          return _parseResponse(response.body, l10n);
+        } else {
+          throw parseError(response.body, response.statusCode, l10n);
         }
-      },
-      l10n: l10n,
-    );
+      } finally {
+        client.close();
+      }
+    }, l10n: l10n);
   }
 
   @override
@@ -133,8 +147,8 @@ class ClaudeProvider extends HttpProviderBase {
       final apiKey = await _settingsService.getApiKey();
       final model = await _settingsService.getModel();
       final enableHistory = await _settingsService.getEnableHistory();
-      final historyContextLength =
-          await _settingsService.getHistoryContextLength();
+      final historyContextLength = await _settingsService
+          .getHistoryContextLength();
 
       final messages = await _buildMessages(
         message: message,
@@ -151,24 +165,24 @@ class ClaudeProvider extends HttpProviderBase {
         'messages': messages,
         'max_tokens': maxTokens,
         'stream': true,
-        if (systemPrompt.isNotEmpty) 'system': systemPrompt,
+        if (systemPrompt.isNotEmpty) 'system': _cachedSystem(systemPrompt),
         ..._thinkingFields(model, thinkingMode, maxTokens),
       };
 
-      final request = http.Request(
-        'POST',
-        Uri.parse('$apiEndpoint/messages'),
-      );
+      final request = http.Request('POST', Uri.parse('$apiEndpoint/messages'));
       request.headers['Content-Type'] = 'application/json';
       request.headers['X-Api-Key'] = apiKey;
       request.headers['anthropic-version'] = anthropicVersion;
       request.body = jsonEncode(requestBody);
 
-      final streamedResponse = await client.send(request).timeout(streamingTimeout);
+      final streamedResponse = await client
+          .send(request)
+          .timeout(streamingTimeout);
 
       if (streamedResponse.statusCode != 200) {
-        final errorBody =
-            await streamedResponse.stream.transform(utf8.decoder).join();
+        final errorBody = await streamedResponse.stream
+            .transform(utf8.decoder)
+            .join();
         throw parseError(errorBody, streamedResponse.statusCode, l10n);
       }
 
@@ -178,7 +192,9 @@ class ClaudeProvider extends HttpProviderBase {
       final stopwatch = Stopwatch()..start();
 
       // 处理SSE流，正确处理跨chunk的事件边界
-      await for (final chunk in streamedResponse.stream.transform(utf8.decoder)) {
+      await for (final chunk in streamedResponse.stream.transform(
+        utf8.decoder,
+      )) {
         stopwatch.reset();
 
         if (chunk.isEmpty) continue;
@@ -224,6 +240,15 @@ class ClaudeProvider extends HttpProviderBase {
             final jsonData = jsonDecode(dataLine);
             final type = jsonData['type'] as String?;
 
+            if (type == 'message_start') {
+              final message = jsonData['message'];
+              if (message is Map) {
+                _logCacheUsage(message['usage']);
+              }
+            } else if (type == 'message_delta') {
+              _logCacheUsage(jsonData['usage']);
+            }
+
             if (type == 'content_block_delta') {
               final delta = jsonData['delta'] as Map<String, dynamic>?;
               if (delta != null) {
@@ -250,7 +275,9 @@ class ClaudeProvider extends HttpProviderBase {
         }
 
         if (stopwatch.elapsed > streamingTimeout) {
-          throw TimeoutException(l10n.providerStreamingTimeout(streamingTimeout.inSeconds));
+          throw TimeoutException(
+            l10n.providerStreamingTimeout(streamingTimeout.inSeconds),
+          );
         }
       }
     } finally {
@@ -259,23 +286,28 @@ class ClaudeProvider extends HttpProviderBase {
   }
 
   @override
-  Future<String> generateConversationTitle(List<Message> messages, {required AppLocalizations l10n}) async {
+  Future<String> generateConversationTitle(
+    List<Message> messages, {
+    required AppLocalizations l10n,
+  }) async {
     final apiEndpoint = await _settingsService.getApiEndpoint();
     final apiKey = await _settingsService.getApiKey();
     final model = await _settingsService.getModel();
 
     // 提取对话摘要
     final summaryMessages = messages.take(6).toList();
-    final conversationSummary = summaryMessages.map((msg) {
-      final role = msg.isUser ? l10n.providerUser : l10n.providerAi;
-      return '$role: ${msg.content.trim()}';
-    }).join('\n');
+    final conversationSummary = summaryMessages
+        .map((msg) {
+          final role = msg.isUser ? l10n.providerUser : l10n.providerAi;
+          return '$role: ${msg.content.trim()}';
+        })
+        .join('\n');
 
     final requestMessages = [
       {
         'role': 'user',
-        'content': l10n.providerTitleGenUserPrompt(conversationSummary)
-      }
+        'content': l10n.providerTitleGenUserPrompt(conversationSummary),
+      },
     ];
 
     final requestBody = {
@@ -300,7 +332,9 @@ class ClaudeProvider extends HttpProviderBase {
       var title = data['content']?[0]?['text']?.toString().trim() ?? '';
 
       // 移除可能的引号
-      if (title.startsWith('"') || title.startsWith('\'') || title.startsWith('|')) {
+      if (title.startsWith('"') ||
+          title.startsWith('\'') ||
+          title.startsWith('|')) {
         title = title.substring(1);
       }
       if (title.endsWith('"') || title.endsWith('\'') || title.endsWith('|')) {
@@ -335,9 +369,11 @@ class ClaudeProvider extends HttpProviderBase {
     // 添加历史消息
     if (enableHistory && chatHistory.isNotEmpty) {
       final recentHistory = chatHistory
-          .where((msg) =>
-              msg.status != MessageStatus.error &&
-              msg.content.trim().isNotEmpty)
+          .where(
+            (msg) =>
+                msg.status != MessageStatus.error &&
+                msg.content.trim().isNotEmpty,
+          )
           .toList()
           .reversed
           .take(historyContextLength * 2)
@@ -354,26 +390,36 @@ class ClaudeProvider extends HttpProviderBase {
     }
 
     // 添加当前用户消息
-    final userMessageContent = await _buildMessageContent(message, attachments, l10n);
-    messages.add({
-      'role': 'user',
-      'content': userMessageContent,
-    });
+    final userMessageContent = await _buildMessageContent(
+      message,
+      attachments,
+      l10n,
+    );
+    messages.add({'role': 'user', 'content': userMessageContent});
 
     return messages;
   }
 
   /// 构建消息内容（处理附件）
   Future<dynamic> _buildMessageContent(
-      String message, List<Attachment> attachments, AppLocalizations l10n) async {
+    String message,
+    List<Attachment> attachments,
+    AppLocalizations l10n,
+  ) async {
     if (attachments.isEmpty) {
       return message;
     }
 
     final totalSize = attachments.fold<int>(
-        0, (sum, attachment) => sum + (attachment.fileSize ?? 0));
+      0,
+      (sum, attachment) => sum + (attachment.fileSize ?? 0),
+    );
     if (totalSize > AIProvider.maxTotalAttachmentsSize) {
-      throw Exception(l10n.providerTotalSizeExceeded(AIProvider.maxTotalAttachmentsSize ~/ (1024 * 1024)));
+      throw Exception(
+        l10n.providerTotalSizeExceeded(
+          AIProvider.maxTotalAttachmentsSize ~/ (1024 * 1024),
+        ),
+      );
     }
 
     final contentParts = <Map<String, dynamic>>[];
@@ -386,19 +432,25 @@ class ClaudeProvider extends HttpProviderBase {
       try {
         if (attachment.filePath == null ||
             !await _fileService.fileExists(attachment.filePath!)) {
-          contentParts.add(
-              {'type': 'text', 'text': l10n.providerFileNotFound(attachment.fileName)});
+          contentParts.add({
+            'type': 'text',
+            'text': l10n.providerFileNotFound(attachment.fileName),
+          });
           continue;
         }
 
         final file = File(attachment.filePath!);
-        final fileSize = attachment.fileSize ??
+        final fileSize =
+            attachment.fileSize ??
             await _fileService.getFileSize(attachment.filePath!);
 
         if (fileSize > AIProvider.maxFileSizeForBase64) {
           contentParts.add({
             'type': 'text',
-            'text': l10n.providerFileTooLarge(attachment.fileName, formatFileSize(fileSize))
+            'text': l10n.providerFileTooLarge(
+              attachment.fileName,
+              formatFileSize(fileSize),
+            ),
           });
           continue;
         }
@@ -406,33 +458,40 @@ class ClaudeProvider extends HttpProviderBase {
         if (isVisionSupportedFile(attachment)) {
           try {
             // 如果有URL，使用URL引用图片，否则使用base64编码
-            if (attachment.url != null && attachment.url!.isNotEmpty &&
-                (attachment.url!.startsWith('http://') || attachment.url!.startsWith('https://'))) {
+            if (attachment.url != null &&
+                attachment.url!.isNotEmpty &&
+                (attachment.url!.startsWith('http://') ||
+                    attachment.url!.startsWith('https://'))) {
               contentParts.add({
                 'type': 'image',
-                'source': {
-                  'type': 'url',
-                  'url': attachment.url!,
-                }
+                'source': {'type': 'url', 'url': attachment.url!},
               });
             } else {
-              final dataUrl =
-                  await _fileService.getFileDataUrl(file, attachment.mimeType);
+              final dataUrl = await _fileService.getFileDataUrl(
+                file,
+                attachment.mimeType,
+              );
               // 使用 base64 编码的图片
-              final base64Data = dataUrl.replaceFirst(RegExp(r'^data:[^;]+;base64,'), '');
+              final base64Data = dataUrl.replaceFirst(
+                RegExp(r'^data:[^;]+;base64,'),
+                '',
+              );
               contentParts.add({
                 'type': 'image',
                 'source': {
                   'type': 'base64',
                   'media_type': attachment.mimeType ?? 'image/jpeg',
                   'data': base64Data,
-                }
+                },
               });
             }
           } catch (e) {
             contentParts.add({
               'type': 'text',
-              'text': l10n.providerFileProcessError(attachment.fileName, e.toString())
+              'text': l10n.providerFileProcessError(
+                attachment.fileName,
+                e.toString(),
+              ),
             });
           }
         } else {
@@ -444,8 +503,8 @@ class ClaudeProvider extends HttpProviderBase {
                 'text': l10n.providerFileContent(
                   attachment.fileName,
                   formatFileSize(fileSize),
-                  content
-                )
+                  content,
+                ),
               });
             } catch (e) {
               contentParts.add({
@@ -453,8 +512,8 @@ class ClaudeProvider extends HttpProviderBase {
                 'text': l10n.providerAttachmentCannotRead(
                   attachment.fileName,
                   formatFileSize(fileSize),
-                  attachment.mimeType ?? l10n.unknownMimeType
-                )
+                  attachment.mimeType ?? l10n.unknownMimeType,
+                ),
               });
             }
           } else {
@@ -463,14 +522,19 @@ class ClaudeProvider extends HttpProviderBase {
               'text': l10n.providerAttachmentInfo(
                 attachment.fileName,
                 formatFileSize(fileSize),
-                attachment.mimeType ?? l10n.unknownMimeType
-              )
+                attachment.mimeType ?? l10n.unknownMimeType,
+              ),
             });
           }
         }
       } catch (e) {
-        contentParts.add(
-            {'type': 'text', 'text': l10n.providerFileProcessError(attachment.fileName, e.toString())});
+        contentParts.add({
+          'type': 'text',
+          'text': l10n.providerFileProcessError(
+            attachment.fileName,
+            e.toString(),
+          ),
+        });
       }
     }
 
@@ -481,12 +545,25 @@ class ClaudeProvider extends HttpProviderBase {
     return contentParts;
   }
 
+  void _logCacheUsage(Object? usage) {
+    if (!kDebugMode || usage is! Map) return;
+    debugPrint(
+      'Claude usage: input=${usage['input_tokens']} '
+      'cache_write=${usage['cache_creation_input_tokens']} '
+      'cache_read=${usage['cache_read_input_tokens']}',
+    );
+  }
+
   /// 解析响应
-  Map<String, dynamic> _parseResponse(String responseBody, AppLocalizations l10n) {
+  Map<String, dynamic> _parseResponse(
+    String responseBody,
+    AppLocalizations l10n,
+  ) {
     final data = jsonDecode(responseBody);
     if (data is! Map<String, dynamic> || data['content'] == null) {
       throw Exception(l10n.providerInvalidResponseFormat);
     }
+    _logCacheUsage(data['usage']);
 
     final contentList = data['content'] as List;
     if (contentList.isEmpty) {
@@ -497,10 +574,17 @@ class ClaudeProvider extends HttpProviderBase {
     String reasoningContent = data['thinking']?.toString().trim() ?? '';
     final thinkingFromContent = contentList
         .where((item) => item['type'] == 'thinking')
-        .map<String>((item) => item['thinking']?.toString().trim() ?? item['text']?.toString().trim() ?? '')
+        .map<String>(
+          (item) =>
+              item['thinking']?.toString().trim() ??
+              item['text']?.toString().trim() ??
+              '',
+        )
         .join('');
     if (thinkingFromContent.isNotEmpty) {
-      reasoningContent = reasoningContent.isEmpty ? thinkingFromContent : '$reasoningContent\n$thinkingFromContent';
+      reasoningContent = reasoningContent.isEmpty
+          ? thinkingFromContent
+          : '$reasoningContent\n$thinkingFromContent';
     }
 
     // 提取文本内容
@@ -509,10 +593,6 @@ class ClaudeProvider extends HttpProviderBase {
         .map<String>((item) => item['text']?.toString().trim() ?? '')
         .join('');
 
-    return {
-      'reasoningContent': reasoningContent,
-      'content': content,
-    };
+    return {'reasoningContent': reasoningContent, 'content': content};
   }
-
 }
