@@ -1,11 +1,13 @@
 import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 
 class HttpServerService {
-  static const int _port = 5050;
+  static const int _defaultPort = 5050;
+  static const int _maxPort = 5059;
   static const String _htmlFilePath = 'assets/gen/generator.html';
 
   // 单例实例
@@ -23,6 +25,7 @@ class HttpServerService {
   HttpServer? _server;
   bool _isRunning = false;
   String? _serverUrl;
+  int? _activePort;
 
   // 状态通知器，用于UI更新
   final ValueNotifier<bool> isRunningNotifier = ValueNotifier<bool>(false);
@@ -33,22 +36,31 @@ class HttpServerService {
       return;
     }
 
-    try {
-      // 创建HTTP服务器
-      _server = await HttpServer.bind(InternetAddress.loopbackIPv4, _port);
-      _isRunning = true;
-      _serverUrl = 'http://localhost:$_port';
+    Object? lastError;
+    for (var candidate = _defaultPort; candidate <= _maxPort; candidate++) {
+      try {
+        final server = await HttpServer.bind(
+          InternetAddress.loopbackIPv4,
+          candidate,
+        );
+        _server = server;
+        _activePort = candidate;
+        _isRunning = true;
+        _serverUrl = 'http://127.0.0.1:$candidate';
 
-      // 更新通知器状态
-      isRunningNotifier.value = true;
-      serverUrlNotifier.value = _serverUrl;
+        // 更新通知器状态
+        isRunningNotifier.value = true;
+        serverUrlNotifier.value = _serverUrl;
 
-
-      // 处理请求
-      _server!.listen(_handleRequest);
-    } catch (e) {
-      rethrow;
+        // 处理请求
+        server.listen(_handleRequest);
+        return;
+      } catch (e) {
+        lastError = e;
+      }
     }
+
+    throw StateError('无法在 $_defaultPort-$_maxPort 范围内启动生成器服务: $lastError');
   }
 
   Future<void> stop() async {
@@ -58,11 +70,11 @@ class HttpServerService {
     }
     _isRunning = false;
     _serverUrl = null;
+    _activePort = null;
 
     // 更新通知器状态
     isRunningNotifier.value = false;
     serverUrlNotifier.value = null;
-
   }
 
   Future<void> _handleRequest(HttpRequest request) async {
@@ -130,7 +142,7 @@ class HttpServerService {
 
   bool get isRunning => _isRunning;
   String? get serverUrl => _serverUrl;
-  int get port => _port;
+  int get port => _activePort ?? _defaultPort;
 
   /// 切换服务器状态
   Future<void> toggle() async {
