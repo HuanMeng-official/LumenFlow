@@ -1,21 +1,31 @@
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
+
 import '../models/conversation.dart';
 import '../models/message.dart';
+import '../models/prompt_preset.dart';
 import '../l10n/app_localizations.dart';
+
 import 'dart:io';
+
 import 'version_service.dart';
+
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:archive/archive.dart';
 import 'package:archive/archive_io.dart';
 import 'package:path/path.dart' as path;
+
 import '../models/attachment.dart';
 import '../utils/file_save_utils.dart';
+
 import 'dart:async';
 import 'dart:convert';
+
 import 'conversation_database.dart';
 import 'file_service.dart';
+import 'prompt_service.dart';
 
 /// 对话服务，管理对话的持久化存储和CRUD操作
 ///
@@ -38,17 +48,27 @@ class ConversationService {
   static final ConversationService _instance = ConversationService._internal();
   factory ConversationService() => _instance;
 
-  ConversationService._internal({ConversationDatabase? database})
-      : _db = database ?? ConversationDatabase();
+  ConversationService._internal({
+    ConversationDatabase? database,
+    PromptService? promptService,
+  }) : _db = database ?? ConversationDatabase(),
+       _promptService = promptService ?? PromptService();
 
   /// 创建测试专用实例，使用独立数据库以避免共享单例缓存。
   @visibleForTesting
-  factory ConversationService.forTesting(ConversationDatabase database) {
-    return ConversationService._internal(database: database);
+  factory ConversationService.forTesting(
+    ConversationDatabase database, {
+    PromptService? promptService,
+  }) {
+    return ConversationService._internal(
+      database: database,
+      promptService: promptService,
+    );
   }
 
   /// 数据库实例
   final ConversationDatabase _db;
+  final PromptService _promptService;
 
   static pw.Font? _pdfRegularFont;
   static pw.Font? _pdfBoldFont;
@@ -80,7 +100,9 @@ class ConversationService {
 
   /// 从本地存储加载所有对话（带缓存）
   /// 返回按更新时间倒序排序的对话列表（最近更新的在前）
-  Future<List<Conversation>> loadConversations({bool forceReload = false}) async {
+  Future<List<Conversation>> loadConversations({
+    bool forceReload = false,
+  }) async {
     // 如果缓存存在且未脏，直接返回缓存
     if (_cachedConversations != null && !_isCacheDirty && !forceReload) {
       return List.from(_cachedConversations!);
@@ -160,7 +182,9 @@ class ConversationService {
 
     // 更新缓存
     if (_cachedConversations != null) {
-      final index = _cachedConversations!.indexWhere((c) => c.id == conversation.id);
+      final index = _cachedConversations!.indexWhere(
+        (c) => c.id == conversation.id,
+      );
       if (index != -1) {
         _cachedConversations![index] = conversation.copyWith(
           updatedAt: conversation.updatedAt,
@@ -169,9 +193,10 @@ class ConversationService {
         _sortConversations(_cachedConversations!);
       } else {
         // 如果对话不存在，添加它
-        _cachedConversations!.insert(0, conversation.copyWith(
-          updatedAt: conversation.updatedAt,
-        ));
+        _cachedConversations!.insert(
+          0,
+          conversation.copyWith(updatedAt: conversation.updatedAt),
+        );
         _sortConversations(_cachedConversations!);
       }
       _isCacheDirty = false;
@@ -198,8 +223,9 @@ class ConversationService {
 
     final conversations = _cachedConversations;
     if (conversations == null) return;
-    final index =
-        conversations.indexWhere((conversation) => conversation.id == conversationId);
+    final index = conversations.indexWhere(
+      (conversation) => conversation.id == conversationId,
+    );
     if (index == -1) return;
     conversations[index] = conversations[index].copyWith(
       thinkingMode: thinkingMode,
@@ -217,8 +243,9 @@ class ConversationService {
 
     final conversations = _cachedConversations;
     if (conversations == null) return;
-    final index =
-        conversations.indexWhere((conversation) => conversation.id == conversationId);
+    final index = conversations.indexWhere(
+      (conversation) => conversation.id == conversationId,
+    );
     if (index == -1) return;
     conversations[index] = conversations[index].copyWith(isPinned: isPinned);
     _sortConversations(conversations);
@@ -241,14 +268,16 @@ class ConversationService {
     final conversations = _cachedConversations;
     if (conversations == null) return;
 
-    final conversationIndex =
-        conversations.indexWhere((c) => c.id == conversationId);
+    final conversationIndex = conversations.indexWhere(
+      (c) => c.id == conversationId,
+    );
     if (conversationIndex == -1) return;
 
     final conversation = conversations[conversationIndex];
     if (!_loadedConversationIds.contains(conversationId)) {
-      conversations[conversationIndex] =
-          conversation.copyWith(updatedAt: message.timestamp);
+      conversations[conversationIndex] = conversation.copyWith(
+        updatedAt: message.timestamp,
+      );
       _sortConversations(conversations);
       return;
     }
@@ -287,7 +316,9 @@ class ConversationService {
     // 先检查缓存
     if (_loadedConversationIds.contains(id) && _cachedConversations != null) {
       try {
-        final cachedConversation = _cachedConversations!.firstWhere((c) => c.id == id);
+        final cachedConversation = _cachedConversations!.firstWhere(
+          (c) => c.id == id,
+        );
         // 如果缓存中的对话消息为空，可能是不完整的缓存，需要从数据库重新加载
         if (cachedConversation.messages.isEmpty) {
           // 从数据库加载完整对话
@@ -335,12 +366,16 @@ class ConversationService {
 
   /// 更新对话标题
   Future<void> updateConversationTitle(
-      String conversationId, String title) async {
+    String conversationId,
+    String title,
+  ) async {
     await _db.updateConversationTitle(conversationId, title);
 
     // 更新缓存
     if (_cachedConversations != null) {
-      final index = _cachedConversations!.indexWhere((c) => c.id == conversationId);
+      final index = _cachedConversations!.indexWhere(
+        (c) => c.id == conversationId,
+      );
       if (index != -1) {
         _cachedConversations![index] = _cachedConversations![index].copyWith(
           title: title,
@@ -350,19 +385,76 @@ class ConversationService {
     }
   }
 
+  String _presetContentHash(PromptPreset preset) {
+    return preset.contentHash ??
+        sha256
+            .convert(
+              utf8.encode(
+                PromptService.normalizePresetContent(preset.systemPrompt),
+              ),
+            )
+            .toString();
+  }
+
+  /// 构建导出快照。内置预设只写 id；用户预设携带正文，便于跨设备恢复。
+  Future<Map<String, dynamic>?> _buildPresetSnapshot(
+    Conversation conversation,
+    bool includePresetSnapshot,
+  ) async {
+    if (!includePresetSnapshot ||
+        !conversation.promptPresetEnabled ||
+        conversation.promptPresetId.isEmpty) {
+      return null;
+    }
+
+    final preset = await _promptService.findPresetById(
+      conversation.promptPresetId,
+    );
+    if (preset == null) {
+      return {'id': conversation.promptPresetId};
+    }
+    if (!preset.id.startsWith('user_')) {
+      return {'id': preset.id};
+    }
+    return {
+      'id': preset.id,
+      'name': preset.name,
+      'author': preset.author,
+      'version': preset.version,
+      'content_hash': _presetContentHash(preset),
+      'system_prompt': preset.systemPrompt,
+    };
+  }
+
   /// 导出对话为JSON格式
   /// 返回原始对话的JSON表示
-  Future<Map<String, dynamic>> exportConversationToJson(String conversationId, AppLocalizations l10n) async {
+  Future<Map<String, dynamic>> exportConversationToJson(
+    String conversationId,
+    AppLocalizations l10n, {
+    bool includePresetSnapshot = false,
+  }) async {
     final conversation = await getConversationById(conversationId);
     if (conversation == null) {
       throw Exception(l10n.exportConversationNotFound);
     }
-    return conversation.toJson();
+    final json = conversation.toJson();
+    final snapshot = await _buildPresetSnapshot(
+      conversation,
+      includePresetSnapshot,
+    );
+    if (snapshot != null) {
+      json['prompt_preset_snapshot'] = snapshot;
+    }
+    return json;
   }
 
   /// 导出对话为Lumenflow格式
   /// 包含元数据和对话内容
-  Future<Map<String, dynamic>> exportConversationToLumenflow(String conversationId, AppLocalizations l10n) async {
+  Future<Map<String, dynamic>> exportConversationToLumenflow(
+    String conversationId,
+    AppLocalizations l10n, {
+    bool includePresetSnapshot = false,
+  }) async {
     final conversation = await getConversationById(conversationId);
     if (conversation == null) {
       throw Exception(l10n.exportConversationNotFound);
@@ -372,6 +464,13 @@ class ConversationService {
     final versionInfo = await versionService.getVersionInfo();
 
     final conversationJson = conversation.toJson();
+    final snapshot = await _buildPresetSnapshot(
+      conversation,
+      includePresetSnapshot,
+    );
+    if (snapshot != null) {
+      conversationJson['prompt_preset_snapshot'] = snapshot;
+    }
     final lumenflowData = {
       '_format': 'lumenflow',
       '_version': '1.0',
@@ -405,9 +504,11 @@ class ConversationService {
       final sourceMessage = source.messages[index];
       final messageId = '${forkId}_m$index';
       final attachments = <Attachment>[];
-      for (var attachmentIndex = 0;
-          attachmentIndex < sourceMessage.attachments.length;
-          attachmentIndex++) {
+      for (
+        var attachmentIndex = 0;
+        attachmentIndex < sourceMessage.attachments.length;
+        attachmentIndex++
+      ) {
         final attachment = sourceMessage.attachments[attachmentIndex];
         attachments.add(
           Attachment(
@@ -473,16 +574,62 @@ class ConversationService {
   Future<Conversation> importConversationFromLumenflow({
     required List<int> bytes,
     required AppLocalizations l10n,
+    Future<bool> Function(String name)? confirmPresetImport,
   }) async {
     final package = _decodeLumenflowPackage(bytes, l10n);
     final rawConversation = package.data['conversation'];
+    final rawMap = (rawConversation as Map).cast<String, dynamic>();
     Conversation imported;
     try {
-      imported = Conversation.fromJson(
-        (rawConversation as Map).cast<String, dynamic>(),
-      );
+      imported = Conversation.fromJson(rawMap);
     } catch (_) {
       throw FormatException(l10n.conversationImportInvalid);
+    }
+
+    var importedPresetId = imported.promptPresetId;
+    final rawSnapshot = rawMap['prompt_preset_snapshot'];
+    if (rawSnapshot is Map) {
+      final snapshot = rawSnapshot.cast<String, dynamic>();
+      final snapshotId = (snapshot['id'] as String?) ?? importedPresetId;
+      final targetId = importedPresetId.isNotEmpty
+          ? importedPresetId
+          : snapshotId;
+      final snapshotContent =
+          (snapshot['system_prompt'] as String?)?.trim() ?? '';
+      final snapshotHash = snapshot['content_hash'] as String?;
+      final presetService = _promptService;
+      final local = targetId.isEmpty
+          ? null
+          : await presetService.findPresetById(targetId);
+
+      if (local == null && snapshotContent.isNotEmpty) {
+        final name = (snapshot['name'] as String?) ?? targetId;
+        final confirmed = await confirmPresetImport?.call(name) ?? false;
+        if (confirmed) {
+          final created = await presetService.importPresetFromSnapshot(
+            name: name,
+            content: snapshotContent,
+            author: snapshot['author'] as String?,
+            version: snapshot['version'] as String?,
+            contentHash: snapshotHash,
+          );
+          importedPresetId = created.id;
+        }
+      } else if (local != null &&
+          snapshotHash != null &&
+          snapshotContent.isNotEmpty) {
+        final localHash = _presetContentHash(local);
+        if (localHash != snapshotHash) {
+          final created = await presetService.importPresetFromSnapshot(
+            name: (snapshot['name'] as String?) ?? local.name,
+            content: snapshotContent,
+            author: snapshot['author'] as String?,
+            version: snapshot['version'] as String?,
+            contentHash: snapshotHash,
+          );
+          importedPresetId = created.id;
+        }
+      }
     }
 
     final stamp = DateTime.now().microsecondsSinceEpoch;
@@ -493,8 +640,9 @@ class ConversationService {
         if (!file.isFile) continue;
         final entryName = file.name.replaceAll('\\', '/');
         if (!entryName.startsWith('attachments/')) continue;
-        attachmentEntries[entryName] =
-            List<int>.from(file.content as List<int>);
+        attachmentEntries[entryName] = List<int>.from(
+          file.content as List<int>,
+        );
       }
     }
 
@@ -567,7 +715,7 @@ class ConversationService {
       messages: messages,
       thinkingMode: imported.thinkingMode,
       promptPresetEnabled: imported.promptPresetEnabled,
-      promptPresetId: imported.promptPresetId,
+      promptPresetId: importedPresetId,
       isPinned: imported.isPinned,
     );
 
@@ -598,8 +746,7 @@ class ConversationService {
         archive = ZipDecoder().decodeBytes(bytes);
         ArchiveFile? conversationFile;
         for (final file in archive.files) {
-          if (file.isFile &&
-              file.name.toLowerCase().endsWith('.lumenflow')) {
+          if (file.isFile && file.name.toLowerCase().endsWith('.lumenflow')) {
             conversationFile = file;
             break;
           }
@@ -656,7 +803,10 @@ class ConversationService {
 
   /// 导出对话为纯文本格式
   /// 返回人类可读的文本表示
-  Future<String> exportConversationToText(String conversationId, AppLocalizations l10n) async {
+  Future<String> exportConversationToText(
+    String conversationId,
+    AppLocalizations l10n,
+  ) async {
     final conversation = await getConversationById(conversationId);
     if (conversation == null) {
       throw Exception(l10n.exportConversationNotFound);
@@ -664,8 +814,12 @@ class ConversationService {
 
     final buffer = StringBuffer();
     buffer.writeln('${l10n.exportConversationTitle}${conversation.title}');
-    buffer.writeln('${l10n.exportCreatedTime}${conversation.createdAt.toLocal()}');
-    buffer.writeln('${l10n.exportUpdatedTime}${conversation.updatedAt.toLocal()}');
+    buffer.writeln(
+      '${l10n.exportCreatedTime}${conversation.createdAt.toLocal()}',
+    );
+    buffer.writeln(
+      '${l10n.exportUpdatedTime}${conversation.updatedAt.toLocal()}',
+    );
     buffer.writeln('${l10n.exportMessageCount}${conversation.messages.length}');
     buffer.writeln('=' * 40);
 
@@ -674,14 +828,19 @@ class ConversationService {
       final time = message.timestamp.toLocal().toString();
       buffer.writeln('\n[$sender - $time]');
       buffer.writeln(message.content);
-      if (message.reasoningContent != null && message.reasoningContent!.isNotEmpty) {
+      if (message.reasoningContent != null &&
+          message.reasoningContent!.isNotEmpty) {
         buffer.writeln('\n${l10n.exportReasoningProcess}');
         buffer.writeln(message.reasoningContent!);
       }
       if (message.attachments.isNotEmpty) {
-        buffer.writeln('\n${l10n.exportAttachments(message.attachments.length)}');
+        buffer.writeln(
+          '\n${l10n.exportAttachments(message.attachments.length)}',
+        );
         for (final attachment in message.attachments) {
-          buffer.writeln('  - ${attachment.fileName} (${attachment.fileSize}${l10n.exportBytes})');
+          buffer.writeln(
+            '  - ${attachment.fileName} (${attachment.fileSize}${l10n.exportBytes})',
+          );
         }
       }
     }
@@ -691,7 +850,10 @@ class ConversationService {
 
   /// 导出对话为PDF格式
   /// 返回PDF文件的字节列表
-  Future<List<int>> exportConversationToPdf(String conversationId, AppLocalizations l10n) async {
+  Future<List<int>> exportConversationToPdf(
+    String conversationId,
+    AppLocalizations l10n,
+  ) async {
     final conversation = await getConversationById(conversationId);
     if (conversation == null) {
       throw Exception(l10n.exportConversationNotFound);
@@ -716,16 +878,24 @@ class ConversationService {
             children: [
               pw.Header(
                 level: 0,
-                child: pw.Text(conversation.title,
-                    style: pw.TextStyle(
-                      fontSize: 24,
-                      fontWeight: pw.FontWeight.bold,
-                    )),
+                child: pw.Text(
+                  conversation.title,
+                  style: pw.TextStyle(
+                    fontSize: 24,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
               ),
               pw.SizedBox(height: 10),
-              pw.Text('${l10n.exportCreatedTime}${conversation.createdAt.toLocal()}'),
-              pw.Text('${l10n.exportUpdatedTime}${conversation.updatedAt.toLocal()}'),
-              pw.Text('${l10n.exportMessageCount}${conversation.messages.length}'),
+              pw.Text(
+                '${l10n.exportCreatedTime}${conversation.createdAt.toLocal()}',
+              ),
+              pw.Text(
+                '${l10n.exportUpdatedTime}${conversation.updatedAt.toLocal()}',
+              ),
+              pw.Text(
+                '${l10n.exportMessageCount}${conversation.messages.length}',
+              ),
               pw.Divider(),
               pw.SizedBox(height: 20),
             ],
@@ -746,17 +916,16 @@ class ConversationService {
           for (final message in conversation.messages) {
             final sender = message.isUser ? l10n.user : l10n.aiAssistant;
             final time = message.timestamp.toLocal().toString();
-            final borderColor = message.isUser ? PdfColors.blue : PdfColors.green;
+            final borderColor = message.isUser
+                ? PdfColors.blue
+                : PdfColors.green;
 
             final messageWidget = pw.Container(
               margin: const pw.EdgeInsets.only(bottom: 25),
               padding: const pw.EdgeInsets.all(12),
               decoration: pw.BoxDecoration(
                 border: pw.Border(
-                  left: pw.BorderSide(
-                    color: borderColor,
-                    width: 4,
-                  ),
+                  left: pw.BorderSide(color: borderColor, width: 4),
                 ),
               ),
               child: pw.Column(
@@ -766,7 +935,8 @@ class ConversationService {
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Expanded(
-                        child: pw.Text(sender,
+                        child: pw.Text(
+                          sender,
                           style: pw.TextStyle(
                             fontSize: 14,
                             fontWeight: pw.FontWeight.bold,
@@ -774,7 +944,8 @@ class ConversationService {
                           ),
                         ),
                       ),
-                      pw.Text(time,
+                      pw.Text(
+                        time,
                         style: pw.TextStyle(
                           fontSize: 10,
                           color: PdfColors.grey,
@@ -783,31 +954,39 @@ class ConversationService {
                     ],
                   ),
                   pw.SizedBox(height: 8),
-                  pw.Text(message.content,
-                      style: const pw.TextStyle(fontSize: 12)),
+                  pw.Text(
+                    message.content,
+                    style: const pw.TextStyle(fontSize: 12),
+                  ),
                   if (message.reasoningContent != null &&
                       message.reasoningContent!.isNotEmpty)
                     pw.Container(
                       margin: const pw.EdgeInsets.only(top: 12),
                       padding: const pw.EdgeInsets.all(8),
                       decoration: const pw.BoxDecoration(
-                        borderRadius: pw.BorderRadius.all(pw.Radius.circular(4)),
+                        borderRadius: pw.BorderRadius.all(
+                          pw.Radius.circular(4),
+                        ),
                       ),
                       child: pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
-                          pw.Text(l10n.exportThinkingProcess,
-                              style: pw.TextStyle(
-                                fontSize: 12,
-                                fontWeight: pw.FontWeight.bold,
-                                color: PdfColors.grey,
-                              )),
+                          pw.Text(
+                            l10n.exportThinkingProcess,
+                            style: pw.TextStyle(
+                              fontSize: 12,
+                              fontWeight: pw.FontWeight.bold,
+                              color: PdfColors.grey,
+                            ),
+                          ),
                           pw.SizedBox(height: 5),
-                          pw.Text(message.reasoningContent!,
-                              style: pw.TextStyle(
-                                fontSize: 11,
-                                color: PdfColors.grey,
-                              )),
+                          pw.Text(
+                            message.reasoningContent!,
+                            style: pw.TextStyle(
+                              fontSize: 11,
+                              color: PdfColors.grey,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -816,25 +995,30 @@ class ConversationService {
                       margin: const pw.EdgeInsets.only(top: 12),
                       padding: const pw.EdgeInsets.all(8),
                       decoration: const pw.BoxDecoration(
-                        borderRadius: pw.BorderRadius.all(pw.Radius.circular(4)),
+                        borderRadius: pw.BorderRadius.all(
+                          pw.Radius.circular(4),
+                        ),
                       ),
                       child: pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
-                          pw.Text(l10n.exportAttachmentsLabel,
-                              style: pw.TextStyle(
-                                fontSize: 12,
-                                fontWeight: pw.FontWeight.bold,
-                                color: PdfColors.grey,
-                              )),
+                          pw.Text(
+                            l10n.exportAttachmentsLabel,
+                            style: pw.TextStyle(
+                              fontSize: 12,
+                              fontWeight: pw.FontWeight.bold,
+                              color: PdfColors.grey,
+                            ),
+                          ),
                           pw.SizedBox(height: 5),
                           for (final attachment in message.attachments)
                             pw.Text(
-                                '  • ${attachment.fileName} (${attachment.fileSize}${l10n.exportBytes})',
-                                style: pw.TextStyle(
-                                  fontSize: 11,
-                                  color: PdfColors.grey,
-                                )),
+                              '  • ${attachment.fileName} (${attachment.fileSize}${l10n.exportBytes})',
+                              style: pw.TextStyle(
+                                fontSize: 11,
+                                color: PdfColors.grey,
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -856,7 +1040,9 @@ class ConversationService {
 
   /// 收集对话中的所有附件文件路径
   /// 返回Map<原始文件路径, 附件对象>
-  Future<Map<String, Attachment>> _collectAttachmentFiles(Conversation conversation) async {
+  Future<Map<String, Attachment>> _collectAttachmentFiles(
+    Conversation conversation,
+  ) async {
     final attachmentFiles = <String, Attachment>{};
 
     for (final message in conversation.messages) {
@@ -876,7 +1062,12 @@ class ConversationService {
   /// 导出对话为指定格式（包含附件）
   /// 对于txt/json/lumenflow格式，返回包含对话文件和附件的ZIP文件字节
   /// 对于pdf格式，返回嵌入附件的PDF文件字节
-  Future<List<int>> exportConversationWithAttachments(String conversationId, String format, AppLocalizations l10n) async {
+  Future<List<int>> exportConversationWithAttachments(
+    String conversationId,
+    String format,
+    AppLocalizations l10n, {
+    bool includePresetSnapshot = false,
+  }) async {
     final conversation = await getConversationById(conversationId);
     if (conversation == null) {
       throw Exception(l10n.exportConversationNotFound);
@@ -887,15 +1078,31 @@ class ConversationService {
 
     if (format == 'pdf') {
       // PDF格式：嵌入附件到PDF中
-      return await _exportConversationToPdfWithAttachments(conversation, attachmentFiles, l10n);
+      return await _exportConversationToPdfWithAttachments(
+        conversation,
+        attachmentFiles,
+        l10n,
+      );
     } else {
       // txt/json/lumenflow格式：创建ZIP文件
-      return await _exportConversationToZip(conversation, format, attachmentFiles, l10n);
+      return await _exportConversationToZip(
+        conversation,
+        format,
+        attachmentFiles,
+        l10n,
+        includePresetSnapshot: includePresetSnapshot,
+      );
     }
   }
 
   /// 导出对话为ZIP文件（包含对话文件和附件）
-  Future<List<int>> _exportConversationToZip(Conversation conversation, String format, Map<String, Attachment> attachmentFiles, AppLocalizations l10n) async {
+  Future<List<int>> _exportConversationToZip(
+    Conversation conversation,
+    String format,
+    Map<String, Attachment> attachmentFiles,
+    AppLocalizations l10n, {
+    bool includePresetSnapshot = false,
+  }) async {
     final archive = Archive();
 
     // 1. 生成对话文件
@@ -909,12 +1116,20 @@ class ConversationService {
         conversationFileName = 'conversation.txt';
         break;
       case 'json':
-        final jsonData = await exportConversationToJson(conversation.id, l10n);
+        final jsonData = await exportConversationToJson(
+          conversation.id,
+          l10n,
+          includePresetSnapshot: includePresetSnapshot,
+        );
         conversationContent = jsonEncode(jsonData);
         conversationFileName = 'conversation.json';
         break;
       case 'lumenflow':
-        final lumenflowData = await exportConversationToLumenflow(conversation.id, l10n);
+        final lumenflowData = await exportConversationToLumenflow(
+          conversation.id,
+          l10n,
+          includePresetSnapshot: includePresetSnapshot,
+        );
         conversationContent = jsonEncode(lumenflowData);
         conversationFileName = 'conversation.lumenflow';
         break;
@@ -924,7 +1139,13 @@ class ConversationService {
 
     // 添加对话文件到ZIP
     final conversationBytes = utf8.encode(conversationContent);
-    archive.addFile(ArchiveFile(conversationFileName, conversationBytes.length, conversationBytes));
+    archive.addFile(
+      ArchiveFile(
+        conversationFileName,
+        conversationBytes.length,
+        conversationBytes,
+      ),
+    );
 
     // 2. 添加附件文件到ZIP（放在attachments子目录中）
     if (attachmentFiles.isNotEmpty) {
@@ -944,8 +1165,12 @@ class ConversationService {
           int counter = 1;
 
           while (usedNames.contains(zipPath)) {
-            final ext = baseName.contains('.') ? baseName.substring(baseName.lastIndexOf('.')) : '';
-            final nameWithoutExt = ext.isNotEmpty ? baseName.substring(0, baseName.lastIndexOf('.')) : baseName;
+            final ext = baseName.contains('.')
+                ? baseName.substring(baseName.lastIndexOf('.'))
+                : '';
+            final nameWithoutExt = ext.isNotEmpty
+                ? baseName.substring(0, baseName.lastIndexOf('.'))
+                : baseName;
             zipPath = 'attachments/${nameWithoutExt}_($counter)$ext';
             counter++;
           }
@@ -964,7 +1189,11 @@ class ConversationService {
   }
 
   /// 构建PDF中的附件部件
-  pw.Widget _buildAttachmentsWidget(List<Attachment> attachments, Map<String, Attachment> attachmentFiles, AppLocalizations l10n) {
+  pw.Widget _buildAttachmentsWidget(
+    List<Attachment> attachments,
+    Map<String, Attachment> attachmentFiles,
+    AppLocalizations l10n,
+  ) {
     final attachmentWidgets = <pw.Widget>[];
 
     for (final attachment in attachments) {
@@ -990,13 +1219,14 @@ class ConversationService {
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Text('${attachment.fileName} (${attachment.fileSize}${l10n.exportBytes})',
-                  style: pw.TextStyle(
-                    fontSize: 11,
-                    color: PdfColors.grey,
-                  ),
+                pw.Text(
+                  '${attachment.fileName} (${attachment.fileSize}${l10n.exportBytes})',
+                  style: pw.TextStyle(fontSize: 11, color: PdfColors.grey),
                 ),
-                pw.Text('文件未找到', style: pw.TextStyle(fontSize: 10, color: PdfColors.red)),
+                pw.Text(
+                  '文件未找到',
+                  style: pw.TextStyle(fontSize: 10, color: PdfColors.red),
+                ),
               ],
             ),
           ),
@@ -1013,13 +1243,14 @@ class ConversationService {
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Text('${attachment.fileName} (${attachment.fileSize}${l10n.exportBytes})',
-                  style: pw.TextStyle(
-                    fontSize: 11,
-                    color: PdfColors.grey,
-                  ),
+                pw.Text(
+                  '${attachment.fileName} (${attachment.fileSize}${l10n.exportBytes})',
+                  style: pw.TextStyle(fontSize: 11, color: PdfColors.grey),
                 ),
-                pw.Text('文件不存在: $filePath', style: pw.TextStyle(fontSize: 10, color: PdfColors.red)),
+                pw.Text(
+                  '文件不存在: $filePath',
+                  style: pw.TextStyle(fontSize: 10, color: PdfColors.red),
+                ),
               ],
             ),
           ),
@@ -1040,15 +1271,16 @@ class ConversationService {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text('${attachment.fileName} (${attachment.fileSize}${l10n.exportBytes})',
-                      style: pw.TextStyle(
-                        fontSize: 11,
-                        color: PdfColors.grey,
-                      ),
+                    pw.Text(
+                      '${attachment.fileName} (${attachment.fileSize}${l10n.exportBytes})',
+                      style: pw.TextStyle(fontSize: 11, color: PdfColors.grey),
                     ),
                     pw.SizedBox(height: 4),
                     pw.Container(
-                      constraints: const pw.BoxConstraints(maxWidth: 300, maxHeight: 200),
+                      constraints: const pw.BoxConstraints(
+                        maxWidth: 300,
+                        maxHeight: 200,
+                      ),
                       child: pw.Image(image),
                     ),
                   ],
@@ -1057,7 +1289,9 @@ class ConversationService {
             );
           } catch (e) {
             // 图片加载失败，显示文件信息
-            attachmentWidgets.add(_buildFileInfoWidget(attachment, l10n, '图片加载失败: $e'));
+            attachmentWidgets.add(
+              _buildFileInfoWidget(attachment, l10n, '图片加载失败: $e'),
+            );
           }
         } else if (attachment.type == AttachmentType.document) {
           // 文档附件：显示文件信息和内容预览（如果是文本文件）
@@ -1065,14 +1299,17 @@ class ConversationService {
               attachment.fileName.toLowerCase().endsWith('.txt') ||
               attachment.fileName.toLowerCase().endsWith('.md')) {
             try {
-              final content = utf8.decode(fileBytes.take(5000).toList()); // 限制预览长度
+              final content = utf8.decode(
+                fileBytes.take(5000).toList(),
+              ); // 限制预览长度
               attachmentWidgets.add(
                 pw.Container(
                   margin: const pw.EdgeInsets.only(bottom: 12),
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      pw.Text('${attachment.fileName} (${attachment.fileSize}${l10n.exportBytes})',
+                      pw.Text(
+                        '${attachment.fileName} (${attachment.fileSize}${l10n.exportBytes})',
                         style: pw.TextStyle(
                           fontSize: 11,
                           color: PdfColors.grey,
@@ -1082,12 +1319,20 @@ class ConversationService {
                       pw.Container(
                         padding: const pw.EdgeInsets.all(8),
                         decoration: pw.BoxDecoration(
-                          border: pw.Border.all(color: PdfColors.grey, width: 0.5),
-                          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                          border: pw.Border.all(
+                            color: PdfColors.grey,
+                            width: 0.5,
+                          ),
+                          borderRadius: const pw.BorderRadius.all(
+                            pw.Radius.circular(4),
+                          ),
                         ),
                         child: pw.Text(
                           content,
-                          style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey),
+                          style: const pw.TextStyle(
+                            fontSize: 10,
+                            color: PdfColors.grey,
+                          ),
                           maxLines: 20,
                           overflow: pw.TextOverflow.clip,
                         ),
@@ -1097,19 +1342,31 @@ class ConversationService {
                 ),
               );
             } catch (e) {
-              attachmentWidgets.add(_buildFileInfoWidget(attachment, l10n, '内容预览失败'));
+              attachmentWidgets.add(
+                _buildFileInfoWidget(attachment, l10n, '内容预览失败'),
+              );
             }
           } else {
             // 非文本文档，只显示文件信息
-            attachmentWidgets.add(_buildFileInfoWidget(attachment, l10n, '文档文件'));
+            attachmentWidgets.add(
+              _buildFileInfoWidget(attachment, l10n, '文档文件'),
+            );
           }
         } else {
           // 其他类型附件（音频、视频等）：显示文件信息
-          attachmentWidgets.add(_buildFileInfoWidget(attachment, l10n, '${attachment.type.toString().split('.').last}文件'));
+          attachmentWidgets.add(
+            _buildFileInfoWidget(
+              attachment,
+              l10n,
+              '${attachment.type.toString().split('.').last}文件',
+            ),
+          );
         }
       } catch (e) {
         // 文件读取失败
-        attachmentWidgets.add(_buildFileInfoWidget(attachment, l10n, '文件读取失败: $e'));
+        attachmentWidgets.add(
+          _buildFileInfoWidget(attachment, l10n, '文件读取失败: $e'),
+        );
       }
     }
 
@@ -1122,12 +1379,14 @@ class ConversationService {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text(l10n.exportAttachmentsLabel,
-              style: pw.TextStyle(
-                fontSize: 12,
-                fontWeight: pw.FontWeight.bold,
-                color: PdfColors.grey,
-              )),
+          pw.Text(
+            l10n.exportAttachmentsLabel,
+            style: pw.TextStyle(
+              fontSize: 12,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.grey,
+            ),
+          ),
           pw.SizedBox(height: 5),
           ...attachmentWidgets,
         ],
@@ -1136,24 +1395,24 @@ class ConversationService {
   }
 
   /// 构建文件信息部件（通用）
-  pw.Widget _buildFileInfoWidget(Attachment attachment, AppLocalizations l10n, String description) {
+  pw.Widget _buildFileInfoWidget(
+    Attachment attachment,
+    AppLocalizations l10n,
+    String description,
+  ) {
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 8),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text('${attachment.fileName} (${attachment.fileSize}${l10n.exportBytes})',
-            style: pw.TextStyle(
-              fontSize: 11,
-              color: PdfColors.grey,
-            ),
+          pw.Text(
+            '${attachment.fileName} (${attachment.fileSize}${l10n.exportBytes})',
+            style: pw.TextStyle(fontSize: 11, color: PdfColors.grey),
           ),
           if (description.isNotEmpty)
-            pw.Text(description,
-              style: pw.TextStyle(
-                fontSize: 10,
-                color: PdfColors.grey,
-              ),
+            pw.Text(
+              description,
+              style: pw.TextStyle(fontSize: 10, color: PdfColors.grey),
             ),
         ],
       ),
@@ -1161,7 +1420,11 @@ class ConversationService {
   }
 
   /// 导出对话为PDF（嵌入附件）
-  Future<List<int>> _exportConversationToPdfWithAttachments(Conversation conversation, Map<String, Attachment> attachmentFiles, AppLocalizations l10n) async {
+  Future<List<int>> _exportConversationToPdfWithAttachments(
+    Conversation conversation,
+    Map<String, Attachment> attachmentFiles,
+    AppLocalizations l10n,
+  ) async {
     final (regularFont, boldFont) = await _loadPdfFonts();
     final pdf = pw.Document(
       theme: pw.ThemeData.withFont(
@@ -1181,16 +1444,24 @@ class ConversationService {
             children: [
               pw.Header(
                 level: 0,
-                child: pw.Text(conversation.title,
-                    style: pw.TextStyle(
-                      fontSize: 24,
-                      fontWeight: pw.FontWeight.bold,
-                    )),
+                child: pw.Text(
+                  conversation.title,
+                  style: pw.TextStyle(
+                    fontSize: 24,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
               ),
               pw.SizedBox(height: 10),
-              pw.Text('${l10n.exportCreatedTime}${conversation.createdAt.toLocal()}'),
-              pw.Text('${l10n.exportUpdatedTime}${conversation.updatedAt.toLocal()}'),
-              pw.Text('${l10n.exportMessageCount}${conversation.messages.length}'),
+              pw.Text(
+                '${l10n.exportCreatedTime}${conversation.createdAt.toLocal()}',
+              ),
+              pw.Text(
+                '${l10n.exportUpdatedTime}${conversation.updatedAt.toLocal()}',
+              ),
+              pw.Text(
+                '${l10n.exportMessageCount}${conversation.messages.length}',
+              ),
               pw.Divider(),
               pw.SizedBox(height: 20),
             ],
@@ -1211,17 +1482,16 @@ class ConversationService {
           for (final message in conversation.messages) {
             final sender = message.isUser ? l10n.user : l10n.aiAssistant;
             final time = message.timestamp.toLocal().toString();
-            final borderColor = message.isUser ? PdfColors.blue : PdfColors.green;
+            final borderColor = message.isUser
+                ? PdfColors.blue
+                : PdfColors.green;
 
             final messageWidget = pw.Container(
               margin: const pw.EdgeInsets.only(bottom: 25),
               padding: const pw.EdgeInsets.all(12),
               decoration: pw.BoxDecoration(
                 border: pw.Border(
-                  left: pw.BorderSide(
-                    color: borderColor,
-                    width: 4,
-                  ),
+                  left: pw.BorderSide(color: borderColor, width: 4),
                 ),
               ),
               child: pw.Column(
@@ -1231,7 +1501,8 @@ class ConversationService {
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Expanded(
-                        child: pw.Text(sender,
+                        child: pw.Text(
+                          sender,
                           style: pw.TextStyle(
                             fontSize: 14,
                             fontWeight: pw.FontWeight.bold,
@@ -1239,7 +1510,8 @@ class ConversationService {
                           ),
                         ),
                       ),
-                      pw.Text(time,
+                      pw.Text(
+                        time,
                         style: pw.TextStyle(
                           fontSize: 10,
                           color: PdfColors.grey,
@@ -1248,36 +1520,48 @@ class ConversationService {
                     ],
                   ),
                   pw.SizedBox(height: 8),
-                  pw.Text(message.content,
-                      style: const pw.TextStyle(fontSize: 12)),
+                  pw.Text(
+                    message.content,
+                    style: const pw.TextStyle(fontSize: 12),
+                  ),
                   if (message.reasoningContent != null &&
                       message.reasoningContent!.isNotEmpty)
                     pw.Container(
                       margin: const pw.EdgeInsets.only(top: 12),
                       padding: const pw.EdgeInsets.all(8),
                       decoration: const pw.BoxDecoration(
-                        borderRadius: pw.BorderRadius.all(pw.Radius.circular(4)),
+                        borderRadius: pw.BorderRadius.all(
+                          pw.Radius.circular(4),
+                        ),
                       ),
                       child: pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
-                          pw.Text(l10n.exportThinkingProcess,
-                              style: pw.TextStyle(
-                                fontSize: 12,
-                                fontWeight: pw.FontWeight.bold,
-                                color: PdfColors.grey,
-                              )),
+                          pw.Text(
+                            l10n.exportThinkingProcess,
+                            style: pw.TextStyle(
+                              fontSize: 12,
+                              fontWeight: pw.FontWeight.bold,
+                              color: PdfColors.grey,
+                            ),
+                          ),
                           pw.SizedBox(height: 5),
-                          pw.Text(message.reasoningContent!,
-                              style: pw.TextStyle(
-                                fontSize: 11,
-                                color: PdfColors.grey,
-                              )),
+                          pw.Text(
+                            message.reasoningContent!,
+                            style: pw.TextStyle(
+                              fontSize: 11,
+                              color: PdfColors.grey,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   if (message.attachments.isNotEmpty)
-                    _buildAttachmentsWidget(message.attachments, attachmentFiles, l10n),
+                    _buildAttachmentsWidget(
+                      message.attachments,
+                      attachmentFiles,
+                      l10n,
+                    ),
                 ],
               ),
             );
@@ -1297,12 +1581,12 @@ class ConversationService {
   /// 保存文件到设备
   /// 返回包含文件路径和位置标识的Map
   /// locationType: 'download', 'external', 'app', 'saved', 'cancelled'
-  Future<Map<String, String>> saveExportFile(String fileName, List<int> bytes) async {
+  Future<Map<String, String>> saveExportFile(
+    String fileName,
+    List<int> bytes,
+  ) async {
     final result = await saveExportBytes(fileName: fileName, bytes: bytes);
-    return {
-      'filePath': result.filePath,
-      'locationType': result.locationType,
-    };
+    return {'filePath': result.filePath, 'locationType': result.locationType};
   }
 }
 

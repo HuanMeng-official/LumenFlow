@@ -85,6 +85,8 @@ String _mimeTypeForFileName(String fileName) {
       return 'application/pdf';
     case '.txt':
       return 'text/plain';
+    case '.xml':
+      return 'application/xml';
     default:
       return 'application/octet-stream';
   }

@@ -1,6 +1,8 @@
 import 'dart:convert';
+
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../ai/mcp/mcp_models.dart';
 import '../models/active_platform_config.dart';
 import '../models/ai_platform.dart';
@@ -20,11 +22,10 @@ class SettingsService {
   static const String _followSystemThemeKey = 'follow_system_theme';
   static const String _appThemeKey = 'app_theme';
   static const String _thinkingModeKey = 'thinking_mode';
-  static const String _promptPresetEnabledKey = 'prompt_preset_enabled';
-  static const String _promptPresetIdKey = 'prompt_preset_id';
   static const String _autoTitleEnabledKey = 'auto_title_enabled';
   static const String _autoTitleRoundsKey = 'auto_title_rounds';
   static const String _localeKey = 'locale';
+  static const String _replyLanguageKey = 'reply_language';
   static const String _notificationEnabledKey = 'notification_enabled';
   static const String _liveUpdateEnabledKey = 'live_update_enabled';
   // 聊天背景设置相关的key
@@ -45,11 +46,10 @@ class SettingsService {
   static const bool defaultFollowSystemTheme = true;
   static const String defaultAppTheme = 'light';
   static const bool defaultThinkingMode = false;
-  static const bool defaultPromptPresetEnabled = false;
-  static const String defaultPromptPresetId = '';
   static const bool defaultAutoTitleEnabled = true;
   static const int defaultAutoTitleRounds = 3;
   static const String defaultLocale = 'zh';
+  static const String defaultReplyLanguage = 'follow_ui';
   static const bool defaultNotificationEnabled = true;
   static const bool defaultLiveUpdateEnabled = true;
   // 聊天背景设置默认值
@@ -92,8 +92,7 @@ class SettingsService {
     _invalidateActiveConfig();
   }
 
-  Future<String> getApiKey() async =>
-      (await getActivePlatformConfig()).apiKey;
+  Future<String> getApiKey() async => (await getActivePlatformConfig()).apiKey;
 
   Future<void> setApiKey(String apiKey) async {
     final prefs = await SharedPreferences.getInstance();
@@ -101,8 +100,7 @@ class SettingsService {
     _invalidateActiveConfig();
   }
 
-  Future<String> getModel() async =>
-      (await getActivePlatformConfig()).model;
+  Future<String> getModel() async => (await getActivePlatformConfig()).model;
 
   Future<void> setModel(String model) async {
     final prefs = await SharedPreferences.getInstance();
@@ -205,8 +203,8 @@ class SettingsService {
       selected = configured.isNotEmpty
           ? configured.first
           : (platforms.isNotEmpty
-              ? platforms.first
-              : AIPlatform.createDefaultPlatform(defaultApiType));
+                ? platforms.first
+                : AIPlatform.createDefaultPlatform(defaultApiType));
     }
     final active = selected;
 
@@ -227,7 +225,9 @@ class SettingsService {
       platform: active,
       endpoint: active.endpoint.isNotEmpty ? active.endpoint : defaultEndpoint,
       apiKey: active.apiKey,
-      model: active.defaultModel.isNotEmpty ? active.defaultModel : defaultModel,
+      model: active.defaultModel.isNotEmpty
+          ? active.defaultModel
+          : defaultModel,
       apiType: active.type.isNotEmpty ? active.type : defaultApiType,
     );
   }
@@ -272,26 +272,6 @@ class SettingsService {
     await prefs.setBool(_thinkingModeKey, thinkingMode);
   }
 
-  Future<bool> getPromptPresetEnabled() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_promptPresetEnabledKey) ?? defaultPromptPresetEnabled;
-  }
-
-  Future<void> setPromptPresetEnabled(bool enabled) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_promptPresetEnabledKey, enabled);
-  }
-
-  Future<String> getPromptPresetId() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_promptPresetIdKey) ?? defaultPromptPresetId;
-  }
-
-  Future<void> setPromptPresetId(String presetId) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_promptPresetIdKey, presetId);
-  }
-
   Future<bool> getAutoTitleEnabled() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_autoTitleEnabledKey) ?? defaultAutoTitleEnabled;
@@ -322,6 +302,17 @@ class SettingsService {
     await prefs.setString(_localeKey, locale);
   }
 
+  /// AI 回复语言：follow_ui / follow_user / zh / en / ja / ko / es / lzh。
+  Future<String> getReplyLanguage() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_replyLanguageKey) ?? defaultReplyLanguage;
+  }
+
+  Future<void> setReplyLanguage(String language) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_replyLanguageKey, language);
+  }
+
   Future<bool> getNotificationEnabled() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_notificationEnabledKey) ?? defaultNotificationEnabled;
@@ -344,7 +335,8 @@ class SettingsService {
 
   Future<String> getBackgroundImagePath() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_backgroundImagePathKey) ?? defaultBackgroundImagePath;
+    return prefs.getString(_backgroundImagePathKey) ??
+        defaultBackgroundImagePath;
   }
 
   Future<void> setBackgroundImagePath(String path) async {
@@ -354,7 +346,8 @@ class SettingsService {
 
   Future<double> getBackgroundImageOpacity() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getDouble(_backgroundImageOpacityKey) ?? defaultBackgroundImageOpacity;
+    return prefs.getDouble(_backgroundImageOpacityKey) ??
+        defaultBackgroundImageOpacity;
   }
 
   Future<void> setBackgroundImageOpacity(double opacity) async {
@@ -364,7 +357,8 @@ class SettingsService {
 
   Future<bool> getBackgroundImageEnabled() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_backgroundImageEnabledKey) ?? defaultBackgroundImageEnabled;
+    return prefs.getBool(_backgroundImageEnabledKey) ??
+        defaultBackgroundImageEnabled;
   }
 
   Future<void> setBackgroundImageEnabled(bool enabled) async {
@@ -434,15 +428,13 @@ class SettingsService {
     settings[_appThemeKey] = prefs.getString(_appThemeKey) ?? defaultAppTheme;
     settings[_thinkingModeKey] =
         prefs.getBool(_thinkingModeKey) ?? defaultThinkingMode;
-    settings[_promptPresetEnabledKey] =
-        prefs.getBool(_promptPresetEnabledKey) ?? defaultPromptPresetEnabled;
-    settings[_promptPresetIdKey] =
-        prefs.getString(_promptPresetIdKey) ?? defaultPromptPresetId;
     settings[_autoTitleEnabledKey] =
         prefs.getBool(_autoTitleEnabledKey) ?? defaultAutoTitleEnabled;
     settings[_autoTitleRoundsKey] =
         prefs.getInt(_autoTitleRoundsKey) ?? defaultAutoTitleRounds;
     settings[_localeKey] = prefs.getString(_localeKey) ?? defaultLocale;
+    settings[_replyLanguageKey] =
+        prefs.getString(_replyLanguageKey) ?? defaultReplyLanguage;
     settings[_notificationEnabledKey] =
         prefs.getBool(_notificationEnabledKey) ?? defaultNotificationEnabled;
     settings[_liveUpdateEnabledKey] =
@@ -450,17 +442,17 @@ class SettingsService {
     settings[_addTimeToPromptKey] =
         prefs.getBool(_addTimeToPromptKey) ?? defaultAddTimeToPrompt;
     settings[_builtinCalculatorKey] =
-        prefs.getBool(_builtinCalculatorKey) ??
-            defaultBuiltinCalculatorEnabled;
+        prefs.getBool(_builtinCalculatorKey) ?? defaultBuiltinCalculatorEnabled;
     settings[_builtinTextToolsKey] =
-        prefs.getBool(_builtinTextToolsKey) ??
-            defaultBuiltinTextToolsEnabled;
+        prefs.getBool(_builtinTextToolsKey) ?? defaultBuiltinTextToolsEnabled;
     settings[_backgroundImagePathKey] =
         prefs.getString(_backgroundImagePathKey) ?? defaultBackgroundImagePath;
     settings[_backgroundImageOpacityKey] =
-        prefs.getDouble(_backgroundImageOpacityKey) ?? defaultBackgroundImageOpacity;
+        prefs.getDouble(_backgroundImageOpacityKey) ??
+        defaultBackgroundImageOpacity;
     settings[_backgroundImageEnabledKey] =
-        prefs.getBool(_backgroundImageEnabledKey) ?? defaultBackgroundImageEnabled;
+        prefs.getBool(_backgroundImageEnabledKey) ??
+        defaultBackgroundImageEnabled;
 
     // 导出平台设置
     settings[_platformsKey] = prefs.getString(_platformsKey);
@@ -555,18 +547,6 @@ class SettingsService {
     if (settings.containsKey(_thinkingModeKey)) {
       await prefs.setBool(_thinkingModeKey, settings[_thinkingModeKey] as bool);
     }
-    if (settings.containsKey(_promptPresetEnabledKey)) {
-      await prefs.setBool(
-        _promptPresetEnabledKey,
-        settings[_promptPresetEnabledKey] as bool,
-      );
-    }
-    if (settings.containsKey(_promptPresetIdKey)) {
-      await prefs.setString(
-        _promptPresetIdKey,
-        settings[_promptPresetIdKey] as String,
-      );
-    }
     if (settings.containsKey(_autoTitleEnabledKey)) {
       await prefs.setBool(
         _autoTitleEnabledKey,
@@ -581,6 +561,12 @@ class SettingsService {
     }
     if (settings.containsKey(_localeKey)) {
       await prefs.setString(_localeKey, settings[_localeKey] as String);
+    }
+    if (settings.containsKey(_replyLanguageKey)) {
+      await prefs.setString(
+        _replyLanguageKey,
+        settings[_replyLanguageKey] as String,
+      );
     }
     if (settings.containsKey(_notificationEnabledKey)) {
       await prefs.setBool(
@@ -707,7 +693,6 @@ class SettingsService {
     final platforms = await getPlatforms();
     final index = platforms.indexWhere((p) => p.id == platform.id);
 
-
     if (index >= 0) {
       // 更新现有平台
       platforms[index] = platform;
@@ -734,19 +719,20 @@ class SettingsService {
     }
 
     if (index < 0) {
-      final matches =
-          platforms.where((platform) => platform.type == type).toList();
+      final matches = platforms
+          .where((platform) => platform.type == type)
+          .toList();
       if (matches.length == 1) {
-        index =
-            platforms.indexWhere((platform) => platform.id == matches.single.id);
+        index = platforms.indexWhere(
+          (platform) => platform.id == matches.single.id,
+        );
       }
     }
 
     final base = index >= 0
         ? platforms[index]
-        : AIPlatform.createDefaultPlatform(type).copyWith(
-            id: '${type}_${DateTime.now().millisecondsSinceEpoch}',
-          );
+        : AIPlatform.createDefaultPlatform(type)
+              .copyWith(id: '${type}_${DateTime.now().millisecondsSinceEpoch}');
     final updated = base.copyWith(
       type: type,
       endpoint: endpoint,
@@ -921,9 +907,7 @@ class SettingsService {
       for (final item in decoded) {
         if (item is! Map) continue;
         try {
-          servers.add(
-            McpServerConfig.fromJson(item.cast<String, dynamic>()),
-          );
+          servers.add(McpServerConfig.fromJson(item.cast<String, dynamic>()));
         } catch (_) {
           // Skip malformed entries.
         }

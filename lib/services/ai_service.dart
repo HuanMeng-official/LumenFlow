@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
+
 import 'settings_service.dart';
 import 'tool_chat_service.dart';
 import 'user_service.dart';
@@ -34,6 +37,7 @@ import '../providers/openrouter_provider.dart';
 import '../providers/xiaomimimo_provider.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/ai_tools/time_utils.dart';
+
 import 'package:intl/intl.dart';
 
 /// AI服务类，负责处理与AI模型的通信
@@ -51,15 +55,15 @@ class AIService {
     this._toolManagerFactory,
     this._toolChatServiceFactory,
     this.toolRefreshInterval = const Duration(seconds: 30),
-  })  : _settingsService = settingsService ?? SettingsService(),
-        _userService = userService ?? UserService();
+  }) : _settingsService = settingsService ?? SettingsService(),
+       _userService = userService ?? UserService();
 
   final SettingsService _settingsService;
   final UserService _userService;
   final McpToolManager Function(List<McpServerConfig> servers)?
-      _toolManagerFactory;
+  _toolManagerFactory;
   final ToolChatService Function(AIToolExecutor executor)?
-      _toolChatServiceFactory;
+  _toolChatServiceFactory;
   final Duration toolRefreshInterval;
 
   /// Provider 缓存
@@ -67,7 +71,8 @@ class AIService {
 
   /// 静态常量（为了向后兼容，从 AIProvider 重新导出）
   static const int maxFileSizeForBase64 = AIProvider.maxFileSizeForBase64;
-  static const int maxFileSizeForTextExtraction = AIProvider.maxFileSizeForTextExtraction;
+  static const int maxFileSizeForTextExtraction =
+      AIProvider.maxFileSizeForTextExtraction;
   static const int maxTotalAttachmentsSize = AIProvider.maxTotalAttachmentsSize;
 
   /// 获取 AI Provider 实例（工厂方法）
@@ -79,10 +84,12 @@ class AIService {
 
     // 如果缓存的 provider 类型匹配且配置未变化，直接返回
     if (_cachedProvider != null) {
-      bool typeMatches = (apiType == 'gemini' && _cachedProvider is GeminiProvider) ||
+      bool typeMatches =
+          (apiType == 'gemini' && _cachedProvider is GeminiProvider) ||
           (apiType == 'deepseek' && _cachedProvider is DeepSeekProvider) ||
           (apiType == 'claude' && _cachedProvider is ClaudeProvider) ||
-          (apiType == 'siliconflow' && _cachedProvider is SiliconFlowProvider) ||
+          (apiType == 'siliconflow' &&
+              _cachedProvider is SiliconFlowProvider) ||
           (apiType == 'minimax' && _cachedProvider is MiniMaxProvider) ||
           (apiType == 'zhipu' && _cachedProvider is ZhiPuProvider) ||
           (apiType == 'kimi' && _cachedProvider is KimiProvider) ||
@@ -215,9 +222,9 @@ class AIService {
 
     if (_toolManager != null && _toolManagerSignature == signature) {
       final manager = _toolManager!;
-      final shouldRetry =
-          manager.tools.isEmpty || manager.errors.isNotEmpty;
-      final due = _lastToolRefresh == null ||
+      final shouldRetry = manager.tools.isEmpty || manager.errors.isNotEmpty;
+      final due =
+          _lastToolRefresh == null ||
           now.difference(_lastToolRefresh!) >= toolRefreshInterval;
 
       if (!shouldRetry || !due) {
@@ -236,7 +243,8 @@ class AIService {
     }
 
     await _toolManager?.dispose();
-    final manager = _toolManagerFactory?.call(servers) ??
+    final manager =
+        _toolManagerFactory?.call(servers) ??
         McpToolManager(
           servers: servers,
           connectionFactory: (config) => McpClient(config: config),
@@ -272,8 +280,14 @@ class AIService {
   ///   userProfile - 用户配置对象
   /// 返回值:
   ///   替换变量后的系统提示词
-  String _replaceSystemPromptVariables(String systemPrompt, UserProfile userProfile) {
-    String result = systemPrompt.replaceAll('\${userProfile.username}', userProfile.username);
+  String _replaceSystemPromptVariables(
+    String systemPrompt,
+    UserProfile userProfile,
+  ) {
+    String result = systemPrompt.replaceAll(
+      '\${userProfile.username}',
+      userProfile.username,
+    );
     if (userProfile.gender != null) {
       result = result.replaceAll('\${userProfile.gender}', userProfile.gender!);
     } else {
@@ -294,12 +308,17 @@ class AIService {
   ///
   /// 按“基础规则 → 自定义提示 → 角色预设”的顺序拼接。角色预设保留在最后，
   /// 因此它可以覆盖角色身份与文风，但不会丢掉用户的全局自定义要求。
-  Future<String> _buildSystemPrompt(String presetSystemPrompt, AppLocalizations l10n) async {
+  Future<String> _buildSystemPrompt(
+    String presetSystemPrompt,
+    AppLocalizations l10n,
+  ) async {
     final userProfile = await _userService.getUserProfile();
     final customSystemPrompt = await _settingsService.getCustomSystemPrompt();
 
-    // 使用本地化的基础系统提示词
-    final baseSystemPrompt = l10n.baseSystemPrompt(userProfile.username);
+    // 使用本地化的基础系统提示词，并追加独立的回复语言规则。
+    final languageRule = await _buildReplyLanguageRule(l10n);
+    final baseSystemPrompt =
+        '${l10n.baseSystemPrompt(userProfile.username)}\n$languageRule';
     final sections = [
       baseSystemPrompt,
       if (customSystemPrompt.trim().isNotEmpty) customSystemPrompt,
@@ -312,7 +331,46 @@ class AIService {
         .join('\n\n');
 
     // 替换系统提示词中的变量占位符
-    return _replaceSystemPromptVariables(fullSystemPrompt, userProfile);
+    final replaced = _replaceSystemPromptVariables(
+      fullSystemPrompt,
+      userProfile,
+    );
+    if (kDebugMode) {
+      // 同一会话逐轮应得到相同哈希；变化即说明前缀被动态内容污染。
+      debugPrint(
+        'System prompt sha256: ${sha256.convert(utf8.encode(replaced))}',
+      );
+    }
+    return replaced;
+  }
+
+  @visibleForTesting
+  Future<String> buildSystemPromptForTest(
+    String presetSystemPrompt,
+    AppLocalizations l10n,
+  ) {
+    return _buildSystemPrompt(presetSystemPrompt, l10n);
+  }
+
+  Future<String> _buildReplyLanguageRule(AppLocalizations l10n) async {
+    final setting = await _settingsService.getReplyLanguage();
+    if (setting == 'follow_user') {
+      return l10n.baseSystemPromptFollowUser;
+    }
+
+    final code = setting == SettingsService.defaultReplyLanguage
+        ? l10n.localeName
+        : setting;
+    final languageName = switch (code) {
+      'zh' => l10n.languageNameZh,
+      'en' => l10n.languageNameEn,
+      'ja' => l10n.languageNameJa,
+      'ko' => l10n.languageNameKo,
+      'es' => l10n.languageNameEs,
+      'lzh' => l10n.languageNameLzh,
+      _ => l10n.languageNameZh,
+    };
+    return l10n.baseSystemPromptLanguageRule(languageName);
   }
 
   /// 发送消息到AI模型（同步方式）
@@ -331,11 +389,13 @@ class AIService {
   /// 异常:
   ///   抛出Exception当API密钥未配置或网络请求失败时
   Future<Map<String, dynamic>> sendMessage(
-      String message, List<Message> chatHistory,
-      {List<Attachment> attachments = const [],
-      bool thinkingMode = false,
-      String presetSystemPrompt = '',
-      required AppLocalizations l10n}) async {
+    String message,
+    List<Message> chatHistory, {
+    List<Attachment> attachments = const [],
+    bool thinkingMode = false,
+    String presetSystemPrompt = '',
+    required AppLocalizations l10n,
+  }) async {
     final apiKey = await _settingsService.getApiKey();
     if (apiKey.isEmpty) {
       throw Exception(l10n.configureApiKeyFirst);
@@ -383,11 +443,13 @@ class AIService {
   /// 异常:
   ///   抛出Exception当API密钥未配置或网络请求失败时
   Stream<Map<String, dynamic>> sendMessageStreaming(
-      String message, List<Message> chatHistory,
-      {List<Attachment> attachments = const [],
-      bool thinkingMode = false,
-      String presetSystemPrompt = '',
-      required AppLocalizations l10n}) async* {
+    String message,
+    List<Message> chatHistory, {
+    List<Attachment> attachments = const [],
+    bool thinkingMode = false,
+    String presetSystemPrompt = '',
+    required AppLocalizations l10n,
+  }) async* {
     final apiKey = await _settingsService.getApiKey();
     if (apiKey.isEmpty) {
       throw Exception(l10n.configureApiKeyFirst);
@@ -403,30 +465,23 @@ class AIService {
       if (attachments.isEmpty && _supportsTools(config.apiType)) {
         final servers = await _settingsService.getMcpServers();
         if (servers.any((server) => server.enabled)) {
-          yield {
-            'type': 'tool_status',
-            'message': '正在发现 MCP 工具...',
-          };
+          yield {'type': 'tool_status', 'message': '正在发现 MCP 工具...'};
         }
 
         final manager = await _loadToolManager();
         if (manager != null && manager.errors.isNotEmpty) {
           yield {
             'type': 'tool_status',
-            'message':
-                '部分 MCP 服务器连接失败: ${manager.errors.values.join('; ')}',
+            'message': '部分 MCP 服务器连接失败: ${manager.errors.values.join('; ')}',
           };
         } else if (manager != null && manager.tools.isEmpty) {
-          yield {
-            'type': 'tool_status',
-            'message': 'MCP 服务器没有可用工具',
-          };
+          yield {'type': 'tool_status', 'message': 'MCP 服务器没有可用工具'};
         }
 
-        final calculatorEnabled =
-            await _settingsService.getBuiltinCalculatorEnabled();
-        final textToolsEnabled =
-            await _settingsService.getBuiltinTextToolsEnabled();
+        final calculatorEnabled = await _settingsService
+            .getBuiltinCalculatorEnabled();
+        final textToolsEnabled = await _settingsService
+            .getBuiltinTextToolsEnabled();
         final executor = buildToolExecutor(
           timeEnabled: addTimeToPrompt,
           calculatorEnabled: calculatorEnabled,
@@ -435,9 +490,10 @@ class AIService {
         );
         if (executor.tools.isNotEmpty) {
           final enableHistory = await _settingsService.getEnableHistory();
-          final historyContextLength =
-              await _settingsService.getHistoryContextLength();
-          final toolService = _toolChatServiceFactory?.call(executor) ??
+          final historyContextLength = await _settingsService
+              .getHistoryContextLength();
+          final toolService =
+              _toolChatServiceFactory?.call(executor) ??
               ToolChatService(executor: executor);
           yield* toolService.run(
             config: config,
@@ -485,7 +541,10 @@ class AIService {
   ///   生成的对话标题（简短摘要）
   /// 异常:
   ///   抛出Exception当API密钥未配置或网络请求失败时
-  Future<String> generateConversationTitle(List<Message> messages, {required AppLocalizations l10n}) async {
+  Future<String> generateConversationTitle(
+    List<Message> messages, {
+    required AppLocalizations l10n,
+  }) async {
     final apiKey = await _settingsService.getApiKey();
     if (apiKey.isEmpty) {
       throw Exception(l10n.configureApiKeyFirst);
@@ -517,8 +576,7 @@ class AIService {
           return Exception(
             l10n.providerApiError(
               e.message,
-              e.statusCode ??
-                  (e.type == AIErrorType.rateLimit ? 429 : 500),
+              e.statusCode ?? (e.type == AIErrorType.rateLimit ? 429 : 500),
             ),
           );
         case AIErrorType.invalidResponse:
@@ -530,8 +588,10 @@ class AIService {
     }
 
     // 如果已经是 API 错误，直接重新抛出
-    if (e.toString().contains('API错误: ') || e.toString().contains('API Error: ') ||
-        e.toString().contains('Gemini API错误: ') || e.toString().contains('Gemini API Error: ')) {
+    if (e.toString().contains('API错误: ') ||
+        e.toString().contains('API Error: ') ||
+        e.toString().contains('Gemini API错误: ') ||
+        e.toString().contains('Gemini API Error: ')) {
       return e as Exception;
     }
 
@@ -541,9 +601,12 @@ class AIService {
       return Exception(l10n.requestTimeout(e.toString()));
     } else if (errorMsg.contains('socket') || errorMsg.contains('Socket')) {
       return Exception(l10n.networkConnectionFailed(e.toString()));
-    } else if (errorMsg.contains('handshake') || errorMsg.contains('TLS') || errorMsg.contains('SSL')) {
+    } else if (errorMsg.contains('handshake') ||
+        errorMsg.contains('TLS') ||
+        errorMsg.contains('SSL')) {
       return Exception(l10n.securityConnectionFailed(e.toString()));
-    } else if (errorMsg.contains('Connection') || errorMsg.contains('connection')) {
+    } else if (errorMsg.contains('Connection') ||
+        errorMsg.contains('connection')) {
       return Exception(l10n.connectionError(e.toString()));
     } else if (errorMsg.contains('Http') || errorMsg.contains('http')) {
       return Exception(l10n.httpProtocolError(e.toString()));

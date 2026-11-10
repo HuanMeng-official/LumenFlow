@@ -1,13 +1,16 @@
 import 'dart:io';
+
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:file_picker/file_picker.dart';
+
 import '../l10n/app_localizations.dart';
 import '../services/file_service.dart';
 import '../services/ai_service.dart';
 import '../models/attachment.dart';
 import '../models/prompt_preset.dart';
 import '../utils/app_theme.dart';
+import '../utils/preset_icons.dart';
 
 class ChatInput extends StatefulWidget {
   final Function(String, List<Attachment>) onSendMessage;
@@ -21,6 +24,7 @@ class ChatInput extends StatefulWidget {
   final String currentPresetId;
   final Function(String)? onPresetSelected;
   final List<PromptPreset> presets;
+  final bool currentPresetUnavailable;
   final Function()? onShowModelSelector;
   final String currentModelName;
   final bool isGenerating;
@@ -38,6 +42,7 @@ class ChatInput extends StatefulWidget {
     this.currentPresetId = '',
     this.onPresetSelected,
     this.presets = const [],
+    this.currentPresetUnavailable = false,
     this.onShowModelSelector,
     this.currentModelName = '',
     this.isGenerating = false,
@@ -66,7 +71,9 @@ class _ChatInputState extends State<ChatInput> {
       if (widget.isGenerating) {
         _canSend = true;
       } else {
-        _canSend = (_controller.text.trim().isNotEmpty || _attachments.isNotEmpty) && widget.enabled;
+        _canSend =
+            (_controller.text.trim().isNotEmpty || _attachments.isNotEmpty) &&
+            widget.enabled;
       }
     });
   }
@@ -87,7 +94,8 @@ class _ChatInputState extends State<ChatInput> {
   @override
   void didUpdateWidget(ChatInput oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.enabled != widget.enabled || oldWidget.isGenerating != widget.isGenerating) {
+    if (oldWidget.enabled != widget.enabled ||
+        oldWidget.isGenerating != widget.isGenerating) {
       _onTextChanged();
     }
   }
@@ -120,6 +128,27 @@ class _ChatInputState extends State<ChatInput> {
             for (final preset in widget.presets)
               CupertinoActionSheetAction(
                 onPressed: () {
+                  if (preset.isBroken) {
+                    Navigator.pop(context);
+                    showCupertinoDialog<void>(
+                      context: this.context,
+                      builder: (dialogContext) => CupertinoAlertDialog(
+                        title: Text(preset.name),
+                        content: Text(
+                          l10n.presetBrokenReason(
+                            preset.brokenReason ?? l10n.presetBrokenLabel,
+                          ),
+                        ),
+                        actions: [
+                          CupertinoDialogAction(
+                            child: Text(l10n.ok),
+                            onPressed: () => Navigator.pop(dialogContext),
+                          ),
+                        ],
+                      ),
+                    );
+                    return;
+                  }
                   Navigator.pop(context);
                   if (widget.onPresetSelected != null) {
                     widget.onPresetSelected!(preset.id);
@@ -133,79 +162,97 @@ class _ChatInputState extends State<ChatInput> {
                 child: Row(
                   children: [
                     Icon(
-                      _getIconForPreset(preset.icon),
+                      presetIconForName(preset.icon),
                       size: 20,
-                      color: primaryColor,
+                      color: preset.isBroken
+                          ? CupertinoColors.systemGrey2
+                          : primaryColor,
                     ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                preset.name,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  preset.name,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: preset.isBroken
+                                        ? CupertinoColors.systemGrey2
+                                        : null,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                preset.author.isNotEmpty ? preset.author : '',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: CupertinoColors.systemGrey,
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  preset.author.isNotEmpty ? preset.author : '',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: CupertinoColors.systemGrey,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            preset.description,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: preset.isBroken
+                                  ? CupertinoColors.systemGrey2
+                                  : CupertinoColors.systemGrey,
+                            ),
+                          ),
+                          if (preset.isBroken) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              l10n.presetBrokenLabel,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: CupertinoColors.systemRed,
                               ),
                             ),
                           ],
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          preset.description,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: CupertinoColors.systemGrey,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    preset.version.isNotEmpty ? preset.version : 'v1.0',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: CupertinoColors.systemGrey2,
+                    const SizedBox(width: 8),
+                    Text(
+                      preset.version.isNotEmpty ? preset.version : 'v1.0',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: CupertinoColors.systemGrey2,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (widget.currentPresetId == preset.id) const SizedBox(width: 8),
-                  if (widget.currentPresetId == preset.id)
-                    const Icon(
-                      CupertinoIcons.checkmark_alt,
-                      color: CupertinoColors.systemBlue,
-                    ),
-                ],
+                    if (widget.currentPresetId == preset.id)
+                      const SizedBox(width: 8),
+                    if (widget.currentPresetId == preset.id)
+                      const Icon(
+                        CupertinoIcons.checkmark_alt,
+                        color: CupertinoColors.systemBlue,
+                      ),
+                  ],
+                ),
               ),
+            CupertinoActionSheetAction(
+              isDestructiveAction: true,
+              onPressed: () {
+                Navigator.pop(context);
+                if (widget.onPromptPresetEnabledChanged != null) {
+                  widget.onPromptPresetEnabledChanged!(false);
+                }
+              },
+              child: Text(l10n.closePresetMode),
             ),
-          CupertinoActionSheetAction(
-            isDestructiveAction: true,
-            onPressed: () {
-              Navigator.pop(context);
-              if (widget.onPromptPresetEnabledChanged != null) {
-                widget.onPromptPresetEnabledChanged!(false);
-              }
-            },
-            child: Text(l10n.closePresetMode),
-          ),
           ],
           cancelButton: CupertinoActionSheetAction(
             onPressed: () => Navigator.pop(context),
@@ -214,22 +261,6 @@ class _ChatInputState extends State<ChatInput> {
         );
       },
     );
-  }
-
-  /// 根据图标名称获取IconData
-  IconData _getIconForPreset(String iconName) {
-    switch (iconName) {
-      case 'globe':
-        return CupertinoIcons.globe;
-      case 'pencil':
-        return CupertinoIcons.pencil;
-      case 'doc.fill':
-        return CupertinoIcons.doc_fill;
-      case 'chevron.left.slash.chevron.right':
-        return CupertinoIcons.chevron_left_slash_chevron_right;
-      default:
-        return CupertinoIcons.person_fill;
-    }
   }
 
   /// 根据预设ID获取预设名称
@@ -307,7 +338,8 @@ class _ChatInputState extends State<ChatInput> {
 
               if (stat.size > AIService.maxFileSizeForBase64) {
                 oversizedFiles.add(
-                    '${platformFile.name} (${_formatFileSize(stat.size)})');
+                  '${platformFile.name} (${_formatFileSize(stat.size)})',
+                );
               }
             }
           }
@@ -317,8 +349,13 @@ class _ChatInputState extends State<ChatInput> {
           if (!mounted) return;
           final l10n = AppLocalizations.of(context);
           if (l10n != null) {
-            _showErrorDialog(l10n.fileTooLarge,
-                l10n.fileTooLargeMessage(_formatFileSize(totalSize), _formatFileSize(AIService.maxTotalAttachmentsSize)));
+            _showErrorDialog(
+              l10n.fileTooLarge,
+              l10n.fileTooLargeMessage(
+                _formatFileSize(totalSize),
+                _formatFileSize(AIService.maxTotalAttachmentsSize),
+              ),
+            );
           }
           return;
         }
@@ -327,8 +364,13 @@ class _ChatInputState extends State<ChatInput> {
           if (!mounted) return;
           final l10n = AppLocalizations.of(context);
           if (l10n != null) {
-            final proceed = await _showWarningDialog(l10n.fileTooLargeWarning,
-                l10n.fileTooLargeWarningMessage(_formatFileSize(AIService.maxFileSizeForBase64), oversizedFiles.join('\n')));
+            final proceed = await _showWarningDialog(
+              l10n.fileTooLargeWarning,
+              l10n.fileTooLargeWarningMessage(
+                _formatFileSize(AIService.maxFileSizeForBase64),
+                oversizedFiles.join('\n'),
+              ),
+            );
             if (!proceed) {
               return;
             }
@@ -341,8 +383,9 @@ class _ChatInputState extends State<ChatInput> {
           if (platformFile.path != null) {
             final file = File(platformFile.path!);
             try {
-              final attachment =
-                  await _fileService.saveFileAndCreateAttachment(file);
+              final attachment = await _fileService.saveFileAndCreateAttachment(
+                file,
+              );
               if (attachment != null) {
                 attachments.add(attachment);
               }
@@ -353,7 +396,8 @@ class _ChatInputState extends State<ChatInput> {
         }
 
         if (attachments.isNotEmpty) {
-          final newAttachments = List<Attachment>.from(_attachments)..addAll(attachments);
+          final newAttachments = List<Attachment>.from(_attachments)
+            ..addAll(attachments);
           _updateAttachments(newAttachments);
 
           if (widget.onAttachmentsSelected != null) {
@@ -372,31 +416,64 @@ class _ChatInputState extends State<ChatInput> {
       final l10n = AppLocalizations.of(context);
       if (l10n != null) {
         _showErrorDialog(
-            l10n.selectFileFailed, l10n.selectFileFailedMessage(e.toString().replaceAll('Exception: ', '')));
+          l10n.selectFileFailed,
+          l10n.selectFileFailedMessage(
+            e.toString().replaceAll('Exception: ', ''),
+          ),
+        );
       }
     }
   }
 
-  void _sendMessage() {
-    if (_canSend) {
-      if (widget.isGenerating) {
-        // 正在生成时，点击按钮停止生成
-        if (widget.onStopGenerating != null) {
-          widget.onStopGenerating!();
-        }
-      } else {
-        // 正常发送消息
-        final attachmentsToSend = List<Attachment>.from(_attachments);
-        widget.onSendMessage(_controller.text, attachmentsToSend);
-        _controller.clear();
-        _updateAttachments([]);
+  Future<void> _sendMessage() async {
+    if (!_canSend) return;
+
+    if (widget.isGenerating) {
+      // 正在生成时，点击按钮停止生成
+      if (widget.onStopGenerating != null) {
+        widget.onStopGenerating!();
       }
+      return;
     }
+
+    // 发送前校验角色预设；不可用时中止并保留输入框草稿。
+    if (widget.promptPresetEnabled &&
+        widget.currentPresetId.isNotEmpty &&
+        widget.currentPresetUnavailable) {
+      final l10n = AppLocalizations.of(context)!;
+      final disableAndSend = await showCupertinoDialog<bool>(
+        context: context,
+        builder: (dialogContext) => CupertinoAlertDialog(
+          title: Text(l10n.presetUnavailableTitle),
+          content: Text(l10n.presetUnavailableMessage),
+          actions: [
+            CupertinoDialogAction(
+              child: Text(l10n.cancel),
+              onPressed: () => Navigator.pop(dialogContext, false),
+            ),
+            CupertinoDialogAction(
+              isDefaultAction: true,
+              child: Text(l10n.presetDisableAndSend),
+              onPressed: () => Navigator.pop(dialogContext, true),
+            ),
+          ],
+        ),
+      );
+      if (disableAndSend != true) return;
+      widget.onPromptPresetEnabledChanged?.call(false);
+    }
+
+    // 正常发送消息
+    final attachmentsToSend = List<Attachment>.from(_attachments);
+    widget.onSendMessage(_controller.text, attachmentsToSend);
+    _controller.clear();
+    _updateAttachments([]);
   }
 
   Widget _buildAttachmentPreview(Attachment attachment) {
     final isImage = attachment.type == AttachmentType.image;
-    final hasLocalFile = attachment.filePath != null && attachment.filePath!.isNotEmpty;
+    final hasLocalFile =
+        attachment.filePath != null && attachment.filePath!.isNotEmpty;
 
     return Container(
       margin: const EdgeInsets.only(right: 8, bottom: 8),
@@ -458,10 +535,7 @@ class _ChatInputState extends State<ChatInput> {
       height: 40,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(
-          color: CupertinoColors.systemGrey4,
-          width: 1,
-        ),
+        border: Border.all(color: CupertinoColors.systemGrey4, width: 1),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(6),
@@ -511,10 +585,7 @@ class _ChatInputState extends State<ChatInput> {
             ? CupertinoColors.systemBackground.darkColor
             : CupertinoColors.systemBackground.color,
         border: Border(
-          top: BorderSide(
-            color: CupertinoColors.systemGrey4,
-            width: 0.5,
-          ),
+          top: BorderSide(color: CupertinoColors.systemGrey4, width: 0.5),
         ),
       ),
       child: Column(
@@ -540,22 +611,22 @@ class _ChatInputState extends State<ChatInput> {
                   decoration: BoxDecoration(
                     color: widget.enabled
                         ? (brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey6.darkColor
-                            : CupertinoColors.systemGrey6.color)
+                              ? CupertinoColors.systemGrey6.darkColor
+                              : CupertinoColors.systemGrey6.color)
                         : (brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey5.darkColor
-                            : CupertinoColors.systemGrey5.color),
+                              ? CupertinoColors.systemGrey5.darkColor
+                              : CupertinoColors.systemGrey5.color),
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: Icon(
                     CupertinoIcons.paperclip,
                     color: widget.enabled
                         ? (brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey.darkColor
-                            : CupertinoColors.systemGrey)
+                              ? CupertinoColors.systemGrey.darkColor
+                              : CupertinoColors.systemGrey)
                         : (brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey4.darkColor
-                            : CupertinoColors.systemGrey4),
+                              ? CupertinoColors.systemGrey4.darkColor
+                              : CupertinoColors.systemGrey4),
                     size: 20,
                   ),
                 ),
@@ -563,15 +634,18 @@ class _ChatInputState extends State<ChatInput> {
               const SizedBox(width: 8),
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: widget.enabled
                         ? (brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey6.darkColor
-                            : CupertinoColors.systemGrey6.color)
+                              ? CupertinoColors.systemGrey6.darkColor
+                              : CupertinoColors.systemGrey6.color)
                         : (brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey5.darkColor
-                            : CupertinoColors.systemGrey5.color),
+                              ? CupertinoColors.systemGrey5.darkColor
+                              : CupertinoColors.systemGrey5.color),
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: Material(
@@ -588,8 +662,8 @@ class _ChatInputState extends State<ChatInput> {
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         focusedBorder: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 8), 
-                        isDense: true, 
+                        contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                        isDense: true,
                         hintStyle: TextStyle(
                           color: brightness == Brightness.dark
                               ? CupertinoColors.systemGrey.darkColor
@@ -597,7 +671,9 @@ class _ChatInputState extends State<ChatInput> {
                           fontSize: 17,
                           height: 1.2,
                         ),
-                        hintText: widget.enabled ? l10n.messageInputPlaceholder : l10n.configureApiSettingsFirst,
+                        hintText: widget.enabled
+                            ? l10n.messageInputPlaceholder
+                            : l10n.configureApiSettingsFirst,
                       ),
                       style: TextStyle(
                         fontSize: 17,
@@ -623,22 +699,24 @@ class _ChatInputState extends State<ChatInput> {
                   decoration: BoxDecoration(
                     color: _canSend
                         ? (widget.isGenerating
-                            ? CupertinoColors.systemRed // 生成中显示红色
-                            : CupertinoColors.systemBlue) // 正常发送显示蓝色
+                              ? CupertinoColors
+                                    .systemRed // 生成中显示红色
+                              : CupertinoColors.systemBlue) // 正常发送显示蓝色
                         : (brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey5.darkColor
-                            : CupertinoColors.systemGrey4),
+                              ? CupertinoColors.systemGrey5.darkColor
+                              : CupertinoColors.systemGrey4),
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: Icon(
                     widget.isGenerating
-                        ? CupertinoIcons.stop // 生成中显示停止图标
+                        ? CupertinoIcons
+                              .stop // 生成中显示停止图标
                         : CupertinoIcons.arrow_up, // 正常发送显示向上箭头
                     color: _canSend
                         ? CupertinoColors.white
                         : (brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey.darkColor
-                            : CupertinoColors.systemGrey),
+                              ? CupertinoColors.systemGrey.darkColor
+                              : CupertinoColors.systemGrey),
                     size: 20,
                   ),
                 ),
@@ -655,7 +733,8 @@ class _ChatInputState extends State<ChatInput> {
                 _buildThinkingModeButton(),
                 const SizedBox(width: 8),
               ],
-              if (widget.promptPresetEnabled && widget.currentPresetId.isNotEmpty) ...[
+              if (widget.promptPresetEnabled &&
+                  widget.currentPresetId.isNotEmpty) ...[
                 _buildPresetModeButton(),
                 const SizedBox(width: 8),
               ],
@@ -669,11 +748,11 @@ class _ChatInputState extends State<ChatInput> {
                   decoration: BoxDecoration(
                     color: widget.enabled
                         ? (brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey6.darkColor
-                            : CupertinoColors.systemGrey6.color)
+                              ? CupertinoColors.systemGrey6.darkColor
+                              : CupertinoColors.systemGrey6.color)
                         : (brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey5.darkColor
-                            : CupertinoColors.systemGrey5.color),
+                              ? CupertinoColors.systemGrey5.darkColor
+                              : CupertinoColors.systemGrey5.color),
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: Icon(
@@ -681,11 +760,11 @@ class _ChatInputState extends State<ChatInput> {
                     size: 20,
                     color: widget.enabled
                         ? (brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey.darkColor
-                            : CupertinoColors.systemGrey)
+                              ? CupertinoColors.systemGrey.darkColor
+                              : CupertinoColors.systemGrey)
                         : (brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey4.darkColor
-                            : CupertinoColors.systemGrey4),
+                              ? CupertinoColors.systemGrey4.darkColor
+                              : CupertinoColors.systemGrey4),
                   ),
                 ),
               ),
@@ -713,15 +792,15 @@ class _ChatInputState extends State<ChatInput> {
         decoration: BoxDecoration(
           color: widget.enabled
               ? (widget.thinkingMode
-                  ? (brightness == Brightness.dark
-                      ? CupertinoColors.systemBlue.darkColor.withAlpha(51)
-                      : CupertinoColors.systemBlue.color.withAlpha(38))
-                  : (brightness == Brightness.dark
-                      ? CupertinoColors.systemGrey6.darkColor
-                      : CupertinoColors.systemGrey6.color))
+                    ? (brightness == Brightness.dark
+                          ? CupertinoColors.systemBlue.darkColor.withAlpha(51)
+                          : CupertinoColors.systemBlue.color.withAlpha(38))
+                    : (brightness == Brightness.dark
+                          ? CupertinoColors.systemGrey6.darkColor
+                          : CupertinoColors.systemGrey6.color))
               : (brightness == Brightness.dark
-                  ? CupertinoColors.systemGrey5.darkColor
-                  : CupertinoColors.systemGrey5.color),
+                    ? CupertinoColors.systemGrey5.darkColor
+                    : CupertinoColors.systemGrey5.color),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
@@ -732,15 +811,15 @@ class _ChatInputState extends State<ChatInput> {
               size: 19,
               color: widget.enabled
                   ? (widget.thinkingMode
-                      ? (brightness == Brightness.dark
-                          ? CupertinoColors.systemBlue.darkColor
-                          : CupertinoColors.systemBlue.color)
-                      : (brightness == Brightness.dark
-                          ? CupertinoColors.systemGrey.darkColor
-                          : CupertinoColors.systemGrey))
+                        ? (brightness == Brightness.dark
+                              ? CupertinoColors.systemBlue.darkColor
+                              : CupertinoColors.systemBlue.color)
+                        : (brightness == Brightness.dark
+                              ? CupertinoColors.systemGrey.darkColor
+                              : CupertinoColors.systemGrey))
                   : (brightness == Brightness.dark
-                      ? CupertinoColors.systemGrey4.darkColor
-                      : CupertinoColors.systemGrey4),
+                        ? CupertinoColors.systemGrey4.darkColor
+                        : CupertinoColors.systemGrey4),
             ),
             const SizedBox(width: 8),
             Text(
@@ -750,15 +829,15 @@ class _ChatInputState extends State<ChatInput> {
                 fontWeight: FontWeight.w500,
                 color: widget.enabled
                     ? (widget.thinkingMode
-                        ? (brightness == Brightness.dark
-                            ? CupertinoColors.systemBlue.darkColor
-                            : CupertinoColors.systemBlue.color)
-                        : (brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey.darkColor
-                            : CupertinoColors.systemGrey))
+                          ? (brightness == Brightness.dark
+                                ? CupertinoColors.systemBlue.darkColor
+                                : CupertinoColors.systemBlue.color)
+                          : (brightness == Brightness.dark
+                                ? CupertinoColors.systemGrey.darkColor
+                                : CupertinoColors.systemGrey))
                     : (brightness == Brightness.dark
-                        ? CupertinoColors.systemGrey4.darkColor
-                        : CupertinoColors.systemGrey4),
+                          ? CupertinoColors.systemGrey4.darkColor
+                          : CupertinoColors.systemGrey4),
               ),
             ),
           ],
@@ -781,16 +860,20 @@ class _ChatInputState extends State<ChatInput> {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: widget.enabled
-              ? (widget.promptPresetEnabled
-                  ? (brightness == Brightness.dark
-                      ? CupertinoColors.systemBlue.darkColor.withAlpha(51)
-                      : CupertinoColors.systemBlue.color.withAlpha(38))
-                  : (brightness == Brightness.dark
-                      ? CupertinoColors.systemGrey6.darkColor
-                      : CupertinoColors.systemGrey6.color))
+              ? (widget.currentPresetUnavailable
+                    ? CupertinoColors.systemRed
+                          .resolveFrom(context)
+                          .withAlpha(38)
+                    : widget.promptPresetEnabled
+                    ? (brightness == Brightness.dark
+                          ? CupertinoColors.systemBlue.darkColor.withAlpha(51)
+                          : CupertinoColors.systemBlue.color.withAlpha(38))
+                    : (brightness == Brightness.dark
+                          ? CupertinoColors.systemGrey6.darkColor
+                          : CupertinoColors.systemGrey6.color))
               : (brightness == Brightness.dark
-                  ? CupertinoColors.systemGrey5.darkColor
-                  : CupertinoColors.systemGrey5.color),
+                    ? CupertinoColors.systemGrey5.darkColor
+                    : CupertinoColors.systemGrey5.color),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
@@ -799,37 +882,43 @@ class _ChatInputState extends State<ChatInput> {
             Icon(
               CupertinoIcons.person_fill,
               size: 19,
-              color: widget.enabled
-                  ? (widget.promptPresetEnabled
-                      ? (brightness == Brightness.dark
-                          ? CupertinoColors.systemBlue.darkColor
-                          : CupertinoColors.systemBlue.color)
-                      : (brightness == Brightness.dark
-                          ? CupertinoColors.systemGrey.darkColor
-                          : CupertinoColors.systemGrey))
-                  : (brightness == Brightness.dark
-                      ? CupertinoColors.systemGrey4.darkColor
-                      : CupertinoColors.systemGrey4),
+              color: !widget.enabled
+                  ? (brightness == Brightness.dark
+                        ? CupertinoColors.systemGrey4.darkColor
+                        : CupertinoColors.systemGrey4)
+                  : widget.currentPresetUnavailable
+                  ? CupertinoColors.systemRed.resolveFrom(context)
+                  : (widget.promptPresetEnabled
+                        ? (brightness == Brightness.dark
+                              ? CupertinoColors.systemBlue.darkColor
+                              : CupertinoColors.systemBlue.color)
+                        : (brightness == Brightness.dark
+                              ? CupertinoColors.systemGrey.darkColor
+                              : CupertinoColors.systemGrey)),
             ),
             const SizedBox(width: 8),
             Text(
               widget.promptPresetEnabled && widget.currentPresetId.isNotEmpty
-                  ? _getPresetName(widget.currentPresetId)
+                  ? (widget.currentPresetUnavailable
+                        ? l10n.presetUnavailableBadge
+                        : _getPresetName(widget.currentPresetId))
                   : l10n.rolePlay,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
                 color: widget.enabled
-                    ? (widget.promptPresetEnabled
-                        ? (brightness == Brightness.dark
-                            ? CupertinoColors.systemBlue.darkColor
-                            : CupertinoColors.systemBlue.color)
-                        : (brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey.darkColor
-                            : CupertinoColors.systemGrey))
+                    ? (widget.currentPresetUnavailable
+                          ? CupertinoColors.systemRed.resolveFrom(context)
+                          : widget.promptPresetEnabled
+                          ? (brightness == Brightness.dark
+                                ? CupertinoColors.systemBlue.darkColor
+                                : CupertinoColors.systemBlue.color)
+                          : (brightness == Brightness.dark
+                                ? CupertinoColors.systemGrey.darkColor
+                                : CupertinoColors.systemGrey))
                     : (brightness == Brightness.dark
-                        ? CupertinoColors.systemGrey4.darkColor
-                        : CupertinoColors.systemGrey4),
+                          ? CupertinoColors.systemGrey4.darkColor
+                          : CupertinoColors.systemGrey4),
               ),
             ),
           ],
@@ -870,10 +959,14 @@ class _ChatInputState extends State<ChatInput> {
               },
               child: _buildActionSheetItem(
                 icon: CupertinoIcons.person_fill,
-                title: widget.promptPresetEnabled && widget.currentPresetId.isNotEmpty
+                title:
+                    widget.promptPresetEnabled &&
+                        widget.currentPresetId.isNotEmpty
                     ? _getPresetName(widget.currentPresetId)
                     : l10n.rolePlay,
-                isActive: widget.promptPresetEnabled && widget.currentPresetId.isNotEmpty,
+                isActive:
+                    widget.promptPresetEnabled &&
+                    widget.currentPresetId.isNotEmpty,
               ),
             ),
 
@@ -886,7 +979,9 @@ class _ChatInputState extends State<ChatInput> {
               },
               child: _buildActionSheetItem(
                 icon: CupertinoIcons.cube_box,
-                title: widget.currentModelName.isEmpty ? l10n.model : widget.currentModelName,
+                title: widget.currentModelName.isEmpty
+                    ? l10n.model
+                    : widget.currentModelName,
                 isActive: widget.currentModelName.isNotEmpty,
               ),
             ),
@@ -917,11 +1012,11 @@ class _ChatInputState extends State<ChatInput> {
           size: 20,
           color: isActive
               ? (brightness == Brightness.dark
-                  ? CupertinoColors.systemBlue.darkColor
-                  : CupertinoColors.systemBlue.color)
+                    ? CupertinoColors.systemBlue.darkColor
+                    : CupertinoColors.systemBlue.color)
               : (brightness == Brightness.dark
-                  ? CupertinoColors.systemGrey.darkColor
-                  : CupertinoColors.systemGrey),
+                    ? CupertinoColors.systemGrey.darkColor
+                    : CupertinoColors.systemGrey),
         ),
         const SizedBox(width: 12),
         Text(

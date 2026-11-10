@@ -3,6 +3,7 @@ import '../ai/contracts/ai_error.dart';
 import '../ai/contracts/ai_message.dart';
 import '../ai/contracts/ai_request.dart';
 import '../ai/contracts/ai_stream_event.dart';
+import '../ai/contracts/ai_tool.dart';
 import '../ai/contracts/ai_tool_executor.dart';
 import '../ai/providers/chat_completions_profile.dart';
 import '../ai/providers/chat_completions_tool_provider.dart';
@@ -23,7 +24,7 @@ class ToolChatService {
 
   final AIToolExecutor executor;
   final AIStreamingProvider Function(ActivePlatformConfig config)?
-      _providerFactory;
+  _providerFactory;
   final int maxIterations;
 
   Stream<Map<String, dynamic>> run({
@@ -77,7 +78,9 @@ class ToolChatService {
       temperature: temperature,
       maxTokens: maxTokens,
       thinkingMode: thinkingMode,
-      tools: executor.tools,
+      // 工具定义位于提示词前缀最前部，按名称排序保证跨请求字节稳定。
+      tools: List<AIToolDefinition>.from(executor.tools)
+        ..sort((a, b) => a.name.compareTo(b.name)),
       toolChoice: AIToolChoice.auto,
     );
 

@@ -2,12 +2,15 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart' as material;
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import '../l10n/app_localizations.dart';
 import '../models/conversation.dart';
 import '../services/conversation_service.dart';
+import '../services/preset_repository.dart';
 
 class ConversationListScreen extends StatefulWidget {
   final Function(String? conversationId) onConversationSelected;
@@ -94,10 +97,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
       return;
     }
 
-    _searchTimer = Timer(
-      const Duration(milliseconds: 250),
-      _loadConversations,
-    );
+    _searchTimer = Timer(const Duration(milliseconds: 250), _loadConversations);
   }
 
   Future<void> _createNewConversation() async {
@@ -132,7 +132,32 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
       await _conversationService.importConversationFromLumenflow(
         bytes: bytes,
         l10n: l10n,
+        confirmPresetImport: (name) async {
+          if (!mounted) return false;
+          final confirmed = await showCupertinoDialog<bool>(
+            context: context,
+            builder: (dialogContext) => CupertinoAlertDialog(
+              title: Text(l10n.importPresetSnapshotTitle),
+              content: Text(l10n.importPresetSnapshotMessage(name)),
+              actions: [
+                CupertinoDialogAction(
+                  child: Text(l10n.cancel),
+                  onPressed: () => Navigator.pop(dialogContext, false),
+                ),
+                CupertinoDialogAction(
+                  isDefaultAction: true,
+                  child: Text(l10n.importButton),
+                  onPressed: () => Navigator.pop(dialogContext, true),
+                ),
+              ],
+            ),
+          );
+          return confirmed == true;
+        },
       );
+      // 会话快照可能在导入时创建/重映射了角色预设，刷新共享仓库，
+      // 否则聊天页会继续显示“角色不可用”。
+      await PresetRepository.instance.ensureLoaded(force: true);
       await _loadConversations();
 
       if (!mounted) return;
@@ -231,17 +256,18 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
 
   Future<void> _editConversationTitle(Conversation conversation) async {
     final l10n = AppLocalizations.of(context)!;
-    final TextEditingController controller =
-        TextEditingController(text: conversation.title);
+    final TextEditingController controller = TextEditingController(
+      text: conversation.title,
+    );
 
     showCupertinoDialog(
       context: context,
-      builder: (context) => CupertinoAlertDialog(
+      builder: (dialogContext) => CupertinoAlertDialog(
         title: Text(l10n.editConversationTitle),
         content: Padding(
           padding: const EdgeInsets.only(top: 16),
           child: SizedBox(
-            width: MediaQuery.of(context).size.width * 0.8,
+            width: MediaQuery.of(dialogContext).size.width * 0.8,
             child: CupertinoTextField(
               controller: controller,
               placeholder: l10n.enterConversationTitle,
@@ -251,7 +277,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
         actions: [
           CupertinoDialogAction(
             child: Text(l10n.cancel),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
           ),
           CupertinoDialogAction(
             child: Text(l10n.save),
@@ -263,9 +289,8 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                 );
                 await _loadConversations();
               }
-              if (mounted) {
-                Navigator.pop(
-                    context); // ignore: use_build_context_synchronously
+              if (dialogContext.mounted) {
+                Navigator.pop(dialogContext);
               }
             },
           ),
@@ -410,163 +435,161 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
 
     return Column(
       children: [
-            if (!_isLoading)
-              Padding(
-                padding: widget.embedded
-                    ? const EdgeInsets.fromLTRB(12, 4, 12, 20)
-                    : const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    color: searchBackground,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: material.Material(
-                    color: material.Colors.transparent,
-                    child: Row(
-                      children: [
-                        Icon(
-                          CupertinoIcons.search,
-                          size: 18,
-                          color: searchIconColor,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: material.TextField(
-                            controller: _searchController,
-                            onChanged: _onSearchChanged,
-                            style: const TextStyle(fontSize: 16),
-                            cursorColor: CupertinoTheme.of(
-                              context,
-                            ).primaryColor,
-                            decoration: material.InputDecoration(
-                              border: material.InputBorder.none,
-                              focusedBorder: material.InputBorder.none,
-                              enabledBorder: material.InputBorder.none,
-                              hintText: l10n.searchConversations,
-                              hintStyle: TextStyle(color: searchIconColor),
-                              isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(
-                                vertical: 10,
-                              ),
-                            ),
-                          ),
-                        ),
-                        if (_searchQuery.isNotEmpty)
-                          GestureDetector(
-                            onTap: () {
-                              _searchController.clear();
-                              _onSearchChanged('');
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(4),
-                              child: Icon(
-                                CupertinoIcons.xmark_circle_fill,
-                                size: 16,
-                                color: searchIconColor,
-                              ),
-                            ),
-                          ),
-                      ],
+        if (!_isLoading)
+          Padding(
+            padding: widget.embedded
+                ? const EdgeInsets.fromLTRB(12, 4, 12, 20)
+                : const EdgeInsets.fromLTRB(16, 8, 16, 4),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              decoration: BoxDecoration(
+                color: searchBackground,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: material.Material(
+                color: material.Colors.transparent,
+                child: Row(
+                  children: [
+                    Icon(
+                      CupertinoIcons.search,
+                      size: 18,
+                      color: searchIconColor,
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: material.TextField(
+                        controller: _searchController,
+                        onChanged: _onSearchChanged,
+                        style: const TextStyle(fontSize: 16),
+                        cursorColor: CupertinoTheme.of(context).primaryColor,
+                        decoration: material.InputDecoration(
+                          border: material.InputBorder.none,
+                          focusedBorder: material.InputBorder.none,
+                          enabledBorder: material.InputBorder.none,
+                          hintText: l10n.searchConversations,
+                          hintStyle: TextStyle(color: searchIconColor),
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 10,
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (_searchQuery.isNotEmpty)
+                      GestureDetector(
+                        onTap: () {
+                          _searchController.clear();
+                          _onSearchChanged('');
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: Icon(
+                            CupertinoIcons.xmark_circle_fill,
+                            size: 16,
+                            color: searchIconColor,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
-            Expanded(
-              child: _isLoading
-                  ? const Center(child: CupertinoActivityIndicator())
-                  : _conversations.isEmpty
-                      ? _buildEmptyState()
-                      : ListView.builder(
-                    itemCount: _conversations.length,
-                    itemBuilder: (context, index) {
-                      final conversation = _conversations[index];
-                      final isCurrentConversation =
-                          conversation.id == highlightId;
-                      final primaryColor =
-                          CupertinoTheme.of(context).primaryColor;
+            ),
+          ),
+        Expanded(
+          child: _isLoading
+              ? const Center(child: CupertinoActivityIndicator())
+              : _conversations.isEmpty
+              ? _buildEmptyState()
+              : ListView.builder(
+                  itemCount: _conversations.length,
+                  itemBuilder: (context, index) {
+                    final conversation = _conversations[index];
+                    final isCurrentConversation =
+                        conversation.id == highlightId;
+                    final primaryColor = CupertinoTheme.of(context)
+                        .primaryColor;
 
-                      return Container(
-                        color: isCurrentConversation
-                            ? CupertinoColors.systemBlue.withValues(alpha: 0.1)
-                            : null,
-                        child: CupertinoListTile(
-                          title: Text(
-                            conversation.title,
-                            style: TextStyle(
-                              fontSize: widget.compact ? 13 : null,
-                              fontWeight: isCurrentConversation
-                                  ? FontWeight.w600
-                                  : FontWeight.normal,
-                            ),
+                    return Container(
+                      color: isCurrentConversation
+                          ? CupertinoColors.systemBlue.withValues(alpha: 0.1)
+                          : null,
+                      child: CupertinoListTile(
+                        title: Text(
+                          conversation.title,
+                          style: TextStyle(
+                            fontSize: widget.compact ? 13 : null,
+                            fontWeight: isCurrentConversation
+                                ? FontWeight.w600
+                                : FontWeight.normal,
                           ),
-                          subtitle: Text(
-                            _formatDate(conversation.updatedAt),
-                            style: TextStyle(
-                              fontSize: widget.compact ? 10.5 : 13,
-                              color: CupertinoColors.systemGrey,
-                            ),
+                        ),
+                        subtitle: Text(
+                          _formatDate(conversation.updatedAt),
+                          style: TextStyle(
+                            fontSize: widget.compact ? 10.5 : 13,
+                            color: CupertinoColors.systemGrey,
                           ),
-                          leading: widget.compact
-                              ? null
-                              : Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: isCurrentConversation
-                                        ? CupertinoColors.systemBlue
-                                        : CupertinoColors.systemGrey5,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Icon(
-                                    CupertinoIcons.chat_bubble_2,
-                                    color: isCurrentConversation
-                                        ? CupertinoColors.white
-                                        : CupertinoColors.systemGrey,
-                                    size: 20,
-                                  ),
+                        ),
+                        leading: widget.compact
+                            ? null
+                            : Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: isCurrentConversation
+                                      ? CupertinoColors.systemBlue
+                                      : CupertinoColors.systemGrey5,
+                                  borderRadius: BorderRadius.circular(20),
                                 ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (conversation.isPinned)
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 6),
-                                  child: Icon(
-                                    CupertinoIcons.pin_fill,
-                                    size: 14,
-                                    color: primaryColor,
-                                  ),
-                                ),
-                              if (!widget.compact &&
-                                  conversation.messages.isNotEmpty)
-                                Text(
-                                  '${conversation.messages.length}',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: CupertinoColors.systemGrey,
-                                  ),
-                                ),
-                              const SizedBox(width: 8),
-                              CupertinoButton(
-                                padding: EdgeInsets.zero,
-                                child: const Icon(
-                                  CupertinoIcons.ellipsis,
+                                child: Icon(
+                                  CupertinoIcons.chat_bubble_2,
+                                  color: isCurrentConversation
+                                      ? CupertinoColors.white
+                                      : CupertinoColors.systemGrey,
                                   size: 20,
+                                ),
+                              ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (conversation.isPinned)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 6),
+                                child: Icon(
+                                  CupertinoIcons.pin_fill,
+                                  size: 14,
+                                  color: primaryColor,
+                                ),
+                              ),
+                            if (!widget.compact &&
+                                conversation.messages.isNotEmpty)
+                              Text(
+                                '${conversation.messages.length}',
+                                style: const TextStyle(
+                                  fontSize: 12,
                                   color: CupertinoColors.systemGrey,
                                 ),
-                                onPressed: () =>
-                                    _showConversationOptions(conversation),
                               ),
-                            ],
-                          ),
-                          onTap: () => _selectConversation(conversation),
+                            const SizedBox(width: 8),
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              child: const Icon(
+                                CupertinoIcons.ellipsis,
+                                size: 20,
+                                color: CupertinoColors.systemGrey,
+                              ),
+                              onPressed: () =>
+                                  _showConversationOptions(conversation),
+                            ),
+                          ],
                         ),
-                      );
-                    },
-                  ),
-            ),
-          ],
+                        onTap: () => _selectConversation(conversation),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
     );
   }
 
@@ -583,9 +606,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            _searchQuery.isEmpty
-                ? l10n.noConversations
-                : l10n.searchNoResults,
+            _searchQuery.isEmpty ? l10n.noConversations : l10n.searchNoResults,
             style: const TextStyle(
               fontSize: 18,
               color: CupertinoColors.systemGrey,
@@ -617,8 +638,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
       context: context,
       builder: (context) {
         final primaryColor = CupertinoTheme.of(context).primaryColor;
-        final destructiveColor =
-            CupertinoColors.systemRed.resolveFrom(context);
+        final destructiveColor = CupertinoColors.systemRed.resolveFrom(context);
         return CupertinoActionSheet(
           title: Text(conversation.title),
           actions: [
@@ -626,11 +646,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    CupertinoIcons.pencil,
-                    size: 20,
-                    color: primaryColor,
-                  ),
+                  Icon(CupertinoIcons.pencil, size: 20, color: primaryColor),
                   const SizedBox(width: 8),
                   Text(l10n.editTitle),
                 ],
@@ -713,49 +729,71 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
 
   void _showExportFormatDialog(Conversation conversation) {
     final l10n = AppLocalizations.of(context)!;
+    var includePresetCard = false;
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => CupertinoActionSheet(
-        title: Text(l10n.exportFormat),
-        actions: [
-          CupertinoActionSheetAction(
-            child: Text(l10n.exportFormatTxt),
-            onPressed: () {
-              Navigator.pop(context);
-              _exportConversation(conversation, 'txt');
-            },
-          ),
-          CupertinoActionSheetAction(
-            child: Text(l10n.exportFormatJson),
-            onPressed: () {
-              Navigator.pop(context);
-              _exportConversation(conversation, 'json');
-            },
-          ),
-          CupertinoActionSheetAction(
-            child: Text(l10n.exportFormatLumenflow),
-            onPressed: () {
-              Navigator.pop(context);
-              _exportConversation(conversation, 'lumenflow');
-            },
-          ),
-          CupertinoActionSheetAction(
-            child: Text(l10n.exportFormatPdf),
-            onPressed: () {
-              Navigator.pop(context);
-              _exportConversation(conversation, 'pdf');
-            },
-          ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          child: Text(l10n.cancel),
-          onPressed: () => Navigator.pop(context),
-        ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          void export(String format) {
+            Navigator.pop(context);
+            _exportConversation(
+              conversation,
+              format,
+              includePresetSnapshot:
+                  includePresetCard &&
+                  (format == 'json' || format == 'lumenflow'),
+            );
+          }
+
+          return CupertinoActionSheet(
+            title: Text(l10n.exportFormat),
+            message: Text(l10n.includePresetCardHint),
+            actions: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Expanded(child: Text(l10n.includePresetCard)),
+                    CupertinoSwitch(
+                      value: includePresetCard,
+                      onChanged: (value) =>
+                          setSheetState(() => includePresetCard = value),
+                    ),
+                  ],
+                ),
+              ),
+              CupertinoActionSheetAction(
+                child: Text(l10n.exportFormatTxt),
+                onPressed: () => export('txt'),
+              ),
+              CupertinoActionSheetAction(
+                child: Text(l10n.exportFormatJson),
+                onPressed: () => export('json'),
+              ),
+              CupertinoActionSheetAction(
+                child: Text(l10n.exportFormatLumenflow),
+                onPressed: () => export('lumenflow'),
+              ),
+              CupertinoActionSheetAction(
+                child: Text(l10n.exportFormatPdf),
+                onPressed: () => export('pdf'),
+              ),
+            ],
+            cancelButton: CupertinoActionSheetAction(
+              child: Text(l10n.cancel),
+              onPressed: () => Navigator.pop(context),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Future<void> _exportConversation(Conversation conversation, String format) async {
+  Future<void> _exportConversation(
+    Conversation conversation,
+    String format, {
+    bool includePresetSnapshot = false,
+  }) async {
     final l10n = AppLocalizations.of(context)!;
     try {
       List<int> bytes;
@@ -764,24 +802,39 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
 
       switch (format) {
         case 'txt':
-          final text = await _conversationService.exportConversationToText(conversation.id, l10n);
+          final text = await _conversationService.exportConversationToText(
+            conversation.id,
+            l10n,
+          );
           bytes = utf8.encode(text);
           extension = 'txt';
           break;
         case 'json':
-          final jsonData = await _conversationService.exportConversationToJson(conversation.id, l10n);
+          final jsonData = await _conversationService.exportConversationToJson(
+            conversation.id,
+            l10n,
+            includePresetSnapshot: includePresetSnapshot,
+          );
           final jsonString = jsonEncode(jsonData);
           bytes = utf8.encode(jsonString);
           extension = 'json';
           break;
         case 'lumenflow':
-          final lumenflowData = await _conversationService.exportConversationToLumenflow(conversation.id, l10n);
+          final lumenflowData = await _conversationService
+              .exportConversationToLumenflow(
+                conversation.id,
+                l10n,
+                includePresetSnapshot: includePresetSnapshot,
+              );
           final jsonString = jsonEncode(lumenflowData);
           bytes = utf8.encode(jsonString);
           extension = 'lumenflow';
           break;
         case 'pdf':
-          bytes = await _conversationService.exportConversationToPdf(conversation.id, l10n);
+          bytes = await _conversationService.exportConversationToPdf(
+            conversation.id,
+            l10n,
+          );
           extension = 'pdf';
           break;
         default:
@@ -789,8 +842,11 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
       }
 
       // 生成文件名
-      final safeTitle = conversation.title.replaceAll(RegExp(r'[^\w\s-]'), '').replaceAll(' ', '_');
-      fileName = '${safeTitle}_${DateTime.now().toIso8601String().substring(0, 10)}.$extension';
+      final safeTitle = conversation.title
+          .replaceAll(RegExp(r'[^\w\s-]'), '')
+          .replaceAll(' ', '_');
+      fileName =
+          '${safeTitle}_${DateTime.now().toIso8601String().substring(0, 10)}.$extension';
 
       // 保存文件
       final result = await _conversationService.saveExportFile(fileName, bytes);

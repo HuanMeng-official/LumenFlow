@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../contracts/ai_error.dart';
@@ -62,9 +63,9 @@ class ClaudeToolProvider implements AIStreamingProvider {
               .toLowerCase();
 
       if (contentType.contains('application/json')) {
-        final body = await response.stream
-            .bytesToString()
-            .timeout(streamingTimeout);
+        final body = await response.stream.bytesToString().timeout(
+          streamingTimeout,
+        );
         yield* _parseNonStreamingBody(body);
         return;
       }
@@ -277,8 +278,7 @@ class ClaudeToolProvider implements AIStreamingProvider {
           case 'signature_delta':
             final signature = deltaMap['signature'];
             if (signature is String && signature.isNotEmpty) {
-              block['signature'] =
-                  '${block['signature'] ?? ''}$signature';
+              block['signature'] = '${block['signature'] ?? ''}$signature';
             }
           case 'input_json_delta':
             final partial = deltaMap['partial_json'];
@@ -311,12 +311,28 @@ class ClaudeToolProvider implements AIStreamingProvider {
         return (events: const [], terminal: false);
       case 'message_stop':
         return (events: const [], terminal: true);
-      case 'message_delta':
       case 'message_start':
+        final message = map['message'];
+        if (message is Map) {
+          _logCacheUsage(message['usage']);
+        }
+        return (events: const [], terminal: false);
+      case 'message_delta':
+        _logCacheUsage(map['usage']);
+        return (events: const [], terminal: false);
       case 'ping':
       default:
         return (events: const [], terminal: false);
     }
+  }
+
+  void _logCacheUsage(Object? usage) {
+    if (!kDebugMode || usage is! Map) return;
+    debugPrint(
+      'Claude usage: input=${usage['input_tokens']} '
+      'cache_write=${usage['cache_creation_input_tokens']} '
+      'cache_read=${usage['cache_read_input_tokens']}',
+    );
   }
 
   Stream<AIStreamEvent> _parseNonStreamingBody(String body) async* {
@@ -485,7 +501,14 @@ class ClaudeToolProvider implements AIStreamingProvider {
       'max_tokens': request.maxTokens,
       'messages': messages.messages,
       'stream': true,
-      if (messages.system.isNotEmpty) 'system': messages.system,
+      if (messages.system.isNotEmpty)
+        'system': [
+          {
+            'type': 'text',
+            'text': messages.system,
+            'cache_control': {'type': 'ephemeral'},
+          },
+        ],
       if (request.tools.isNotEmpty) 'tools': _buildTools(request.tools),
       if (request.tools.isNotEmpty)
         'tool_choice': _toolChoice(request.toolChoice),
@@ -569,10 +592,7 @@ class ClaudeToolProvider implements AIStreamingProvider {
     return (messages: messages, system: system.toString());
   }
 
-  bool _blocksMatch(
-    List<Map<String, dynamic>> blocks,
-    List<AIToolCall> calls,
-  ) {
+  bool _blocksMatch(List<Map<String, dynamic>> blocks, List<AIToolCall> calls) {
     final ids = blocks
         .where((block) => block['type'] == 'tool_use')
         .map((block) => block['id']?.toString())

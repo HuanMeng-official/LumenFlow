@@ -1,7 +1,9 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+
 import '../l10n/app_localizations.dart';
 import '../services/settings_service.dart';
 import '../widgets/settings/settings_input_tile.dart';
+import '../widgets/settings/settings_navigation_tile.dart';
 import '../widgets/settings/settings_page_scaffold.dart';
 import '../widgets/settings/settings_section.dart';
 import '../widgets/settings/settings_slider_tile.dart';
@@ -17,10 +19,7 @@ import '../widgets/settings/settings_switch_tile.dart';
 class ConversationSettingsScreen extends StatefulWidget {
   final bool embedded;
 
-  const ConversationSettingsScreen({
-    super.key,
-    this.embedded = false,
-  });
+  const ConversationSettingsScreen({super.key, this.embedded = false});
 
   @override
   State<ConversationSettingsScreen> createState() =>
@@ -36,6 +35,7 @@ class _ConversationSettingsScreenState
   bool _enableHistory = SettingsService.defaultEnableHistory;
   bool _autoTitleEnabled = SettingsService.defaultAutoTitleEnabled;
   int _autoTitleRounds = SettingsService.defaultAutoTitleRounds;
+  String _replyLanguage = SettingsService.defaultReplyLanguage;
 
   @override
   void initState() {
@@ -51,10 +51,11 @@ class _ConversationSettingsScreenState
 
   Future<void> _loadSettings() async {
     final enableHistory = await _settingsService.getEnableHistory();
-    final historyContextLength =
-        await _settingsService.getHistoryContextLength();
+    final historyContextLength = await _settingsService
+        .getHistoryContextLength();
     final autoTitleEnabled = await _settingsService.getAutoTitleEnabled();
     final autoTitleRounds = await _settingsService.getAutoTitleRounds();
+    final replyLanguage = await _settingsService.getReplyLanguage();
 
     if (!mounted) return;
     setState(() {
@@ -62,8 +63,79 @@ class _ConversationSettingsScreenState
       _historyContextLengthController.text = historyContextLength.toString();
       _autoTitleEnabled = autoTitleEnabled;
       _autoTitleRounds = autoTitleRounds;
+      _replyLanguage = replyLanguage;
       _isLoading = false;
     });
+  }
+
+  String _replyLanguageLabel(AppLocalizations l10n) {
+    return switch (_replyLanguage) {
+      'follow_user' => l10n.replyLanguageOptionFollowUser,
+      'zh' => l10n.languageNameZh,
+      'en' => l10n.languageNameEn,
+      'ja' => l10n.languageNameJa,
+      'ko' => l10n.languageNameKo,
+      'es' => l10n.languageNameEs,
+      'lzh' => l10n.languageNameLzh,
+      _ => l10n.replyLanguageFollowUi,
+    };
+  }
+
+  Future<void> _showReplyLanguagePicker() async {
+    final l10n = AppLocalizations.of(context)!;
+    final selected = await showCupertinoModalPopup<String>(
+      context: context,
+      builder: (context) => CupertinoActionSheet(
+        title: Text(l10n.replyLanguageTitle),
+        message: Text(l10n.replyLanguageSubtitle),
+        actions: [
+          for (final option in <String>[
+            SettingsService.defaultReplyLanguage,
+            'follow_user',
+            'zh',
+            'en',
+            'ja',
+            'ko',
+            'es',
+            'lzh',
+          ])
+            CupertinoActionSheetAction(
+              onPressed: () => Navigator.pop(context, option),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(switch (option) {
+                    'follow_user' => l10n.replyLanguageOptionFollowUser,
+                    'zh' => l10n.languageNameZh,
+                    'en' => l10n.languageNameEn,
+                    'ja' => l10n.languageNameJa,
+                    'ko' => l10n.languageNameKo,
+                    'es' => l10n.languageNameEs,
+                    'lzh' => l10n.languageNameLzh,
+                    _ => l10n.replyLanguageFollowUi,
+                  }),
+                  if (_replyLanguage == option) ...[
+                    const SizedBox(width: 8),
+                    const Icon(
+                      CupertinoIcons.checkmark_alt,
+                      size: 18,
+                      color: CupertinoColors.activeBlue,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          child: Text(l10n.cancel),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+    );
+
+    if (selected == null || !mounted) return;
+    setState(() => _replyLanguage = selected);
+    await _settingsService.setReplyLanguage(selected);
   }
 
   /// 实时保存历史记录开关状态
@@ -117,52 +189,64 @@ class _ConversationSettingsScreenState
       embedded: widget.embedded,
       child: ListView(
         children: [
-            SettingsSection(
-              title: l10n.historyConversation,
-              children: [
-                SettingsSwitchTile(
-                  title: l10n.enableHistory,
-                  value: _enableHistory,
-                  subtitle: l10n.enableHistoryDesc,
-                  onChanged: _onEnableHistoryChanged,
+          SettingsSection(
+            title: l10n.historyConversation,
+            children: [
+              SettingsSwitchTile(
+                title: l10n.enableHistory,
+                value: _enableHistory,
+                subtitle: l10n.enableHistoryDesc,
+                onChanged: _onEnableHistoryChanged,
+              ),
+              if (_enableHistory)
+                SettingsInputTile(
+                  title: l10n.historyRounds,
+                  controller: _historyContextLengthController,
+                  placeholder: l10n.historyRoundsPlaceholder,
+                  subtitle: l10n.historyRoundsDesc,
+                  keyboardType: TextInputType.number,
+                  onChanged: _onHistoryContextLengthChanged,
                 ),
-                if (_enableHistory)
-                  SettingsInputTile(
-                    title: l10n.historyRounds,
-                    controller: _historyContextLengthController,
-                    placeholder: l10n.historyRoundsPlaceholder,
-                    subtitle: l10n.historyRoundsDesc,
-                    keyboardType: TextInputType.number,
-                    onChanged: _onHistoryContextLengthChanged,
-                  ),
-              ],
-            ),
-            SettingsSection(
-              title: l10n.conversationTitle,
-              children: [
-                SettingsSwitchTile(
-                  title: l10n.autoGenerateTitle,
-                  value: _autoTitleEnabled,
-                  subtitle: l10n.autoGenerateTitleDesc,
-                  onChanged: _onAutoTitleEnabledChanged,
+            ],
+          ),
+          SettingsSection(
+            title: l10n.replyLanguageTitle,
+            children: [
+              SettingsNavigationTile(
+                title: l10n.replyLanguageTitle,
+                subtitle:
+                    '${_replyLanguageLabel(l10n)}\n${l10n.replyLanguageSubtitle}',
+                icon: CupertinoIcons.globe,
+                onTap: _showReplyLanguagePicker,
+              ),
+            ],
+          ),
+          SettingsSection(
+            title: l10n.conversationTitle,
+            children: [
+              SettingsSwitchTile(
+                title: l10n.autoGenerateTitle,
+                value: _autoTitleEnabled,
+                subtitle: l10n.autoGenerateTitleDesc,
+                onChanged: _onAutoTitleEnabledChanged,
+              ),
+              if (_autoTitleEnabled)
+                SettingsSliderTile(
+                  title: l10n.generateTiming,
+                  value: _autoTitleRounds.toDouble(),
+                  subtitle: l10n.generateTimingDesc,
+                  min: 1,
+                  max: 10,
+                  divisions: 9,
+                  decimalPlaces: 0,
+                  valueSuffix: ' ${l10n.rounds}',
+                  showValueInRow: true,
+                  onChanged: _onAutoTitleRoundsChanged,
                 ),
-                if (_autoTitleEnabled)
-                  SettingsSliderTile(
-                    title: l10n.generateTiming,
-                    value: _autoTitleRounds.toDouble(),
-                    subtitle: l10n.generateTimingDesc,
-                    min: 1,
-                    max: 10,
-                    divisions: 9,
-                    decimalPlaces: 0,
-                    valueSuffix: ' ${l10n.rounds}',
-                    showValueInRow: true,
-                    onChanged: _onAutoTitleRoundsChanged,
-                  ),
-              ],
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1,7 +1,9 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/rendering.dart' show ScrollCacheExtent;
+
 import 'dart:io';
 import 'dart:async';
+
 import '../controllers/chat_send_controller.dart';
 import '../controllers/chat_screen_controller.dart';
 import '../l10n/app_localizations.dart';
@@ -15,7 +17,7 @@ import '../services/conversation_service.dart';
 import '../services/settings_service.dart';
 import '../services/notification_service.dart';
 import '../services/live_update_service.dart';
-import '../services/prompt_service.dart';
+import '../services/preset_repository.dart';
 import '../services/user_service.dart';
 import '../utils/app_theme.dart';
 import '../widgets/message_bubble.dart';
@@ -79,7 +81,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final SettingsService _settingsService = SettingsService();
   final NotificationService _notificationService = NotificationService();
   final LiveUpdateService _liveUpdateService = LiveUpdateService();
-  final PromptService _promptService = PromptService();
+  final PresetRepository _presetRepository = PresetRepository.instance;
   final UserService _userService = UserService();
 
   bool _isLoading = false;
@@ -88,7 +90,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   bool _liveUpdateEnabled = true;
   bool _promptPresetEnabled = false;
   String _currentPresetId = '';
-  List<PromptPreset> _presets = [];
   Conversation? _currentConversation;
   String _currentTitle = '';
   bool _autoTitleGenerated = false; // 是否已经自动生成过标题
@@ -97,7 +98,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   // 聊天背景设置
   String _backgroundImagePath = SettingsService.defaultBackgroundImagePath;
-  double _backgroundImageOpacity = SettingsService.defaultBackgroundImageOpacity;
+  double _backgroundImageOpacity =
+      SettingsService.defaultBackgroundImageOpacity;
 
   Timer? _setStateTimer; // 批量setState定时器
   bool _pendingStateUpdate = false; // 是否有待处理的state更新
@@ -117,6 +119,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     super.initState();
     // 添加生命周期观察者
     WidgetsBinding.instance.addObserver(this);
+    _presetRepository.addListener(_onPresetsChanged);
 
     widget.controller?.attach(
       openConversation: _setCurrentConversation,
@@ -141,8 +144,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     await _checkConfiguration();
 
     // 加载当前对话（使用统一的入口）
-    final currentConversationId =
-        await _conversationService.getCurrentConversationId();
+    final currentConversationId = await _conversationService
+        .getCurrentConversationId();
 
     if (currentConversationId != null && currentConversationId.isNotEmpty) {
       await _setCurrentConversation(currentConversationId);
@@ -151,8 +154,18 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
+  /// 预设仓库（导入、删除、语言切换）更新后刷新角色胶囊和选择列表。
+  void _onPresetsChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  List<PromptPreset> get _presets => _presetRepository.presets;
+
   @override
   void dispose() {
+    _presetRepository.removeListener(_onPresetsChanged);
     widget.controller?.detach();
     // 取消所有定时器
     _setStateTimer?.cancel();
@@ -198,6 +211,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     // 只处理依赖变化（Theme / Provider / Locale），不重建业务数据
     _loadCurrentModel();
     _loadBackgroundSettings();
+    // 语言变化时仓库会自动重新加载预设。
+    unawaited(_presetRepository.ensureLoaded());
   }
 
   /// 检查应用配置状态
@@ -208,17 +223,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Future<void> _checkConfiguration() async {
     final configured = await _settingsService.isConfigured();
     final liveUpdateEnabled = await _settingsService.getLiveUpdateEnabled();
-    final presets = await _promptService.loadPresets();
+    await _presetRepository.ensureLoaded();
     // 预加载用户头像，避免每个消息气泡重复加载
     final userProfile = await _userService.getUserProfile();
     // 加载聊天背景设置
     final backgroundImagePath = await _settingsService.getBackgroundImagePath();
-    final backgroundImageOpacity = await _settingsService.getBackgroundImageOpacity();
+    final backgroundImageOpacity = await _settingsService
+        .getBackgroundImageOpacity();
     if (!mounted) return;
     setState(() {
       _isConfigured = configured;
       _liveUpdateEnabled = liveUpdateEnabled;
-      _presets = presets;
       _userProfile = userProfile;
       _backgroundImagePath = backgroundImagePath;
       _backgroundImageOpacity = backgroundImageOpacity;
@@ -256,8 +271,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     try {
       final l10n = AppLocalizations.of(context)!;
-      final fullConversation =
-          await _conversationService.getConversationById(conversationId);
+      final fullConversation = await _conversationService.getConversationById(
+        conversationId,
+      );
 
       if (!mounted || fullConversation == null) {
         return;
@@ -274,10 +290,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             continue;
           } else {
             // 有部分内容，标记为error并添加提示
-            processedMessages.add(message.copyWith(
-              status: MessageStatus.error,
-              content: '${message.content}\n\n[${l10n.responseInterrupted}]',
-            ));
+            processedMessages.add(
+              message.copyWith(
+                status: MessageStatus.error,
+                content: '${message.content}\n\n[${l10n.responseInterrupted}]',
+              ),
+            );
           }
         } else {
           processedMessages.add(message);
@@ -392,9 +410,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final messageId = await Navigator.push<String>(
       context,
       CupertinoPageRoute(
-        builder: (context) => MessageSearchScreen(
-          messages: List<Message>.from(_messages),
-        ),
+        builder: (context) =>
+            MessageSearchScreen(messages: List<Message>.from(_messages)),
       ),
     );
 
@@ -511,6 +528,44 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     _saveConversationPreferences();
   }
 
+  PromptPreset? _findPresetById(String id) {
+    for (final preset in _presets) {
+      if (preset.id == id) return preset;
+    }
+    return null;
+  }
+
+  /// 当前会话已启用角色模式，但预设不存在或角色卡文件不可用。
+  bool get _isCurrentPresetUnavailable {
+    if (!_promptPresetEnabled || _currentPresetId.isEmpty) return false;
+    final preset = _findPresetById(_currentPresetId);
+    return preset == null || preset.isBroken;
+  }
+
+  /// 发送前确认：关闭不可用的角色模式继续发送，或取消。
+  Future<bool> _confirmDisableUnavailablePreset() async {
+    final l10n = AppLocalizations.of(context)!;
+    final disableAndSend = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (dialogContext) => CupertinoAlertDialog(
+        title: Text(l10n.presetUnavailableTitle),
+        content: Text(l10n.presetUnavailableMessage),
+        actions: [
+          CupertinoDialogAction(
+            child: Text(l10n.cancel),
+            onPressed: () => Navigator.pop(dialogContext, false),
+          ),
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            child: Text(l10n.presetDisableAndSend),
+            onPressed: () => Navigator.pop(dialogContext, true),
+          ),
+        ],
+      ),
+    );
+    return disableAndSend == true;
+  }
+
   /// 将思考模式与角色预设写回当前会话。
   void _saveConversationPreferences() {
     final conversation = _currentConversation;
@@ -555,15 +610,22 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         if (!mounted) return;
         final l10n = AppLocalizations.of(context)!;
         // 调用AI服务生成标题
-        final newTitle = await _aiService.generateConversationTitle(_messages, l10n: l10n);
+        final newTitle = await _aiService.generateConversationTitle(
+          _messages,
+          l10n: l10n,
+        );
 
         // 更新对话标题
         if (_currentConversation != null && newTitle.isNotEmpty) {
           await _conversationService.updateConversationTitle(
-              _currentConversation!.id, newTitle);
+            _currentConversation!.id,
+            newTitle,
+          );
           setState(() {
             _currentTitle = newTitle;
-            _currentConversation = _currentConversation!.copyWith(title: newTitle);
+            _currentConversation = _currentConversation!.copyWith(
+              title: newTitle,
+            );
             _autoTitleGenerated = true; // 标记已生成
           });
           widget.onConversationListChanged?.call();
@@ -605,6 +667,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       return;
     }
 
+    // 角色预设已被删除或角色卡文件缺失时，禁止把空预设静默发送出去。
+    if (_isCurrentPresetUnavailable) {
+      final disableAndSend = await _confirmDisableUnavailablePreset();
+      if (!disableAndSend) return;
+      setState(() {
+        _promptPresetEnabled = false;
+        _currentPresetId = '';
+      });
+      _saveConversationPreferences();
+    }
+
     if (_currentConversation == null) {
       await _createNewConversation();
     }
@@ -619,7 +692,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (_promptPresetEnabled && _currentPresetId.isNotEmpty) {
       final preset = _presets.firstWhere(
         (preset) => preset.id == _currentPresetId,
-        orElse: () => PromptPreset(id: '', name: '', description: '', author: '', version: '', systemPrompt: ''),
+        orElse: () => PromptPreset(
+          id: '',
+          name: '',
+          description: '',
+          author: '',
+          version: '',
+          systemPrompt: '',
+        ),
       );
       if (preset.id.isNotEmpty) {
         presetSystemPrompt = preset.systemPrompt;
@@ -644,10 +724,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       if (_messages.length == 1 && _currentConversation != null) {
         final newTitle = Conversation.generateTitle(content);
         await _conversationService.updateConversationTitle(
-            _currentConversation!.id, newTitle);
+          _currentConversation!.id,
+          newTitle,
+        );
         setState(() {
           _currentTitle = newTitle;
-          _currentConversation = _currentConversation!.copyWith(title: newTitle);
+          _currentConversation = _currentConversation!.copyWith(
+            title: newTitle,
+          );
         });
         widget.onConversationListChanged?.call();
       }
@@ -661,11 +745,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     await _saveCurrentConversation();
 
     // 启动Android 16 Live Update通知（如果可用）
-    if (Platform.isAndroid && _liveUpdateService.isAvailable && _liveUpdateEnabled) {
-      await _liveUpdateService.startLiveUpdate(title: l10n.liveUpdateAIResponse);
+    if (Platform.isAndroid &&
+        _liveUpdateService.isAvailable &&
+        _liveUpdateEnabled) {
+      await _liveUpdateService.startLiveUpdate(
+        title: l10n.liveUpdateAIResponse,
+      );
     }
 
-    final aiMessage = targetAiMessage ??
+    final aiMessage =
+        targetAiMessage ??
         Message(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
           content: '',
@@ -690,7 +779,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     final conversationId = _currentConversation!.id;
     final titleAtSend = _currentTitle;
-    final history = historyOverride ?? ChatSendController.buildHistory(_messages);
+    final history =
+        historyOverride ?? ChatSendController.buildHistory(_messages);
 
     ChatSendController? controllerRef;
     final controller = ChatSendController(
@@ -742,8 +832,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             _liveUpdateEnabled) {
           await _liveUpdateService.complete();
         }
-        final notificationEnabled =
-            await _settingsService.getNotificationEnabled();
+        final notificationEnabled = await _settingsService
+            .getNotificationEnabled();
         if (notificationEnabled) {
           await _notificationService.showAIResponseCompleted(
             message.content,
@@ -805,9 +895,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         }
         final name = event['name'] as String? ?? '';
         setState(() {
-          _toolStatus = type == 'tool_call'
-              ? '正在调用工具: $name'
-              : '工具完成: $name';
+          _toolStatus = type == 'tool_call' ? '正在调用工具: $name' : '工具完成: $name';
         });
       },
       errorContentBuilder: (error) =>
@@ -902,7 +990,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ),
     );
 
-    if (editedContent != null && editedContent.trim().isNotEmpty && editedContent != message.content) {
+    if (editedContent != null &&
+        editedContent.trim().isNotEmpty &&
+        editedContent != message.content) {
       await _resubmitMessage(message, editedContent);
     }
   }
@@ -932,7 +1022,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     });
 
     // 重新发送消息，保留原始附件，跳过用户消息添加
-    await _sendMessage(newContent, attachments: message.attachments, skipUserMessage: true);
+    await _sendMessage(
+      newContent,
+      attachments: message.attachments,
+      skipUserMessage: true,
+    );
   }
 
   /// 重新生成AI响应
@@ -1177,9 +1271,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
     await Navigator.push(
       context,
-      CupertinoPageRoute(
-        builder: (context) => const SettingsScreen(),
-      ),
+      CupertinoPageRoute(builder: (context) => const SettingsScreen()),
     );
     _checkConfiguration();
   }
@@ -1243,135 +1335,135 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final cjkFallback = cjkFontFallbackForLocale(
       Localizations.maybeLocaleOf(context),
     );
+
     /// 构建聊天界面布局
     /// 包含：导航栏、消息列表、输入框、配置提示等组件
     final chatBody = Stack(
       children: [
-          // 背景层
-          if (_backgroundImagePath.isNotEmpty)
-            Positioned.fill(
-              child: Opacity(
-                opacity: _backgroundImageOpacity,
-                child: Image.file(
-                  File(_backgroundImagePath),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-
-          // 原有界面层
-          SafeArea(
-            child: Column(
-              children: [
-                if (!_isConfigured)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    color: CupertinoColors.systemYellow.withValues(alpha: 0.2),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          CupertinoIcons.exclamationmark_triangle,
-                          color: CupertinoColors.systemOrange,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(l10n.pleaseConfigureAPI),
-                        ),
-                        CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          onPressed: _openSettings,
-                          child: Text(l10n.settingsButton),
-                        ),
-                      ],
-                    ),
-                  ),
-                Expanded(
-                  child: _messages.isEmpty
-                      ? _buildEmptyState()
-                      : ListView.builder(
-                          controller: _scrollController,
-                          padding: const EdgeInsets.all(16),
-                          itemCount: _messages.length + (_isLoading ? 1 : 0),
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          // 性能优化配置
-                          addAutomaticKeepAlives: true, // 启用自动保持活动状态
-                          addRepaintBoundaries: true,   // 隔离重绘，避免整个列表重绘
-                          scrollCacheExtent:
-                              ScrollCacheExtent.pixels(500), // 预渲染屏幕外 500 像素的消息
-                          itemBuilder: (context, index) {
-                            if (index == _messages.length && _isLoading) {
-                              return const TypingIndicator();
-                            }
-                            final message = _messages[index];
-                            return MessageBubble(
-                              key: _messageKeys.putIfAbsent(
-                                message.id,
-                                () => GlobalKey(),
-                              ),
-                              message: message,
-                              userProfile: _userProfile,
-                              onEdit: _editUserMessage,
-                              onRegenerate: _regenerateAiResponse,
-                              onResubmit: (msg) => _resubmitMessage(msg, msg.content),
-                              onVariantChanged: _switchMessageVariant,
-                              onDelete: _deleteMessage,
-                              onContinue:
-                                  index == _messages.length - 1 &&
-                                      !message.isUser &&
-                                      !_isGenerating
-                                  ? _continueGeneration
-                                  : null,
-                              onFork: _forkConversation,
-                            );
-                          },
-                        ),
-                ),
-                if (_toolStatus != null)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    color: CupertinoColors.systemGrey6.resolveFrom(context),
-                    child: Row(
-                      children: [
-                        const CupertinoActivityIndicator(radius: 7),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            _toolStatus!,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontFamilyFallback: cjkFallback,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ChatInput(
-                  onSendMessage: (content, attachments) => _sendMessage(content, attachments: attachments),
-                  onStopGenerating: _stopGenerating,
-                  onAttachmentsSelected: _handleAttachmentsSelected,
-                  enabled: _isConfigured,
-                  thinkingMode: _thinkingMode,
-                  onThinkingModeChanged: _handleThinkingModeChanged,
-                  promptPresetEnabled: _promptPresetEnabled,
-                  onPromptPresetEnabledChanged: _handlePromptPresetEnabledChanged,
-                  currentPresetId: _currentPresetId,
-                  onPresetSelected: _handlePresetSelected,
-                  presets: _presets,
-                  onShowModelSelector: _showModelSelector,
-                  currentModelName: _currentModel,
-                  isGenerating: _isGenerating,
-                ),
-              ],
+        // 背景层
+        if (_backgroundImagePath.isNotEmpty)
+          Positioned.fill(
+            child: Opacity(
+              opacity: _backgroundImageOpacity,
+              child: Image.file(File(_backgroundImagePath), fit: BoxFit.cover),
             ),
           ),
+
+        // 原有界面层
+        SafeArea(
+          child: Column(
+            children: [
+              if (!_isConfigured)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  color: CupertinoColors.systemYellow.withValues(alpha: 0.2),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        CupertinoIcons.exclamationmark_triangle,
+                        color: CupertinoColors.systemOrange,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(l10n.pleaseConfigureAPI)),
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: _openSettings,
+                        child: Text(l10n.settingsButton),
+                      ),
+                    ],
+                  ),
+                ),
+              Expanded(
+                child: _messages.isEmpty
+                    ? _buildEmptyState()
+                    : ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _messages.length + (_isLoading ? 1 : 0),
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        // 性能优化配置
+                        addAutomaticKeepAlives: true, // 启用自动保持活动状态
+                        addRepaintBoundaries: true, // 隔离重绘，避免整个列表重绘
+                        scrollCacheExtent: ScrollCacheExtent.pixels(
+                          500,
+                        ), // 预渲染屏幕外 500 像素的消息
+                        itemBuilder: (context, index) {
+                          if (index == _messages.length && _isLoading) {
+                            return const TypingIndicator();
+                          }
+                          final message = _messages[index];
+                          return MessageBubble(
+                            key: _messageKeys.putIfAbsent(
+                              message.id,
+                              () => GlobalKey(),
+                            ),
+                            message: message,
+                            userProfile: _userProfile,
+                            onEdit: _editUserMessage,
+                            onRegenerate: _regenerateAiResponse,
+                            onResubmit: (msg) =>
+                                _resubmitMessage(msg, msg.content),
+                            onVariantChanged: _switchMessageVariant,
+                            onDelete: _deleteMessage,
+                            onContinue:
+                                index == _messages.length - 1 &&
+                                    !message.isUser &&
+                                    !_isGenerating
+                                ? _continueGeneration
+                                : null,
+                            onFork: _forkConversation,
+                          );
+                        },
+                      ),
+              ),
+              if (_toolStatus != null)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  color: CupertinoColors.systemGrey6.resolveFrom(context),
+                  child: Row(
+                    children: [
+                      const CupertinoActivityIndicator(radius: 7),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _toolStatus!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontFamilyFallback: cjkFallback,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ChatInput(
+                onSendMessage: (content, attachments) =>
+                    _sendMessage(content, attachments: attachments),
+                onStopGenerating: _stopGenerating,
+                onAttachmentsSelected: _handleAttachmentsSelected,
+                enabled: _isConfigured,
+                thinkingMode: _thinkingMode,
+                onThinkingModeChanged: _handleThinkingModeChanged,
+                promptPresetEnabled: _promptPresetEnabled,
+                onPromptPresetEnabledChanged: _handlePromptPresetEnabledChanged,
+                currentPresetId: _currentPresetId,
+                onPresetSelected: _handlePresetSelected,
+                presets: _presets,
+                currentPresetUnavailable: _isCurrentPresetUnavailable,
+                onShowModelSelector: _showModelSelector,
+                currentModelName: _currentModel,
+                isGenerating: _isGenerating,
+              ),
+            ],
+          ),
+        ),
       ],
     );
 
@@ -1458,10 +1550,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               _currentTitle.isEmpty ? l10n.aiAssistant : _currentTitle,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
             ),
           ),
           CupertinoButton(
@@ -1532,7 +1621,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   /// 加载聊天背景设置
   Future<void> _loadBackgroundSettings() async {
     final backgroundImagePath = await _settingsService.getBackgroundImagePath();
-    final backgroundImageOpacity = await _settingsService.getBackgroundImageOpacity();
+    final backgroundImageOpacity = await _settingsService
+        .getBackgroundImageOpacity();
     if (mounted) {
       setState(() {
         _backgroundImagePath = backgroundImagePath;
@@ -1603,10 +1693,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  _getModelIcon(currentPlatform.type),
-                  size: 20,
-                ),
+                Icon(_getModelIcon(currentPlatform.type), size: 20),
                 const SizedBox(width: 8),
                 Text(model),
                 if (model == currentPlatform.defaultModel) ...[
@@ -1644,7 +1731,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (currentPlatform == null) return;
 
     // 获取最新的平台数据，确保可用模型列表是最新的
-    final latestPlatform = await _settingsService.getPlatformById(currentPlatform.id);
+    final latestPlatform = await _settingsService.getPlatformById(
+      currentPlatform.id,
+    );
     if (latestPlatform == null) return;
 
     // 更新当前平台的默认模型，保持现有的可用模型列表
@@ -1670,19 +1759,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       context: context,
       builder: (context) {
         final primaryColor = CupertinoTheme.of(context).primaryColor;
-        final destructiveColor =
-            CupertinoColors.systemRed.resolveFrom(context);
+        final destructiveColor = CupertinoColors.systemRed.resolveFrom(context);
         return CupertinoActionSheet(
           actions: [
             CupertinoActionSheetAction(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    CupertinoIcons.settings,
-                    size: 20,
-                    color: primaryColor,
-                  ),
+                  Icon(CupertinoIcons.settings, size: 20, color: primaryColor),
                   const SizedBox(width: 8),
                   Text(l10n.settings),
                 ],
@@ -1715,11 +1799,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    CupertinoIcons.clear,
-                    size: 20,
-                    color: destructiveColor,
-                  ),
+                  Icon(CupertinoIcons.clear, size: 20, color: destructiveColor),
                   const SizedBox(width: 8),
                   Text(l10n.clearConversation),
                 ],
@@ -1741,49 +1821,69 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   void _showExportFormatDialog() {
     final l10n = AppLocalizations.of(context)!;
+    var includePresetCard = false;
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => CupertinoActionSheet(
-        title: Text(l10n.exportFormat),
-        actions: [
-          CupertinoActionSheetAction(
-            child: Text(l10n.exportFormatTxt),
-            onPressed: () {
-              Navigator.pop(context);
-              _exportCurrentConversation('txt');
-            },
-          ),
-          CupertinoActionSheetAction(
-            child: Text(l10n.exportFormatJson),
-            onPressed: () {
-              Navigator.pop(context);
-              _exportCurrentConversation('json');
-            },
-          ),
-          CupertinoActionSheetAction(
-            child: Text(l10n.exportFormatLumenflow),
-            onPressed: () {
-              Navigator.pop(context);
-              _exportCurrentConversation('lumenflow');
-            },
-          ),
-          CupertinoActionSheetAction(
-            child: Text(l10n.exportFormatPdf),
-            onPressed: () {
-              Navigator.pop(context);
-              _exportCurrentConversation('pdf');
-            },
-          ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          child: Text(l10n.cancel),
-          onPressed: () => Navigator.pop(context),
-        ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          void export(String format) {
+            Navigator.pop(context);
+            _exportCurrentConversation(
+              format,
+              includePresetSnapshot:
+                  includePresetCard &&
+                  (format == 'json' || format == 'lumenflow'),
+            );
+          }
+
+          return CupertinoActionSheet(
+            title: Text(l10n.exportFormat),
+            message: Text(l10n.includePresetCardHint),
+            actions: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Expanded(child: Text(l10n.includePresetCard)),
+                    CupertinoSwitch(
+                      value: includePresetCard,
+                      onChanged: (value) =>
+                          setSheetState(() => includePresetCard = value),
+                    ),
+                  ],
+                ),
+              ),
+              CupertinoActionSheetAction(
+                child: Text(l10n.exportFormatTxt),
+                onPressed: () => export('txt'),
+              ),
+              CupertinoActionSheetAction(
+                child: Text(l10n.exportFormatJson),
+                onPressed: () => export('json'),
+              ),
+              CupertinoActionSheetAction(
+                child: Text(l10n.exportFormatLumenflow),
+                onPressed: () => export('lumenflow'),
+              ),
+              CupertinoActionSheetAction(
+                child: Text(l10n.exportFormatPdf),
+                onPressed: () => export('pdf'),
+              ),
+            ],
+            cancelButton: CupertinoActionSheetAction(
+              child: Text(l10n.cancel),
+              onPressed: () => Navigator.pop(context),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Future<void> _exportCurrentConversation(String format) async {
+  Future<void> _exportCurrentConversation(
+    String format, {
+    bool includePresetSnapshot = false,
+  }) async {
     final l10n = AppLocalizations.of(context)!;
     if (_currentConversation == null) {
       showCupertinoDialog(
@@ -1807,10 +1907,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       String fileName;
 
       // 使用新的导出方法（包含附件）
-      bytes = await _conversationService.exportConversationWithAttachments(_currentConversation!.id, format, l10n);
+      bytes = await _conversationService.exportConversationWithAttachments(
+        _currentConversation!.id,
+        format,
+        l10n,
+        includePresetSnapshot: includePresetSnapshot,
+      );
 
       // 生成文件名（包含时间戳确保唯一性）
-      final safeTitle = _currentConversation!.title.replaceAll(RegExp(r'[^\w\s-]'), '').replaceAll(' ', '_');
+      final safeTitle = _currentConversation!.title
+          .replaceAll(RegExp(r'[^\w\s-]'), '')
+          .replaceAll(' ', '_');
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       if (format == 'pdf') {
         fileName = '${safeTitle}_$timestamp.pdf';
