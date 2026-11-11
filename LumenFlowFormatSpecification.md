@@ -216,6 +216,41 @@ try {
 
 ---
 
-Last updated: 2025/12/31  
+## Conversation Export Variant
+
+Conversation packages use the same metadata envelope with `_type: "conversation"` and a `conversation` object. Since 2026-11, `conversation.memory` carries the rolling memory used to preserve long-conversation continuity:
+
+```json
+{
+  "_format": "lumenflow",
+  "_version": "1.0",
+  "_type": "conversation",
+  "_created": "2026-11-12T10:30:00.000Z",
+  "_app_version": "3.1.0",
+  "conversation": {
+    "id": "conversation_id",
+    "title": "Conversation title",
+    "messages": [],
+    "memory": {
+      "summary": "Story so far...",
+      "emotionalState": "Current relationship and mood...",
+      "facts": [],
+      "rejected": [],
+      "coveredUntilMessageId": "message_id",
+      "fingerprint": "sha256",
+      "updatedAt": 1730000000000
+    }
+  }
+}
+```
+
+- `memory` is optional and additive; files without it remain valid and will rebuild memory from messages when needed.
+- The app also accepts a raw conversation JSON export (the `conversation` object itself, without the LumenFlow metadata envelope); a file containing `id` and `messages` is treated as a conversation export.
+- On import, message IDs are regenerated. Implementations must remap `coveredUntilMessageId` and each fact/rejected `sourceMessageId` to the new IDs, then recompute `fingerprint` from the imported messages.
+- If the boundary cannot be mapped, keep the memory content but clear coverage/fingerprint; the app rebuilds lazily on the next send.
+
+---
+
+Last updated: 2026/11/12  
 Maintainer: 幻梦official  
 Document version: 1.0

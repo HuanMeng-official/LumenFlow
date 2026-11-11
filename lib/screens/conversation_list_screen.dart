@@ -122,7 +122,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
     try {
       final picked = await FilePicker.pickFile(
         type: FileType.custom,
-        allowedExtensions: ['lumenflow', 'zip'],
+        allowedExtensions: ['lumenflow', 'zip', 'json'],
         dialogTitle: l10n.importConversation,
       );
       final path = picked?.path;

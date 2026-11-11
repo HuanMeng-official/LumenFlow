@@ -26,6 +26,7 @@ import 'dart:convert';
 
 import 'conversation_database.dart';
 import 'file_service.dart';
+import 'memory_transfer.dart';
 import 'prompt_service.dart';
 
 /// 对话服务，管理对话的持久化存储和CRUD操作
@@ -471,6 +472,10 @@ class ConversationService {
       throw Exception(l10n.exportConversationNotFound);
     }
     final json = conversation.toJson();
+    final memory = await getConversationMemory(conversationId);
+    if (memory != null && !memory.isEmpty) {
+      json['memory'] = memory.toJson();
+    }
     final snapshot = await _buildPresetSnapshot(
       conversation,
       includePresetSnapshot,
@@ -497,6 +502,10 @@ class ConversationService {
     final versionInfo = await versionService.getVersionInfo();
 
     final conversationJson = conversation.toJson();
+    final memory = await getConversationMemory(conversationId);
+    if (memory != null && !memory.isEmpty) {
+      conversationJson['memory'] = memory.toJson();
+    }
     final snapshot = await _buildPresetSnapshot(
       conversation,
       includePresetSnapshot,
@@ -682,10 +691,12 @@ class ConversationService {
     final fileService = FileService();
     final usedAttachmentEntries = <String>{};
     final messages = <Message>[];
+    final messageIdMap = <String, String>{};
     var messageIndex = 0;
 
     for (final message in imported.messages) {
       final messageId = '${conversationId}_m${messageIndex++}';
+      messageIdMap[message.id] = messageId;
       final attachments = <Attachment>[];
       var attachmentIndex = 0;
 
@@ -754,6 +765,27 @@ class ConversationService {
 
     await _db.importConversation(conversation);
 
+    // 记忆跟着对话走：消息 ID 已重新生成，需要重映射边界和来源 ID，
+    // 并按新 ID 重算指纹，否则下一次发送会误判记忆失效。
+    final rawMemory = rawMap['memory'];
+    if (rawMemory is Map) {
+      try {
+        final memory = ConversationMemory.fromJson(
+          rawMemory.cast<String, dynamic>(),
+        );
+        if (!memory.isEmpty || memory.coveredUntilMessageId != null) {
+          final remapped = remapImportedMemory(
+            memory,
+            messageIdMap: messageIdMap,
+            importedMessages: messages,
+          );
+          await _db.saveConversationMemory(conversation.id, remapped);
+        }
+      } catch (_) {
+        // 记忆损坏不应阻止对话导入；下次发送会按消息重建。
+      }
+    }
+
     final cached = _cachedConversations;
     if (cached != null) {
       cached.add(conversation);
@@ -800,7 +832,24 @@ class ConversationService {
     if (decoded is! Map) {
       throw FormatException(l10n.conversationImportInvalid);
     }
-    final data = decoded.cast<String, dynamic>();
+    var data = decoded.cast<String, dynamic>();
+
+    // 裸 JSON 会话导出没有 LumenFlow 元数据，本身就是一个 conversation 对象。
+    // 只在结构明确像会话时才包装，避免把设置 JSON 误当成对话。
+    if (data['_format'] == null &&
+        data['_type'] == null &&
+        data['messages'] is List &&
+        data['id'] is String) {
+      data = {
+        '_format': 'lumenflow',
+        '_version': '1.0',
+        '_type': 'conversation',
+        '_created': DateTime.now().toUtc().toIso8601String(),
+        '_app_version': 'unknown',
+        'conversation': data,
+      };
+    }
+
     if (data['_format'] != 'lumenflow' ||
         data['_type'] != 'conversation' ||
         data['conversation'] is! Map) {

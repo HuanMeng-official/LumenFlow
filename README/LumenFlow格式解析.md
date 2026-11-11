@@ -214,7 +214,44 @@ async function parseLumenflow(input) {
   }
   ```
 
-  ---
-  最后更新：2025/12/31  
-  维护者：幻梦official  
-  文档版本：1.0
+---
+
+## 会话导出变体
+
+会话包沿用同一套元数据，但使用 `_type: "conversation"`，对话内容放在 `conversation` 对象里。自 2026-11 起，`conversation.memory` 携带滚动记忆，用于保持长对话的连续性：
+
+```json
+{
+  "_format": "lumenflow",
+  "_version": "1.0",
+  "_type": "conversation",
+  "_created": "2026-11-12T10:30:00.000Z",
+  "_app_version": "3.1.0",
+  "conversation": {
+    "id": "conversation_id",
+    "title": "对话标题",
+    "messages": [],
+    "memory": {
+      "summary": "前情梗概……",
+      "emotionalState": "当前关系与情绪……",
+      "facts": [],
+      "rejected": [],
+      "coveredUntilMessageId": "message_id",
+      "fingerprint": "sha256",
+      "updatedAt": 1730000000000
+    }
+  }
+}
+```
+
+- `memory` 是可选的新增字段；旧版本文件没有它仍然有效，导入后会按消息按需重建。
+- 应用也接受裸 JSON 会话文件（即 `conversation` 对象本身，没有 LumenFlow 元数据）；只要文件包含 `id` 和 `messages`，就会被识别为会话导出。
+- 导入时会重新生成消息 ID。实现方必须把 `coveredUntilMessageId` 以及 `facts` / `rejected` 里的 `sourceMessageId` 重映射到新 ID，再按导入后的消息重新计算 `fingerprint`。
+- 如果边界消息无法映射，保留记忆内容但清空覆盖边界和指纹；应用会在下次发送时按需重建。
+- `facts` 保存约定、规则、事实和结论，带 `active` / `superseded` 状态；`rejected` 保存方案、否掉理由，带 `active` / `reopened` 状态。已废止和已否决条目不会从记忆里删除。
+
+---
+
+最后更新：2026/11/12  
+维护者：幻梦official  
+文档版本：1.1
