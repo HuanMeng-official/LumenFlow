@@ -12,6 +12,7 @@ import '../models/attachment.dart';
 import '../models/user_profile.dart';
 import '../screens/image_preview_screen.dart';
 import '../utils/app_theme.dart';
+import '../utils/markdown_math.dart';
 import 'avatar_widget.dart';
 
 /// 自定义代码块构建器，用于在代码块右上角添加复制按钮
@@ -1065,7 +1066,7 @@ class _MessageBubbleState extends State<MessageBubble>
                                         child: SelectableRegion(
                                           selectionControls:
                                               cupertinoTextSelectionControls,
-                                          child: MarkdownBody(
+                                          child: MathMarkdownBody(
                                             data: widget
                                                 .message
                                                 .reasoningContent!,
@@ -1246,7 +1247,7 @@ class _MessageBubbleState extends State<MessageBubble>
                               SelectableRegion(
                                 selectionControls:
                                     cupertinoTextSelectionControls,
-                                child: MarkdownBody(
+                                child: MathMarkdownBody(
                                   data: widget.message.content,
                                   builders: {
                                     'pre': CodeBlockBuilder(
