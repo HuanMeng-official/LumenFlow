@@ -3,8 +3,12 @@ import 'dart:io';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_highlight/flutter_highlight.dart';
+import 'package:flutter_highlight/themes/atom-one-dark.dart';
+import 'package:flutter_highlight/themes/github.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter/services.dart';
+import 'package:markdown/markdown.dart' as md;
 
 import '../l10n/app_localizations.dart';
 import '../models/message.dart';
@@ -32,12 +36,16 @@ class CodeBlockBuilder extends MarkdownElementBuilder {
     TextStyle? preferredStyle,
     TextStyle? parentStyle,
   ) {
-    // 获取代码块内容
-    final codeContent = _getElementTextContent(element);
+    // 获取代码块内容，并去掉 Markdown 自带的末尾换行，
+    // 否则渲染出来会多一个空行。
+    final codeContent = _getElementTextContent(element)
+        .replaceFirst(RegExp(r'[\r\n]+$'), '');
+    final language = _getLanguage(element);
 
     // 创建带有复制按钮的代码块
     return _CodeBlockWithCopyButton(
       codeContent: codeContent,
+      language: language,
       brightness: brightness,
       context: context,
     );
@@ -58,16 +66,58 @@ class CodeBlockBuilder extends MarkdownElementBuilder {
       return '';
     }
   }
+
+  String _getLanguage(dynamic element) {
+    try {
+      final children = element.children;
+      if (children is List) {
+        for (final child in children) {
+          if (child is! md.Element || child.tag != 'code') continue;
+          final className = child.attributes['class'];
+          if (className == null) continue;
+          final match = RegExp(r'(?:language|lang)-([\w+#.-]+)')
+              .firstMatch(className);
+          if (match != null) {
+            return _normalizeLanguage(match.group(1)!);
+          }
+        }
+      }
+    } catch (_) {
+      // Fall through to plain text.
+    }
+    return 'plaintext';
+  }
+
+  String _normalizeLanguage(String language) {
+    const aliases = {
+      'js': 'javascript',
+      'ts': 'typescript',
+      'py': 'python',
+      'sh': 'bash',
+      'shell': 'bash',
+      'yml': 'yaml',
+      'c++': 'cpp',
+      'c#': 'cs',
+      'objc': 'objectivec',
+      'md': 'markdown',
+      'txt': 'plaintext',
+      'text': 'plaintext',
+    };
+    final normalized = language.toLowerCase();
+    return aliases[normalized] ?? normalized;
+  }
 }
 
 /// 带有复制按钮的代码块组件
 class _CodeBlockWithCopyButton extends StatefulWidget {
   final String codeContent;
+  final String language;
   final Brightness brightness;
   final BuildContext context;
 
   const _CodeBlockWithCopyButton({
     required this.codeContent,
+    required this.language,
     required this.brightness,
     required this.context,
   });
@@ -141,6 +191,16 @@ class __CodeBlockWithCopyButtonState extends State<_CodeBlockWithCopyButton> {
     );
   }
 
+  Map<String, TextStyle> _highlightTheme(Brightness brightness) {
+    final theme = Map<String, TextStyle>.from(
+      brightness == Brightness.dark ? atomOneDarkTheme : githubTheme,
+    );
+    theme['root'] = (theme['root'] ?? const TextStyle()).copyWith(
+      backgroundColor: Colors.transparent,
+    );
+    return theme;
+  }
+
   @override
   Widget build(BuildContext context) {
     final brightness = widget.brightness;
@@ -179,10 +239,14 @@ class __CodeBlockWithCopyButtonState extends State<_CodeBlockWithCopyButton> {
             padding: const EdgeInsets.all(16),
             child: SelectableRegion(
               selectionControls: cupertinoTextSelectionControls,
-              child: Text(
+              child: HighlightView(
                 widget.codeContent,
-                style: TextStyle(
+                language: widget.language,
+                padding: EdgeInsets.zero,
+                theme: _highlightTheme(brightness),
+                textStyle: TextStyle(
                   fontSize: 15,
+                  height: 1.4,
                   fontFamily: 'JetBrains Mono',
                   fontFamilyFallback: [
                     'SF Mono',
@@ -190,9 +254,6 @@ class __CodeBlockWithCopyButtonState extends State<_CodeBlockWithCopyButton> {
                     'monospace',
                     ...cjkFallback,
                   ],
-                  color: brightness == Brightness.dark
-                      ? const Color(0xFFD4D4D4)
-                      : const Color(0xFF24292E),
                 ),
               ),
             ),
