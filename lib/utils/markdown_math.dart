@@ -122,12 +122,18 @@ class MathMarkdownBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final math = prepareMarkdownMath(data);
+    // MarkdownBody 默认会给 pre 再包一层带背景/内边距的容器；
+    // 代码块自己已经有卡片样式，这里清掉外层，避免“两层包裹”。
+    final effectiveStyleSheet = (styleSheet ?? MarkdownStyleSheet()).copyWith(
+      codeblockDecoration: const BoxDecoration(),
+      codeblockPadding: EdgeInsets.zero,
+    );
     return MarkdownBody(
       data: math.markdown,
       inlineSyntaxes: mathInlineSyntaxes(math),
       blockSyntaxes: mathBlockSyntaxes(math),
       builders: {...builders, ...mathMarkdownBuilders()},
-      styleSheet: styleSheet,
+      styleSheet: effectiveStyleSheet,
     );
   }
 }
