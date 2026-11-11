@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -337,8 +336,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get historyRoundsPlaceholder => '히스토리 라운드 수 입력';
 
   @override
-  String get historyRoundsDesc =>
-      'AI가 기억하는 대화 라운드 수, 권장 5-20라운드. 너무 많으면 토큰 제한 초과 가능';
+  String get historyRoundsDesc => 'AI가 기억하는 대화 라운드 수, 권장 5-20라운드. 너무 많으면 토큰 제한 초과 가능';
 
   @override
   String get conversationTitle => '대화 제목';
@@ -394,15 +392,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get commonApiEndpoints => '일반적인 API 엔드포인트';
 
   @override
-  String get commonApiEndpointsContent =>
-      'OpenAI: https://api.openai.com/v1\n\nDeepSeek: https://api.deepseek.com\n\n알리바바 클라우드: https://dashscope.aliyuncs.com/api/v1\n\n사용하는 AI 서비스 제공업체에 따라 해당 엔드포인트 주소 입력.';
+  String get commonApiEndpointsContent => 'OpenAI: https://api.openai.com/v1\n\nDeepSeek: https://api.deepseek.com\n\n알리바바 클라우드: https://dashscope.aliyuncs.com/api/v1\n\n사용하는 AI 서비스 제공업체에 따라 해당 엔드포인트 주소 입력.';
 
   @override
   String get commonModels => '일반적인 모델';
 
   @override
-  String get commonModelsContent =>
-      'OpenAI:\n• gpt-6.1-sol\n• gpt-6-astra\n\nDeepSeek:\n• deepseek-flash\n• deepseek-v4-pro\n\nAPI 엔드포인트에 따라 해당 모델 선택.';
+  String get commonModelsContent => 'OpenAI:\n• gpt-6.1-sol\n• gpt-6-astra\n\nDeepSeek:\n• deepseek-flash\n• deepseek-v4-pro\n\nAPI 엔드포인트에 따라 해당 모델 선택.';
 
   @override
   String get appInfo => '앱 정보';
@@ -521,8 +517,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get aboutUserProfile => '사용자 프로필 정보';
 
   @override
-  String get aboutUserProfileContent =>
-      '• 아바타: 사진 또는 이모지를 아바타로 선택하여 채팅 인터페이스에 표시됨\n• 사용자 이름: AI는 대화 중 이 이름으로 사용자를 부름\n• 모든 정보는 로컬에만 저장되며 서버에 업로드되지 않음';
+  String get aboutUserProfileContent => '• 아바타: 사진 또는 이모지를 아바타로 선택하여 채팅 인터페이스에 표시됨\n• 사용자 이름: AI는 대화 중 이 이름으로 사용자를 부름\n• 모든 정보는 로컬에만 저장되며 서버에 업로드되지 않음';
 
   @override
   String get selectPresetRole => '사전 설정 역할 선택';
@@ -739,20 +734,12 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String providerAttachmentCannotRead(
-    String fileName,
-    String fileSize,
-    String mimeType,
-  ) {
+  String providerAttachmentCannotRead(String fileName, String fileSize, String mimeType) {
     return '첨부파일: $fileName ($fileSize, $mimeType) - 콘텐츠를 읽을 수 없음';
   }
 
   @override
-  String providerAttachmentInfo(
-    String fileName,
-    String fileSize,
-    String mimeType,
-  ) {
+  String providerAttachmentInfo(String fileName, String fileSize, String mimeType) {
     return '첨부파일: $fileName ($fileSize, $mimeType)';
   }
 
@@ -792,8 +779,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get providerAi => 'AI';
 
   @override
-  String get providerTitleGenSystemPrompt =>
-      '사용자의 언어 및 대화 내용을 기반으로 짧고 정확한 한글 제목 생성. 15단어 이내. 따옴표나 기타 형식 없이 제목만 반환.';
+  String get providerTitleGenSystemPrompt => '사용자의 언어 및 대화 내용을 기반으로 짧고 정확한 한글 제목 생성. 15단어 이내. 따옴표나 기타 형식 없이 제목만 반환.';
 
   @override
   String providerTitleGenUserPrompt(String conversationSummary) {
@@ -801,8 +787,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get providerMultimediaNotSupported =>
-      '\n참고: DeepSeek는 동영상, 오디오 등의 멀티미디어 파일 처리를 지원하지 않습니다';
+  String get providerMultimediaNotSupported => '\n참고: DeepSeek는 동영상, 오디오 등의 멀티미디어 파일 처리를 지원하지 않습니다';
 
   @override
   String get providerGeminiInvalidResponse => 'Gemini API가 잘못된 응답 형식을 반환했습니다';
@@ -1062,6 +1047,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get copied => '복사됨';
 
   @override
+  String get downloadCode => '다운로드';
+
+  @override
+  String get downloadCodeSuccess => '코드를 내려받았습니다';
+
+  @override
+  String get downloadCodeFailed => '코드 다운로드 실패';
+
+  @override
   String get aiResponseDisclaimer => '내용은 참조용이며, 주의 깊게 확인하세요';
 
   @override
@@ -1137,8 +1131,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get continueGeneration => '계속 생성';
 
   @override
-  String get continueGenerationPrompt =>
-      '이전 어시스턴트 응답이 중단된 지점부터 이어서 생성하세요. 이미 작성된 내용을 반복하지 마세요.';
+  String get continueGenerationPrompt => '이전 어시스턴트 응답이 중단된 지점부터 이어서 생성하세요. 이미 작성된 내용을 반복하지 마세요.';
 
   @override
   String get forkConversation => '여기서 분기';
@@ -1218,8 +1211,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get presetUnavailableTitle => '캐릭터 사용 불가';
 
   @override
-  String get presetUnavailableMessage =>
-      '이 대화에서 사용 중인 캐릭터 프리셋 파일이 없거나 삭제되었습니다.';
+  String get presetUnavailableMessage => '이 대화에서 사용 중인 캐릭터 프리셋 파일이 없거나 삭제되었습니다.';
 
   @override
   String get presetDisableAndSend => '역할 모드를 끄고 보내기';
@@ -1270,12 +1262,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get presetImportErrorInvalidXml => 'XML 형식이 올바르지 않습니다.';
 
   @override
-  String get presetImportErrorInvalidRoot =>
-      '루트 요소는 <system_instruction>여야 합니다.';
+  String get presetImportErrorInvalidRoot => '루트 요소는 <system_instruction>여야 합니다.';
 
   @override
-  String get presetImportWarningNameMissing =>
-      '<role_name>을 찾지 못했습니다. 파일 이름을 이름으로 사용합니다.';
+  String get presetImportWarningNameMissing => '<role_name>을 찾지 못했습니다. 파일 이름을 이름으로 사용합니다.';
 
   @override
   String get presetImportDuplicateTitle => '캐릭터 카드가 이미 있습니다';
@@ -1334,8 +1324,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get includePresetCard => '캐릭터 카드 본문 포함';
 
   @override
-  String get includePresetCardHint =>
-      '비공개 내용이 포함될 수 있습니다. JSON / LumenFlow에만 적용';
+  String get includePresetCardHint => '비공개 내용이 포함될 수 있습니다. JSON / LumenFlow에만 적용';
 
   @override
   String get importPresetSnapshotTitle => '캐릭터 카드 가져오기';
@@ -1427,8 +1416,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get httpServerNotRunningTitle => '서버가 실행되지 않음';
 
   @override
-  String get httpServerNotRunningMessage =>
-      '롤 카드 생성기 서버가 실행되지 않습니다. 서버를 시작하시겠습니까?';
+  String get httpServerNotRunningMessage => '롤 카드 생성기 서버가 실행되지 않습니다. 서버를 시작하시겠습니까?';
 
   @override
   String get startServerButton => '시작';

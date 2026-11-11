@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cupertino_ui/cupertino_ui.dart';
@@ -16,6 +17,8 @@ import '../models/attachment.dart';
 import '../models/user_profile.dart';
 import '../screens/image_preview_screen.dart';
 import '../utils/app_theme.dart';
+import '../utils/code_download.dart';
+import '../utils/file_save_utils.dart';
 import '../utils/markdown_math.dart';
 import 'avatar_widget.dart';
 
@@ -39,7 +42,9 @@ class CodeBlockBuilder extends MarkdownElementBuilder {
     // 获取代码块内容，并去掉 Markdown 自带的末尾换行，
     // 否则渲染出来会多一个空行。
     final codeContent = _getElementTextContent(element)
-        .replaceFirst(RegExp(r'[\r\n]+$'), '');
+        .replaceAll('\r\n', '\n')
+        .replaceAll('\r', '\n')
+        .replaceFirst(RegExp(r'\n+$'), '');
     final language = _getLanguage(element);
 
     // 创建带有复制按钮的代码块
@@ -201,6 +206,73 @@ class __CodeBlockWithCopyButtonState extends State<_CodeBlockWithCopyButton> {
     return theme;
   }
 
+  Future<void> _downloadCode() async {
+    final l10n = AppLocalizations.of(widget.context)!;
+    final extension = codeFileExtension(widget.language);
+    final fileName =
+        'code_${DateTime.now().millisecondsSinceEpoch}.$extension';
+    try {
+      final result = await saveExportBytes(
+        fileName: fileName,
+        bytes: utf8.encode(widget.codeContent),
+      );
+      if (result.isCancelled || !mounted) return;
+      _showActionToast(l10n.downloadCodeSuccess, result.filePath);
+    } catch (error) {
+      if (mounted) {
+        _showActionToast(l10n.downloadCodeFailed, error.toString());
+      }
+    }
+  }
+
+  void _showActionToast(String title, String message) {
+    showCupertinoDialog(
+      context: widget.context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          CupertinoDialogAction(
+            child: Text(AppLocalizations.of(widget.context)!.ok),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAction({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    Color? color,
+  }) {
+    final foreground =
+        color ??
+        (widget.brightness == Brightness.dark
+            ? CupertinoColors.systemGrey.darkColor
+            : CupertinoColors.systemGrey.color);
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 36),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: foreground),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(fontSize: 12, color: foreground),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final brightness = widget.brightness;
@@ -209,34 +281,68 @@ class __CodeBlockWithCopyButtonState extends State<_CodeBlockWithCopyButton> {
       Localizations.maybeLocaleOf(context),
     );
 
-    return Stack(
-      children: [
-        // 代码块内容
-        Container(
-          clipBehavior: Clip.hardEdge,
-          decoration: BoxDecoration(
+    return Container(
+      clipBehavior: Clip.hardEdge,
+      decoration: BoxDecoration(
+        color: brightness == Brightness.dark
+            ? const Color(0xFF1E1E1E)
+            : const Color(0xFFF6F8FA),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: brightness == Brightness.dark
+              ? const Color(0xFF404040)
+              : const Color(0xFFD0D7DE),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
             color: brightness == Brightness.dark
-                ? const Color(0xFF1E1E1E)
-                : const Color(0xFFF6F8FA),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: brightness == Brightness.dark
-                  ? const Color(0xFF404040)
-                  : const Color(0xFFD0D7DE),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: brightness == Brightness.dark
-                    ? CupertinoColors.black.withAlpha(120)
-                    : CupertinoColors.systemGrey.withAlpha(40),
-                blurRadius: 12,
-                offset: const Offset(0, 3),
-              ),
-            ],
+                ? CupertinoColors.black.withAlpha(120)
+                : CupertinoColors.systemGrey.withAlpha(40),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 顶部工具条：左侧语言名，右侧复制/下载，避免遮住单行代码。
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 2, 6, 0),
+            child: Row(
+              children: [
+                Text(
+                  widget.language == 'plaintext'
+                      ? 'text'
+                      : widget.language,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: brightness == Brightness.dark
+                        ? CupertinoColors.systemGrey.darkColor
+                        : CupertinoColors.systemGrey.color,
+                  ),
+                ),
+                const Spacer(),
+                _buildAction(
+                  icon: _isCopied
+                      ? CupertinoIcons.checkmark_alt
+                      : CupertinoIcons.doc_on_clipboard,
+                  label: _isCopied ? l10n.copied : l10n.copyCode,
+                  onTap: _copyCodeToClipboard,
+                  color: _isCopied ? CupertinoColors.systemGreen : null,
+                ),
+                const SizedBox(width: 2),
+                _buildAction(
+                  icon: CupertinoIcons.arrow_down_to_line,
+                  label: l10n.downloadCode,
+                  onTap: _downloadCode,
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 2, 16, 16),
             child: SelectableRegion(
               selectionControls: cupertinoTextSelectionControls,
               child: HighlightView(
@@ -258,67 +364,8 @@ class __CodeBlockWithCopyButtonState extends State<_CodeBlockWithCopyButton> {
               ),
             ),
           ),
-        ),
-
-        // 复制按钮（右上角）
-        Positioned(
-          top: 8,
-          right: 8,
-          child: GestureDetector(
-            onTap: _copyCodeToClipboard,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: brightness == Brightness.dark
-                    ? CupertinoColors.systemGrey6.darkColor
-                    : CupertinoColors.systemGrey6.color,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: brightness == Brightness.dark
-                      ? CupertinoColors.systemGrey4.darkColor
-                      : CupertinoColors.systemGrey4.color,
-                  width: 0.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: CupertinoColors.black.withAlpha(30),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    _isCopied
-                        ? CupertinoIcons.checkmark_alt
-                        : CupertinoIcons.doc_on_clipboard,
-                    size: 12,
-                    color: _isCopied
-                        ? CupertinoColors.systemGreen
-                        : (brightness == Brightness.dark
-                              ? CupertinoColors.systemGrey.darkColor
-                              : CupertinoColors.systemGrey.color),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    _isCopied ? l10n.copied : l10n.copyCode,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: _isCopied
-                          ? CupertinoColors.systemGreen
-                          : (brightness == Brightness.dark
-                                ? CupertinoColors.systemGrey.darkColor
-                                : CupertinoColors.systemGrey.color),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

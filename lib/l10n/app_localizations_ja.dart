@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -337,8 +336,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get historyRoundsPlaceholder => '履歴ラウンド数を入力';
 
   @override
-  String get historyRoundsDesc =>
-      'AIが記憶する会話ラウンド数。推奨値: 5-20ラウンド。多すぎるとトークン制限を超える可能性があります';
+  String get historyRoundsDesc => 'AIが記憶する会話ラウンド数。推奨値: 5-20ラウンド。多すぎるとトークン制限を超える可能性があります';
 
   @override
   String get conversationTitle => '会話タイトル';
@@ -394,15 +392,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get commonApiEndpoints => 'よく使われるAPIエンドポイント';
 
   @override
-  String get commonApiEndpointsContent =>
-      'OpenAI: https://api.openai.com/v1\n\nDeepSeek: https://api.deepseek.com\n\nAlibaba Cloud: https://dashscope.aliyuncs.com/api/v1\n\n使用するAIサービスプロバイダーに応じて、対応するエンドポイントアドレスを入力してください。';
+  String get commonApiEndpointsContent => 'OpenAI: https://api.openai.com/v1\n\nDeepSeek: https://api.deepseek.com\n\nAlibaba Cloud: https://dashscope.aliyuncs.com/api/v1\n\n使用するAIサービスプロバイダーに応じて、対応するエンドポイントアドレスを入力してください。';
 
   @override
   String get commonModels => 'よく使われるモデル';
 
   @override
-  String get commonModelsContent =>
-      'OpenAI:\n• gpt-6.1-sol\n• gpt-6-astra\n\nDeepSeek:\n• deepseek-flash\n• deepseek-v4-pro\n\nAPIエンドポイントに応じて対応するモデルを選択してください。';
+  String get commonModelsContent => 'OpenAI:\n• gpt-6.1-sol\n• gpt-6-astra\n\nDeepSeek:\n• deepseek-flash\n• deepseek-v4-pro\n\nAPIエンドポイントに応じて対応するモデルを選択してください。';
 
   @override
   String get appInfo => 'アプリ情報';
@@ -521,8 +517,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aboutUserProfile => 'ユーザープロファイルについて';
 
   @override
-  String get aboutUserProfileContent =>
-      '• アバター: 画像または絵文字をアバターとして選択し、チャットインターフェースに表示されます\n• ユーザー名: AIは会話中、この名前でユーザーを呼びかけます\n• すべての情報はローカルにのみ保存され、サーバーにはアップロードされません';
+  String get aboutUserProfileContent => '• アバター: 画像または絵文字をアバターとして選択し、チャットインターフェースに表示されます\n• ユーザー名: AIは会話中、この名前でユーザーを呼びかけます\n• すべての情報はローカルにのみ保存され、サーバーにはアップロードされません';
 
   @override
   String get selectPresetRole => 'プリセットロールを選択';
@@ -739,20 +734,12 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String providerAttachmentCannotRead(
-    String fileName,
-    String fileSize,
-    String mimeType,
-  ) {
+  String providerAttachmentCannotRead(String fileName, String fileSize, String mimeType) {
     return '添付ファイル: $fileName ($fileSize, $mimeType) - コンテンツを読み取れません';
   }
 
   @override
-  String providerAttachmentInfo(
-    String fileName,
-    String fileSize,
-    String mimeType,
-  ) {
+  String providerAttachmentInfo(String fileName, String fileSize, String mimeType) {
     return '添付ファイル: $fileName ($fileSize, $mimeType)';
   }
 
@@ -792,8 +779,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get providerAi => 'AI';
 
   @override
-  String get providerTitleGenSystemPrompt =>
-      'ユーザーの言語と会話内容に基づいて、短くて正確な日本語のタイトルを生成してください。15語以内。タイトルのみを返し、引用符やその他の書式は不要です。';
+  String get providerTitleGenSystemPrompt => 'ユーザーの言語と会話内容に基づいて、短くて正確な日本語のタイトルを生成してください。15語以内。タイトルのみを返し、引用符やその他の書式は不要です。';
 
   @override
   String providerTitleGenUserPrompt(String conversationSummary) {
@@ -801,8 +787,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get providerMultimediaNotSupported =>
-      '\n注意: DeepSeekは動画、音声などのマルチメディアファイルの処理をサポートしていません';
+  String get providerMultimediaNotSupported => '\n注意: DeepSeekは動画、音声などのマルチメディアファイルの処理をサポートしていません';
 
   @override
   String get providerGeminiInvalidResponse => 'Gemini APIが無効な応答形式を返しました';
@@ -1062,6 +1047,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get copied => 'コピー済み';
 
   @override
+  String get downloadCode => 'ダウンロード';
+
+  @override
+  String get downloadCodeSuccess => 'コードをダウンロードしました';
+
+  @override
+  String get downloadCodeFailed => 'コードのダウンロードに失敗しました';
+
+  @override
   String get aiResponseDisclaimer => '内容は参考のみ、ご注意ください';
 
   @override
@@ -1137,8 +1131,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get continueGeneration => '生成を続ける';
 
   @override
-  String get continueGenerationPrompt =>
-      '前のアシスタントの応答の続きを、止まったところから生成してください。すでに書かれた内容を繰り返さないでください。';
+  String get continueGenerationPrompt => '前のアシスタントの応答の続きを、止まったところから生成してください。すでに書かれた内容を繰り返さないでください。';
 
   @override
   String get forkConversation => 'ここから分岐';
@@ -1218,8 +1211,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get presetUnavailableTitle => 'キャラクターを利用できません';
 
   @override
-  String get presetUnavailableMessage =>
-      'この会話で使用中のキャラクタープリセットが見つからないか、削除されています。';
+  String get presetUnavailableMessage => 'この会話で使用中のキャラクタープリセットが見つからないか、削除されています。';
 
   @override
   String get presetDisableAndSend => 'ロールモードをオフにして送信';
@@ -1270,12 +1262,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get presetImportErrorInvalidXml => 'XML の形式が正しくありません。';
 
   @override
-  String get presetImportErrorInvalidRoot =>
-      'ルート要素は <system_instruction> である必要があります。';
+  String get presetImportErrorInvalidRoot => 'ルート要素は <system_instruction> である必要があります。';
 
   @override
-  String get presetImportWarningNameMissing =>
-      '<role_name> が見つかりません。ファイル名を名前として使用します。';
+  String get presetImportWarningNameMissing => '<role_name> が見つかりません。ファイル名を名前として使用します。';
 
   @override
   String get presetImportDuplicateTitle => 'キャラクターカードは既に存在します';
@@ -1353,8 +1343,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get presetTokenWarning => '4000 tokens 超：この内容は毎ターン再送信されます。';
 
   @override
-  String get presetTokenStrongWarning =>
-      '8000 tokens 超：キャラクターカードの簡略化を検討してください。';
+  String get presetTokenStrongWarning => '8000 tokens 超：キャラクターカードの簡略化を検討してください。';
 
   @override
   String get presetFullContent => '全文';
@@ -1421,15 +1410,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get openGeneratorButton => 'ジェネレーターを開く';
 
   @override
-  String get httpServerDescription =>
-      'サーバーはポート5050で動作し、ロールカードジェネレーターページを提供します。';
+  String get httpServerDescription => 'サーバーはポート5050で動作し、ロールカードジェネレーターページを提供します。';
 
   @override
   String get httpServerNotRunningTitle => 'サーバーが実行されていません';
 
   @override
-  String get httpServerNotRunningMessage =>
-      'ロールカードジェネレーターサーバーが起動していません。サーバーを起動しますか？';
+  String get httpServerNotRunningMessage => 'ロールカードジェネレーターサーバーが起動していません。サーバーを起動しますか？';
 
   @override
   String get startServerButton => '起動';
