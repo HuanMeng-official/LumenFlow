@@ -23,6 +23,28 @@ Map<String, TextStyle> codeHighlightTheme(Brightness brightness) {
   );
 }
 
+/// 行内代码样式。
+///
+/// 不使用背景色：TextSpan 的背景没有内边距和圆角，铺出来像一块
+/// 生硬的灰色高亮；而且 Flutter 的选区高亮画在文本背景之下，
+/// 背景色会挡住蓝条。这里改用主题强调色 + 等宽字体来区隔。
+TextStyle inlineCodeStyle({
+  required Brightness brightness,
+  required double fontSize,
+  bool onUserBubble = false,
+}) {
+  final color = onUserBubble
+      ? const Color(0xFFFFFFFF)
+      : brightness == Brightness.dark
+      ? const Color(0xFFC792EA)
+      : const Color(0xFF994CC3);
+  return TextStyle(
+    fontSize: fontSize,
+    color: color,
+    fontWeight: FontWeight.w500,
+  );
+}
+
 /// Night Owl Light 的 highlight.js 配色。
 ///
 /// 基于官方 Light Owl 主题，并将注释色稍微加深，保证在浅灰背景上可读。

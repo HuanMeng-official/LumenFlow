@@ -1191,22 +1191,9 @@ class _MessageBubbleState extends State<MessageBubble>
                                                               .color,
                                                   ),
                                               code: codeFallback(
-                                                TextStyle(
+                                                inlineCodeStyle(
+                                                  brightness: brightness,
                                                   fontSize: 12,
-                                                  color:
-                                                      brightness ==
-                                                          Brightness.dark
-                                                      ? CupertinoColors
-                                                            .systemGreen
-                                                            .darkColor
-                                                      : const Color(
-                                                          0xFF006400,
-                                                        ), // 深绿色
-                                                  backgroundColor:
-                                                      brightness ==
-                                                          Brightness.dark
-                                                      ? const Color(0xFF1E1E1E)
-                                                      : const Color(0xFFF8F9FA),
                                                 ),
                                               ),
                                               codeblockPadding:
@@ -1379,15 +1366,10 @@ class _MessageBubbleState extends State<MessageBubble>
                                           height: 1.5,
                                         ),
                                     code: codeFallback(
-                                      TextStyle(
+                                      inlineCodeStyle(
+                                        brightness: brightness,
                                         fontSize: 15,
-                                        color: brightness == Brightness.dark
-                                            ? const Color(0xFFD4D4D4)
-                                            : const Color(0xFF24292E),
-                                        backgroundColor:
-                                            brightness == Brightness.dark
-                                            ? const Color(0xFF1E1E1E)
-                                            : const Color(0xFFF6F8FA),
+                                        onUserBubble: widget.message.isUser,
                                       ),
                                     ),
                                     codeblockPadding: const EdgeInsets.all(16),
