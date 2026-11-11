@@ -10,7 +10,6 @@ class AdaptiveHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final useDesktop = shouldUseDesktopHome(
-      desktopPlatform: isDesktopPlatform,
       size: MediaQuery.sizeOf(context),
     );
     return useDesktop ? const DesktopHomeScreen() : const ChatScreen();
