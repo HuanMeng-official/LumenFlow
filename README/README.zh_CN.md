@@ -1,6 +1,6 @@
 ![LumenFlow](./img/cover.png)
 
-> 基于 Flutter 构建的本地优先跨平台 AI 聊天客户端：13 个 AI 平台、流式对话、工具调用、MCP、角色预设、带数学公式和语法高亮的 Markdown、SQLite 本地存储，以及完整的中文 PDF 支持。
+> 基于 Flutter 构建的本地优先跨平台 AI 聊天客户端：13 个 AI 平台、流式对话、工具调用、MCP、长会话记忆、角色预设、带数学公式和语法高亮的 Markdown、SQLite 本地存储，以及完整的中文 PDF 支持。
 
 [English Version](../README.md) | [中文版本](./README.zh_CN.md)
 
@@ -39,13 +39,22 @@ LumenFlow（中文名：流光）是一款使用 Flutter 构建的 AI 聊天应�
   - Gemini Interactions：Gemini
 - **工具错误回传**：工具执行失败会作为错误结果返回给模型，而不是直接中断整个回合。
 
+### 记忆与长对话
+
+- **滚动记忆**：超过原文历史窗口的对话会压缩成前情梗概、当前关系/情绪，以及约定、事实和结论账本。
+- **硬记忆**：约定、规则和结论尽量保留原话；已废止条目保留但不注入。被否方案和理由单独记录，避免重复提出。
+- **自动维护**：回复完成后在后台更新记忆；发送前如果旧消息即将滑出窗口，会短暂等待整理完成。
+- **自动失效**：编辑、重新生成或删除被记忆覆盖的消息会让记忆失效并触发重建。
+- **只读查看器**：聊天页 `⋯` 菜单 → **查看记忆**，展示前情、情绪、约定、已废止条目和被否方案，不提供编辑。
+- **随对话导出**：JSON、LumenFlow 压缩包和 ZIP 导出都包含记忆；导入时重映射消息 ID 并恢复。
+
 ### 数据与导出
 
 - **SQLite 存储**：外键、索引、事务和 SharedPreferences 自动迁移。
 - **对话管理**：历史列表、消息搜索、编辑、重新生成、重新提交、删除和对话级设置。
 - **附件处理**：图片、视频、音频、PDF 和文本内容提取。
-- **导出格式**：TXT、JSON、PDF、LumenFlow 压缩包。JSON 和 LumenFlow 导出可选附带当前用户角色卡正文。
-- **对话导入**：支持 LumenFlow 压缩包；本地缺少角色卡时，可从内嵌快照确认重建。
+- **导出格式**：TXT、JSON、PDF、LumenFlow 压缩包。JSON、LumenFlow 和 ZIP 导出包含滚动记忆，并可选附带当前用户角色卡正文。
+- **对话导入**：支持 LumenFlow 压缩包、ZIP 和裸 JSON 会话；本地缺少角色卡时，可从内嵌快照确认重建。导入的记忆会重映射消息 ID 后恢复。
   - [LumenFlow 格式说明](./LumenFlow格式解析.md)
 - **PDF 导出**：嵌入 Noto Sans SC，按实际使用字符做字体子集，中文不再乱码。
 - **设置备份**：导出/导入 JSON 设置，恢复默认设置。
@@ -85,7 +94,8 @@ LumenFlow（中文名：流光）是一款使用 Flutter 构建的 AI 聊天应�
 
 - **温度**：`0.7`
 - **最大 Tokens**：`8192`（Gemini 同步请求上限为 65,536）
-- **历史上下文**：默认 30 条消息
+- **历史上下文**：默认 30 轮（最多 60 条消息）
+- **记忆压缩**：默认开启（需先启用历史对话）
 - **默认平台**：OpenAI
 
 ## 项目结构
@@ -111,14 +121,21 @@ lib/
 │   ├── chat_screen_controller.dart   # 桌面壳与嵌入聊天区的窄接口
 │   └── chat_send_controller.dart     # 单次流式发送生命周期
 ├── l10n/                             # ARB 文件和生成的本地化代码
-├── models/                           # 对话、消息、附件、平台、用户资料、预设模型
+├── models/                           # 对话、消息、附件、记忆、平台、用户资料、预设模型
 ├── providers/                        # 各平台普通聊天/流式 Provider
-├── screens/                          # 聊天、对话、设置、工具、资料、预设管理页面
+├── screens/                          # 聊天、对话、设置、工具、资料、预设管理、记忆查看页面
 ├── services/
 │   ├── ai_service.dart               # Provider 选择和普通聊天路径
 │   ├── tool_chat_service.dart        # 带工具的平台回合
 │   ├── conversation_database.dart    # SQLite 与数据迁移
 │   ├── conversation_service.dart     # 对话 CRUD、导入导出与快照
+│   ├── memory_service.dart           # 滚动记忆覆盖、更新与注入
+│   ├── memory_policy.dart            # 窗口/覆盖/chunk 策略
+│   ├── memory_prompt.dart            # <memory> 块与更新 prompt
+│   ├── memory_update.dart            # 模型输出解析与账本合并
+│   ├── memory_transfer.dart          # 导入时消息 ID/指纹重映射
+│   ├── conversation_memory_store.dart # SQLite 记忆存储适配
+│   ├── system_prompt_builder.dart    # 基础/自定义/预设/记忆拼接
 │   ├── prompt_service.dart           # 预设加载、schema 迁移、角色卡校验
 │   ├── preset_repository.dart        # 聊天与设置共享的预设状态
 │   ├── settings_service.dart         # 设置与当前平台快照
@@ -127,6 +144,7 @@ lib/
 │   ├── app_theme.dart                # Cupertino/Material 主题和字体
 │   ├── code_highlight_theme.dart     # Night Owl 语法高亮主题
 │   ├── markdown_math.dart            # 行内/块级数学公式预处理与构建
+│   ├── memory_fingerprint.dart       # 被覆盖消息的内容指纹
 │   ├── preset_*.dart                 # 预设筛选、图标、标签、token 估算
 │   └── path_utils.dart               # 跨平台数据目录
 └── widgets/                          # 聊天输入、消息气泡、预设编辑、头像、设置组件
@@ -138,14 +156,14 @@ lib/
 | --- | --- |
 | `material_ui` / `cupertino_ui` | 独立发布的 Material 和 Cupertino 设计系统 |
 | `http` | 平台 API 和 MCP HTTP 传输 |
-| `sqlite3` | 对话、消息、附件和设置存储 |
+| `sqlite3` | 对话、消息、附件、记忆和设置存储 |
 | `shared_preferences` | 轻量设置和旧数据迁移 |
 | `file_picker` / `image_picker` | 文件和图片选择 |
 | `pdf` / `archive` | PDF 生成和 LumenFlow 压缩包导出 |
 | `flutter_markdown_plus` | Markdown 渲染 |
 | `flutter_highlight` | 代码块语法高亮 |
 | `flutter_math_fork` | 行内与块级数学公式排版 |
-| `crypto` / `xml` | 预设内容哈希与 XML 角色卡校验 |
+| `crypto` / `xml` | 预设内容哈希、记忆指纹与 XML 角色卡校验 |
 | `flutter_svg` | 平台图标和矢量 UI 资源 |
 | `flutter_local_notifications` | 本地通知 |
 | `window_manager` | 桌面窗口配置 |
@@ -169,7 +187,8 @@ UI（screens/widgets）
 - **应用层**：`AIService` 根据当前平台选择 Provider；`ChatSendController` 管理一次发送/流式生命周期。
 - **工具层**：`ToolChatService` 和 `AgentRunner` 执行模型/工具循环；`CompositeToolExecutor` 合并内置工具和已启用的 MCP 工具。
 - **协议层**：每类平台有独立的流式和工具适配器，负责请求构造和事件映射。
-- **数据层**：SQLite 保存对话、消息、附件；`SettingsService` 管理配置和当前平台解析。
+- **数据层**：SQLite 保存对话、消息、附件和记忆；`SettingsService` 管理配置和当前平台解析。
+- **记忆层**：`MemoryService` 校验覆盖范围和指纹，把旧消息滚动整理成 `ConversationMemory`，并把 `<memory>` 块追加到 system prompt 末尾。账本存在 SQLite 中，随对话导出。
 - **预设层**：`PromptService` 加载内置多语言角色卡和 schema v2 用户预设；`PresetRepository` 在聊天页与设置页之间共享加载状态。
 - **本地化层**：由 ARB 文件生成 `AppLocalizations`。
 
@@ -201,6 +220,16 @@ UI（screens/widgets）
 
 MCP 工具会带上服务器前缀，避免不同服务器的同名工具冲突。
 
+### 记忆压缩
+
+打开 **设置 → 历史对话**：
+
+- **启用历史对话** 必须先开启，记忆才会工作。
+- **记忆压缩** 默认开启。长对话会自动整理前情、关系/情绪、约定/事实和被否方案。
+- 在聊天页打开 `⋯` 菜单 → **查看记忆**，可以只读查看当前记忆。
+
+记忆只保存在本机，并随会话 JSON / LumenFlow / ZIP 导出。
+
 ## 预设提示词
 
 角色扮演预设由一份元数据和一份可选的角色卡正文组成。
@@ -222,7 +251,7 @@ MCP 工具会带上服务器前缀，避免不同服务器的同名工具冲突�
 
 ### 提示词拼接
 
-- 最终系统提示词按“本地化基础规则 → 回复语言规则 → 用户自定义提示 → 角色预设”拼接。
+- 最终系统提示词按“本地化基础规则（含回复语言规则）→ 用户自定义提示 → 角色预设 → 记忆块”拼接。
 - 预设支持 `${userProfile.username}`、`${userProfile.gender}` 和 `${userProfile.birthday}` 变量替换。
 - AI 回复语言可跟随界面、跟随用户输入或指定语言；角色卡自带的语言和文风优先。
 
@@ -237,7 +266,7 @@ SQLite 数据库位置：
 - **macOS**：App Sandbox 容器内 `~/Library/Containers/me.huanmeng.lumenFlow/Data/.lumenflow/conversations.db`。
 - **iOS**：应用数据容器内的 `Library/Application Support/conversations.db`。
 
-表：`conversations`、`messages`、`attachments` 以及应用元数据/设置。
+表：`conversations`、`messages`、`attachments`、`conversation_memory` 以及应用元数据/设置。
 
 用户预设保存在数据库同级的 `user_prompts/` 目录：
 
