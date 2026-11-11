@@ -143,6 +143,23 @@ class ConversationService {
     await _db.setCurrentConversationId(conversationId);
   }
 
+  /// 启动时选择要恢复的会话。
+  ///
+  /// 优先使用仍存在的 current id；否则打开最近一条已有会话。
+  /// 返回 null 表示确实没有任何会话，由用户首次发送时再创建，
+  /// 避免每次启动都凭空多出一条「新对话」。
+  Future<String?> resolveConversationForStartup() async {
+    final currentId = await getCurrentConversationId();
+    if (currentId != null && currentId.isNotEmpty) {
+      final current = await getConversationById(currentId);
+      if (current != null) return current.id;
+    }
+
+    final conversations = await loadConversations(forceReload: true);
+    if (conversations.isEmpty) return null;
+    return conversations.first.id;
+  }
+
   /// 创建新对话
   Future<Conversation> createNewConversation({String? title}) async {
     final conversation = Conversation(

@@ -47,6 +47,7 @@ class ChatScreen extends StatefulWidget {
     this.onConversationChanged,
     this.onConversationListChanged,
     this.onOpenSettings,
+    this.conversationService,
   });
 
   /// 桌面嵌入模式：不渲染移动端导航栏。
@@ -55,6 +56,9 @@ class ChatScreen extends StatefulWidget {
   final ValueChanged<String?>? onConversationChanged;
   final VoidCallback? onConversationListChanged;
   final VoidCallback? onOpenSettings;
+
+  /// 测试注入；生产环境使用默认单例。
+  final ConversationService? conversationService;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -78,7 +82,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
   final Map<String, GlobalKey> _messageKeys = {};
   final AIService _aiService = AIService();
-  final ConversationService _conversationService = ConversationService();
+  late final ConversationService _conversationService;
   final SettingsService _settingsService = SettingsService();
   final NotificationService _notificationService = NotificationService();
   final LiveUpdateService _liveUpdateService = LiveUpdateService();
@@ -118,6 +122,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    _conversationService = widget.conversationService ?? ConversationService();
     // 添加生命周期观察者
     WidgetsBinding.instance.addObserver(this);
     _presetRepository.addListener(_onPresetsChanged);
@@ -144,14 +149,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Future<void> _initializeApp() async {
     await _checkConfiguration();
 
-    // 加载当前对话（使用统一的入口）
-    final currentConversationId = await _conversationService
-        .getCurrentConversationId();
-
-    if (currentConversationId != null && currentConversationId.isNotEmpty) {
-      await _setCurrentConversation(currentConversationId);
-    } else {
-      await _createNewConversation();
+    // 恢复上次会话；没有历史时才等用户发送第一条消息再创建，
+    // 避免启动或打开列表时凭空多出一条「新对话」。
+    final conversationId = await _conversationService
+        .resolveConversationForStartup();
+    if (conversationId != null) {
+      await _setCurrentConversation(conversationId);
     }
   }
 
@@ -1268,6 +1271,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       context,
       CupertinoPageRoute(
         builder: (context) => ConversationListScreen(
+          service: _conversationService,
           onConversationSelected: (conversationId) {
             if (conversationId != null) {
               // 使用统一的入口加载对话
