@@ -16,6 +16,8 @@ class SettingsService {
   static const String _maxTokensKey = 'max_tokens';
   static const String _enableHistoryKey = 'enable_history';
   static const String _historyContextLengthKey = 'history_context_length';
+  static const String _memoryCompressionEnabledKey =
+      'memory_compression_enabled';
   static const String _customSystemPromptKey = 'custom_system_prompt';
   static const String _apiTypeKey = 'api_type';
   static const String _darkModeKey = 'dark_mode';
@@ -67,6 +69,7 @@ class SettingsService {
   static const int defaultMaxTokens = 8192;
   static const bool defaultEnableHistory = true;
   static const int defaultHistoryContextLength = 30;
+  static const bool defaultMemoryCompressionEnabled = true;
 
   static const String _lumenflowFormat = 'lumenflow';
   static const String _lumenflowVersion = '1.0';
@@ -147,6 +150,17 @@ class SettingsService {
   Future<void> setHistoryContextLength(int length) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_historyContextLengthKey, length);
+  }
+
+  Future<bool> getMemoryCompressionEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_memoryCompressionEnabledKey) ??
+        defaultMemoryCompressionEnabled;
+  }
+
+  Future<void> setMemoryCompressionEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_memoryCompressionEnabledKey, enabled);
   }
 
   Future<String> getCustomSystemPrompt() async {
@@ -419,6 +433,9 @@ class SettingsService {
         prefs.getBool(_enableHistoryKey) ?? defaultEnableHistory;
     settings[_historyContextLengthKey] =
         prefs.getInt(_historyContextLengthKey) ?? defaultHistoryContextLength;
+    settings[_memoryCompressionEnabledKey] =
+        prefs.getBool(_memoryCompressionEnabledKey) ??
+        defaultMemoryCompressionEnabled;
     settings[_customSystemPromptKey] =
         prefs.getString(_customSystemPromptKey) ?? defaultCustomSystemPrompt;
     settings[_apiTypeKey] = prefs.getString(_apiTypeKey) ?? defaultApiType;
@@ -521,6 +538,12 @@ class SettingsService {
       await prefs.setInt(
         _historyContextLengthKey,
         settings[_historyContextLengthKey] as int,
+      );
+    }
+    if (settings.containsKey(_memoryCompressionEnabledKey)) {
+      await prefs.setBool(
+        _memoryCompressionEnabledKey,
+        settings[_memoryCompressionEnabledKey] as bool,
       );
     }
     if (settings.containsKey(_customSystemPromptKey)) {

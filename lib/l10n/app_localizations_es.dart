@@ -339,6 +339,61 @@ class AppLocalizationsEs extends AppLocalizations {
   String get historyRoundsDesc => 'Número de rondas que la IA recuerda, recomendado 5-20. Demasiadas pueden exceder el límite de tokens';
 
   @override
+  String get memoryCompression => 'Compresión de memoria';
+
+  @override
+  String get memoryCompressionDesc => 'Organiza automáticamente el contexto, los acuerdos y las propuestas rechazadas de conversaciones largas; solo se guarda en este dispositivo';
+
+  @override
+  String get memoryCompressing => 'Organizando memoria…';
+
+  @override
+  String memoryCompressingProgress(int current, int total) {
+    return 'Organizando memoria $current/$total…';
+  }
+
+  @override
+  String get memoryCompressionFailed => 'No se pudo organizar la memoria. Se usará la memoria existente';
+
+  @override
+  String get viewMemory => 'Ver memoria';
+
+  @override
+  String get memoryViewerTitle => 'Memoria de la conversación';
+
+  @override
+  String get memoryViewerEmptyTitle => 'Aún no hay memoria';
+
+  @override
+  String get memoryViewerEmptyDesc => 'Cuando una conversación larga supera la ventana de contexto original, la IA organiza automáticamente el contexto, los acuerdos y las propuestas rechazadas.';
+
+  @override
+  String get memoryViewerSummary => 'Contexto de la historia';
+
+  @override
+  String get memoryViewerEmotionalState => 'Relación y ánimo actuales';
+
+  @override
+  String get memoryViewerFacts => 'Acuerdos y hechos a recordar';
+
+  @override
+  String get memoryViewerSupersededFacts => 'Acuerdos derogados';
+
+  @override
+  String get memoryViewerRejected => 'Propuestas rechazadas';
+
+  @override
+  String get memoryViewerReopened => 'En reconsideración';
+
+  @override
+  String memoryViewerUpdatedAt(String time) {
+    return 'Actualizado $time';
+  }
+
+  @override
+  String get memoryViewerLocalOnly => 'La memoria solo se guarda en este dispositivo y se actualiza con la conversación.';
+
+  @override
   String get conversationTitle => 'Título de la conversación';
 
   @override

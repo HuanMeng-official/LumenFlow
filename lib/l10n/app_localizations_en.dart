@@ -339,6 +339,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historyRoundsDesc => 'Number of conversation rounds AI remembers, recommended 5-20 rounds. Too many may exceed token limit';
 
   @override
+  String get memoryCompression => 'Memory Compression';
+
+  @override
+  String get memoryCompressionDesc => 'Automatically organizes the story, agreements, and rejected proposals in long conversations; stored only on this device';
+
+  @override
+  String get memoryCompressing => 'Organizing memory…';
+
+  @override
+  String memoryCompressingProgress(int current, int total) {
+    return 'Organizing memory $current/$total…';
+  }
+
+  @override
+  String get memoryCompressionFailed => 'Memory update failed. Using the existing memory this time';
+
+  @override
+  String get viewMemory => 'View Memory';
+
+  @override
+  String get memoryViewerTitle => 'Conversation Memory';
+
+  @override
+  String get memoryViewerEmptyTitle => 'No memory yet';
+
+  @override
+  String get memoryViewerEmptyDesc => 'Once a long conversation exceeds the raw context window, the AI automatically organizes the story, agreements, and rejected proposals.';
+
+  @override
+  String get memoryViewerSummary => 'Story so far';
+
+  @override
+  String get memoryViewerEmotionalState => 'Current relationship & mood';
+
+  @override
+  String get memoryViewerFacts => 'Agreements & facts to remember';
+
+  @override
+  String get memoryViewerSupersededFacts => 'Superseded agreements';
+
+  @override
+  String get memoryViewerRejected => 'Rejected proposals';
+
+  @override
+  String get memoryViewerReopened => 'Under discussion again';
+
+  @override
+  String memoryViewerUpdatedAt(String time) {
+    return 'Updated $time';
+  }
+
+  @override
+  String get memoryViewerLocalOnly => 'Memory is stored only on this device and updates automatically with the conversation.';
+
+  @override
   String get conversationTitle => 'Conversation Title';
 
   @override

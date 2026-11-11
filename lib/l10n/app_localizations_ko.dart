@@ -339,6 +339,61 @@ class AppLocalizationsKo extends AppLocalizations {
   String get historyRoundsDesc => 'AI가 기억하는 대화 라운드 수, 권장 5-20라운드. 너무 많으면 토큰 제한 초과 가능';
 
   @override
+  String get memoryCompression => '메모리 압축';
+
+  @override
+  String get memoryCompressionDesc => '긴 대화의 전개, 약속, 거부된 안을 자동으로 정리합니다. 기기에만 저장됩니다';
+
+  @override
+  String get memoryCompressing => '메모리 정리 중…';
+
+  @override
+  String memoryCompressingProgress(int current, int total) {
+    return '메모리 정리 중 $current/$total…';
+  }
+
+  @override
+  String get memoryCompressionFailed => '메모리 정리에 실패했습니다. 이번에는 기존 메모리를 사용합니다';
+
+  @override
+  String get viewMemory => '메모리 보기';
+
+  @override
+  String get memoryViewerTitle => '대화 메모리';
+
+  @override
+  String get memoryViewerEmptyTitle => '아직 메모리가 없습니다';
+
+  @override
+  String get memoryViewerEmptyDesc => '긴 대화가 원문 컨텍스트 창을 넘으면 AI가 전개, 약속, 거부된 안을 자동으로 정리합니다.';
+
+  @override
+  String get memoryViewerSummary => '전개';
+
+  @override
+  String get memoryViewerEmotionalState => '현재 관계와 감정';
+
+  @override
+  String get memoryViewerFacts => '기억해야 할 약속과 사실';
+
+  @override
+  String get memoryViewerSupersededFacts => '폐기된 약속';
+
+  @override
+  String get memoryViewerRejected => '거부된 안';
+
+  @override
+  String get memoryViewerReopened => '다시 논의 중';
+
+  @override
+  String memoryViewerUpdatedAt(String time) {
+    return '업데이트: $time';
+  }
+
+  @override
+  String get memoryViewerLocalOnly => '메모리는 기기에만 저장되며 대화에 따라 자동 업데이트됩니다.';
+
+  @override
   String get conversationTitle => '대화 제목';
 
   @override

@@ -13,7 +13,9 @@ import '../models/conversation.dart';
 import '../models/prompt_preset.dart';
 import '../models/user_profile.dart';
 import '../services/ai_service.dart';
+import '../services/conversation_memory_store.dart';
 import '../services/conversation_service.dart';
+import '../services/memory_service.dart';
 import '../services/settings_service.dart';
 import '../services/notification_service.dart';
 import '../services/live_update_service.dart';
@@ -25,6 +27,7 @@ import '../widgets/chat_input.dart';
 import '../widgets/preset_unavailable_dialog.dart';
 import 'settings_screen.dart';
 import 'conversation_list_screen.dart';
+import 'memory_viewer_screen.dart';
 import 'message_search_screen.dart';
 
 /// 主聊天界面，用户与AI进行交互的核心屏幕
@@ -114,7 +117,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   // AI生成控制相关变量
   ChatSendController? _sendController; // 当前流式发送的编排器
   String? _toolStatus; // 当前工具调用状态
+  String? _memoryStatus; // 当前记忆整理状态
   bool _isGenerating = false; // 是否正在生成AI回复
+  bool _isPreparingSend = false; // 防止记忆整理期间重复发送
 
   // 对话加载控制
   bool _isLoadingConversation = false; // 防止重复加载对话
@@ -622,6 +627,90 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
+  /// 发送前补齐记忆，返回注入 system prompt 的 `<memory>` 块。
+  Future<String> _ensureMemoryBlock({
+    required String conversationId,
+    required List<Message> history,
+    required int historyRounds,
+    required AppLocalizations l10n,
+  }) async {
+    final service = MemoryService(
+      store: ConversationMemoryStore(_conversationService),
+      client: AIServiceMemoryUpdateClient(_aiService, l10n),
+    );
+    try {
+      return await service.ensureUpToDate(
+        conversationId: conversationId,
+        eligibleMessages: history,
+        historyRounds: historyRounds,
+        onStatus: (stage, {current, total}) {
+          _setMemoryStatus(conversationId, l10n, stage, current, total);
+        },
+      );
+    } catch (_) {
+      return '';
+    } finally {
+      if (mounted && _currentConversation?.id == conversationId) {
+        setState(() {
+          _memoryStatus = null;
+        });
+      }
+    }
+  }
+
+  /// 回复完成后在后台提前整理记忆，正常情况不会阻塞下一次发送。
+  Future<void> _updateMemoryInBackground({
+    required String conversationId,
+    required List<Message> messages,
+    required AppLocalizations l10n,
+  }) async {
+    final memoryEnabled = await _settingsService.getMemoryCompressionEnabled();
+    final historyEnabled = await _settingsService.getEnableHistory();
+    if (!memoryEnabled || !historyEnabled) return;
+
+    final historyRounds = await _settingsService.getHistoryContextLength();
+    final service = MemoryService(
+      store: ConversationMemoryStore(_conversationService),
+      client: AIServiceMemoryUpdateClient(_aiService, l10n),
+    );
+    try {
+      await service.updateInBackground(
+        conversationId: conversationId,
+        eligibleMessages: messages,
+        historyRounds: historyRounds,
+        onStatus: (stage, {current, total}) {
+          _setMemoryStatus(conversationId, l10n, stage, current, total);
+        },
+      );
+    } catch (_) {
+      // 记忆整理失败不影响对话。
+    } finally {
+      if (mounted && _currentConversation?.id == conversationId) {
+        setState(() {
+          _memoryStatus = null;
+        });
+      }
+    }
+  }
+
+  void _setMemoryStatus(
+    String conversationId,
+    AppLocalizations l10n,
+    MemoryStatusStage stage,
+    int? current,
+    int? total,
+  ) {
+    if (!mounted || _currentConversation?.id != conversationId) return;
+    setState(() {
+      _memoryStatus = switch (stage) {
+        MemoryStatusStage.failed => l10n.memoryCompressionFailed,
+        _ when current != null && total != null && total > 1 =>
+          l10n.memoryCompressingProgress(current, total),
+        _ => l10n.memoryCompressing,
+      };
+    });
+  }
+
   /// 发送消息到AI模型并处理响应
   ///
   /// 参数:
@@ -637,6 +726,32 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   ///   7. 处理完成和错误状态
   ///   8. 保存对话到本地存储
   Future<void> _sendMessage(
+    String content, {
+    List<Attachment> attachments = const [],
+    bool skipUserMessage = false,
+    Message? targetAiMessage,
+    List<Message>? historyOverride,
+    String initialAnswer = '',
+    String initialReasoning = '',
+  }) async {
+    if (_isPreparingSend) return;
+    _isPreparingSend = true;
+    try {
+      await _sendMessageInternal(
+        content,
+        attachments: attachments,
+        skipUserMessage: skipUserMessage,
+        targetAiMessage: targetAiMessage,
+        historyOverride: historyOverride,
+        initialAnswer: initialAnswer,
+        initialReasoning: initialReasoning,
+      );
+    } finally {
+      _isPreparingSend = false;
+    }
+  }
+
+  Future<void> _sendMessageInternal(
     String content, {
     List<Attachment> attachments = const [],
     bool skipUserMessage = false,
@@ -768,6 +883,21 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final history =
         historyOverride ?? ChatSendController.buildHistory(_messages);
 
+    // 发送前补齐记忆：旧消息即将滑出原文窗口时，宁可多等一会儿，也不能
+    // 让模型在“没有前情”的状态下回答。
+    var memoryBlock = '';
+    final memoryEnabled = await _settingsService.getMemoryCompressionEnabled();
+    final historyEnabled = await _settingsService.getEnableHistory();
+    if (memoryEnabled && historyEnabled) {
+      final historyRounds = await _settingsService.getHistoryContextLength();
+      memoryBlock = await _ensureMemoryBlock(
+        conversationId: conversationId,
+        history: history,
+        historyRounds: historyRounds,
+        l10n: l10n,
+      );
+    }
+
     ChatSendController? controllerRef;
     final controller = ChatSendController(
       conversationService: _conversationService,
@@ -783,6 +913,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         attachments: attachments,
         thinkingMode: _thinkingMode,
         presetSystemPrompt: presetSystemPrompt,
+        memoryBlock: memoryBlock,
         l10n: l10n,
       ),
       onUpdate: (message) {
@@ -828,6 +959,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         }
         if (_currentConversation?.id == conversationId) {
           await _generateAutoTitle();
+          // 先同步快照消息；后续 await 期间用户可能切换会话。
+          final memoryMessages = List<Message>.from(_messages);
+          unawaited(
+            _updateMemoryInBackground(
+              conversationId: conversationId,
+              messages: memoryMessages,
+              l10n: l10n,
+            ),
+          );
         }
       },
       onError: (message) async {
@@ -1404,7 +1544,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         },
                       ),
               ),
-              if (_toolStatus != null)
+              if (_toolStatus != null || _memoryStatus != null)
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(
@@ -1418,7 +1558,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          _toolStatus!,
+                          _toolStatus ?? _memoryStatus!,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -1763,6 +1903,25 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 _openSettings();
               },
             ),
+            if (_currentConversation != null)
+              CupertinoActionSheetAction(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      CupertinoIcons.square_list,
+                      size: 20,
+                      color: primaryColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(l10n.viewMemory),
+                  ],
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                  _openMemoryViewer();
+                },
+              ),
             CupertinoActionSheetAction(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1803,6 +1962,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           ),
         );
       },
+    );
+  }
+
+  void _openMemoryViewer() {
+    final conversation = _currentConversation;
+    if (conversation == null) return;
+    Navigator.of(context).push(
+      CupertinoPageRoute(
+        builder: (_) => MemoryViewerScreen(
+          conversationId: conversation.id,
+          conversationService: _conversationService,
+        ),
+      ),
     );
   }
 

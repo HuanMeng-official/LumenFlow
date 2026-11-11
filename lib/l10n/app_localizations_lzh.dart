@@ -339,6 +339,61 @@ class AppLocalizationsLzh extends AppLocalizations {
   String get historyRoundsDesc => '靈犀所記前言之回數，宜五至二十回，過甚恐越言數之限';
 
   @override
+  String get memoryCompression => '記憶壓縮';
+
+  @override
+  String get memoryCompressionDesc => '自整長談之前情、約定與所否之策；惟存於本機';
+
+  @override
+  String get memoryCompressing => '方整記憶…';
+
+  @override
+  String memoryCompressingProgress(int current, int total) {
+    return '方整記憶 $current/$total…';
+  }
+
+  @override
+  String get memoryCompressionFailed => '整記憶未成，此番先用已存之憶';
+
+  @override
+  String get viewMemory => '觀其記憶';
+
+  @override
+  String get memoryViewerTitle => '對談記憶';
+
+  @override
+  String get memoryViewerEmptyTitle => '尚無所記';
+
+  @override
+  String get memoryViewerEmptyDesc => '長談越原文之限，靈犀自整前情、約定與所否之策。';
+
+  @override
+  String get memoryViewerSummary => '前情';
+
+  @override
+  String get memoryViewerEmotionalState => '今之關係與情';
+
+  @override
+  String get memoryViewerFacts => '當記之約定與事實';
+
+  @override
+  String get memoryViewerSupersededFacts => '已廢之約';
+
+  @override
+  String get memoryViewerRejected => '所否之策';
+
+  @override
+  String get memoryViewerReopened => '復議中';
+
+  @override
+  String memoryViewerUpdatedAt(String time) {
+    return '更新於 $time';
+  }
+
+  @override
+  String get memoryViewerLocalOnly => '記憶惟存本機，隨談自新。';
+
+  @override
   String get conversationTitle => '對談題名';
 
   @override

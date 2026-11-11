@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../models/conversation.dart';
+import '../models/conversation_memory.dart';
 import '../models/message.dart';
 import '../models/prompt_preset.dart';
 import '../l10n/app_localizations.dart';
@@ -327,6 +328,21 @@ class ConversationService {
       await _db.clearCurrentConversationId();
     }
   }
+
+  /// 读取会话记忆；不存在时返回 null。
+  Future<ConversationMemory?> getConversationMemory(
+    String conversationId,
+  ) => _db.getConversationMemory(conversationId);
+
+  /// 保存会话记忆。
+  Future<void> saveConversationMemory(
+    String conversationId,
+    ConversationMemory memory,
+  ) => _db.saveConversationMemory(conversationId, memory);
+
+  /// 删除会话记忆。
+  Future<void> deleteConversationMemory(String conversationId) =>
+      _db.deleteConversationMemory(conversationId);
 
   /// 根据ID获取对话（带缓存优化）
   Future<Conversation?> getConversationById(String id) async {

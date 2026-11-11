@@ -339,6 +339,61 @@ class AppLocalizationsJa extends AppLocalizations {
   String get historyRoundsDesc => 'AIが記憶する会話ラウンド数。推奨値: 5-20ラウンド。多すぎるとトークン制限を超える可能性があります';
 
   @override
+  String get memoryCompression => 'メモリ圧縮';
+
+  @override
+  String get memoryCompressionDesc => '長い会話の前情、約定、却下された案を自動で整理します。端末内にのみ保存されます';
+
+  @override
+  String get memoryCompressing => 'メモリを整理中…';
+
+  @override
+  String memoryCompressingProgress(int current, int total) {
+    return 'メモリを整理中 $current/$total…';
+  }
+
+  @override
+  String get memoryCompressionFailed => 'メモリの整理に失敗しました。今回は既存のメモリを使用します';
+
+  @override
+  String get viewMemory => 'メモリを表示';
+
+  @override
+  String get memoryViewerTitle => '会話メモリ';
+
+  @override
+  String get memoryViewerEmptyTitle => 'まだメモリはありません';
+
+  @override
+  String get memoryViewerEmptyDesc => '長い会話が原文のコンテキスト枠を超えると、AI が前情、約定、却下された案を自動で整理します。';
+
+  @override
+  String get memoryViewerSummary => '前情';
+
+  @override
+  String get memoryViewerEmotionalState => '現在の関係と感情';
+
+  @override
+  String get memoryViewerFacts => '覚えておくべき約定と事実';
+
+  @override
+  String get memoryViewerSupersededFacts => '廃止された約定';
+
+  @override
+  String get memoryViewerRejected => '却下された案';
+
+  @override
+  String get memoryViewerReopened => '再検討中';
+
+  @override
+  String memoryViewerUpdatedAt(String time) {
+    return '更新: $time';
+  }
+
+  @override
+  String get memoryViewerLocalOnly => 'メモリは端末内にのみ保存され、会話に合わせて自動更新されます。';
+
+  @override
   String get conversationTitle => '会話タイトル';
 
   @override

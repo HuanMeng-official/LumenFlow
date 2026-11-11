@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/conversation.dart';
+import '../models/conversation_memory.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
 import 'dart:async';
@@ -63,7 +64,9 @@ class ConversationDatabase {
   final Future<void> Function()? _beforeMigration;
 
   /// 当前数据库结构版本。
-  static const int schemaVersion = 2;
+  ///
+  /// v3 新增 `conversation_memory` 表，用于长会话的滚动记忆。
+  static const int schemaVersion = 3;
 
   Database? _db;
   Future<void>? _initFuture;
@@ -228,10 +231,6 @@ class ConversationDatabase {
 
     if (currentVersion < schemaVersion) {
       db.execute('PRAGMA user_version = $schemaVersion');
-    } else if (currentVersion == 3 && schemaVersion == 2) {
-      // v3 was used only by an unreleased development build. Fold it back
-      // into v2 now that pinning is part of the v2 schema.
-      db.execute('PRAGMA user_version = $schemaVersion');
     }
   }
 
@@ -288,6 +287,23 @@ class ConversationDatabase {
       CREATE TABLE IF NOT EXISTS settings (
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL
+      )
+    ''');
+
+    // 会话记忆表。注意：这里故意不对 conversations 建 ON DELETE CASCADE，
+    // 因为 updateConversation 使用 INSERT OR REPLACE，而 SQLite 的 REPLACE
+    // 会先删除旧行，触发级联删除，导致每次保存会话都把记忆清空。
+    // 删除会话时在 deleteConversation 里手动清理。
+    db.execute('''
+      CREATE TABLE IF NOT EXISTS conversation_memory (
+        conversation_id TEXT PRIMARY KEY,
+        summary TEXT NOT NULL DEFAULT '',
+        emotional_state TEXT NOT NULL DEFAULT '',
+        facts TEXT NOT NULL DEFAULT '[]',
+        rejected TEXT NOT NULL DEFAULT '[]',
+        covered_until_message_id TEXT,
+        fingerprint TEXT,
+        updated_at INTEGER
       )
     ''');
 
@@ -912,12 +928,138 @@ class ConversationDatabase {
     });
   }
 
-  /// 删除对话
+  /// 删除对话（连带清理记忆，因为没有用 CASCADE 外键）。
   Future<void> deleteConversation(String conversationId) async {
     await _synchronized(() async {
       final db = await this.db;
-      db.execute('DELETE FROM conversations WHERE id = ?', [conversationId]);
+      db.execute('BEGIN IMMEDIATE TRANSACTION');
+      try {
+        db.execute(
+          'DELETE FROM conversation_memory WHERE conversation_id = ?',
+          [conversationId],
+        );
+        db.execute('DELETE FROM conversations WHERE id = ?', [conversationId]);
+        db.execute('COMMIT');
+      } catch (_) {
+        db.execute('ROLLBACK');
+        rethrow;
+      }
     });
+  }
+
+  /// 读取会话记忆；不存在时返回 null。
+  Future<ConversationMemory?> getConversationMemory(
+    String conversationId,
+  ) async {
+    final db = await this.db;
+    final result = db.select(
+      'SELECT * FROM conversation_memory WHERE conversation_id = ?',
+      [conversationId],
+    );
+    if (result.isEmpty) return null;
+
+    final row = result.first;
+    return ConversationMemory(
+      summary: row['summary'] as String? ?? '',
+      emotionalState: row['emotional_state'] as String? ?? '',
+      facts: _decodeFacts(row['facts'] as String?),
+      rejected: _decodeRejected(row['rejected'] as String?),
+      coveredUntilMessageId: row['covered_until_message_id'] as String?,
+      fingerprint: row['fingerprint'] as String?,
+      updatedAt: row['updated_at'] == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(row['updated_at'] as int),
+    );
+  }
+
+  /// 写入/覆盖会话记忆。
+  ///
+  /// 会话已被删除时直接忽略，避免后台记忆更新在删除之后写回孤儿数据。
+  Future<void> saveConversationMemory(
+    String conversationId,
+    ConversationMemory memory,
+  ) async {
+    await _synchronized(() async {
+      final db = await this.db;
+      db.execute('BEGIN IMMEDIATE TRANSACTION');
+      try {
+        final existing = db.select(
+          'SELECT 1 FROM conversations WHERE id = ?',
+          [conversationId],
+        );
+        if (existing.isEmpty) {
+          db.execute('COMMIT');
+          return;
+        }
+
+        db.execute(
+          '''
+          INSERT OR REPLACE INTO conversation_memory (
+            conversation_id, summary, emotional_state, facts, rejected,
+            covered_until_message_id, fingerprint, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          ''',
+          [
+            conversationId,
+            memory.summary,
+            memory.emotionalState,
+            jsonEncode(memory.facts.map((fact) => fact.toJson()).toList()),
+            jsonEncode(
+              memory.rejected.map((entry) => entry.toJson()).toList(),
+            ),
+            memory.coveredUntilMessageId,
+            memory.fingerprint,
+            (memory.updatedAt ?? DateTime.now()).millisecondsSinceEpoch,
+          ],
+        );
+        db.execute('COMMIT');
+      } catch (_) {
+        db.execute('ROLLBACK');
+        rethrow;
+      }
+    });
+  }
+
+  /// 删除会话记忆，不影响会话本身。
+  Future<void> deleteConversationMemory(String conversationId) async {
+    await _synchronized(() async {
+      final db = await this.db;
+      db.execute(
+        'DELETE FROM conversation_memory WHERE conversation_id = ?',
+        [conversationId],
+      );
+    });
+  }
+
+  static List<MemoryFact> _decodeFacts(String? raw) {
+    if (raw == null || raw.isEmpty) return const [];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return const [];
+      return decoded
+          .whereType<Map>()
+          .map((value) => MemoryFact.fromJson(value.cast<String, dynamic>()))
+          .toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  static List<RejectedProposal> _decodeRejected(String? raw) {
+    if (raw == null || raw.isEmpty) return const [];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return const [];
+      return decoded
+          .whereType<Map>()
+          .map(
+            (value) =>
+                RejectedProposal.fromJson(value.cast<String, dynamic>()),
+          )
+          .toList();
+    } catch (_) {
+      return const [];
+    }
   }
 
   /// 更新对话标题

@@ -4,7 +4,10 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 
+import 'memory_policy.dart';
+import 'memory_service.dart';
 import 'settings_service.dart';
+import 'system_prompt_builder.dart';
 import 'tool_chat_service.dart';
 import 'user_service.dart';
 import '../ai/contracts/ai_error.dart';
@@ -310,8 +313,9 @@ class AIService {
   /// 因此它可以覆盖角色身份与文风，但不会丢掉用户的全局自定义要求。
   Future<String> _buildSystemPrompt(
     String presetSystemPrompt,
-    AppLocalizations l10n,
-  ) async {
+    AppLocalizations l10n, {
+    String memoryBlock = '',
+  }) async {
     final userProfile = await _userService.getUserProfile();
     final customSystemPrompt = await _settingsService.getCustomSystemPrompt();
 
@@ -319,37 +323,48 @@ class AIService {
     final languageRule = await _buildReplyLanguageRule(l10n);
     final baseSystemPrompt =
         '${l10n.baseSystemPrompt(userProfile.username)}\n$languageRule';
-    final sections = [
-      baseSystemPrompt,
-      if (customSystemPrompt.trim().isNotEmpty) customSystemPrompt,
-      if (presetSystemPrompt.trim().isNotEmpty) presetSystemPrompt,
-    ];
 
-    final fullSystemPrompt = sections
-        .map((section) => section.trim())
-        .where((section) => section.isNotEmpty)
-        .join('\n\n');
-
-    // 替换系统提示词中的变量占位符
-    final replaced = _replaceSystemPromptVariables(
-      fullSystemPrompt,
-      userProfile,
+    final stablePrefix = composeSystemPrompt(
+      basePrompt: _replaceSystemPromptVariables(baseSystemPrompt, userProfile),
+      customPrompt: _replaceSystemPromptVariables(
+        customSystemPrompt,
+        userProfile,
+      ),
+      presetPrompt: _replaceSystemPromptVariables(
+        presetSystemPrompt,
+        userProfile,
+      ),
     );
+
+    // 记忆放最后：更靠近对话、演变状态压过静态人设，并保留稳定前缀缓存。
+    final fullSystemPrompt = composeSystemPrompt(
+      basePrompt: stablePrefix,
+      customPrompt: '',
+      presetPrompt: '',
+      memoryBlock: memoryBlock,
+    );
+
     if (kDebugMode) {
-      // 同一会话逐轮应得到相同哈希；变化即说明前缀被动态内容污染。
+      // 记忆会按轮变化；这里只对稳定前缀做哈希，用于观察缓存是否被污染。
       debugPrint(
-        'System prompt sha256: ${sha256.convert(utf8.encode(replaced))}',
+        'System prompt prefix sha256: '
+        '${sha256.convert(utf8.encode(stablePrefix))}',
       );
     }
-    return replaced;
+    return fullSystemPrompt;
   }
 
   @visibleForTesting
   Future<String> buildSystemPromptForTest(
     String presetSystemPrompt,
-    AppLocalizations l10n,
-  ) {
-    return _buildSystemPrompt(presetSystemPrompt, l10n);
+    AppLocalizations l10n, {
+    String memoryBlock = '',
+  }) {
+    return _buildSystemPrompt(
+      presetSystemPrompt,
+      l10n,
+      memoryBlock: memoryBlock,
+    );
   }
 
   Future<String> _buildReplyLanguageRule(AppLocalizations l10n) async {
@@ -394,6 +409,7 @@ class AIService {
     List<Attachment> attachments = const [],
     bool thinkingMode = false,
     String presetSystemPrompt = '',
+    String memoryBlock = '',
     required AppLocalizations l10n,
   }) async {
     final apiKey = await _settingsService.getApiKey();
@@ -404,7 +420,11 @@ class AIService {
     final provider = await _getProvider();
     final temperature = await _settingsService.getTemperature();
     final maxTokens = await _settingsService.getMaxTokens();
-    final systemPrompt = await _buildSystemPrompt(presetSystemPrompt, l10n);
+    final systemPrompt = await _buildSystemPrompt(
+      presetSystemPrompt,
+      l10n,
+      memoryBlock: memoryBlock,
+    );
     final addTimeToPrompt = await _settingsService.getAddTimeToPrompt();
 
     // 根据设置决定是否添加当前时间信息到用户消息
@@ -423,6 +443,39 @@ class AIService {
         thinkingMode: thinkingMode,
         l10n: l10n,
       );
+    } catch (e) {
+      throw _handleError(e, l10n);
+    }
+  }
+
+  /// 生成一次记忆更新结果。
+  ///
+  /// 使用当前激活平台的非流式接口。待总结的消息块由调用方序列化进
+  /// [userPrompt]，[chatHistory] 故意传空，避免被 provider 的
+  /// `historyContextLength` 二次截断。
+  Future<String> generateMemoryUpdate({
+    required String systemPrompt,
+    required String userPrompt,
+    required AppLocalizations l10n,
+  }) async {
+    final apiKey = await _settingsService.getApiKey();
+    if (apiKey.isEmpty) {
+      throw Exception(l10n.configureApiKeyFirst);
+    }
+
+    final provider = await _getProvider();
+    try {
+      final response = await provider.sendMessage(
+        message: userPrompt,
+        chatHistory: const [],
+        attachments: const [],
+        systemPrompt: systemPrompt,
+        temperature: MemoryPolicy.updateTemperature,
+        maxTokens: MemoryPolicy.maxUpdateTokens,
+        thinkingMode: false,
+        l10n: l10n,
+      );
+      return (response['content'] as String? ?? '').trim();
     } catch (e) {
       throw _handleError(e, l10n);
     }
@@ -448,6 +501,7 @@ class AIService {
     List<Attachment> attachments = const [],
     bool thinkingMode = false,
     String presetSystemPrompt = '',
+    String memoryBlock = '',
     required AppLocalizations l10n,
   }) async* {
     final apiKey = await _settingsService.getApiKey();
@@ -457,7 +511,11 @@ class AIService {
 
     final temperature = await _settingsService.getTemperature();
     final maxTokens = await _settingsService.getMaxTokens();
-    final systemPrompt = await _buildSystemPrompt(presetSystemPrompt, l10n);
+    final systemPrompt = await _buildSystemPrompt(
+      presetSystemPrompt,
+      l10n,
+      memoryBlock: memoryBlock,
+    );
     final addTimeToPrompt = await _settingsService.getAddTimeToPrompt();
 
     try {
@@ -615,5 +673,25 @@ class AIService {
     } else {
       return Exception(l10n.networkCommunicationFailed(e.toString()));
     }
+  }
+}
+
+/// 把 [AIService] 适配成 [MemoryService] 需要的最小客户端。
+class AIServiceMemoryUpdateClient implements MemoryUpdateClient {
+  AIServiceMemoryUpdateClient(this._aiService, this._l10n);
+
+  final AIService _aiService;
+  final AppLocalizations _l10n;
+
+  @override
+  Future<String> generateMemoryUpdate({
+    required String systemPrompt,
+    required String userPrompt,
+  }) {
+    return _aiService.generateMemoryUpdate(
+      systemPrompt: systemPrompt,
+      userPrompt: userPrompt,
+      l10n: _l10n,
+    );
   }
 }

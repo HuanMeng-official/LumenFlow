@@ -339,6 +339,61 @@ class AppLocalizationsZh extends AppLocalizations {
   String get historyRoundsDesc => 'AI记住的历史对话轮数，建议5-20轮，过多可能超出Token限制';
 
   @override
+  String get memoryCompression => '记忆压缩';
+
+  @override
+  String get memoryCompressionDesc => '自动整理长对话的前情、约定和被否方案；只保存在本机';
+
+  @override
+  String get memoryCompressing => '正在整理记忆…';
+
+  @override
+  String memoryCompressingProgress(int current, int total) {
+    return '正在整理记忆 $current/$total…';
+  }
+
+  @override
+  String get memoryCompressionFailed => '记忆整理失败，本次使用已有记忆';
+
+  @override
+  String get viewMemory => '查看记忆';
+
+  @override
+  String get memoryViewerTitle => '对话记忆';
+
+  @override
+  String get memoryViewerEmptyTitle => '还没有记忆';
+
+  @override
+  String get memoryViewerEmptyDesc => '长对话超过原文窗口后，AI 会自动整理前情、约定和被否方案。';
+
+  @override
+  String get memoryViewerSummary => '前情';
+
+  @override
+  String get memoryViewerEmotionalState => '当前关系与情绪';
+
+  @override
+  String get memoryViewerFacts => '必须记住的约定与事实';
+
+  @override
+  String get memoryViewerSupersededFacts => '已废止的约定';
+
+  @override
+  String get memoryViewerRejected => '已否决的方案';
+
+  @override
+  String get memoryViewerReopened => '重新讨论中';
+
+  @override
+  String memoryViewerUpdatedAt(String time) {
+    return '更新于 $time';
+  }
+
+  @override
+  String get memoryViewerLocalOnly => '记忆只保存在本机，随对话自动更新。';
+
+  @override
   String get conversationTitle => '对话标题';
 
   @override

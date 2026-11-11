@@ -739,6 +739,108 @@ abstract class AppLocalizations {
   /// **'Number of conversation rounds AI remembers, recommended 5-20 rounds. Too many may exceed token limit'**
   String get historyRoundsDesc;
 
+  /// No description provided for @memoryCompression.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory Compression'**
+  String get memoryCompression;
+
+  /// No description provided for @memoryCompressionDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically organizes the story, agreements, and rejected proposals in long conversations; stored only on this device'**
+  String get memoryCompressionDesc;
+
+  /// No description provided for @memoryCompressing.
+  ///
+  /// In en, this message translates to:
+  /// **'Organizing memory…'**
+  String get memoryCompressing;
+
+  /// No description provided for @memoryCompressingProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Organizing memory {current}/{total}…'**
+  String memoryCompressingProgress(int current, int total);
+
+  /// No description provided for @memoryCompressionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory update failed. Using the existing memory this time'**
+  String get memoryCompressionFailed;
+
+  /// No description provided for @viewMemory.
+  ///
+  /// In en, this message translates to:
+  /// **'View Memory'**
+  String get viewMemory;
+
+  /// No description provided for @memoryViewerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversation Memory'**
+  String get memoryViewerTitle;
+
+  /// No description provided for @memoryViewerEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No memory yet'**
+  String get memoryViewerEmptyTitle;
+
+  /// No description provided for @memoryViewerEmptyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Once a long conversation exceeds the raw context window, the AI automatically organizes the story, agreements, and rejected proposals.'**
+  String get memoryViewerEmptyDesc;
+
+  /// No description provided for @memoryViewerSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Story so far'**
+  String get memoryViewerSummary;
+
+  /// No description provided for @memoryViewerEmotionalState.
+  ///
+  /// In en, this message translates to:
+  /// **'Current relationship & mood'**
+  String get memoryViewerEmotionalState;
+
+  /// No description provided for @memoryViewerFacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Agreements & facts to remember'**
+  String get memoryViewerFacts;
+
+  /// No description provided for @memoryViewerSupersededFacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Superseded agreements'**
+  String get memoryViewerSupersededFacts;
+
+  /// No description provided for @memoryViewerRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected proposals'**
+  String get memoryViewerRejected;
+
+  /// No description provided for @memoryViewerReopened.
+  ///
+  /// In en, this message translates to:
+  /// **'Under discussion again'**
+  String get memoryViewerReopened;
+
+  /// No description provided for @memoryViewerUpdatedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {time}'**
+  String memoryViewerUpdatedAt(String time);
+
+  /// No description provided for @memoryViewerLocalOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory is stored only on this device and updates automatically with the conversation.'**
+  String get memoryViewerLocalOnly;
+
   /// No description provided for @conversationTitle.
   ///
   /// In en, this message translates to:

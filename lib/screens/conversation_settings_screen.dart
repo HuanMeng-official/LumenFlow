@@ -33,6 +33,8 @@ class _ConversationSettingsScreenState
       TextEditingController();
   bool _isLoading = true;
   bool _enableHistory = SettingsService.defaultEnableHistory;
+  bool _memoryCompressionEnabled =
+      SettingsService.defaultMemoryCompressionEnabled;
   bool _autoTitleEnabled = SettingsService.defaultAutoTitleEnabled;
   int _autoTitleRounds = SettingsService.defaultAutoTitleRounds;
   String _replyLanguage = SettingsService.defaultReplyLanguage;
@@ -56,10 +58,13 @@ class _ConversationSettingsScreenState
     final autoTitleEnabled = await _settingsService.getAutoTitleEnabled();
     final autoTitleRounds = await _settingsService.getAutoTitleRounds();
     final replyLanguage = await _settingsService.getReplyLanguage();
+    final memoryCompressionEnabled =
+        await _settingsService.getMemoryCompressionEnabled();
 
     if (!mounted) return;
     setState(() {
       _enableHistory = enableHistory;
+      _memoryCompressionEnabled = memoryCompressionEnabled;
       _historyContextLengthController.text = historyContextLength.toString();
       _autoTitleEnabled = autoTitleEnabled;
       _autoTitleRounds = autoTitleRounds;
@@ -154,6 +159,14 @@ class _ConversationSettingsScreenState
     }
   }
 
+  /// 实时保存记忆压缩开关。
+  Future<void> _onMemoryCompressionChanged(bool value) async {
+    setState(() {
+      _memoryCompressionEnabled = value;
+    });
+    await _settingsService.setMemoryCompressionEnabled(value);
+  }
+
   /// 实时保存自动标题开关状态
   Future<void> _onAutoTitleEnabledChanged(bool value) async {
     setState(() {
@@ -198,7 +211,7 @@ class _ConversationSettingsScreenState
                 subtitle: l10n.enableHistoryDesc,
                 onChanged: _onEnableHistoryChanged,
               ),
-              if (_enableHistory)
+              if (_enableHistory) ...[
                 SettingsInputTile(
                   title: l10n.historyRounds,
                   controller: _historyContextLengthController,
@@ -207,6 +220,13 @@ class _ConversationSettingsScreenState
                   keyboardType: TextInputType.number,
                   onChanged: _onHistoryContextLengthChanged,
                 ),
+                SettingsSwitchTile(
+                  title: l10n.memoryCompression,
+                  value: _memoryCompressionEnabled,
+                  subtitle: l10n.memoryCompressionDesc,
+                  onChanged: _onMemoryCompressionChanged,
+                ),
+              ],
             ],
           ),
           SettingsSection(

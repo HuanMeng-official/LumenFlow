@@ -154,6 +154,34 @@
   "historyRounds": "History Rounds",
   "historyRoundsPlaceholder": "Enter number of history rounds",
   "historyRoundsDesc": "Number of conversation rounds AI remembers, recommended 5-20 rounds. Too many may exceed token limit",
+  "memoryCompression": "Memory Compression",
+  "memoryCompressionDesc": "Automatically organizes the story, agreements, and rejected proposals in long conversations; stored only on this device",
+  "memoryCompressing": "Organizing memory…",
+  "memoryCompressingProgress": "Organizing memory {current}/{total}…",
+  "@memoryCompressingProgress": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "memoryCompressionFailed": "Memory update failed. Using the existing memory this time",
+  "viewMemory": "View Memory",
+  "memoryViewerTitle": "Conversation Memory",
+  "memoryViewerEmptyTitle": "No memory yet",
+  "memoryViewerEmptyDesc": "Once a long conversation exceeds the raw context window, the AI automatically organizes the story, agreements, and rejected proposals.",
+  "memoryViewerSummary": "Story so far",
+  "memoryViewerEmotionalState": "Current relationship & mood",
+  "memoryViewerFacts": "Agreements & facts to remember",
+  "memoryViewerSupersededFacts": "Superseded agreements",
+  "memoryViewerRejected": "Rejected proposals",
+  "memoryViewerReopened": "Under discussion again",
+  "memoryViewerUpdatedAt": "Updated {time}",
+  "@memoryViewerUpdatedAt": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "memoryViewerLocalOnly": "Memory is stored only on this device and updates automatically with the conversation.",
   "conversationTitle": "Conversation Title",
   "autoGenerateTitle": "Auto Generate Title",
   "autoGenerateTitleDesc": "After several rounds of conversation, AI will automatically generate title based on content",
