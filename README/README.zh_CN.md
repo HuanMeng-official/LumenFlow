@@ -1,6 +1,6 @@
 ![LumenFlow](./img/cover.png)
 
-> 基于 Flutter 构建的本地优先跨平台 AI 聊天客户端：13 个 AI 平台、流式对话、工具调用、MCP、SQLite 本地存储，以及完整的中文 PDF 支持。
+> 基于 Flutter 构建的本地优先跨平台 AI 聊天客户端：13 个 AI 平台、流式对话、工具调用、MCP、角色预设、带数学公式和语法高亮的 Markdown、SQLite 本地存储，以及完整的中文 PDF 支持。
 
 [English Version](../README.md) | [中文版本](./README.zh_CN.md)
 
@@ -21,6 +21,8 @@ LumenFlow（中文名：流光）是一款使用 Flutter 构建的 AI 聊天应�
 - **模型列表刷新**：从支持的平台 API 拉取模型并选择默认模型。
 - **流式响应**：逐步输出正文和思考内容。
 - **思考模式**：在模型支持时展示推理摘要。
+- **回复语言**：可跟随界面、跟随用户输入，或指定语言；角色卡自带的语言和文风优先。
+- **Claude 提示词缓存**：稳定的系统提示词以 content block 形式发送，并带 `cache_control: ephemeral`。
 - **自动标题**：根据最近消息自动生成对话标题。
 - **重试与取消**：网络错误指数退避重试；流式请求和工具循环支持取消。
 
@@ -40,9 +42,10 @@ LumenFlow（中文名：流光）是一款使用 Flutter 构建的 AI 聊天应�
 ### 数据与导出
 
 - **SQLite 存储**：外键、索引、事务和 SharedPreferences 自动迁移。
-- **对话管理**：历史列表、编辑、重新生成、重新提交、删除和对话级设置。
+- **对话管理**：历史列表、消息搜索、编辑、重新生成、重新提交、删除和对话级设置。
 - **附件处理**：图片、视频、音频、PDF 和文本内容提取。
-- **导出格式**：TXT、JSON、PDF、LumenFlow 压缩包。
+- **导出格式**：TXT、JSON、PDF、LumenFlow 压缩包。JSON 和 LumenFlow 导出可选附带当前用户角色卡正文。
+- **对话导入**：支持 LumenFlow 压缩包；本地缺少角色卡时，可从内嵌快照确认重建。
   - [LumenFlow 格式说明](./LumenFlow格式解析.md)
 - **PDF 导出**：嵌入 Noto Sans SC，按实际使用字符做字体子集，中文不再乱码。
 - **设置备份**：导出/导入 JSON 设置，恢复默认设置。
@@ -51,9 +54,10 @@ LumenFlow（中文名：流光）是一款使用 Flutter 构建的 AI 聊天应�
 
 - **Cupertino 风格界面**：支持亮色、暗色和跟随系统主题。
 - **用户资料**：头像、用户名、性别、生日。
-- **预设提示词与角色扮演**：多语言 XML 角色卡从 assets 加载。
+- **预设提示词与角色扮演**：内置多语言角色卡，支持导入 XML/TXT 用户预设、编辑元数据、语言/标签筛选、token 估算、重复检测和会话快照。
 - **角色卡生成器**：内置网页生成器，由本地 HTTP 服务提供。
-- **Markdown 与代码块**：Markdown 渲染和代码块复制。
+- **Markdown 增强**：代码块支持 Night Owl 语法高亮、复制/下载，行内代码独立配色，并支持行内与块级数学公式。
+- **自适应布局**：桌面端默认两栏；窗口变窄时自动退回单栏。
 - **本地通知与实时更新**：重要事件通知和 Live Update 支持。
 - **本地优先**：对话内容和 API Key 保存在设备本地。
 
@@ -104,22 +108,28 @@ lib/
 │   └── transport/
 │       └── sse_decoder.dart          # 增量 SSE 解析
 ├── controllers/
+│   ├── chat_screen_controller.dart   # 桌面壳与嵌入聊天区的窄接口
 │   └── chat_send_controller.dart     # 单次流式发送生命周期
 ├── l10n/                             # ARB 文件和生成的本地化代码
-├── models/                           # 对话、消息、附件、平台、用户资料模型
+├── models/                           # 对话、消息、附件、平台、用户资料、预设模型
 ├── providers/                        # 各平台普通聊天/流式 Provider
-├── screens/                          # 聊天、对话、设置、工具、资料、赞助页面
+├── screens/                          # 聊天、对话、设置、工具、资料、预设管理页面
 ├── services/
 │   ├── ai_service.dart               # Provider 选择和普通聊天路径
 │   ├── tool_chat_service.dart        # 带工具的平台回合
 │   ├── conversation_database.dart    # SQLite 与数据迁移
-│   ├── conversation_service.dart     # 对话 CRUD 与导出
+│   ├── conversation_service.dart     # 对话 CRUD、导入导出与快照
+│   ├── prompt_service.dart           # 预设加载、schema 迁移、角色卡校验
+│   ├── preset_repository.dart        # 聊天与设置共享的预设状态
 │   ├── settings_service.dart         # 设置与当前平台快照
-│   └── ...                           # 文件、提示词、通知、实时更新、HTTP 服务
+│   └── ...                           # 文件、通知、实时更新、HTTP 服务
 ├── utils/
 │   ├── app_theme.dart                # Cupertino/Material 主题和字体
+│   ├── code_highlight_theme.dart     # Night Owl 语法高亮主题
+│   ├── markdown_math.dart            # 行内/块级数学公式预处理与构建
+│   ├── preset_*.dart                 # 预设筛选、图标、标签、token 估算
 │   └── path_utils.dart               # 跨平台数据目录
-└── widgets/                          # 聊天输入、消息气泡、头像、设置组件
+└── widgets/                          # 聊天输入、消息气泡、预设编辑、头像、设置组件
 ```
 
 ## 关键依赖
@@ -133,10 +143,12 @@ lib/
 | `file_picker` / `image_picker` | 文件和图片选择 |
 | `pdf` / `archive` | PDF 生成和 LumenFlow 压缩包导出 |
 | `flutter_markdown_plus` | Markdown 渲染 |
+| `flutter_highlight` | 代码块语法高亮 |
+| `flutter_math_fork` | 行内与块级数学公式排版 |
+| `crypto` / `xml` | 预设内容哈希与 XML 角色卡校验 |
 | `flutter_svg` | 平台图标和矢量 UI 资源 |
 | `flutter_local_notifications` | 本地通知 |
 | `window_manager` | 桌面窗口配置 |
-| `auto_orientation_v2` | 移动端屏幕方向控制 |
 | `flutter_localizations` / `intl` | 基于 ARB 的本地化 |
 
 ## 架构
@@ -158,6 +170,7 @@ UI（screens/widgets）
 - **工具层**：`ToolChatService` 和 `AgentRunner` 执行模型/工具循环；`CompositeToolExecutor` 合并内置工具和已启用的 MCP 工具。
 - **协议层**：每类平台有独立的流式和工具适配器，负责请求构造和事件映射。
 - **数据层**：SQLite 保存对话、消息、附件；`SettingsService` 管理配置和当前平台解析。
+- **预设层**：`PromptService` 加载内置多语言角色卡和 schema v2 用户预设；`PresetRepository` 在聊天页与设置页之间共享加载状态。
 - **本地化层**：由 ARB 文件生成 `AppLocalizations`。
 
 ### Provider 协议适配
@@ -190,12 +203,28 @@ MCP 工具会带上服务器前缀，避免不同服务器的同名工具冲突�
 
 ## 预设提示词
 
-角色扮演系统按语言加载基于文件的预设：
+角色扮演预设由一份元数据和一份可选的角色卡正文组成。
 
-- `assets/prompt/presets-*.json` 保存预设元数据。
-- `system_prompt` 指向 `assets/prompt/characters/<locale>/` 下的 XML/TXT 文件。
-- 支持 `${userProfile.username}` 变量替换。
-- 提供中文、英文、日文、韩文和西班牙文预设。
+### 内置预设
+
+- `assets/prompt/presets-<locale>.json` 保存元数据；`prompt_file` 指向 `assets/prompt/characters/<locale>/` 下的 XML 角色卡。
+- 语言回退链为 `lzh → zh → en`，其他语言回退到 `en → zh`。角色卡缺失时会在管理页显示为“不可用”，不再静默消失。
+- 内置元数据提供中文、英文、日文、韩文和西班牙文五个版本。
+
+### 用户预设
+
+- 在 **设置 → 预设管理** 导入 XML 或 TXT 角色卡。文件上限 200 KB，会校验 UTF-8、XML 结构和根节点，并读取可选的 `<role_name>`。
+- 可编辑名称、描述、作者、版本、图标、语言和标签；导入弹窗会显示 token 估算，超过 4,000 / 8,000 tokens 时给出成本提示。
+- 使用规范化正文的 SHA-256 做重复检测；重复导入需要二次确认。
+- 预设支持复制、导出、删除，以及按语言或标签筛选。
+- 用户数据保存在 `user_prompts/`：`user_presets.json`（schema v2）和角色卡文件。旧版 v1 数据会自动备份并迁移。
+- schema v2 将内联 `system_prompt` 和 `prompt_file` 分开，持久化语言、标签、时间戳和内容哈希，单条损坏不会影响其他预设，加载问题会在管理页集中展示。
+
+### 提示词拼接
+
+- 最终系统提示词按“本地化基础规则 → 回复语言规则 → 用户自定义提示 → 角色预设”拼接。
+- 预设支持 `${userProfile.username}`、`${userProfile.gender}` 和 `${userProfile.birthday}` 变量替换。
+- AI 回复语言可跟随界面、跟随用户输入或指定语言；角色卡自带的语言和文风优先。
 
 角色卡生成器由应用内置的本地 HTTP 服务提供（`HttpServerService`，回环地址端口 5050）。
 
@@ -209,6 +238,11 @@ SQLite 数据库位置：
 - **iOS**：应用数据容器内的 `Library/Application Support/conversations.db`。
 
 表：`conversations`、`messages`、`attachments` 以及应用元数据/设置。
+
+用户预设保存在数据库同级的 `user_prompts/` 目录：
+
+- `user_presets.json`：schema v2 元数据。
+- `<preset-id>.xml` / `.txt`：角色卡正文。
 
 所有对话、API Key 和用户资料都保存在设备本地。需要备份时使用设置导出功能。
 
@@ -279,6 +313,7 @@ Android release 签名从 `android/key.properties` 读取。
 - 网络失败、超时、TLS/Socket 错误以及 HTTP 429/5xx 会在安全范围内按指数退避重试。
 - 工具调用失败会尽量作为工具结果返回给模型，而不是直接中断整个回合。
 - 各平台错误会映射为对应语言的本地化消息。
+- 预设加载问题（JSON 损坏、单条数据无效、角色卡缺失或不可读）会集中收集并在预设管理页展示，不会阻断启动。
 - 取消操作会传递到流式读取和工具执行。
 
 ## 许可证
@@ -289,7 +324,7 @@ Android release 签名从 `android/key.properties` 读取。
 
 ## 贡献
 
-欢迎提交 Issue 和 Pull Request。请保持改动聚焦，运行 `flutter analyze`，并在修改 Provider 或协议实现时附上对应官方 API 文档链接。
+欢迎提交 Issue 和 Pull Request。请保持改动聚焦，运行 `flutter analyze` 和 `flutter test`，并在修改 Provider 或协议实现时附上对应官方 API 文档链接。
 
 ## 致谢
 
