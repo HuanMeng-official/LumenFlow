@@ -11,6 +11,7 @@ import '../models/attachment.dart';
 import '../models/prompt_preset.dart';
 import '../utils/app_theme.dart';
 import '../utils/preset_icons.dart';
+import 'attachment_preview_chip.dart';
 import 'preset_unavailable_dialog.dart';
 
 class ChatInput extends StatefulWidget {
@@ -454,110 +455,6 @@ class _ChatInputState extends State<ChatInput> {
     _updateAttachments([]);
   }
 
-  Widget _buildAttachmentPreview(Attachment attachment) {
-    final isImage = attachment.type == AttachmentType.image;
-    final hasLocalFile =
-        attachment.filePath != null && attachment.filePath!.isNotEmpty;
-
-    return Container(
-      margin: const EdgeInsets.only(right: 8, bottom: 8),
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: CupertinoColors.systemGrey6,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (isImage && hasLocalFile)
-            _buildImageThumbnail(attachment.filePath!)
-          else
-            Icon(
-              _getAttachmentIcon(attachment.type),
-              size: 16,
-              color: CupertinoColors.systemGrey,
-            ),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.15,
-                child: Text(
-                  attachment.fileName,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 12),
-                ),
-              ),
-              Text(
-                _formatFileSize(attachment.fileSize ?? 0),
-                style: TextStyle(
-                  fontSize: 10,
-                  color: CupertinoColors.systemGrey,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 8),
-          CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: () => _removeAttachment(attachment),
-            child: const Icon(
-              CupertinoIcons.xmark,
-              size: 14,
-              color: CupertinoColors.systemGrey,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildImageThumbnail(String filePath) {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: CupertinoColors.systemGrey4, width: 1),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(6),
-        child: Image.file(
-          File(filePath),
-          fit: BoxFit.cover,
-          cacheWidth: 80,
-          cacheHeight: 80,
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              alignment: Alignment.center,
-              child: Icon(
-                _getAttachmentIcon(AttachmentType.image),
-                size: 16,
-                color: CupertinoColors.systemGrey,
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  IconData _getAttachmentIcon(AttachmentType type) {
-    switch (type) {
-      case AttachmentType.image:
-        return CupertinoIcons.photo;
-      case AttachmentType.document:
-        return CupertinoIcons.doc;
-      case AttachmentType.audio:
-        return CupertinoIcons.music_note;
-      case AttachmentType.video:
-        return CupertinoIcons.videocam;
-      case AttachmentType.other:
-        return CupertinoIcons.paperclip;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -580,7 +477,15 @@ class _ChatInputState extends State<ChatInput> {
             Container(
               padding: const EdgeInsets.only(bottom: 8),
               child: Wrap(
-                children: _attachments.map(_buildAttachmentPreview).toList(),
+                children: _attachments
+                    .map(
+                      (attachment) => AttachmentPreviewChip(
+                        attachment: attachment,
+                        sizeLabel: _formatFileSize(attachment.fileSize ?? 0),
+                        onRemove: () => _removeAttachment(attachment),
+                      ),
+                    )
+                    .toList(),
               ),
             ),
           // 输入区域
