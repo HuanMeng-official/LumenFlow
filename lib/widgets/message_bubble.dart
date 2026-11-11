@@ -5,8 +5,6 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_highlight/flutter_highlight.dart';
-import 'package:flutter_highlight/themes/atom-one-dark.dart';
-import 'package:flutter_highlight/themes/github.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:markdown/markdown.dart' as md;
@@ -18,6 +16,7 @@ import '../models/user_profile.dart';
 import '../screens/image_preview_screen.dart';
 import '../utils/app_theme.dart';
 import '../utils/code_download.dart';
+import '../utils/code_highlight_theme.dart';
 import '../utils/file_save_utils.dart';
 import '../utils/markdown_math.dart';
 import 'avatar_widget.dart';
@@ -196,16 +195,6 @@ class __CodeBlockWithCopyButtonState extends State<_CodeBlockWithCopyButton> {
     );
   }
 
-  Map<String, TextStyle> _highlightTheme(Brightness brightness) {
-    final theme = Map<String, TextStyle>.from(
-      brightness == Brightness.dark ? atomOneDarkTheme : githubTheme,
-    );
-    theme['root'] = (theme['root'] ?? const TextStyle()).copyWith(
-      backgroundColor: Colors.transparent,
-    );
-    return theme;
-  }
-
   Future<void> _downloadCode() async {
     final l10n = AppLocalizations.of(widget.context)!;
     final extension = codeFileExtension(widget.language);
@@ -349,7 +338,7 @@ class __CodeBlockWithCopyButtonState extends State<_CodeBlockWithCopyButton> {
                 widget.codeContent,
                 language: widget.language,
                 padding: EdgeInsets.zero,
-                theme: _highlightTheme(brightness),
+                theme: codeHighlightTheme(brightness),
                 textStyle: TextStyle(
                   fontSize: 15,
                   height: 1.4,
