@@ -394,6 +394,39 @@ class AppLocalizationsKo extends AppLocalizations {
   String get memoryViewerLocalOnly => '메모리는 기기에만 저장되며 대화에 따라 자동 업데이트됩니다.';
 
   @override
+  String get memoryTools => '메모리 도구';
+
+  @override
+  String get memoryToolsAvailability => '메모리 압축과 함께 자동으로 활성화됩니다. 별도 스위치는 없습니다.';
+
+  @override
+  String get memoryToolsAuto => '자동';
+
+  @override
+  String get memoryNoteToolName => '기억 메모';
+
+  @override
+  String get memoryNoteToolDesc => '대화 중 약속, 사실, 감정 전환, 거부된 안을 기록합니다. 다음 정리 시 메모리에 병합됩니다.';
+
+  @override
+  String get memoryRecallToolName => '과거 기억 검색';
+
+  @override
+  String get memoryRecallToolDesc => '키워드로 원문 창 밖의 과거 메시지와 전체 메모리 장부를 검색합니다. 과거 메시지가 창 밖으로 나가면 사용할 수 있습니다.';
+
+  @override
+  String get memoryNoteToolCalling => '모델이 기억을 기록하는 중…';
+
+  @override
+  String get memoryNoteToolDone => '기억이 기록되었습니다';
+
+  @override
+  String get memoryRecallToolCalling => '모델이 과거 기억을 검색하는 중…';
+
+  @override
+  String get memoryRecallToolDone => '검색 완료';
+
+  @override
   String get conversationTitle => '대화 제목';
 
   @override

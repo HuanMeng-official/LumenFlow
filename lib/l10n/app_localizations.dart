@@ -841,6 +841,72 @@ abstract class AppLocalizations {
   /// **'Memory is stored only on this device and updates automatically with the conversation.'**
   String get memoryViewerLocalOnly;
 
+  /// No description provided for @memoryTools.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory Tools'**
+  String get memoryTools;
+
+  /// No description provided for @memoryToolsAvailability.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled automatically with Memory Compression; no separate switch.'**
+  String get memoryToolsAvailability;
+
+  /// No description provided for @memoryToolsAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get memoryToolsAuto;
+
+  /// No description provided for @memoryNoteToolName.
+  ///
+  /// In en, this message translates to:
+  /// **'Remember Note'**
+  String get memoryNoteToolName;
+
+  /// No description provided for @memoryNoteToolDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Records agreements, facts, emotional turns, or rejected proposals during the conversation; merged into memory on the next maintenance pass.'**
+  String get memoryNoteToolDesc;
+
+  /// No description provided for @memoryRecallToolName.
+  ///
+  /// In en, this message translates to:
+  /// **'Recall'**
+  String get memoryRecallToolName;
+
+  /// No description provided for @memoryRecallToolDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Searches older messages and the full memory ledger by keyword; available once messages fall outside the raw window.'**
+  String get memoryRecallToolDesc;
+
+  /// No description provided for @memoryNoteToolCalling.
+  ///
+  /// In en, this message translates to:
+  /// **'The model is saving a memory note…'**
+  String get memoryNoteToolCalling;
+
+  /// No description provided for @memoryNoteToolDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory note saved'**
+  String get memoryNoteToolDone;
+
+  /// No description provided for @memoryRecallToolCalling.
+  ///
+  /// In en, this message translates to:
+  /// **'The model is searching older memory…'**
+  String get memoryRecallToolCalling;
+
+  /// No description provided for @memoryRecallToolDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory search complete'**
+  String get memoryRecallToolDone;
+
   /// No description provided for @conversationTitle.
   ///
   /// In en, this message translates to:

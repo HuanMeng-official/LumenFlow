@@ -1096,8 +1096,20 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           return;
         }
         final name = event['name'] as String? ?? '';
-        if (name == MemoryNoteTool.toolName ||
-            name == MemoryRecallTool.toolName) {
+        if (name == MemoryNoteTool.toolName) {
+          setState(() {
+            _toolStatus = type == 'tool_call'
+                ? l10n.memoryNoteToolCalling
+                : l10n.memoryNoteToolDone;
+          });
+          return;
+        }
+        if (name == MemoryRecallTool.toolName) {
+          setState(() {
+            _toolStatus = type == 'tool_call'
+                ? l10n.memoryRecallToolCalling
+                : l10n.memoryRecallToolDone;
+          });
           return;
         }
         setState(() {

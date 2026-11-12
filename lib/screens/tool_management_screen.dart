@@ -409,6 +409,32 @@ class _ToolManagementScreenState extends State<ToolManagementScreen> {
     );
   }
 
+  Widget _memoryToolTile(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    final l10n = AppLocalizations.of(context)!;
+    final primaryColor = CupertinoTheme.of(context).primaryColor;
+    return CupertinoListTile(
+      leading: Icon(icon, color: primaryColor),
+      title: Text(title),
+      subtitle: Text(subtitle),
+      trailing: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: CupertinoColors.systemGrey6.resolveFrom(context),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          l10n.memoryToolsAuto,
+          style: const TextStyle(fontSize: 12),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -426,6 +452,30 @@ class _ToolManagementScreenState extends State<ToolManagementScreen> {
       embedded: widget.embedded,
       child: ListView(
         children: [
+            SettingsSection(
+              title: l10n.memoryTools,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                  child: Text(
+                    l10n.memoryToolsAvailability,
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ),
+                _memoryToolTile(
+                  context,
+                  icon: CupertinoIcons.bookmark,
+                  title: l10n.memoryNoteToolName,
+                  subtitle: l10n.memoryNoteToolDesc,
+                ),
+                _memoryToolTile(
+                  context,
+                  icon: CupertinoIcons.search,
+                  title: l10n.memoryRecallToolName,
+                  subtitle: l10n.memoryRecallToolDesc,
+                ),
+              ],
+            ),
             SettingsSection(
               title: l10n.promptTools,
               children: [

@@ -394,6 +394,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get memoryViewerLocalOnly => 'Memory is stored only on this device and updates automatically with the conversation.';
 
   @override
+  String get memoryTools => 'Memory Tools';
+
+  @override
+  String get memoryToolsAvailability => 'Enabled automatically with Memory Compression; no separate switch.';
+
+  @override
+  String get memoryToolsAuto => 'Auto';
+
+  @override
+  String get memoryNoteToolName => 'Remember Note';
+
+  @override
+  String get memoryNoteToolDesc => 'Records agreements, facts, emotional turns, or rejected proposals during the conversation; merged into memory on the next maintenance pass.';
+
+  @override
+  String get memoryRecallToolName => 'Recall';
+
+  @override
+  String get memoryRecallToolDesc => 'Searches older messages and the full memory ledger by keyword; available once messages fall outside the raw window.';
+
+  @override
+  String get memoryNoteToolCalling => 'The model is saving a memory note…';
+
+  @override
+  String get memoryNoteToolDone => 'Memory note saved';
+
+  @override
+  String get memoryRecallToolCalling => 'The model is searching older memory…';
+
+  @override
+  String get memoryRecallToolDone => 'Memory search complete';
+
+  @override
   String get conversationTitle => 'Conversation Title';
 
   @override

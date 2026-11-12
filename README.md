@@ -221,6 +221,7 @@ Open **Settings → Tool Management** to:
 - Enable or disable built-in tools.
 - Add MCP servers with a Streamable HTTP JSON-RPC endpoint and optional custom headers.
 - Review which platforms support tool calling.
+- Memory Tools (`remember_note` and `recall`) are shown at the top as automatic, read-only tools. They have no separate switch and follow the Memory Compression setting.
 
 MCP tools are exposed with a server-specific prefix so tools from different servers do not collide.
 

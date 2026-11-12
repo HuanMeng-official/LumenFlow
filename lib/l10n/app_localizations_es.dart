@@ -394,6 +394,39 @@ class AppLocalizationsEs extends AppLocalizations {
   String get memoryViewerLocalOnly => 'La memoria solo se guarda en este dispositivo y se actualiza con la conversación.';
 
   @override
+  String get memoryTools => 'Herramientas de memoria';
+
+  @override
+  String get memoryToolsAvailability => 'Se activan automáticamente con la compresión de memoria; no tienen un interruptor propio.';
+
+  @override
+  String get memoryToolsAuto => 'Automático';
+
+  @override
+  String get memoryNoteToolName => 'Nota de memoria';
+
+  @override
+  String get memoryNoteToolDesc => 'Registra acuerdos, hechos, giros emocionales o propuestas rechazadas durante la conversación; se integran en la memoria en el siguiente mantenimiento.';
+
+  @override
+  String get memoryRecallToolName => 'Recuperar memoria';
+
+  @override
+  String get memoryRecallToolDesc => 'Busca por palabra clave mensajes antiguos fuera de la ventana y el registro completo de memoria; disponible cuando hay mensajes fuera de la ventana.';
+
+  @override
+  String get memoryNoteToolCalling => 'El modelo está guardando una nota de memoria…';
+
+  @override
+  String get memoryNoteToolDone => 'Nota de memoria guardada';
+
+  @override
+  String get memoryRecallToolCalling => 'El modelo está buscando en la memoria antigua…';
+
+  @override
+  String get memoryRecallToolDone => 'Búsqueda de memoria completada';
+
+  @override
   String get conversationTitle => 'Título de la conversación';
 
   @override

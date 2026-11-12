@@ -221,6 +221,7 @@ UI（screens/widgets）
 - 启用/禁用内置工具。
 - 添加 MCP 服务器，填写 Streamable HTTP JSON-RPC 端点和可选自定义请求头。
 - 查看哪些平台支持工具调用。
+- 记忆工具（`remember_note`、`recall`）显示在顶部，只读展示，不单独提供开关，随「记忆压缩」自动启用。
 
 MCP 工具会带上服务器前缀，避免不同服务器的同名工具冲突。
 

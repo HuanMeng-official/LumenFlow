@@ -394,6 +394,39 @@ class AppLocalizationsJa extends AppLocalizations {
   String get memoryViewerLocalOnly => 'メモリは端末内にのみ保存され、会話に合わせて自動更新されます。';
 
   @override
+  String get memoryTools => 'メモリツール';
+
+  @override
+  String get memoryToolsAvailability => 'メモリ圧縮と連動して自動的に有効になります。個別のスイッチはありません。';
+
+  @override
+  String get memoryToolsAuto => '自動';
+
+  @override
+  String get memoryNoteToolName => '記憶メモ';
+
+  @override
+  String get memoryNoteToolDesc => '会話中に約定、事実、感情の転換、却下された案を記録します。次回の整理時にメモリへ統合されます。';
+
+  @override
+  String get memoryRecallToolName => '過去の記憶を検索';
+
+  @override
+  String get memoryRecallToolDesc => 'キーワードで原文ウィンドウ外の過去メッセージと完全なメモリ台帳を検索します。過去メッセージがウィンドウ外に出ると利用できます。';
+
+  @override
+  String get memoryNoteToolCalling => 'モデルが記憶を記録しています…';
+
+  @override
+  String get memoryNoteToolDone => '記憶を記録しました';
+
+  @override
+  String get memoryRecallToolCalling => 'モデルが過去の記憶を検索しています…';
+
+  @override
+  String get memoryRecallToolDone => '検索が完了しました';
+
+  @override
   String get conversationTitle => '会話タイトル';
 
   @override
