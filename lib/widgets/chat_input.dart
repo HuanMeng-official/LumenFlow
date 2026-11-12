@@ -387,6 +387,7 @@ class _ChatInputState extends State<ChatInput> {
             try {
               final attachment = await _fileService.saveFileAndCreateAttachment(
                 file,
+                displayName: platformFile.name,
               );
               if (attachment != null) {
                 attachments.add(attachment);

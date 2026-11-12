@@ -7,13 +7,16 @@ import '../models/attachment.dart';
 
 class FileService {
   int _importedAttachmentCounter = 0;
+  int _attachmentCounter = 0;
 
   Future<String> saveAttachment(File file) async {
     final attachmentsDirPath = await PathUtils.getAttachmentsDirPath();
     final attachmentsDir = Directory(attachmentsDirPath);
 
+    final stamp = DateTime.now().microsecondsSinceEpoch;
+    final counter = _attachmentCounter++;
     final fileName =
-        'attachment_${DateTime.now().millisecondsSinceEpoch}${path.extension(file.path)}';
+        'attachment_${stamp}_$counter${path.extension(file.path)}';
     final savedFile = File('${attachmentsDir.path}/$fileName');
 
     await file.copy(savedFile.path);
@@ -44,9 +47,12 @@ class FileService {
     }
   }
 
-  Future<Attachment> createAttachmentFromFile(File file) async {
+  Future<Attachment> createAttachmentFromFile(
+    File file, {
+    String? displayName,
+  }) async {
     final stats = await file.stat();
-    final fileName = path.basename(file.path);
+    final fileName = displayName ?? path.basename(file.path);
     final extension = path.extension(file.path).toLowerCase();
 
     String? mimeType;
@@ -77,7 +83,7 @@ class FileService {
     }
 
     return Attachment(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: '${DateTime.now().microsecondsSinceEpoch}_${_attachmentCounter++}',
       fileName: fileName,
       filePath: file.path,
       type: Attachment.getTypeFromFile(file),
@@ -86,11 +92,17 @@ class FileService {
     );
   }
 
-  Future<Attachment?> saveFileAndCreateAttachment(File file) async {
+  Future<Attachment?> saveFileAndCreateAttachment(
+    File file, {
+    String? displayName,
+  }) async {
     try {
       final savedPath = await saveAttachment(file);
       final savedFile = File(savedPath);
-      return await createAttachmentFromFile(savedFile);
+      return await createAttachmentFromFile(
+        savedFile,
+        displayName: displayName,
+      );
     } catch (e) {
       return null;
     }

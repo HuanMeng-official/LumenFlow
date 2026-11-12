@@ -17,9 +17,11 @@ import '../ai/mcp/mcp_models.dart';
 import '../ai/mcp/mcp_tool_manager.dart';
 import '../ai/providers/chat_completions_profile.dart';
 import '../ai/providers/responses_tool_provider.dart';
+import '../ai/tools/attachment_tool_context.dart';
 import '../ai/tools/builtin_calculator_tool.dart';
 import '../ai/tools/builtin_date_math_tool.dart';
 import '../ai/tools/builtin_lunar_calendar_tool.dart';
+import '../ai/tools/builtin_read_attachment_tool.dart';
 import '../ai/tools/builtin_text_tools.dart';
 import '../ai/tools/builtin_time_tool.dart';
 import '../ai/tools/builtin_unit_convert_tool.dart';
@@ -175,6 +177,7 @@ class AIService {
     required bool dateMathEnabled,
     required bool unitConvertEnabled,
     required bool lunarCalendarEnabled,
+    AttachmentToolContext? attachmentContext,
     McpToolManager? manager,
   }) {
     return CompositeToolExecutor([
@@ -187,6 +190,8 @@ class AIService {
       if (dateMathEnabled) BuiltInDateMathTool(),
       if (unitConvertEnabled) BuiltInUnitConvertTool(),
       if (lunarCalendarEnabled) BuiltInLunarCalendarTool(),
+      if (attachmentContext != null)
+        BuiltInReadAttachmentTool(context: attachmentContext),
       ?manager,
     ]);
   }
@@ -529,7 +534,11 @@ class AIService {
 
     try {
       final config = await _settingsService.getActivePlatformConfig();
-      if (attachments.isEmpty && _supportsTools(config.apiType)) {
+      final attachmentContext = AttachmentToolContext.fromTextAttachments(
+        attachments,
+      );
+      if ((attachments.isEmpty || attachmentContext != null) &&
+          _supportsTools(config.apiType)) {
         final servers = await _settingsService.getMcpServers();
         if (servers.any((server) => server.enabled)) {
           yield {'type': 'tool_status', 'message': '正在发现 MCP 工具...'};
@@ -562,6 +571,7 @@ class AIService {
           dateMathEnabled: dateMathEnabled,
           unitConvertEnabled: unitConvertEnabled,
           lunarCalendarEnabled: lunarCalendarEnabled,
+          attachmentContext: attachmentContext,
           manager: manager,
         );
         if (executor.tools.isNotEmpty) {
@@ -571,10 +581,15 @@ class AIService {
           final toolService =
               _toolChatServiceFactory?.call(executor) ??
               ToolChatService(executor: executor);
+          final toolMessage = attachmentContext == null
+              ? message
+              : message.trim().isEmpty
+                  ? attachmentContext.manifest
+                  : '$message\n\n${attachmentContext.manifest}';
           yield* toolService.run(
             config: config,
             // 时间由内置工具提供，工具路径不再把时间拼进用户消息。
-            message: message,
+            message: toolMessage,
             history: chatHistory,
             systemPrompt: systemPrompt,
             temperature: temperature,
@@ -587,7 +602,7 @@ class AIService {
         }
       }
 
-      // 工具调用不可用时（附件请求或不支持工具的模型）保留提示词时间兜底。
+      // 工具调用不可用时（非文本附件或不支持工具的模型）保留提示词时间兜底。
       final messageToSend = addTimeToPrompt
           ? '$message\n\n${l10n.currentTime}${TimeUtils.now()}'
           : message;

@@ -31,6 +31,7 @@ LumenFlow (Chinese: 流光) is a Flutter-based AI chat application for Android, 
 - **Built-in tools**: current time, date math, Chinese lunar calendar conversion, calculator, text comparison, text statistics, and unit conversion.
 - **MCP tools**: connect Streamable HTTP MCP servers, discover their tools, and expose them to the model.
 - **Unified tool loop**: `AgentRunner` alternates model turns and tool executions with a bounded iteration budget.
+- **Attachment-aware tool mode**: text attachments are listed in a compact manifest with request-scoped ids, and `builtin__read_attachment` reads their content on demand with paging. Tool-enabled chats no longer fall back to a text-only provider request when text files are attached.
 - **Parallel tool calls**: multiple function calls in one model turn are executed and returned together.
 - **Protocol-aware adapters**:
   - Chat Completions: DeepSeek, Kimi, MiniMax, Zhipu, SiliconFlow, Xiaomi MiMo, Other
