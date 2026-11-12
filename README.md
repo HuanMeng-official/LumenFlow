@@ -241,7 +241,7 @@ Memory is stored only on the device and is included in conversation JSON/LumenFl
 
 Role-play presets pair a small metadata record with an optional character-card body.
 
-### Built-in presets
+### [Built-in presets](./README/presets.md)
 
 - `assets/prompt/presets-<locale>.json` contains metadata; `prompt_file` points to XML cards under `assets/prompt/characters/<locale>/`.
 - Locale fallback is `lzh → zh → en`; other locales fall back to `en → zh`. Missing cards are shown as unavailable instead of disappearing silently.

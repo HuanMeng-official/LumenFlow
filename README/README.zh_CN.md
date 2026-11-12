@@ -241,7 +241,7 @@ MCP 工具会带上服务器前缀，避免不同服务器的同名工具冲突�
 
 角色扮演预设由一份元数据和一份可选的角色卡正文组成。
 
-### 内置预设
+### [内置预设](./presets.zh_CN.md)
 
 - `assets/prompt/presets-<locale>.json` 保存元数据；`prompt_file` 指向 `assets/prompt/characters/<locale>/` 下的 XML 角色卡。
 - 语言回退链为 `lzh → zh → en`，其他语言回退到 `en → zh`。角色卡缺失时会在管理页显示为“不可用”，不再静默消失。
