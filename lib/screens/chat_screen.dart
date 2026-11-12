@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:async';
 
 import '../ai/tools/builtin_memory_note_tool.dart';
+import '../ai/tools/builtin_memory_recall_tool.dart';
 import '../controllers/chat_send_controller.dart';
 import '../controllers/chat_screen_controller.dart';
 import '../l10n/app_localizations.dart';
@@ -17,6 +18,7 @@ import '../models/user_profile.dart';
 import '../services/ai_service.dart';
 import '../services/conversation_memory_store.dart';
 import '../services/conversation_service.dart';
+import '../services/memory_recall.dart';
 import '../services/memory_service.dart';
 import '../services/settings_service.dart';
 import '../services/notification_service.dart';
@@ -921,8 +923,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     var memoryBlock = '';
     final memoryEnabled = await _settingsService.getMemoryCompressionEnabled();
     final historyEnabled = await _settingsService.getEnableHistory();
+    var historyRounds = 0;
     if (memoryEnabled && historyEnabled) {
-      final historyRounds = await _settingsService.getHistoryContextLength();
+      historyRounds = await _settingsService.getHistoryContextLength();
       memoryBlock = await _ensureMemoryBlock(
         conversationId: conversationId,
         history: history,
@@ -932,6 +935,37 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
 
     final noteSourceMessageId = _lastUserMessageId();
+    final eligibleHistory = history
+        .where(
+          (message) =>
+              message.status != MessageStatus.error &&
+              message.content.trim().isNotEmpty,
+        )
+        .toList(growable: false);
+    final rawWindowSize = historyRounds * 2;
+    final recentMessageIds = <String>{
+      ...(eligibleHistory.length > rawWindowSize
+          ? eligibleHistory
+                .skip(eligibleHistory.length - rawWindowSize)
+                .map((message) => message.id)
+          : const <String>[]),
+      ?noteSourceMessageId,
+    };
+    final recallEnabled =
+        memoryEnabled &&
+        historyEnabled &&
+        eligibleHistory.length > rawWindowSize;
+
+    MemoryRecallHandler? recallHandler;
+    if (recallEnabled) {
+      final recallService = MemoryRecallService(_conversationService);
+      recallHandler = (query) => recallService.search(
+        conversationId: conversationId,
+        query: query,
+        excludeMessageIds: recentMessageIds,
+      );
+    }
+
     ChatSendController? controllerRef;
     final controller = ChatSendController(
       conversationService: _conversationService,
@@ -955,6 +989,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 draft: draft,
               )
             : null,
+        memoryRecallHandler: recallHandler,
         l10n: l10n,
       ),
       onUpdate: (message) {
@@ -1061,7 +1096,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           return;
         }
         final name = event['name'] as String? ?? '';
-        if (name == MemoryNoteTool.toolName) return;
+        if (name == MemoryNoteTool.toolName ||
+            name == MemoryRecallTool.toolName) {
+          return;
+        }
         setState(() {
           _toolStatus = type == 'tool_call' ? '正在调用工具: $name' : '工具完成: $name';
         });

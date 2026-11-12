@@ -46,6 +46,7 @@ LumenFlow (Chinese: 流光) is a Flutter-based AI chat application for Android, 
 - **Hard memory**: agreements, rules, and decisions keep their original wording; superseded entries are retained but not injected. Rejected proposals and their reasons are remembered separately to avoid re-proposing them.
 - **Automatic maintenance**: memory is updated in the background after a reply. Before sending, the app briefly waits if older messages are about to leave the window.
 - **Active notes**: the conversation model can call `remember_note` to record a new agreement, fact, emotional turn, or rejected proposal immediately; the next maintenance pass merges the note into the ledger instead of waiting for the background window.
+- **On-demand recall**: once older messages fall outside the raw window, the model can call `recall` with short keywords to search old messages and the full memory ledger, including superseded and rejected entries. The tool is only exposed when there is older content to search.
 - **Automatic invalidation**: editing, regenerating, or deleting covered messages invalidates the memory and triggers a rebuild.
 - **Read-only viewer**: chat ⋯ menu → **View Memory** shows the stored summary, emotional state, agreements, superseded entries, and rejected proposals. It does not modify anything.
 - **Travels with the conversation**: JSON, LumenFlow archive, and ZIP exports include memory and pending active notes; import remaps message IDs and restores them.
@@ -116,7 +117,7 @@ lib/
 │   │   ├── responses_tool_provider.dart
 │   │   ├── claude_tool_provider.dart
 │   │   └── gemini_tool_provider.dart
-│   ├── tools/                        # Built-in time, calculator, text, and memory-note tools
+│   ├── tools/                        # Built-in time, calculator, text, memory-note, and recall tools
 │   └── transport/
 │       └── sse_decoder.dart          # Incremental SSE parser
 ├── controllers/
@@ -132,6 +133,7 @@ lib/
 │   ├── conversation_database.dart    # SQLite and migration
 │   ├── conversation_service.dart     # Conversation CRUD, export/import, snapshots
 │   ├── memory_service.dart           # Rolling memory coverage, updates, and injection
+│   ├── memory_recall.dart            # Local search over old messages and memory ledger
 │   ├── memory_policy.dart            # Window/coverage/chunk policy
 │   ├── memory_prompt.dart            # <memory> block and update prompts
 │   ├── memory_update.dart            # Model output parsing and ledger merge
@@ -190,7 +192,7 @@ UI (screens/widgets)
 - **Tool layer**: `ToolChatService` and `AgentRunner` run the model/tool loop. `CompositeToolExecutor` merges built-in tools and enabled MCP tools.
 - **Protocol layer**: each provider family has a dedicated streaming/tool adapter with its own request and event mapping.
 - **Data layer**: SQLite for conversations/messages/attachments/memory; `SettingsService` for configuration and active-platform resolution.
-- **Memory layer**: `MemoryService` validates coverage/fingerprints, rolls old messages into `ConversationMemory`, merges active `remember_note` notes, and appends a `<memory>` block to the end of the system prompt. The ledger lives in SQLite and travels with conversation exports.
+- **Memory layer**: `MemoryService` validates coverage/fingerprints, rolls old messages into `ConversationMemory`, merges active `remember_note` notes, and appends a `<memory>` block to the end of the system prompt. `MemoryRecallService` provides local, on-demand search over older messages and the full ledger. The ledger lives in SQLite and travels with conversation exports.
 - **Preset layer**: `PromptService` loads localized built-in cards and schema-v2 user presets; `PresetRepository` shares one loading state between chat and settings.
 - **Localization layer**: generated `AppLocalizations` from ARB files.
 
@@ -229,6 +231,7 @@ Open **Settings → History Conversation**:
 - **Enable History** must be on for memory to work.
 - **Memory Compression** is on by default. Long conversations are summarized into story/emotional state, agreements/facts, and rejected proposals.
 - The conversation model can call `remember_note` to record durable agreements, facts, emotional turns, or rejected proposals immediately; the next maintenance pass merges them into the ledger.
+- Once older messages fall outside the raw window, the model can call `recall` with short keywords to search old messages and the full ledger.
 - In a chat, open the ⋯ menu → **View Memory** to inspect the current memory. The view is read-only.
 
 Memory is stored only on the device and is included in conversation JSON/LumenFlow/ZIP exports.

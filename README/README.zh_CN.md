@@ -46,6 +46,7 @@ LumenFlow（中文名：流光）是一款使用 Flutter 构建的 AI 聊天应�
 - **硬记忆**：约定、规则和结论尽量保留原话；已废止条目保留但不注入。被否方案和理由单独记录，避免重复提出。
 - **自动维护**：回复完成后在后台更新记忆；发送前如果旧消息即将滑出窗口，会短暂等待整理完成。
 - **主动便签**：对话模型可以调用 `remember_note`，在事件发生的当下记录新约定、关键事实、情绪转折或被否方案；下一次维护时会优先合并进账本，而不是等后台窗口。
+- **按需检索**：旧消息滑出原文窗口后，模型可以调用 `recall`，用简短关键词搜索旧消息和完整记忆账本（包括已废止、已否决条目）。只有存在可检索的旧内容时才会暴露这个工具。
 - **自动失效**：编辑、重新生成或删除被记忆覆盖的消息会让记忆失效并触发重建。
 - **只读查看器**：聊天页 `⋯` 菜单 → **查看记忆**，展示前情、情绪、约定、已废止条目和被否方案，不提供编辑。
 - **随对话导出**：JSON、LumenFlow 压缩包和 ZIP 导出都包含记忆和待合并的主动便签；导入时重映射消息 ID 并恢复。
@@ -116,7 +117,7 @@ lib/
 │   │   ├── responses_tool_provider.dart
 │   │   ├── claude_tool_provider.dart
 │   │   └── gemini_tool_provider.dart
-│   ├── tools/                        # 内置时间、计算器、文本和记忆便签工具
+│   ├── tools/                        # 内置时间、计算器、文本、记忆便签和检索工具
 │   └── transport/
 │       └── sse_decoder.dart          # 增量 SSE 解析
 ├── controllers/
@@ -132,6 +133,7 @@ lib/
 │   ├── conversation_database.dart    # SQLite 与数据迁移
 │   ├── conversation_service.dart     # 对话 CRUD、导入导出与快照
 │   ├── memory_service.dart           # 滚动记忆覆盖、更新与注入
+│   ├── memory_recall.dart            # 旧消息与记忆账本的本地检索
 │   ├── memory_policy.dart            # 窗口/覆盖/chunk 策略
 │   ├── memory_prompt.dart            # <memory> 块与更新 prompt
 │   ├── memory_update.dart            # 模型输出解析与账本合并
@@ -190,7 +192,7 @@ UI（screens/widgets）
 - **工具层**：`ToolChatService` 和 `AgentRunner` 执行模型/工具循环；`CompositeToolExecutor` 合并内置工具和已启用的 MCP 工具。
 - **协议层**：每类平台有独立的流式和工具适配器，负责请求构造和事件映射。
 - **数据层**：SQLite 保存对话、消息、附件和记忆；`SettingsService` 管理配置和当前平台解析。
-- **记忆层**：`MemoryService` 校验覆盖范围和指纹，把旧消息滚动整理成 `ConversationMemory`，合并 `remember_note` 主动便签，并把 `<memory>` 块追加到 system prompt 末尾。账本存在 SQLite 中，随对话导出。
+- **记忆层**：`MemoryService` 校验覆盖范围和指纹，把旧消息滚动整理成 `ConversationMemory`，合并 `remember_note` 主动便签，并把 `<memory>` 块追加到 system prompt 末尾。`MemoryRecallService` 负责对旧消息和完整账本做本地按需检索。账本存在 SQLite 中，随对话导出。
 - **预设层**：`PromptService` 加载内置多语言角色卡和 schema v2 用户预设；`PresetRepository` 在聊天页与设置页之间共享加载状态。
 - **本地化层**：由 ARB 文件生成 `AppLocalizations`。
 
@@ -229,6 +231,7 @@ MCP 工具会带上服务器前缀，避免不同服务器的同名工具冲突�
 - **启用历史对话** 必须先开启，记忆才会工作。
 - **记忆压缩** 默认开启。长对话会自动整理前情、关系/情绪、约定/事实和被否方案。
 - 对话模型可以调用 `remember_note`，在当下记录重要约定、事实、情绪转折或被否方案；下一次维护时合并进账本。
+- 旧消息滑出原文窗口后，模型可以调用 `recall`，用简短关键词搜索旧消息和完整账本。
 - 在聊天页打开 `⋯` 菜单 → **查看记忆**，可以只读查看当前记忆。
 
 记忆只保存在本机，并随会话 JSON / LumenFlow / ZIP 导出。

@@ -21,6 +21,7 @@ import '../ai/tools/attachment_tool_context.dart';
 import '../ai/tools/builtin_calculator_tool.dart';
 import '../ai/tools/builtin_date_math_tool.dart';
 import '../ai/tools/builtin_memory_note_tool.dart';
+import '../ai/tools/builtin_memory_recall_tool.dart';
 import '../ai/tools/builtin_lunar_calendar_tool.dart';
 import '../ai/tools/builtin_read_attachment_tool.dart';
 import '../ai/tools/builtin_text_tools.dart';
@@ -181,6 +182,7 @@ class AIService {
     AttachmentToolContext? attachmentContext,
     McpToolManager? manager,
     MemoryNoteSink? memoryNoteSink,
+    MemoryRecallHandler? memoryRecallHandler,
   }) {
     return CompositeToolExecutor([
       if (timeEnabled) BuiltInTimeTool(),
@@ -195,6 +197,8 @@ class AIService {
       if (attachmentContext != null)
         BuiltInReadAttachmentTool(context: attachmentContext),
       if (memoryNoteSink != null) MemoryNoteTool(sink: memoryNoteSink),
+      if (memoryRecallHandler != null)
+        MemoryRecallTool(handler: memoryRecallHandler),
       ?manager,
     ]);
   }
@@ -334,11 +338,18 @@ class AIService {
       'proposals as soon as they happen. Use it sparingly; never record small '
       'talk.';
 
+  static const String _memoryRecallInstruction =
+      'When the user asks about a specific earlier detail, exact wording, or a '
+      'prior agreement that is not in your current context, call the recall '
+      'tool before answering. If it returns no matches, say you cannot find '
+      'it; do not invent.';
+
   Future<String> _buildSystemPrompt(
     String presetSystemPrompt,
     AppLocalizations l10n, {
     String memoryBlock = '',
     bool memoryNoteEnabled = false,
+    bool memoryRecallEnabled = false,
   }) async {
     final userProfile = await _userService.getUserProfile();
     final customSystemPrompt = await _settingsService.getCustomSystemPrompt();
@@ -359,6 +370,7 @@ class AIService {
         userProfile,
       ),
       noteInstruction: memoryNoteEnabled ? _memoryNoteInstruction : '',
+      recallInstruction: memoryRecallEnabled ? _memoryRecallInstruction : '',
     );
 
     // 记忆放最后：更靠近对话、演变状态压过静态人设，并保留稳定前缀缓存。
@@ -385,12 +397,14 @@ class AIService {
     AppLocalizations l10n, {
     String memoryBlock = '',
     bool memoryNoteEnabled = false,
+    bool memoryRecallEnabled = false,
   }) {
     return _buildSystemPrompt(
       presetSystemPrompt,
       l10n,
       memoryBlock: memoryBlock,
       memoryNoteEnabled: memoryNoteEnabled,
+      memoryRecallEnabled: memoryRecallEnabled,
     );
   }
 
@@ -530,6 +544,7 @@ class AIService {
     String presetSystemPrompt = '',
     String memoryBlock = '',
     MemoryNoteSink? memoryNoteSink,
+    MemoryRecallHandler? memoryRecallHandler,
     required AppLocalizations l10n,
   }) async* {
     final apiKey = await _settingsService.getApiKey();
@@ -544,6 +559,7 @@ class AIService {
       l10n,
       memoryBlock: memoryBlock,
       memoryNoteEnabled: memoryNoteSink != null,
+      memoryRecallEnabled: memoryRecallHandler != null,
     );
     final addTimeToPrompt = await _settingsService.getAddTimeToPrompt();
 
@@ -589,6 +605,7 @@ class AIService {
           attachmentContext: attachmentContext,
           manager: manager,
           memoryNoteSink: memoryNoteSink,
+          memoryRecallHandler: memoryRecallHandler,
         );
         if (executor.tools.isNotEmpty) {
           final enableHistory = await _settingsService.getEnableHistory();
