@@ -1557,4 +1557,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get builtinTextToolsDesc => '对比与统计文本';
+
+  @override
+  String get builtinDateMath => '日期计算';
+
+  @override
+  String get builtinDateMathDesc => '计算日期差、加减日期与星期信息';
+
+  @override
+  String get builtinLunarCalendar => '农历换算';
+
+  @override
+  String get builtinLunarCalendarDesc => '公历与农历日期互转';
+
+  @override
+  String get builtinUnitConvert => '单位换算';
+
+  @override
+  String get builtinUnitConvertDesc => '换算长度、重量、温度等常用单位';
 }

@@ -957,5 +957,11 @@
   "builtinCalculator": "算籌",
   "builtinCalculatorDesc": "演算數術",
   "builtinTextTools": "文墨之具",
-  "builtinTextToolsDesc": "比對與統計文辭"
+  "builtinTextToolsDesc": "比對與統計文辭",
+  "builtinDateMath": "日辰推演",
+  "builtinDateMathDesc": "推演日辰之差、加減及星期",
+  "builtinLunarCalendar": "陰陽曆換算",
+  "builtinLunarCalendarDesc": "公曆與農曆日期互轉",
+  "builtinUnitConvert": "度量換算",
+  "builtinUnitConvertDesc": "換算長短、輕重、寒暖諸度"
 }

@@ -1557,4 +1557,22 @@ class AppLocalizationsLzh extends AppLocalizations {
 
   @override
   String get builtinTextToolsDesc => '比對與統計文辭';
+
+  @override
+  String get builtinDateMath => '日辰推演';
+
+  @override
+  String get builtinDateMathDesc => '推演日辰之差、加減及星期';
+
+  @override
+  String get builtinLunarCalendar => '陰陽曆換算';
+
+  @override
+  String get builtinLunarCalendarDesc => '公曆與農曆日期互轉';
+
+  @override
+  String get builtinUnitConvert => '度量換算';
+
+  @override
+  String get builtinUnitConvertDesc => '換算長短、輕重、寒暖諸度';
 }

@@ -18,8 +18,11 @@ import '../ai/mcp/mcp_tool_manager.dart';
 import '../ai/providers/chat_completions_profile.dart';
 import '../ai/providers/responses_tool_provider.dart';
 import '../ai/tools/builtin_calculator_tool.dart';
+import '../ai/tools/builtin_date_math_tool.dart';
+import '../ai/tools/builtin_lunar_calendar_tool.dart';
 import '../ai/tools/builtin_text_tools.dart';
 import '../ai/tools/builtin_time_tool.dart';
+import '../ai/tools/builtin_unit_convert_tool.dart';
 import '../ai/tools/composite_tool_executor.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
@@ -169,6 +172,9 @@ class AIService {
     required bool timeEnabled,
     required bool calculatorEnabled,
     required bool textToolsEnabled,
+    required bool dateMathEnabled,
+    required bool unitConvertEnabled,
+    required bool lunarCalendarEnabled,
     McpToolManager? manager,
   }) {
     return CompositeToolExecutor([
@@ -178,6 +184,9 @@ class AIService {
         BuiltInTextCompareTool(),
         BuiltInTextStatsTool(),
       ],
+      if (dateMathEnabled) BuiltInDateMathTool(),
+      if (unitConvertEnabled) BuiltInUnitConvertTool(),
+      if (lunarCalendarEnabled) BuiltInLunarCalendarTool(),
       ?manager,
     ]);
   }
@@ -540,10 +549,19 @@ class AIService {
             .getBuiltinCalculatorEnabled();
         final textToolsEnabled = await _settingsService
             .getBuiltinTextToolsEnabled();
+        final dateMathEnabled = await _settingsService
+            .getBuiltinDateMathEnabled();
+        final unitConvertEnabled = await _settingsService
+            .getBuiltinUnitConvertEnabled();
+        final lunarCalendarEnabled = await _settingsService
+            .getBuiltinLunarCalendarEnabled();
         final executor = buildToolExecutor(
           timeEnabled: addTimeToPrompt,
           calculatorEnabled: calculatorEnabled,
           textToolsEnabled: textToolsEnabled,
+          dateMathEnabled: dateMathEnabled,
+          unitConvertEnabled: unitConvertEnabled,
+          lunarCalendarEnabled: lunarCalendarEnabled,
           manager: manager,
         );
         if (executor.tools.isNotEmpty) {

@@ -957,5 +957,11 @@
   "builtinCalculator": "计算器",
   "builtinCalculatorDesc": "进行算术计算",
   "builtinTextTools": "文本工具",
-  "builtinTextToolsDesc": "对比与统计文本"
+  "builtinTextToolsDesc": "对比与统计文本",
+  "builtinDateMath": "日期计算",
+  "builtinDateMathDesc": "计算日期差、加减日期与星期信息",
+  "builtinLunarCalendar": "农历换算",
+  "builtinLunarCalendarDesc": "公历与农历日期互转",
+  "builtinUnitConvert": "单位换算",
+  "builtinUnitConvertDesc": "换算长度、重量、温度等常用单位"
 }

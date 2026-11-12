@@ -2946,6 +2946,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Compare and count text'**
   String get builtinTextToolsDesc;
+
+  /// No description provided for @builtinDateMath.
+  ///
+  /// In en, this message translates to:
+  /// **'Date math'**
+  String get builtinDateMath;
+
+  /// No description provided for @builtinDateMathDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Date differences, adding dates, and weekday info'**
+  String get builtinDateMathDesc;
+
+  /// No description provided for @builtinLunarCalendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Lunar calendar'**
+  String get builtinLunarCalendar;
+
+  /// No description provided for @builtinLunarCalendarDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert solar and Chinese lunar dates'**
+  String get builtinLunarCalendarDesc;
+
+  /// No description provided for @builtinUnitConvert.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit converter'**
+  String get builtinUnitConvert;
+
+  /// No description provided for @builtinUnitConvertDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert length, mass, temperature, and more'**
+  String get builtinUnitConvertDesc;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

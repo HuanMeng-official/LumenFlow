@@ -957,5 +957,11 @@
   "builtinCalculator": "Calculadora",
   "builtinCalculatorDesc": "Evaluar operaciones aritméticas",
   "builtinTextTools": "Herramientas de texto",
-  "builtinTextToolsDesc": "Comparar y contar texto"
+  "builtinTextToolsDesc": "Comparar y contar texto",
+  "builtinDateMath": "Cálculo de fechas",
+  "builtinDateMathDesc": "Diferencias, suma y resta de fechas, e información del día",
+  "builtinLunarCalendar": "Calendario lunar",
+  "builtinLunarCalendarDesc": "Convierte fechas solares y del calendario lunar chino",
+  "builtinUnitConvert": "Conversor de unidades",
+  "builtinUnitConvertDesc": "Convierte longitud, masa, temperatura y más"
 }

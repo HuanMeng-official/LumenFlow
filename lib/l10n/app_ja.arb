@@ -958,5 +958,11 @@
   "builtinCalculator": "電卓",
   "builtinCalculatorDesc": "算術計算を行う",
   "builtinTextTools": "テキストツール",
-  "builtinTextToolsDesc": "テキストの比較と集計"
+  "builtinTextToolsDesc": "テキストの比較と集計",
+  "builtinDateMath": "日付計算",
+  "builtinDateMathDesc": "日付の差・加減算と曜日情報",
+  "builtinLunarCalendar": "旧暦変換",
+  "builtinLunarCalendarDesc": "新暦と旧暦の日付変換",
+  "builtinUnitConvert": "単位変換",
+  "builtinUnitConvertDesc": "長さ・重さ・温度などの単位を変換"
 }

@@ -15,7 +15,7 @@ import '../widgets/settings/settings_switch_tile.dart';
 /// 工具管理页面
 ///
 /// 管理应用程序的各种工具和功能开关：
-/// - 内置工具（时间、计算器、文本）
+/// - 内置工具
 /// - MCP 服务器与工具
 ///
 /// 设置更改实时保存，无需手动点击保存按钮
@@ -37,6 +37,11 @@ class _ToolManagementScreenState extends State<ToolManagementScreen> {
   bool _addTimeToPrompt = SettingsService.defaultAddTimeToPrompt;
   bool _builtinCalculator = SettingsService.defaultBuiltinCalculatorEnabled;
   bool _builtinTextTools = SettingsService.defaultBuiltinTextToolsEnabled;
+  bool _builtinDateMath = SettingsService.defaultBuiltinDateMathEnabled;
+  bool _builtinUnitConvert =
+      SettingsService.defaultBuiltinUnitConvertEnabled;
+  bool _builtinLunarCalendar =
+      SettingsService.defaultBuiltinLunarCalendarEnabled;
   List<McpServerConfig> _servers = const [];
   String _activePlatformType = '';
 
@@ -52,6 +57,12 @@ class _ToolManagementScreenState extends State<ToolManagementScreen> {
         await _settingsService.getBuiltinCalculatorEnabled();
     final builtinTextTools =
         await _settingsService.getBuiltinTextToolsEnabled();
+    final builtinDateMath =
+        await _settingsService.getBuiltinDateMathEnabled();
+    final builtinUnitConvert =
+        await _settingsService.getBuiltinUnitConvertEnabled();
+    final builtinLunarCalendar =
+        await _settingsService.getBuiltinLunarCalendarEnabled();
     final servers = await _settingsService.getMcpServers();
     final config = await _settingsService.getActivePlatformConfig();
 
@@ -60,6 +71,9 @@ class _ToolManagementScreenState extends State<ToolManagementScreen> {
       _addTimeToPrompt = addTimeToPrompt;
       _builtinCalculator = builtinCalculator;
       _builtinTextTools = builtinTextTools;
+      _builtinDateMath = builtinDateMath;
+      _builtinUnitConvert = builtinUnitConvert;
+      _builtinLunarCalendar = builtinLunarCalendar;
       _servers = servers;
       _activePlatformType = config.apiType;
       _isLoading = false;
@@ -86,6 +100,27 @@ class _ToolManagementScreenState extends State<ToolManagementScreen> {
       _builtinTextTools = value;
     });
     await _settingsService.setBuiltinTextToolsEnabled(value);
+  }
+
+  Future<void> _onBuiltinDateMathChanged(bool value) async {
+    setState(() {
+      _builtinDateMath = value;
+    });
+    await _settingsService.setBuiltinDateMathEnabled(value);
+  }
+
+  Future<void> _onBuiltinUnitConvertChanged(bool value) async {
+    setState(() {
+      _builtinUnitConvert = value;
+    });
+    await _settingsService.setBuiltinUnitConvertEnabled(value);
+  }
+
+  Future<void> _onBuiltinLunarCalendarChanged(bool value) async {
+    setState(() {
+      _builtinLunarCalendar = value;
+    });
+    await _settingsService.setBuiltinLunarCalendarEnabled(value);
   }
 
   Future<void> _saveServers(List<McpServerConfig> servers) async {
@@ -401,6 +436,18 @@ class _ToolManagementScreenState extends State<ToolManagementScreen> {
                   onChanged: _onAddTimeToPromptChanged,
                 ),
                 SettingsSwitchTile(
+                  title: l10n.builtinDateMath,
+                  value: _builtinDateMath,
+                  subtitle: l10n.builtinDateMathDesc,
+                  onChanged: _onBuiltinDateMathChanged,
+                ),
+                SettingsSwitchTile(
+                  title: l10n.builtinLunarCalendar,
+                  value: _builtinLunarCalendar,
+                  subtitle: l10n.builtinLunarCalendarDesc,
+                  onChanged: _onBuiltinLunarCalendarChanged,
+                ),
+                SettingsSwitchTile(
                   title: l10n.builtinCalculator,
                   value: _builtinCalculator,
                   subtitle: l10n.builtinCalculatorDesc,
@@ -411,6 +458,12 @@ class _ToolManagementScreenState extends State<ToolManagementScreen> {
                   value: _builtinTextTools,
                   subtitle: l10n.builtinTextToolsDesc,
                   onChanged: _onBuiltinTextToolsChanged,
+                ),
+                SettingsSwitchTile(
+                  title: l10n.builtinUnitConvert,
+                  value: _builtinUnitConvert,
+                  subtitle: l10n.builtinUnitConvertDesc,
+                  onChanged: _onBuiltinUnitConvertChanged,
                 ),
               ],
             ),

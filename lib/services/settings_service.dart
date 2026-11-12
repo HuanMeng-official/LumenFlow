@@ -38,6 +38,11 @@ class SettingsService {
   static const String _addTimeToPromptKey = 'add_time_to_prompt';
   static const String _builtinCalculatorKey = 'builtin_calculator_enabled';
   static const String _builtinTextToolsKey = 'builtin_text_tools_enabled';
+  static const String _builtinDateMathKey = 'builtin_date_math_enabled';
+  static const String _builtinUnitConvertKey =
+      'builtin_unit_convert_enabled';
+  static const String _builtinLunarCalendarKey =
+      'builtin_lunar_calendar_enabled';
   // 多平台配置相关的key
   static const String _platformsKey = 'ai_platforms';
   static const String _currentPlatformIdKey = 'current_platform_id';
@@ -62,6 +67,9 @@ class SettingsService {
   static const bool defaultAddTimeToPrompt = true;
   static const bool defaultBuiltinCalculatorEnabled = true;
   static const bool defaultBuiltinTextToolsEnabled = true;
+  static const bool defaultBuiltinDateMathEnabled = true;
+  static const bool defaultBuiltinUnitConvertEnabled = true;
+  static const bool defaultBuiltinLunarCalendarEnabled = true;
 
   static const String defaultEndpoint = 'https://api.openai.com/v1';
   static const String defaultModel = 'gpt-6.1-sol';
@@ -415,6 +423,42 @@ class SettingsService {
     await prefs.setBool(_builtinTextToolsKey, enabled);
   }
 
+  /// 是否启用内置日期计算工具。
+  Future<bool> getBuiltinDateMathEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_builtinDateMathKey) ??
+        defaultBuiltinDateMathEnabled;
+  }
+
+  Future<void> setBuiltinDateMathEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_builtinDateMathKey, enabled);
+  }
+
+  /// 是否启用内置单位换算工具。
+  Future<bool> getBuiltinUnitConvertEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_builtinUnitConvertKey) ??
+        defaultBuiltinUnitConvertEnabled;
+  }
+
+  Future<void> setBuiltinUnitConvertEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_builtinUnitConvertKey, enabled);
+  }
+
+  /// 是否启用内置农历换算工具。
+  Future<bool> getBuiltinLunarCalendarEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_builtinLunarCalendarKey) ??
+        defaultBuiltinLunarCalendarEnabled;
+  }
+
+  Future<void> setBuiltinLunarCalendarEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_builtinLunarCalendarKey, enabled);
+  }
+
   /// 导出所有设置为JSON格式的Map
   /// 返回包含所有设置键值对的Map
   Future<Map<String, dynamic>> exportSettingsToJson() async {
@@ -462,6 +506,14 @@ class SettingsService {
         prefs.getBool(_builtinCalculatorKey) ?? defaultBuiltinCalculatorEnabled;
     settings[_builtinTextToolsKey] =
         prefs.getBool(_builtinTextToolsKey) ?? defaultBuiltinTextToolsEnabled;
+    settings[_builtinDateMathKey] =
+        prefs.getBool(_builtinDateMathKey) ?? defaultBuiltinDateMathEnabled;
+    settings[_builtinUnitConvertKey] =
+        prefs.getBool(_builtinUnitConvertKey) ??
+        defaultBuiltinUnitConvertEnabled;
+    settings[_builtinLunarCalendarKey] =
+        prefs.getBool(_builtinLunarCalendarKey) ??
+        defaultBuiltinLunarCalendarEnabled;
     settings[_backgroundImagePathKey] =
         prefs.getString(_backgroundImagePathKey) ?? defaultBackgroundImagePath;
     settings[_backgroundImageOpacityKey] =
@@ -619,6 +671,24 @@ class SettingsService {
       await prefs.setBool(
         _builtinTextToolsKey,
         settings[_builtinTextToolsKey] as bool,
+      );
+    }
+    if (settings.containsKey(_builtinDateMathKey)) {
+      await prefs.setBool(
+        _builtinDateMathKey,
+        settings[_builtinDateMathKey] as bool,
+      );
+    }
+    if (settings.containsKey(_builtinUnitConvertKey)) {
+      await prefs.setBool(
+        _builtinUnitConvertKey,
+        settings[_builtinUnitConvertKey] as bool,
+      );
+    }
+    if (settings.containsKey(_builtinLunarCalendarKey)) {
+      await prefs.setBool(
+        _builtinLunarCalendarKey,
+        settings[_builtinLunarCalendarKey] as bool,
       );
     }
     if (settings.containsKey(_backgroundImagePathKey)) {

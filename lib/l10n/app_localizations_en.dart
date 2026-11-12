@@ -1557,4 +1557,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get builtinTextToolsDesc => 'Compare and count text';
+
+  @override
+  String get builtinDateMath => 'Date math';
+
+  @override
+  String get builtinDateMathDesc => 'Date differences, adding dates, and weekday info';
+
+  @override
+  String get builtinLunarCalendar => 'Lunar calendar';
+
+  @override
+  String get builtinLunarCalendarDesc => 'Convert solar and Chinese lunar dates';
+
+  @override
+  String get builtinUnitConvert => 'Unit converter';
+
+  @override
+  String get builtinUnitConvertDesc => 'Convert length, mass, temperature, and more';
 }

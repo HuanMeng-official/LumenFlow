@@ -1557,4 +1557,22 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get builtinTextToolsDesc => '텍스트 비교 및 집계';
+
+  @override
+  String get builtinDateMath => '날짜 계산';
+
+  @override
+  String get builtinDateMathDesc => '날짜 차이, 날짜 더하기/빼기 및 요일 정보';
+
+  @override
+  String get builtinLunarCalendar => '음력 변환';
+
+  @override
+  String get builtinLunarCalendarDesc => '양력과 음력 날짜 변환';
+
+  @override
+  String get builtinUnitConvert => '단위 변환';
+
+  @override
+  String get builtinUnitConvertDesc => '길이, 무게, 온도 등의 단위 변환';
 }

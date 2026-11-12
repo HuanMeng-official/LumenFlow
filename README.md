@@ -28,7 +28,7 @@ LumenFlow (Chinese: 流光) is a Flutter-based AI chat application for Android, 
 
 ### Tool Calling and MCP
 
-- **Built-in tools**: current time, calculator, text comparison, and text statistics.
+- **Built-in tools**: current time, date math, Chinese lunar calendar conversion, calculator, text comparison, text statistics, and unit conversion.
 - **MCP tools**: connect Streamable HTTP MCP servers, discover their tools, and expose them to the model.
 - **Unified tool loop**: `AgentRunner` alternates model turns and tool executions with a bounded iteration budget.
 - **Parallel tool calls**: multiple function calls in one model turn are executed and returned together.
@@ -214,7 +214,7 @@ Each platform keeps its own endpoint, credentials, model list, and parameters. T
 
 Open **Settings → Tool Management** to:
 
-- Enable or disable built-in tools (time, calculator, text tools).
+- Enable or disable built-in tools.
 - Add MCP servers with a Streamable HTTP JSON-RPC endpoint and optional custom headers.
 - Review which platforms support tool calling.
 

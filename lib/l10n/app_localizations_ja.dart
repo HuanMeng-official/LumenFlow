@@ -1557,4 +1557,22 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get builtinTextToolsDesc => 'テキストの比較と集計';
+
+  @override
+  String get builtinDateMath => '日付計算';
+
+  @override
+  String get builtinDateMathDesc => '日付の差・加減算と曜日情報';
+
+  @override
+  String get builtinLunarCalendar => '旧暦変換';
+
+  @override
+  String get builtinLunarCalendarDesc => '新暦と旧暦の日付変換';
+
+  @override
+  String get builtinUnitConvert => '単位変換';
+
+  @override
+  String get builtinUnitConvertDesc => '長さ・重さ・温度などの単位を変換';
 }

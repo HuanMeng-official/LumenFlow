@@ -971,5 +971,11 @@
   "builtinCalculator": "Calculator",
   "builtinCalculatorDesc": "Evaluate arithmetic",
   "builtinTextTools": "Text tools",
-  "builtinTextToolsDesc": "Compare and count text"
+  "builtinTextToolsDesc": "Compare and count text",
+  "builtinDateMath": "Date math",
+  "builtinDateMathDesc": "Date differences, adding dates, and weekday info",
+  "builtinLunarCalendar": "Lunar calendar",
+  "builtinLunarCalendarDesc": "Convert solar and Chinese lunar dates",
+  "builtinUnitConvert": "Unit converter",
+  "builtinUnitConvertDesc": "Convert length, mass, temperature, and more"
 }
