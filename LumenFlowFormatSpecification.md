@@ -239,18 +239,32 @@ Conversation packages use the same metadata envelope with `_type: "conversation"
       "coveredUntilMessageId": "message_id",
       "fingerprint": "sha256",
       "updatedAt": 1730000000000
-    }
+    },
+    "memory_notes": [
+      {
+        "id": "note_id",
+        "conversationId": "conversation_id",
+        "kind": "agreement",
+        "text": "Be back at camp before sunset",
+        "quote": "We agreed to be back before sunset",
+        "reason": null,
+        "sourceMessageId": "message_id",
+        "createdAt": 1730000000000,
+        "status": "pending"
+      }
+    ]
   }
 }
 ```
 
 - `memory` is optional and additive; files without it remain valid and will rebuild memory from messages when needed.
+- `memory_notes` contains pending active notes that have not yet been merged into `memory`. Processed notes are omitted. On import, note IDs are regenerated and `sourceMessageId` is remapped.
 - The app also accepts a raw conversation JSON export (the `conversation` object itself, without the LumenFlow metadata envelope); a file containing `id` and `messages` is treated as a conversation export.
 - On import, message IDs are regenerated. Implementations must remap `coveredUntilMessageId` and each fact/rejected `sourceMessageId` to the new IDs, then recompute `fingerprint` from the imported messages.
 - If the boundary cannot be mapped, keep the memory content but clear coverage/fingerprint; the app rebuilds lazily on the next send.
 
 ---
 
-Last updated: 2026/11/12  
+Last updated: 2026/11/13  
 Maintainer: 幻梦official  
 Document version: 1.0

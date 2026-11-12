@@ -239,12 +239,26 @@ async function parseLumenflow(input) {
       "coveredUntilMessageId": "message_id",
       "fingerprint": "sha256",
       "updatedAt": 1730000000000
-    }
+    },
+    "memory_notes": [
+      {
+        "id": "note_id",
+        "conversationId": "conversation_id",
+        "kind": "agreement",
+        "text": "日落前回营地",
+        "quote": "我们约好日落前回营地",
+        "reason": null,
+        "sourceMessageId": "message_id",
+        "createdAt": 1730000000000,
+        "status": "pending"
+      }
+    ]
   }
 }
 ```
 
 - `memory` 是可选的新增字段；旧版本文件没有它仍然有效，导入后会按消息按需重建。
+- `memory_notes` 保存尚未合并进 `memory` 的主动便签；已处理的便签不会导出。导入时会重新生成便签 ID，并重映射 `sourceMessageId`。
 - 应用也接受裸 JSON 会话文件（即 `conversation` 对象本身，没有 LumenFlow 元数据）；只要文件包含 `id` 和 `messages`，就会被识别为会话导出。
 - 导入时会重新生成消息 ID。实现方必须把 `coveredUntilMessageId` 以及 `facts` / `rejected` 里的 `sourceMessageId` 重映射到新 ID，再按导入后的消息重新计算 `fingerprint`。
 - 如果边界消息无法映射，保留记忆内容但清空覆盖边界和指纹；应用会在下次发送时按需重建。
@@ -252,6 +266,6 @@ async function parseLumenflow(input) {
 
 ---
 
-最后更新：2026/11/12  
+最后更新：2026/11/13  
 维护者：幻梦official  
-文档版本：1.1
+文档版本：1.2

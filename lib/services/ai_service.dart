@@ -20,6 +20,7 @@ import '../ai/providers/responses_tool_provider.dart';
 import '../ai/tools/attachment_tool_context.dart';
 import '../ai/tools/builtin_calculator_tool.dart';
 import '../ai/tools/builtin_date_math_tool.dart';
+import '../ai/tools/builtin_memory_note_tool.dart';
 import '../ai/tools/builtin_lunar_calendar_tool.dart';
 import '../ai/tools/builtin_read_attachment_tool.dart';
 import '../ai/tools/builtin_text_tools.dart';
@@ -179,6 +180,7 @@ class AIService {
     required bool lunarCalendarEnabled,
     AttachmentToolContext? attachmentContext,
     McpToolManager? manager,
+    MemoryNoteSink? memoryNoteSink,
   }) {
     return CompositeToolExecutor([
       if (timeEnabled) BuiltInTimeTool(),
@@ -192,6 +194,7 @@ class AIService {
       if (lunarCalendarEnabled) BuiltInLunarCalendarTool(),
       if (attachmentContext != null)
         BuiltInReadAttachmentTool(context: attachmentContext),
+      if (memoryNoteSink != null) MemoryNoteTool(sink: memoryNoteSink),
       ?manager,
     ]);
   }
@@ -325,10 +328,17 @@ class AIService {
   ///
   /// 按“基础规则 → 自定义提示 → 角色预设”的顺序拼接。角色预设保留在最后，
   /// 因此它可以覆盖角色身份与文风，但不会丢掉用户的全局自定义要求。
+  static const String _memoryNoteInstruction =
+      'You can call the remember_note tool to save durable agreements, rules, '
+      'critical facts, important emotional turning points, or rejected '
+      'proposals as soon as they happen. Use it sparingly; never record small '
+      'talk.';
+
   Future<String> _buildSystemPrompt(
     String presetSystemPrompt,
     AppLocalizations l10n, {
     String memoryBlock = '',
+    bool memoryNoteEnabled = false,
   }) async {
     final userProfile = await _userService.getUserProfile();
     final customSystemPrompt = await _settingsService.getCustomSystemPrompt();
@@ -348,6 +358,7 @@ class AIService {
         presetSystemPrompt,
         userProfile,
       ),
+      noteInstruction: memoryNoteEnabled ? _memoryNoteInstruction : '',
     );
 
     // 记忆放最后：更靠近对话、演变状态压过静态人设，并保留稳定前缀缓存。
@@ -373,11 +384,13 @@ class AIService {
     String presetSystemPrompt,
     AppLocalizations l10n, {
     String memoryBlock = '',
+    bool memoryNoteEnabled = false,
   }) {
     return _buildSystemPrompt(
       presetSystemPrompt,
       l10n,
       memoryBlock: memoryBlock,
+      memoryNoteEnabled: memoryNoteEnabled,
     );
   }
 
@@ -516,6 +529,7 @@ class AIService {
     bool thinkingMode = false,
     String presetSystemPrompt = '',
     String memoryBlock = '',
+    MemoryNoteSink? memoryNoteSink,
     required AppLocalizations l10n,
   }) async* {
     final apiKey = await _settingsService.getApiKey();
@@ -529,6 +543,7 @@ class AIService {
       presetSystemPrompt,
       l10n,
       memoryBlock: memoryBlock,
+      memoryNoteEnabled: memoryNoteSink != null,
     );
     final addTimeToPrompt = await _settingsService.getAddTimeToPrompt();
 
@@ -573,6 +588,7 @@ class AIService {
           lunarCalendarEnabled: lunarCalendarEnabled,
           attachmentContext: attachmentContext,
           manager: manager,
+          memoryNoteSink: memoryNoteSink,
         );
         if (executor.tools.isNotEmpty) {
           final enableHistory = await _settingsService.getEnableHistory();

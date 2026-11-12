@@ -4,12 +4,14 @@ import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'dart:io';
 import 'dart:async';
 
+import '../ai/tools/builtin_memory_note_tool.dart';
 import '../controllers/chat_send_controller.dart';
 import '../controllers/chat_screen_controller.dart';
 import '../l10n/app_localizations.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
 import '../models/conversation.dart';
+import '../models/memory_note.dart';
 import '../models/prompt_preset.dart';
 import '../models/user_profile.dart';
 import '../services/ai_service.dart';
@@ -120,6 +122,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   String? _memoryStatus; // 当前记忆整理状态
   bool _isGenerating = false; // 是否正在生成AI回复
   bool _isPreparingSend = false; // 防止记忆整理期间重复发送
+  int _memoryNoteCounter = 0; // 主动记忆便签的本地序号
 
   // 对话加载控制
   bool _isLoadingConversation = false; // 防止重复加载对话
@@ -634,9 +637,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     required int historyRounds,
     required AppLocalizations l10n,
   }) async {
+    final store = ConversationMemoryStore(_conversationService);
     final service = MemoryService(
-      store: ConversationMemoryStore(_conversationService),
+      store: store,
       client: AIServiceMemoryUpdateClient(_aiService, l10n),
+      noteStore: store,
     );
     try {
       return await service.ensureUpToDate(
@@ -669,9 +674,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (!memoryEnabled || !historyEnabled) return;
 
     final historyRounds = await _settingsService.getHistoryContextLength();
+    final store = ConversationMemoryStore(_conversationService);
     final service = MemoryService(
-      store: ConversationMemoryStore(_conversationService),
+      store: store,
       client: AIServiceMemoryUpdateClient(_aiService, l10n),
+      noteStore: store,
     );
     try {
       await service.updateInBackground(
@@ -709,6 +716,32 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         _ => l10n.memoryCompressing,
       };
     });
+  }
+
+  String? _lastUserMessageId() {
+    for (var i = _messages.length - 1; i >= 0; i--) {
+      if (_messages[i].isUser) return _messages[i].id;
+    }
+    return null;
+  }
+
+  /// 对话模型调用 remember_note 时，立即把便签追加到当前会话。
+  Future<void> _recordMemoryNote({
+    required String conversationId,
+    required String? sourceMessageId,
+    required MemoryNoteDraft draft,
+  }) async {
+    final note = MemoryNote(
+      id: 'note_${DateTime.now().microsecondsSinceEpoch}_${_memoryNoteCounter++}',
+      conversationId: conversationId,
+      kind: draft.kind,
+      text: draft.text,
+      quote: draft.quote,
+      reason: draft.reason,
+      sourceMessageId: sourceMessageId,
+      createdAt: DateTime.now(),
+    );
+    await _conversationService.appendMemoryNote(note);
   }
 
   /// 发送消息到AI模型并处理响应
@@ -898,6 +931,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       );
     }
 
+    final noteSourceMessageId = _lastUserMessageId();
     ChatSendController? controllerRef;
     final controller = ChatSendController(
       conversationService: _conversationService,
@@ -914,6 +948,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         thinkingMode: _thinkingMode,
         presetSystemPrompt: presetSystemPrompt,
         memoryBlock: memoryBlock,
+        memoryNoteSink: (memoryEnabled && historyEnabled)
+            ? (draft) => _recordMemoryNote(
+                conversationId: conversationId,
+                sourceMessageId: noteSourceMessageId,
+                draft: draft,
+              )
+            : null,
         l10n: l10n,
       ),
       onUpdate: (message) {
@@ -1020,6 +1061,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           return;
         }
         final name = event['name'] as String? ?? '';
+        if (name == MemoryNoteTool.toolName) return;
         setState(() {
           _toolStatus = type == 'tool_call' ? '正在调用工具: $name' : '工具完成: $name';
         });

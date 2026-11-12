@@ -4,6 +4,7 @@ import 'package:sqlite3/sqlite3.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/conversation.dart';
 import '../models/conversation_memory.dart';
+import '../models/memory_note.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
 import 'dart:async';
@@ -65,8 +66,9 @@ class ConversationDatabase {
 
   /// 当前数据库结构版本。
   ///
-  /// v3 新增 `conversation_memory` 表，用于长会话的滚动记忆。
-  static const int schemaVersion = 3;
+  /// v3 新增 `conversation_memory` 表；v4 新增 `conversation_memory_notes`
+  /// 表，用于对话模型主动记录、等待后台合并的记忆便签。
+  static const int schemaVersion = 4;
 
   Database? _db;
   Future<void>? _initFuture;
@@ -307,10 +309,30 @@ class ConversationDatabase {
       )
     ''');
 
+    // 对话模型主动留下的记忆便签，追加式存储，后台维护模型合并后标记为
+    // processed。同样不使用 CASCADE 外键，避免 INSERT OR REPLACE 误删。
+    db.execute('''
+      CREATE TABLE IF NOT EXISTS conversation_memory_notes (
+        id TEXT PRIMARY KEY,
+        conversation_id TEXT NOT NULL,
+        kind TEXT NOT NULL,
+        text TEXT NOT NULL,
+        quote TEXT,
+        reason TEXT,
+        source_message_id TEXT,
+        created_at INTEGER NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending'
+      )
+    ''');
+
     // 创建索引
     db.execute('CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id)');
     db.execute('CREATE INDEX IF NOT EXISTS idx_attachments_message ON attachments(message_id)');
     db.execute('CREATE INDEX IF NOT EXISTS idx_conversations_updated ON conversations(updated_at)');
+    db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_memory_notes_conversation '
+      'ON conversation_memory_notes(conversation_id, status)',
+    );
   }
 
   /// 执行带锁的操作，防止并发写入
@@ -938,6 +960,10 @@ class ConversationDatabase {
           'DELETE FROM conversation_memory WHERE conversation_id = ?',
           [conversationId],
         );
+        db.execute(
+          'DELETE FROM conversation_memory_notes WHERE conversation_id = ?',
+          [conversationId],
+        );
         db.execute('DELETE FROM conversations WHERE id = ?', [conversationId]);
         db.execute('COMMIT');
       } catch (_) {
@@ -1027,6 +1053,105 @@ class ConversationDatabase {
       db.execute(
         'DELETE FROM conversation_memory WHERE conversation_id = ?',
         [conversationId],
+      );
+    });
+  }
+
+  /// 追加一条对话模型主动记录的记忆便签。
+  Future<void> appendMemoryNote(MemoryNote note) async {
+    await _synchronized(() async {
+      final db = await this.db;
+      db.execute('BEGIN IMMEDIATE TRANSACTION');
+      try {
+        final existing = db.select(
+          'SELECT 1 FROM conversations WHERE id = ?',
+          [note.conversationId],
+        );
+        if (existing.isEmpty) {
+          db.execute('COMMIT');
+          return;
+        }
+
+        db.execute(
+          '''
+          INSERT OR REPLACE INTO conversation_memory_notes (
+            id, conversation_id, kind, text, quote, reason,
+            source_message_id, created_at, status
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ''',
+          [
+            note.id,
+            note.conversationId,
+            note.kind.name,
+            note.text,
+            note.quote,
+            note.reason,
+            note.sourceMessageId,
+            note.createdAt.millisecondsSinceEpoch,
+            note.status.name,
+          ],
+        );
+        db.execute('COMMIT');
+      } catch (_) {
+        db.execute('ROLLBACK');
+        rethrow;
+      }
+    });
+  }
+
+  /// 读取会话的记忆便签；[onlyPending] 为 true 时只返回待合并条目。
+  Future<List<MemoryNote>> getMemoryNotes(
+    String conversationId, {
+    bool onlyPending = false,
+  }) async {
+    final db = await this.db;
+    final statusFilter = onlyPending ? "AND status = 'pending'" : '';
+    final rows = db.select(
+      '''
+      SELECT id, conversation_id, kind, text, quote, reason,
+             source_message_id, created_at, status
+      FROM conversation_memory_notes
+      WHERE conversation_id = ? $statusFilter
+      ORDER BY created_at ASC
+      ''',
+      [conversationId],
+    );
+
+    return rows
+        .map(
+          (row) => MemoryNote(
+            id: row['id'] as String,
+            conversationId: row['conversation_id'] as String,
+            kind:
+                parseMemoryNoteKind(row['kind']) ?? MemoryNoteKind.fact,
+            text: row['text'] as String,
+            quote: row['quote'] as String?,
+            reason: row['reason'] as String?,
+            sourceMessageId: row['source_message_id'] as String?,
+            createdAt: DateTime.fromMillisecondsSinceEpoch(
+              row['created_at'] as int,
+            ),
+            status: parseMemoryNoteStatus(row['status']),
+          ),
+        )
+        .toList();
+  }
+
+  /// 标记便签已被后台维护模型合并。
+  Future<void> markMemoryNotesProcessed(
+    String conversationId,
+    Iterable<String> noteIds,
+  ) async {
+    final ids = noteIds.toList(growable: false);
+    if (ids.isEmpty) return;
+
+    await _synchronized(() async {
+      final db = await this.db;
+      final placeholders = List.filled(ids.length, '?').join(', ');
+      db.execute(
+        'UPDATE conversation_memory_notes SET status = ? '
+        'WHERE conversation_id = ? AND id IN ($placeholders)',
+        [MemoryNoteStatus.processed.name, conversationId, ...ids],
       );
     });
   }

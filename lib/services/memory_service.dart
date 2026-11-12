@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import '../models/conversation_memory.dart';
+import '../models/memory_note.dart';
 import '../models/message.dart';
 import '../utils/memory_fingerprint.dart';
 import 'memory_policy.dart';
@@ -22,6 +23,16 @@ abstract class MemoryUpdateClient {
   });
 }
 
+/// 主动记忆便签的最小存储接口。
+abstract class MemoryNoteStore {
+  Future<List<MemoryNote>> loadPendingNotes(String conversationId);
+
+  Future<void> markNotesProcessed(
+    String conversationId,
+    List<String> noteIds,
+  );
+}
+
 enum MemoryStatusStage { updating, rebuilding, failed }
 
 typedef MemoryStatusCallback =
@@ -36,6 +47,7 @@ class MemoryService {
   MemoryService({
     required this.store,
     required this.client,
+    this.noteStore,
     this.chunkSize = MemoryPolicy.chunkSize,
     this.rebuildChunkSize = MemoryPolicy.rebuildChunkSize,
     this.reserve = MemoryPolicy.reserve,
@@ -47,6 +59,7 @@ class MemoryService {
 
   final MemoryStore store;
   final MemoryUpdateClient client;
+  final MemoryNoteStore? noteStore;
   final int chunkSize;
   final int rebuildChunkSize;
   final int reserve;
@@ -97,6 +110,9 @@ class MemoryService {
         return formatMemoryBlock(memory);
       }
 
+      final pendingNotes = noteStore == null
+          ? const <MemoryNote>[]
+          : await noteStore!.loadPendingNotes(conversationId);
       final updated = await _updateTo(
         conversationId: conversationId,
         eligible: eligible,
@@ -104,6 +120,7 @@ class MemoryService {
         covered: covered,
         targetCoverage: required,
         rebuilding: rebuilding,
+        pendingNotes: pendingNotes,
         onStatus: onStatus,
       );
       return formatMemoryBlock(updated);
@@ -151,6 +168,10 @@ class MemoryService {
           );
       if (!due) return;
 
+      final pendingNotes = noteStore == null
+          ? const <MemoryNote>[]
+          : await noteStore!.loadPendingNotes(conversationId);
+
       var target = MemoryPolicy.targetCoverage(
         eligibleCount: eligible.length,
         historyRounds: historyRounds,
@@ -169,6 +190,7 @@ class MemoryService {
         covered: covered,
         targetCoverage: target,
         rebuilding: rebuilding,
+        pendingNotes: pendingNotes,
         onStatus: onStatus,
       );
     });
@@ -181,6 +203,7 @@ class MemoryService {
     required int covered,
     required int targetCoverage,
     required bool rebuilding,
+    List<MemoryNote> pendingNotes = const [],
     MemoryStatusCallback? onStatus,
   }) async {
     final target = targetCoverage > eligible.length
@@ -197,6 +220,7 @@ class MemoryService {
     var state = memory;
     var cursor = covered;
     var chunkNumber = 0;
+    var notesMerged = false;
 
     while (cursor < target) {
       chunkNumber++;
@@ -219,6 +243,7 @@ class MemoryService {
               userPrompt: buildMemoryUpdateUserPrompt(
                 memory: state,
                 chunk: chunk,
+                pendingNotes: pendingNotes,
               ),
             )
             .timeout(updateTimeout);
@@ -245,7 +270,15 @@ class MemoryService {
         fingerprint: computeMemoryFingerprint(eligible.sublist(0, end)),
       );
       await store.save(conversationId, state);
+      notesMerged = true;
       cursor = end;
+    }
+
+    if (notesMerged && pendingNotes.isNotEmpty) {
+      await noteStore?.markNotesProcessed(
+        conversationId,
+        pendingNotes.map((note) => note.id).toList(growable: false),
+      );
     }
 
     return state;

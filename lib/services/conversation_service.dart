@@ -4,6 +4,7 @@ import 'package:flutter/services.dart' show rootBundle;
 
 import '../models/conversation.dart';
 import '../models/conversation_memory.dart';
+import '../models/memory_note.dart';
 import '../models/message.dart';
 import '../models/prompt_preset.dart';
 import '../l10n/app_localizations.dart';
@@ -345,6 +346,22 @@ class ConversationService {
   Future<void> deleteConversationMemory(String conversationId) =>
       _db.deleteConversationMemory(conversationId);
 
+  /// 追加一条对话模型主动记录的记忆便签。
+  Future<void> appendMemoryNote(MemoryNote note) =>
+      _db.appendMemoryNote(note);
+
+  /// 读取会话记忆便签；[onlyPending] 为 true 时只返回待合并条目。
+  Future<List<MemoryNote>> getMemoryNotes(
+    String conversationId, {
+    bool onlyPending = false,
+  }) => _db.getMemoryNotes(conversationId, onlyPending: onlyPending);
+
+  /// 标记便签已被后台维护模型合并。
+  Future<void> markMemoryNotesProcessed(
+    String conversationId,
+    Iterable<String> noteIds,
+  ) => _db.markMemoryNotesProcessed(conversationId, noteIds);
+
   /// 根据ID获取对话（带缓存优化）
   Future<Conversation?> getConversationById(String id) async {
     // 先检查缓存
@@ -476,6 +493,15 @@ class ConversationService {
     if (memory != null && !memory.isEmpty) {
       json['memory'] = memory.toJson();
     }
+    final pendingNotes = await getMemoryNotes(
+      conversationId,
+      onlyPending: true,
+    );
+    if (pendingNotes.isNotEmpty) {
+      json['memory_notes'] = pendingNotes
+          .map((note) => note.toJson())
+          .toList();
+    }
     final snapshot = await _buildPresetSnapshot(
       conversation,
       includePresetSnapshot,
@@ -505,6 +531,15 @@ class ConversationService {
     final memory = await getConversationMemory(conversationId);
     if (memory != null && !memory.isEmpty) {
       conversationJson['memory'] = memory.toJson();
+    }
+    final pendingNotes = await getMemoryNotes(
+      conversationId,
+      onlyPending: true,
+    );
+    if (pendingNotes.isNotEmpty) {
+      conversationJson['memory_notes'] = pendingNotes
+          .map((note) => note.toJson())
+          .toList();
     }
     final snapshot = await _buildPresetSnapshot(
       conversation,
@@ -783,6 +818,42 @@ class ConversationService {
         }
       } catch (_) {
         // 记忆损坏不应阻止对话导入；下次发送会按消息重建。
+      }
+    }
+
+    // 主动便签也要跟着对话走：保留待合并便签，重映射来源消息并重新生成 ID，
+    // 避免不同导入会话之间主键冲突。
+    final rawNotes = rawMap['memory_notes'];
+    if (rawNotes is List) {
+      var noteIndex = 0;
+      for (final rawNote in rawNotes) {
+        if (rawNote is! Map) continue;
+        try {
+          final note = MemoryNote.fromJson(
+            rawNote.cast<String, dynamic>(),
+          );
+          if (note.text.trim().isEmpty) continue;
+
+          final oldSource = note.sourceMessageId;
+          final source = oldSource == null
+              ? null
+              : messageIdMap[oldSource];
+          await _db.appendMemoryNote(
+            MemoryNote(
+              id: '${conversation.id}_note_${noteIndex++}',
+              conversationId: conversation.id,
+              kind: note.kind,
+              text: note.text,
+              quote: note.quote,
+              reason: note.reason,
+              sourceMessageId: source,
+              createdAt: note.createdAt,
+              status: MemoryNoteStatus.pending,
+            ),
+          );
+        } catch (_) {
+          // 单条便签损坏不影响对话导入。
+        }
       }
     }
 

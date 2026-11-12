@@ -45,16 +45,17 @@ LumenFlow（中文名：流光）是一款使用 Flutter 构建的 AI 聊天应�
 - **滚动记忆**：超过原文历史窗口的对话会压缩成前情梗概、当前关系/情绪，以及约定、事实和结论账本。
 - **硬记忆**：约定、规则和结论尽量保留原话；已废止条目保留但不注入。被否方案和理由单独记录，避免重复提出。
 - **自动维护**：回复完成后在后台更新记忆；发送前如果旧消息即将滑出窗口，会短暂等待整理完成。
+- **主动便签**：对话模型可以调用 `remember_note`，在事件发生的当下记录新约定、关键事实、情绪转折或被否方案；下一次维护时会优先合并进账本，而不是等后台窗口。
 - **自动失效**：编辑、重新生成或删除被记忆覆盖的消息会让记忆失效并触发重建。
 - **只读查看器**：聊天页 `⋯` 菜单 → **查看记忆**，展示前情、情绪、约定、已废止条目和被否方案，不提供编辑。
-- **随对话导出**：JSON、LumenFlow 压缩包和 ZIP 导出都包含记忆；导入时重映射消息 ID 并恢复。
+- **随对话导出**：JSON、LumenFlow 压缩包和 ZIP 导出都包含记忆和待合并的主动便签；导入时重映射消息 ID 并恢复。
 
 ### 数据与导出
 
 - **SQLite 存储**：外键、索引、事务和 SharedPreferences 自动迁移。
 - **对话管理**：历史列表、消息搜索、编辑、重新生成、重新提交、删除和对话级设置。
 - **附件处理**：图片、视频、音频、PDF 和文本内容提取。
-- **导出格式**：TXT、JSON、PDF、LumenFlow 压缩包。JSON、LumenFlow 和 ZIP 导出包含滚动记忆，并可选附带当前用户角色卡正文。
+- **导出格式**：TXT、JSON、PDF、LumenFlow 压缩包。JSON、LumenFlow 和 ZIP 导出包含滚动记忆和待合并的主动便签，并可选附带当前用户角色卡正文。
 - **对话导入**：支持 LumenFlow 压缩包、ZIP 和裸 JSON 会话；本地缺少角色卡时，可从内嵌快照确认重建。导入的记忆会重映射消息 ID 后恢复。
   - [LumenFlow 格式说明](./LumenFlow格式解析.md)
 - **PDF 导出**：嵌入 Noto Sans SC，按实际使用字符做字体子集，中文不再乱码。
@@ -115,14 +116,14 @@ lib/
 │   │   ├── responses_tool_provider.dart
 │   │   ├── claude_tool_provider.dart
 │   │   └── gemini_tool_provider.dart
-│   ├── tools/                        # 内置时间、计算器、文本工具
+│   ├── tools/                        # 内置时间、计算器、文本和记忆便签工具
 │   └── transport/
 │       └── sse_decoder.dart          # 增量 SSE 解析
 ├── controllers/
 │   ├── chat_screen_controller.dart   # 桌面壳与嵌入聊天区的窄接口
 │   └── chat_send_controller.dart     # 单次流式发送生命周期
 ├── l10n/                             # ARB 文件和生成的本地化代码
-├── models/                           # 对话、消息、附件、记忆、平台、用户资料、预设模型
+├── models/                           # 对话、消息、附件、记忆、记忆便签、平台、用户资料、预设模型
 ├── providers/                        # 各平台普通聊天/流式 Provider
 ├── screens/                          # 聊天、对话、设置、工具、资料、预设管理、记忆查看页面
 ├── services/
@@ -189,7 +190,7 @@ UI（screens/widgets）
 - **工具层**：`ToolChatService` 和 `AgentRunner` 执行模型/工具循环；`CompositeToolExecutor` 合并内置工具和已启用的 MCP 工具。
 - **协议层**：每类平台有独立的流式和工具适配器，负责请求构造和事件映射。
 - **数据层**：SQLite 保存对话、消息、附件和记忆；`SettingsService` 管理配置和当前平台解析。
-- **记忆层**：`MemoryService` 校验覆盖范围和指纹，把旧消息滚动整理成 `ConversationMemory`，并把 `<memory>` 块追加到 system prompt 末尾。账本存在 SQLite 中，随对话导出。
+- **记忆层**：`MemoryService` 校验覆盖范围和指纹，把旧消息滚动整理成 `ConversationMemory`，合并 `remember_note` 主动便签，并把 `<memory>` 块追加到 system prompt 末尾。账本存在 SQLite 中，随对话导出。
 - **预设层**：`PromptService` 加载内置多语言角色卡和 schema v2 用户预设；`PresetRepository` 在聊天页与设置页之间共享加载状态。
 - **本地化层**：由 ARB 文件生成 `AppLocalizations`。
 
@@ -227,6 +228,7 @@ MCP 工具会带上服务器前缀，避免不同服务器的同名工具冲突�
 
 - **启用历史对话** 必须先开启，记忆才会工作。
 - **记忆压缩** 默认开启。长对话会自动整理前情、关系/情绪、约定/事实和被否方案。
+- 对话模型可以调用 `remember_note`，在当下记录重要约定、事实、情绪转折或被否方案；下一次维护时合并进账本。
 - 在聊天页打开 `⋯` 菜单 → **查看记忆**，可以只读查看当前记忆。
 
 记忆只保存在本机，并随会话 JSON / LumenFlow / ZIP 导出。
@@ -267,7 +269,7 @@ SQLite 数据库位置：
 - **macOS**：App Sandbox 容器内 `~/Library/Containers/me.huanmeng.lumenFlow/Data/.lumenflow/conversations.db`。
 - **iOS**：应用数据容器内的 `Library/Application Support/conversations.db`。
 
-表：`conversations`、`messages`、`attachments`、`conversation_memory` 以及应用元数据/设置。
+表：`conversations`、`messages`、`attachments`、`conversation_memory`、`conversation_memory_notes` 以及应用元数据/设置。
 
 用户预设保存在数据库同级的 `user_prompts/` 目录：
 

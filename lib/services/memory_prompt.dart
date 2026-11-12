@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../models/conversation_memory.dart';
+import '../models/memory_note.dart';
 import '../models/message.dart';
 import 'memory_policy.dart';
 
@@ -98,7 +99,9 @@ String _escapePromptTags(String value) => value
     .replaceAll('<conversation>', '＜conversation＞')
     .replaceAll('</conversation>', '＜/conversation＞')
     .replaceAll('<current_memory>', '＜current_memory＞')
-    .replaceAll('</current_memory>', '＜/current_memory＞');
+    .replaceAll('</current_memory>', '＜/current_memory＞')
+    .replaceAll('<pending_notes>', '＜pending_notes＞')
+    .replaceAll('</pending_notes>', '＜/pending_notes＞');
 
 /// 记忆更新模型的 system prompt。
 String buildMemoryUpdateSystemPrompt() {
@@ -116,6 +119,7 @@ String buildMemoryUpdateSystemPrompt() {
 8. 如果这段消息没有产生新的前情，summary 返回 "unchanged"。
 9. 输出必须是严格 JSON，不要输出解释文字或 Markdown 代码块。
 10. 所有自然语言字段使用 <conversation> 对话本身的语言，不要翻译成其他语言。
+11. <pending_notes> 是对话模型在事件发生时主动留下的便签，优先级更高；除非对话明确推翻，否则必须合并进记忆，不要忽略。
 
 输出 schema：
 {
@@ -138,6 +142,7 @@ String buildMemoryUpdateSystemPrompt() {
 String buildMemoryUpdateUserPrompt({
   required ConversationMemory memory,
   required List<Message> chunk,
+  List<MemoryNote> pendingNotes = const [],
 }) {
   final memoryJson = _escapePromptTags(
     const JsonEncoder.withIndent('  ').convert(_memoryForUpdate(memory)),
@@ -151,10 +156,42 @@ String buildMemoryUpdateUserPrompt({
       })
       .join('\n');
 
+  final notesSection = pendingNotes.isEmpty
+      ? ''
+      : '<pending_notes>\n'
+            '以下是对话模型在事件发生时主动留下的便签。它们是高优先级证据，'
+            '除非对话明确推翻，否则必须合并进记忆。\n'
+            '${pendingNotes.map(_noteLine).join('\n')}\n'
+            '</pending_notes>\n\n';
+
   return '<current_memory>\n$memoryJson\n</current_memory>\n\n'
+      '$notesSection'
       '<conversation>\n$conversation\n</conversation>\n\n'
       '请输出更新后的记忆 JSON。新增条目必须填写 source_message_id，'
       '并在 quote 中保留能精确复述的原话。';
+}
+
+String _noteLine(MemoryNote note) {
+  final parts = <String>[
+    '[${note.kind.name}] ${_escapePromptTags(note.text)}',
+  ];
+
+  final quote = note.quote?.trim();
+  if (quote != null && quote.isNotEmpty) {
+    parts.add('quote: ${_escapePromptTags(quote)}');
+  }
+
+  final reason = note.reason?.trim();
+  if (reason != null && reason.isNotEmpty) {
+    parts.add('reason: ${_escapePromptTags(reason)}');
+  }
+
+  final source = note.sourceMessageId;
+  if (source != null && source.isNotEmpty) {
+    parts.add('source: $source');
+  }
+
+  return '- ${parts.join(' | ')}';
 }
 
 /// 控制传给维护模型的账本大小。旧条目被截断也不会丢：程序侧的去重和
