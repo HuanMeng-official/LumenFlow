@@ -362,6 +362,9 @@ class AppLocalizationsLzh extends AppLocalizations {
   String get memoryViewerTitle => '對談記憶';
 
   @override
+  String get memoryViewerRoleplayTitle => '角色記憶';
+
+  @override
   String get memoryViewerEmptyTitle => '尚無所記';
 
   @override
@@ -392,6 +395,56 @@ class AppLocalizationsLzh extends AppLocalizations {
 
   @override
   String get memoryViewerLocalOnly => '記憶惟存本機，隨談自新。';
+
+  @override
+  String get memoryViewerPendingNotes => '待合之簽';
+
+  @override
+  String get memoryKindAgreement => '約定';
+
+  @override
+  String get memoryKindFact => '事實';
+
+  @override
+  String get memoryKindDecision => '決定';
+
+  @override
+  String get memoryKindEmotion => '情';
+
+  @override
+  String get memoryKindRejected => '所否';
+
+  @override
+  String get memoryKindRule => '規則';
+
+  @override
+  String get memoryViewerRoleplayMood => '心情';
+
+  @override
+  String get memoryViewerRoleplayRelationship => '關係之境';
+
+  @override
+  String get memoryViewerRoleplayScene => '當前之景';
+
+  @override
+  String get memoryViewerRoleplayStoryTime => '故事之時';
+
+  @override
+  String get memoryViewerRoleplayIntimacy => '親密';
+
+  @override
+  String get memoryViewerRoleplayNewMemories => '本次新憶';
+
+  @override
+  String get memoryViewerRoleplayUnresolved => '未了之事';
+
+  @override
+  String memoryViewerRoleplayStats(int messages, int minutes) {
+    return '$messages 言 · 約 $minutes 分';
+  }
+
+  @override
+  String get memoryViewerRoleplayEmptyHint => '續談則此間自整心情、關係、場景與未了之事。';
 
   @override
   String get memoryTools => '記憶之器';

@@ -26,6 +26,37 @@ String formatMemoryBlock(
     sections.add('[当前关系与情绪]\n$emotionalState');
   }
 
+  final roleplay = memory.roleplay;
+  if (roleplay != null && !roleplay.isEmpty) {
+    final lines = <String>[];
+    final mood = _escapeMemoryTags(roleplay.mood.trim());
+    if (mood.isNotEmpty) lines.add('心情：$mood');
+    final relationship = _escapeMemoryTags(
+      roleplay.relationshipStage.trim(),
+    );
+    if (relationship.isNotEmpty) lines.add('关系阶段：$relationship');
+    final scene = _escapeMemoryTags(roleplay.scene.trim());
+    if (scene.isNotEmpty) lines.add('当前场景：$scene');
+    final storyTime = _escapeMemoryTags(roleplay.storyTime.trim());
+    if (storyTime.isNotEmpty) lines.add('故事时间：$storyTime');
+    if (roleplay.intimacy != null) {
+      lines.add(
+        roleplay.previousIntimacy == null
+            ? '亲密度：${roleplay.intimacy}'
+            : '亲密度：${roleplay.previousIntimacy} → ${roleplay.intimacy}',
+      );
+    }
+    final intimacyNote = _escapeMemoryTags(
+      roleplay.intimacyNote.trim(),
+    );
+    if (intimacyNote.isNotEmpty) lines.add('亲密度说明：$intimacyNote');
+    final unresolved = _escapeMemoryTags(roleplay.unresolved.trim());
+    if (unresolved.isNotEmpty) lines.add('未完成：$unresolved');
+    if (lines.isNotEmpty) {
+      sections.add('[当前角色状态]\n${lines.join('\n')}');
+    }
+  }
+
   final facts = memory.activeFacts;
   if (facts.isNotEmpty) {
     final kept = facts.length > maxFacts
@@ -120,6 +151,7 @@ String buildMemoryUpdateSystemPrompt() {
 9. 输出必须是严格 JSON，不要输出解释文字或 Markdown 代码块。
 10. 所有自然语言字段使用 <conversation> 对话本身的语言，不要翻译成其他语言。
 11. <pending_notes> 是对话模型在事件发生时主动留下的便签，优先级更高；除非对话明确推翻，否则必须合并进记忆，不要忽略。
+12. 如果用户消息里有 <roleplay>，还要更新 roleplay_state：心情、关系阶段、当前场景、故事时间、亲密度（0-100 的整数，无法判断时省略）、亲密度说明、未完成的事。没有变化的字段写 "unchanged"。
 
 输出 schema：
 {
@@ -133,7 +165,16 @@ String buildMemoryUpdateSystemPrompt() {
   "rejected_ops": [
     {"op": "add", "proposal": "...", "reason": "...", "source_message_id": "消息ID"},
     {"op": "reopen", "id": "已有条目ID"}
-  ]
+  ],
+  "roleplay_state": {
+    "mood": "当前心情或 unchanged",
+    "relationship_stage": "关系阶段或 unchanged",
+    "scene": "当前场景或 unchanged",
+    "story_time": "故事内的时间或 unchanged",
+    "intimacy": 68,
+    "intimacy_note": "亲密度变化的简短说明",
+    "unresolved": "尚未解决/未回答的事或 unchanged"
+  }
 }
 ''';
 }
@@ -143,6 +184,9 @@ String buildMemoryUpdateUserPrompt({
   required ConversationMemory memory,
   required List<Message> chunk,
   List<MemoryNote> pendingNotes = const [],
+  bool roleplayMode = false,
+  String characterName = '',
+  String characterDescription = '',
 }) {
   final memoryJson = _escapePromptTags(
     const JsonEncoder.withIndent('  ').convert(_memoryForUpdate(memory)),
@@ -164,8 +208,22 @@ String buildMemoryUpdateUserPrompt({
             '${pendingNotes.map(_noteLine).join('\n')}\n'
             '</pending_notes>\n\n';
 
+  final safeName = _escapePromptTags(characterName.trim());
+  final safeDescription = _escapePromptTags(characterDescription.trim());
+  final roleplaySection = roleplayMode
+      ? '<roleplay>\n'
+            '这是一个角色扮演对话。角色：'
+            '${safeName.isEmpty ? '未命名角色' : safeName}。'
+            '${safeDescription.isEmpty ? '' : '角色描述：$safeDescription。'}\n'
+            '请更新 roleplay_state：心情、关系阶段、当前场景、故事时间、'
+            '亲密度（0-100 的整数，无法判断时省略）、亲密度说明、未完成的事。'
+            '没有变化的字段返回 "unchanged"；使用对话语言。\n'
+            '</roleplay>\n\n'
+      : '';
+
   return '<current_memory>\n$memoryJson\n</current_memory>\n\n'
       '$notesSection'
+      '$roleplaySection'
       '<conversation>\n$conversation\n</conversation>\n\n'
       '请输出更新后的记忆 JSON。新增条目必须填写 source_message_id，'
       '并在 quote 中保留能精确复述的原话。';
@@ -210,6 +268,7 @@ Map<String, dynamic> _memoryForUpdate(ConversationMemory memory) {
     'emotionalState': memory.emotionalState,
     'facts': facts.map((fact) => fact.toJson()).toList(),
     'rejected': rejected.map((entry) => entry.toJson()).toList(),
+    'roleplay': memory.roleplay?.toJson(),
     'coveredUntilMessageId': memory.coveredUntilMessageId,
     'fingerprint': memory.fingerprint,
     'updatedAt': memory.updatedAt?.millisecondsSinceEpoch,

@@ -167,6 +167,7 @@
   "memoryCompressionFailed": "Memory update failed. Using the existing memory this time",
   "viewMemory": "View Memory",
   "memoryViewerTitle": "Conversation Memory",
+  "memoryViewerRoleplayTitle": "Character Memory",
   "memoryViewerEmptyTitle": "No memory yet",
   "memoryViewerEmptyDesc": "Once a long conversation exceeds the raw context window, the AI automatically organizes the story, agreements, and rejected proposals.",
   "memoryViewerSummary": "Story so far",
@@ -182,6 +183,28 @@
     }
   },
   "memoryViewerLocalOnly": "Memory is stored only on this device and updates automatically with the conversation.",
+  "memoryViewerPendingNotes": "Pending notes",
+  "memoryKindAgreement": "Agreement",
+  "memoryKindFact": "Fact",
+  "memoryKindDecision": "Decision",
+  "memoryKindEmotion": "Emotion",
+  "memoryKindRejected": "Rejected",
+  "memoryKindRule": "Rule",
+  "memoryViewerRoleplayMood": "Mood",
+  "memoryViewerRoleplayRelationship": "Relationship",
+  "memoryViewerRoleplayScene": "Scene",
+  "memoryViewerRoleplayStoryTime": "Story time",
+  "memoryViewerRoleplayIntimacy": "Intimacy",
+  "memoryViewerRoleplayNewMemories": "New memories",
+  "memoryViewerRoleplayUnresolved": "Unresolved",
+  "memoryViewerRoleplayStats": "{messages} messages · about {minutes} min",
+  "@memoryViewerRoleplayStats": {
+    "placeholders": {
+      "messages": {"type": "int"},
+      "minutes": {"type": "int"}
+    }
+  },
+  "memoryViewerRoleplayEmptyHint": "Keep chatting and this page will fill in mood, relationship, scene, and unresolved threads.",
   "memoryTools": "Memory Tools",
   "memoryToolsAuto": "Auto",
   "memoryNoteToolName": "Remember Note",

@@ -362,6 +362,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get memoryViewerTitle => '대화 메모리';
 
   @override
+  String get memoryViewerRoleplayTitle => '캐릭터 메모리';
+
+  @override
   String get memoryViewerEmptyTitle => '아직 메모리가 없습니다';
 
   @override
@@ -392,6 +395,56 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get memoryViewerLocalOnly => '메모리는 기기에만 저장되며 대화에 따라 자동 업데이트됩니다.';
+
+  @override
+  String get memoryViewerPendingNotes => '병합 대기 메모';
+
+  @override
+  String get memoryKindAgreement => '약속';
+
+  @override
+  String get memoryKindFact => '사실';
+
+  @override
+  String get memoryKindDecision => '결정';
+
+  @override
+  String get memoryKindEmotion => '감정';
+
+  @override
+  String get memoryKindRejected => '거부';
+
+  @override
+  String get memoryKindRule => '규칙';
+
+  @override
+  String get memoryViewerRoleplayMood => '기분';
+
+  @override
+  String get memoryViewerRoleplayRelationship => '관계 단계';
+
+  @override
+  String get memoryViewerRoleplayScene => '현재 장면';
+
+  @override
+  String get memoryViewerRoleplayStoryTime => '이야기 시간';
+
+  @override
+  String get memoryViewerRoleplayIntimacy => '친밀도';
+
+  @override
+  String get memoryViewerRoleplayNewMemories => '이번에 추가된 기억';
+
+  @override
+  String get memoryViewerRoleplayUnresolved => '미완의 일';
+
+  @override
+  String memoryViewerRoleplayStats(int messages, int minutes) {
+    return '$messages개 메시지 · 약 $minutes분';
+  }
+
+  @override
+  String get memoryViewerRoleplayEmptyHint => '대화를 계속하면 여기에 기분, 관계, 장면, 미완의 일이 정리됩니다.';
 
   @override
   String get memoryTools => '메모리 도구';

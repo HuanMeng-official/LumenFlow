@@ -1,3 +1,5 @@
+import 'roleplay_memory.dart';
+
 /// 会话记忆的数据模型。
 ///
 /// 记忆分两层：
@@ -9,6 +11,7 @@ class ConversationMemory {
     required this.emotionalState,
     required this.facts,
     required this.rejected,
+    this.roleplay,
     this.coveredUntilMessageId,
     this.fingerprint,
     this.updatedAt,
@@ -32,6 +35,9 @@ class ConversationMemory {
 
   /// 被否方案账本。
   final List<RejectedProposal> rejected;
+
+  /// 角色扮演会话的结构化状态；普通对话为 null。
+  final RoleplayMemory? roleplay;
 
   /// 记忆覆盖到的最后一条消息 ID。
   final String? coveredUntilMessageId;
@@ -60,23 +66,27 @@ class ConversationMemory {
       summary.trim().isEmpty &&
       emotionalState.trim().isEmpty &&
       activeFacts.isEmpty &&
-      visibleRejected.isEmpty;
+      visibleRejected.isEmpty &&
+      (roleplay == null || roleplay!.isEmpty);
 
   ConversationMemory copyWith({
     String? summary,
     String? emotionalState,
     List<MemoryFact>? facts,
     List<RejectedProposal>? rejected,
+    RoleplayMemory? roleplay,
     String? coveredUntilMessageId,
     String? fingerprint,
     DateTime? updatedAt,
     bool clearCoverage = false,
+    bool clearRoleplay = false,
   }) {
     return ConversationMemory(
       summary: summary ?? this.summary,
       emotionalState: emotionalState ?? this.emotionalState,
       facts: facts ?? this.facts,
       rejected: rejected ?? this.rejected,
+      roleplay: clearRoleplay ? null : (roleplay ?? this.roleplay),
       coveredUntilMessageId: clearCoverage
           ? null
           : (coveredUntilMessageId ?? this.coveredUntilMessageId),
@@ -91,6 +101,7 @@ class ConversationMemory {
       'emotionalState': emotionalState,
       'facts': facts.map((fact) => fact.toJson()).toList(),
       'rejected': rejected.map((entry) => entry.toJson()).toList(),
+      'roleplay': roleplay?.toJson(),
       'coveredUntilMessageId': coveredUntilMessageId,
       'fingerprint': fingerprint,
       'updatedAt': updatedAt?.millisecondsSinceEpoch,
@@ -121,6 +132,7 @@ class ConversationMemory {
                 )
                 .toList()
           : const [],
+      roleplay: _parseRoleplay(json['roleplay']),
       coveredUntilMessageId: json['coveredUntilMessageId'] as String?,
       fingerprint: json['fingerprint'] as String?,
       updatedAt: _parseDate(json['updatedAt']),
@@ -135,6 +147,14 @@ class ConversationMemory {
       return DateTime.tryParse(value);
     }
     return null;
+  }
+
+  static RoleplayMemory? _parseRoleplay(Object? value) {
+    if (value is! Map) return null;
+    final roleplay = RoleplayMemory.fromJson(
+      value.cast<String, dynamic>(),
+    );
+    return roleplay.isEmpty ? null : roleplay;
   }
 }
 

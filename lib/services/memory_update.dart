@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../models/conversation_memory.dart';
+import '../models/roleplay_memory.dart';
 import 'memory_policy.dart';
 
 enum FactOpType { add, supersede, update }
@@ -47,12 +48,26 @@ class MemoryUpdate {
   const MemoryUpdate({
     this.summary,
     this.emotionalState,
+    this.mood,
+    this.relationshipStage,
+    this.scene,
+    this.storyTime,
+    this.intimacy,
+    this.intimacyNote,
+    this.unresolved,
     this.factOps = const [],
     this.rejectedOps = const [],
   });
 
   final String? summary;
   final String? emotionalState;
+  final String? mood;
+  final String? relationshipStage;
+  final String? scene;
+  final String? storyTime;
+  final int? intimacy;
+  final String? intimacyNote;
+  final String? unresolved;
   final List<FactOperation> factOps;
   final List<RejectedOperation> rejectedOps;
 }
@@ -72,12 +87,30 @@ class MemoryUpdateParser {
       final decoded = jsonDecode(jsonText);
       if (decoded is! Map) return null;
       final map = decoded.cast<String, dynamic>();
+      final roleplay = map['roleplay_state'] ?? map['roleplayState'];
+      final roleplayMap = roleplay is Map
+          ? roleplay.cast<String, dynamic>()
+          : const <String, dynamic>{};
 
       return MemoryUpdate(
         summary: _stringOrNull(map['summary']),
         emotionalState: _stringOrNull(
           map['emotional_state'] ?? map['emotionalState'],
         ),
+        mood: _stringOrNull(roleplayMap['mood']),
+        relationshipStage: _stringOrNull(
+          roleplayMap['relationship_stage'] ??
+              roleplayMap['relationshipStage'],
+        ),
+        scene: _stringOrNull(roleplayMap['scene']),
+        storyTime: _stringOrNull(
+          roleplayMap['story_time'] ?? roleplayMap['storyTime'],
+        ),
+        intimacy: _intOrNull(roleplayMap['intimacy']),
+        intimacyNote: _stringOrNull(
+          roleplayMap['intimacy_note'] ?? roleplayMap['intimacyNote'],
+        ),
+        unresolved: _stringOrNull(roleplayMap['unresolved']),
         factOps: _parseFactOps(map['fact_ops'] ?? map['factOps']),
         rejectedOps: _parseRejectedOps(
           map['rejected_ops'] ?? map['rejectedOps'],
@@ -97,6 +130,15 @@ class MemoryUpdateParser {
 
   static String? _stringOrNull(Object? value) {
     if (value is String) return value;
+    return null;
+  }
+
+  static int? _intOrNull(Object? value) {
+    if (value is num) return value.round().clamp(0, 100);
+    if (value is String) {
+      final parsed = int.tryParse(value.trim());
+      if (parsed != null) return parsed.clamp(0, 100);
+    }
     return null;
   }
 
@@ -202,6 +244,7 @@ class MemoryUpdateApplier {
     final timestamp = now ?? DateTime.now();
     final facts = List<MemoryFact>.from(current.facts);
     final rejected = List<RejectedProposal>.from(current.rejected);
+    final addedFactIds = <String>[];
 
     for (final op in update.factOps) {
       switch (op.type) {
@@ -221,9 +264,10 @@ class MemoryUpdateApplier {
                         _looksSame(_normalize(fact.quote!), normalized))),
           );
           if (duplicate || resurrected) break;
+          final factId = nextFactId();
           facts.add(
             MemoryFact(
-              id: nextFactId(),
+              id: factId,
               kind: op.kind ?? MemoryFactKind.fact,
               text: text,
               quote: op.quote,
@@ -231,6 +275,7 @@ class MemoryUpdateApplier {
               createdAt: timestamp,
             ),
           );
+          addedFactIds.add(factId);
           break;
         case FactOpType.supersede:
           final index = facts.indexWhere((fact) => fact.id == op.id);
@@ -283,6 +328,12 @@ class MemoryUpdateApplier {
       }
     }
 
+    final roleplay = _applyRoleplay(
+      current.roleplay,
+      update,
+      addedFactIds,
+    );
+
     return current.copyWith(
       summary: _clamp(
         _resolveNarrative(update.summary, current.summary),
@@ -294,8 +345,52 @@ class MemoryUpdateApplier {
       ),
       facts: facts,
       rejected: rejected,
+      roleplay: roleplay,
+      clearRoleplay: roleplay == null,
       updatedAt: timestamp,
     );
+  }
+
+  static RoleplayMemory? _applyRoleplay(
+    RoleplayMemory? current,
+    MemoryUpdate update,
+    List<String> addedFactIds,
+  ) {
+    final hasUpdate =
+        update.mood != null ||
+        update.relationshipStage != null ||
+        update.scene != null ||
+        update.storyTime != null ||
+        update.intimacy != null ||
+        update.intimacyNote != null ||
+        update.unresolved != null;
+    if (current == null && !hasUpdate) return null;
+
+    final base = current ?? const RoleplayMemory();
+    final roleplay = RoleplayMemory(
+      mood: _resolveNarrative(update.mood, base.mood),
+      relationshipStage: _resolveNarrative(
+        update.relationshipStage,
+        base.relationshipStage,
+      ),
+      scene: _resolveNarrative(update.scene, base.scene),
+      storyTime: _resolveNarrative(update.storyTime, base.storyTime),
+      intimacy: update.intimacy ?? base.intimacy,
+      previousIntimacy: update.intimacy != null
+          ? base.intimacy
+          : base.previousIntimacy,
+      intimacyNote: _resolveNarrative(
+        update.intimacyNote,
+        base.intimacyNote,
+      ),
+      unresolved: _resolveNarrative(update.unresolved, base.unresolved),
+      newFactIds: <String>{
+        ...base.newFactIds,
+        ...addedFactIds,
+      }.toList(growable: false),
+    );
+
+    return roleplay.isEmpty ? null : roleplay;
   }
 
   static String _clamp(String value, int maxChars) {

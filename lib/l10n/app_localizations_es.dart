@@ -362,6 +362,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get memoryViewerTitle => 'Memoria de la conversación';
 
   @override
+  String get memoryViewerRoleplayTitle => 'Memoria del personaje';
+
+  @override
   String get memoryViewerEmptyTitle => 'Aún no hay memoria';
 
   @override
@@ -392,6 +395,56 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get memoryViewerLocalOnly => 'La memoria solo se guarda en este dispositivo y se actualiza con la conversación.';
+
+  @override
+  String get memoryViewerPendingNotes => 'Notas pendientes';
+
+  @override
+  String get memoryKindAgreement => 'Acuerdo';
+
+  @override
+  String get memoryKindFact => 'Hecho';
+
+  @override
+  String get memoryKindDecision => 'Decisión';
+
+  @override
+  String get memoryKindEmotion => 'Emoción';
+
+  @override
+  String get memoryKindRejected => 'Rechazado';
+
+  @override
+  String get memoryKindRule => 'Regla';
+
+  @override
+  String get memoryViewerRoleplayMood => 'Ánimo';
+
+  @override
+  String get memoryViewerRoleplayRelationship => 'Etapa de relación';
+
+  @override
+  String get memoryViewerRoleplayScene => 'Escena actual';
+
+  @override
+  String get memoryViewerRoleplayStoryTime => 'Tiempo de la historia';
+
+  @override
+  String get memoryViewerRoleplayIntimacy => 'Intimidad';
+
+  @override
+  String get memoryViewerRoleplayNewMemories => 'Nuevos recuerdos';
+
+  @override
+  String get memoryViewerRoleplayUnresolved => 'Asuntos pendientes';
+
+  @override
+  String memoryViewerRoleplayStats(int messages, int minutes) {
+    return '$messages mensajes · unos $minutes min';
+  }
+
+  @override
+  String get memoryViewerRoleplayEmptyHint => 'Sigue conversando y aquí se organizarán el ánimo, la relación, la escena y los asuntos pendientes.';
 
   @override
   String get memoryTools => 'Herramientas de memoria';

@@ -638,6 +638,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     required List<Message> history,
     required int historyRounds,
     required AppLocalizations l10n,
+    bool roleplayMode = false,
+    String characterName = '',
+    String characterDescription = '',
   }) async {
     final store = ConversationMemoryStore(_conversationService);
     final service = MemoryService(
@@ -650,6 +653,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         conversationId: conversationId,
         eligibleMessages: history,
         historyRounds: historyRounds,
+        roleplayMode: roleplayMode,
+        characterName: characterName,
+        characterDescription: characterDescription,
         onStatus: (stage, {current, total}) {
           _setMemoryStatus(conversationId, l10n, stage, current, total);
         },
@@ -670,6 +676,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     required String conversationId,
     required List<Message> messages,
     required AppLocalizations l10n,
+    bool roleplayMode = false,
+    String characterName = '',
+    String characterDescription = '',
   }) async {
     final memoryEnabled = await _settingsService.getMemoryCompressionEnabled();
     final historyEnabled = await _settingsService.getEnableHistory();
@@ -687,6 +696,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         conversationId: conversationId,
         eligibleMessages: messages,
         historyRounds: historyRounds,
+        roleplayMode: roleplayMode,
+        characterName: characterName,
+        characterDescription: characterDescription,
         onStatus: (stage, {current, total}) {
           _setMemoryStatus(conversationId, l10n, stage, current, total);
         },
@@ -923,6 +935,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     var memoryBlock = '';
     final memoryEnabled = await _settingsService.getMemoryCompressionEnabled();
     final historyEnabled = await _settingsService.getEnableHistory();
+    final roleplayMode =
+        _promptPresetEnabled && _currentPresetId.isNotEmpty;
+    final roleplayPreset = roleplayMode
+        ? _findPresetById(_currentPresetId)
+        : null;
+    final characterName = roleplayPreset?.name ?? _currentTitle;
+    final characterDescription = roleplayPreset?.description ?? '';
     var historyRounds = 0;
     if (memoryEnabled && historyEnabled) {
       historyRounds = await _settingsService.getHistoryContextLength();
@@ -931,6 +950,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         history: history,
         historyRounds: historyRounds,
         l10n: l10n,
+        roleplayMode: roleplayMode,
+        characterName: characterName,
+        characterDescription: characterDescription,
       );
     }
 
@@ -1042,6 +1064,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               conversationId: conversationId,
               messages: memoryMessages,
               l10n: l10n,
+              roleplayMode: roleplayMode,
+              characterName: characterName,
+              characterDescription: characterDescription,
             ),
           );
         }
@@ -2065,6 +2090,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         builder: (_) => MemoryViewerScreen(
           conversationId: conversation.id,
           conversationService: _conversationService,
+          roleplayMode:
+              _promptPresetEnabled && _currentPresetId.isNotEmpty,
+          preset: _promptPresetEnabled
+              ? _findPresetById(_currentPresetId)
+              : null,
         ),
       ),
     );

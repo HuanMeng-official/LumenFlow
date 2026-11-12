@@ -83,6 +83,9 @@ class MemoryService {
     required List<Message> eligibleMessages,
     required int historyRounds,
     bool enabled = true,
+    bool roleplayMode = false,
+    String characterName = '',
+    String characterDescription = '',
     MemoryStatusCallback? onStatus,
   }) {
     return _synchronized(conversationId, () async {
@@ -121,6 +124,9 @@ class MemoryService {
         targetCoverage: required,
         rebuilding: rebuilding,
         pendingNotes: pendingNotes,
+        roleplayMode: roleplayMode,
+        characterName: characterName,
+        characterDescription: characterDescription,
         onStatus: onStatus,
       );
       return formatMemoryBlock(updated);
@@ -133,6 +139,9 @@ class MemoryService {
     required List<Message> eligibleMessages,
     required int historyRounds,
     bool enabled = true,
+    bool roleplayMode = false,
+    String characterName = '',
+    String characterDescription = '',
     MemoryStatusCallback? onStatus,
   }) {
     return _synchronized(conversationId, () async {
@@ -191,6 +200,9 @@ class MemoryService {
         targetCoverage: target,
         rebuilding: rebuilding,
         pendingNotes: pendingNotes,
+        roleplayMode: roleplayMode,
+        characterName: characterName,
+        characterDescription: characterDescription,
         onStatus: onStatus,
       );
     });
@@ -204,6 +216,9 @@ class MemoryService {
     required int targetCoverage,
     required bool rebuilding,
     List<MemoryNote> pendingNotes = const [],
+    bool roleplayMode = false,
+    String characterName = '',
+    String characterDescription = '',
     MemoryStatusCallback? onStatus,
   }) async {
     final target = targetCoverage > eligible.length
@@ -244,6 +259,9 @@ class MemoryService {
                 memory: state,
                 chunk: chunk,
                 pendingNotes: pendingNotes,
+                roleplayMode: roleplayMode,
+                characterName: characterName,
+                characterDescription: characterDescription,
               ),
             )
             .timeout(updateTimeout);
@@ -258,8 +276,14 @@ class MemoryService {
         return state;
       }
 
+      final applyBase =
+          roleplayMode && chunkNumber == 1 && state.roleplay != null
+          ? state.copyWith(
+              roleplay: state.roleplay!.copyWith(newFactIds: const []),
+            )
+          : state;
       state = MemoryUpdateApplier.apply(
-        state,
+        applyBase,
         update,
         nextFactId: () => _idGenerator('fact'),
         nextRejectedId: () => _idGenerator('rej'),

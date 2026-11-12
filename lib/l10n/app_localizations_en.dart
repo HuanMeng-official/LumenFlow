@@ -362,6 +362,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get memoryViewerTitle => 'Conversation Memory';
 
   @override
+  String get memoryViewerRoleplayTitle => 'Character Memory';
+
+  @override
   String get memoryViewerEmptyTitle => 'No memory yet';
 
   @override
@@ -392,6 +395,56 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get memoryViewerLocalOnly => 'Memory is stored only on this device and updates automatically with the conversation.';
+
+  @override
+  String get memoryViewerPendingNotes => 'Pending notes';
+
+  @override
+  String get memoryKindAgreement => 'Agreement';
+
+  @override
+  String get memoryKindFact => 'Fact';
+
+  @override
+  String get memoryKindDecision => 'Decision';
+
+  @override
+  String get memoryKindEmotion => 'Emotion';
+
+  @override
+  String get memoryKindRejected => 'Rejected';
+
+  @override
+  String get memoryKindRule => 'Rule';
+
+  @override
+  String get memoryViewerRoleplayMood => 'Mood';
+
+  @override
+  String get memoryViewerRoleplayRelationship => 'Relationship';
+
+  @override
+  String get memoryViewerRoleplayScene => 'Scene';
+
+  @override
+  String get memoryViewerRoleplayStoryTime => 'Story time';
+
+  @override
+  String get memoryViewerRoleplayIntimacy => 'Intimacy';
+
+  @override
+  String get memoryViewerRoleplayNewMemories => 'New memories';
+
+  @override
+  String get memoryViewerRoleplayUnresolved => 'Unresolved';
+
+  @override
+  String memoryViewerRoleplayStats(int messages, int minutes) {
+    return '$messages messages · about $minutes min';
+  }
+
+  @override
+  String get memoryViewerRoleplayEmptyHint => 'Keep chatting and this page will fill in mood, relationship, scene, and unresolved threads.';
 
   @override
   String get memoryTools => 'Memory Tools';

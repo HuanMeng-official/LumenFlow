@@ -48,7 +48,8 @@ LumenFlow (Chinese: 流光) is a Flutter-based AI chat application for Android, 
 - **Active notes**: the conversation model can call `remember_note` to record a new agreement, fact, emotional turn, or rejected proposal immediately; the next maintenance pass merges the note into the ledger instead of waiting for the background window.
 - **On-demand recall**: once older messages fall outside the raw window, the model can call `recall` with short keywords to search old messages and the full memory ledger, including superseded and rejected entries. The tool is only exposed when there is older content to search.
 - **Automatic invalidation**: editing, regenerating, or deleting covered messages invalidates the memory and triggers a rebuild.
-- **Read-only viewer**: chat ⋯ menu → **View Memory** shows the stored summary, emotional state, agreements, superseded entries, and rejected proposals. It does not modify anything.
+- **Read-only viewer**: chat ⋯ menu → **View Memory** shows the stored summary, emotional state, agreements, superseded entries, rejected proposals, and notes waiting to be merged. It does not modify anything.
+- **Roleplay memory page**: conversations using a role card get a dedicated view with the character profile, mood, relationship stage, scene, story time, intimacy change, newly learned memories, and unresolved threads, so the story state stays easy to check.
 - **Travels with the conversation**: JSON, LumenFlow archive, and ZIP exports include memory and pending active notes; import remaps message IDs and restores them.
 
 ### Data and Export

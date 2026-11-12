@@ -362,6 +362,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get memoryViewerTitle => '会話メモリ';
 
   @override
+  String get memoryViewerRoleplayTitle => 'キャラクターメモリ';
+
+  @override
   String get memoryViewerEmptyTitle => 'まだメモリはありません';
 
   @override
@@ -392,6 +395,56 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get memoryViewerLocalOnly => 'メモリは端末内にのみ保存され、会話に合わせて自動更新されます。';
+
+  @override
+  String get memoryViewerPendingNotes => '統合待ちのメモ';
+
+  @override
+  String get memoryKindAgreement => '約定';
+
+  @override
+  String get memoryKindFact => '事実';
+
+  @override
+  String get memoryKindDecision => '決定';
+
+  @override
+  String get memoryKindEmotion => '感情';
+
+  @override
+  String get memoryKindRejected => '却下';
+
+  @override
+  String get memoryKindRule => 'ルール';
+
+  @override
+  String get memoryViewerRoleplayMood => '気分';
+
+  @override
+  String get memoryViewerRoleplayRelationship => '関係段階';
+
+  @override
+  String get memoryViewerRoleplayScene => '現在の場面';
+
+  @override
+  String get memoryViewerRoleplayStoryTime => '物語の時間';
+
+  @override
+  String get memoryViewerRoleplayIntimacy => '親密度';
+
+  @override
+  String get memoryViewerRoleplayNewMemories => '今回の新しい記憶';
+
+  @override
+  String get memoryViewerRoleplayUnresolved => '未解決のこと';
+
+  @override
+  String memoryViewerRoleplayStats(int messages, int minutes) {
+    return '$messages 件のメッセージ · 約 $minutes 分';
+  }
+
+  @override
+  String get memoryViewerRoleplayEmptyHint => '会話を続けると、ここに気分、関係、場面、未解決のことが整理されます。';
 
   @override
   String get memoryTools => 'メモリツール';

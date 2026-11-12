@@ -781,6 +781,12 @@ abstract class AppLocalizations {
   /// **'Conversation Memory'**
   String get memoryViewerTitle;
 
+  /// No description provided for @memoryViewerRoleplayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Character Memory'**
+  String get memoryViewerRoleplayTitle;
+
   /// No description provided for @memoryViewerEmptyTitle.
   ///
   /// In en, this message translates to:
@@ -840,6 +846,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Memory is stored only on this device and updates automatically with the conversation.'**
   String get memoryViewerLocalOnly;
+
+  /// No description provided for @memoryViewerPendingNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending notes'**
+  String get memoryViewerPendingNotes;
+
+  /// No description provided for @memoryKindAgreement.
+  ///
+  /// In en, this message translates to:
+  /// **'Agreement'**
+  String get memoryKindAgreement;
+
+  /// No description provided for @memoryKindFact.
+  ///
+  /// In en, this message translates to:
+  /// **'Fact'**
+  String get memoryKindFact;
+
+  /// No description provided for @memoryKindDecision.
+  ///
+  /// In en, this message translates to:
+  /// **'Decision'**
+  String get memoryKindDecision;
+
+  /// No description provided for @memoryKindEmotion.
+  ///
+  /// In en, this message translates to:
+  /// **'Emotion'**
+  String get memoryKindEmotion;
+
+  /// No description provided for @memoryKindRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get memoryKindRejected;
+
+  /// No description provided for @memoryKindRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Rule'**
+  String get memoryKindRule;
+
+  /// No description provided for @memoryViewerRoleplayMood.
+  ///
+  /// In en, this message translates to:
+  /// **'Mood'**
+  String get memoryViewerRoleplayMood;
+
+  /// No description provided for @memoryViewerRoleplayRelationship.
+  ///
+  /// In en, this message translates to:
+  /// **'Relationship'**
+  String get memoryViewerRoleplayRelationship;
+
+  /// No description provided for @memoryViewerRoleplayScene.
+  ///
+  /// In en, this message translates to:
+  /// **'Scene'**
+  String get memoryViewerRoleplayScene;
+
+  /// No description provided for @memoryViewerRoleplayStoryTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Story time'**
+  String get memoryViewerRoleplayStoryTime;
+
+  /// No description provided for @memoryViewerRoleplayIntimacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Intimacy'**
+  String get memoryViewerRoleplayIntimacy;
+
+  /// No description provided for @memoryViewerRoleplayNewMemories.
+  ///
+  /// In en, this message translates to:
+  /// **'New memories'**
+  String get memoryViewerRoleplayNewMemories;
+
+  /// No description provided for @memoryViewerRoleplayUnresolved.
+  ///
+  /// In en, this message translates to:
+  /// **'Unresolved'**
+  String get memoryViewerRoleplayUnresolved;
+
+  /// No description provided for @memoryViewerRoleplayStats.
+  ///
+  /// In en, this message translates to:
+  /// **'{messages} messages · about {minutes} min'**
+  String memoryViewerRoleplayStats(int messages, int minutes);
+
+  /// No description provided for @memoryViewerRoleplayEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep chatting and this page will fill in mood, relationship, scene, and unresolved threads.'**
+  String get memoryViewerRoleplayEmptyHint;
 
   /// No description provided for @memoryTools.
   ///

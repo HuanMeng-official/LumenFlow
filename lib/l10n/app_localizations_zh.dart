@@ -362,6 +362,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get memoryViewerTitle => '对话记忆';
 
   @override
+  String get memoryViewerRoleplayTitle => '角色记忆';
+
+  @override
   String get memoryViewerEmptyTitle => '还没有记忆';
 
   @override
@@ -392,6 +395,56 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get memoryViewerLocalOnly => '记忆只保存在本机，随对话自动更新。';
+
+  @override
+  String get memoryViewerPendingNotes => '待合并便签';
+
+  @override
+  String get memoryKindAgreement => '约定';
+
+  @override
+  String get memoryKindFact => '事实';
+
+  @override
+  String get memoryKindDecision => '决定';
+
+  @override
+  String get memoryKindEmotion => '情绪';
+
+  @override
+  String get memoryKindRejected => '被否';
+
+  @override
+  String get memoryKindRule => '规则';
+
+  @override
+  String get memoryViewerRoleplayMood => '心情';
+
+  @override
+  String get memoryViewerRoleplayRelationship => '关系阶段';
+
+  @override
+  String get memoryViewerRoleplayScene => '当前场景';
+
+  @override
+  String get memoryViewerRoleplayStoryTime => '故事时间';
+
+  @override
+  String get memoryViewerRoleplayIntimacy => '亲密度';
+
+  @override
+  String get memoryViewerRoleplayNewMemories => '本次新增记忆';
+
+  @override
+  String get memoryViewerRoleplayUnresolved => '未完成的事';
+
+  @override
+  String memoryViewerRoleplayStats(int messages, int minutes) {
+    return '$messages 条消息 · 约 $minutes 分钟';
+  }
+
+  @override
+  String get memoryViewerRoleplayEmptyHint => '继续对话后，这里会整理出心情、关系、场景和未完成的事。';
 
   @override
   String get memoryTools => '记忆工具';

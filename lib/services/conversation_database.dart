@@ -6,6 +6,7 @@ import '../models/conversation.dart';
 import '../models/conversation_memory.dart';
 import '../models/memory_note.dart';
 import '../models/message.dart';
+import '../models/roleplay_memory.dart';
 import '../models/attachment.dart';
 import 'dart:async';
 import '../utils/path_utils.dart';
@@ -67,8 +68,8 @@ class ConversationDatabase {
   /// 当前数据库结构版本。
   ///
   /// v3 新增 `conversation_memory` 表；v4 新增 `conversation_memory_notes`
-  /// 表，用于对话模型主动记录、等待后台合并的记忆便签。
-  static const int schemaVersion = 4;
+  /// 表；v5 为记忆增加 `roleplay_state` 结构化角色状态。
+  static const int schemaVersion = 5;
 
   Database? _db;
   Future<void>? _initFuture;
@@ -231,6 +232,17 @@ class ConversationDatabase {
       );
     }
 
+    final memoryColumns = db
+        .select('PRAGMA table_info(conversation_memory)')
+        .map((row) => row['name'] as String)
+        .toSet();
+    if (memoryColumns.isNotEmpty &&
+        !memoryColumns.contains('roleplay_state')) {
+      db.execute(
+        'ALTER TABLE conversation_memory ADD COLUMN roleplay_state TEXT',
+      );
+    }
+
     if (currentVersion < schemaVersion) {
       db.execute('PRAGMA user_version = $schemaVersion');
     }
@@ -305,7 +317,8 @@ class ConversationDatabase {
         rejected TEXT NOT NULL DEFAULT '[]',
         covered_until_message_id TEXT,
         fingerprint TEXT,
-        updated_at INTEGER
+        updated_at INTEGER,
+        roleplay_state TEXT
       )
     ''');
 
@@ -990,6 +1003,7 @@ class ConversationDatabase {
       emotionalState: row['emotional_state'] as String? ?? '',
       facts: _decodeFacts(row['facts'] as String?),
       rejected: _decodeRejected(row['rejected'] as String?),
+      roleplay: _decodeRoleplay(row['roleplay_state'] as String?),
       coveredUntilMessageId: row['covered_until_message_id'] as String?,
       fingerprint: row['fingerprint'] as String?,
       updatedAt: row['updated_at'] == null
@@ -1022,8 +1036,8 @@ class ConversationDatabase {
           '''
           INSERT OR REPLACE INTO conversation_memory (
             conversation_id, summary, emotional_state, facts, rejected,
-            covered_until_message_id, fingerprint, updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            covered_until_message_id, fingerprint, updated_at, roleplay_state
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
           ''',
           [
             conversationId,
@@ -1036,6 +1050,9 @@ class ConversationDatabase {
             memory.coveredUntilMessageId,
             memory.fingerprint,
             (memory.updatedAt ?? DateTime.now()).millisecondsSinceEpoch,
+            memory.roleplay == null
+                ? null
+                : jsonEncode(memory.roleplay!.toJson()),
           ],
         );
         db.execute('COMMIT');
@@ -1154,6 +1171,20 @@ class ConversationDatabase {
         [MemoryNoteStatus.processed.name, conversationId, ...ids],
       );
     });
+  }
+
+  static RoleplayMemory? _decodeRoleplay(String? raw) {
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) return null;
+      final roleplay = RoleplayMemory.fromJson(
+        decoded.cast<String, dynamic>(),
+      );
+      return roleplay.isEmpty ? null : roleplay;
+    } catch (_) {
+      return null;
+    }
   }
 
   static List<MemoryFact> _decodeFacts(String? raw) {
