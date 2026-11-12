@@ -189,7 +189,7 @@ class _ConversationSettingsScreenState
 
     if (_isLoading) {
       return SettingsPageScaffold(
-        title: l10n.basicSettings,
+        title: l10n.historyConversation,
         embeddedTitle: l10n.historyConversation,
         embedded: widget.embedded,
         child: const Center(child: CupertinoActivityIndicator()),
@@ -197,7 +197,7 @@ class _ConversationSettingsScreenState
     }
 
     return SettingsPageScaffold(
-      title: l10n.basicSettings,
+      title: l10n.historyConversation,
       embeddedTitle: l10n.historyConversation,
       embedded: widget.embedded,
       child: ListView(
