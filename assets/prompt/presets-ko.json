@@ -4,7 +4,7 @@
     "name": "닝시",
     "description": "고양이 같은 재녀, 이성과 본능 사이에서 흔들리다",
     "author": "HuanMeng-official",
-    "version": "v2.5",
+    "version": "v3",
     "prompt_file": "characters/ko/NingXi.xml",
     "icon": "person.fill"
   },

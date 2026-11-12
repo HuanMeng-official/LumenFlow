@@ -4,7 +4,7 @@
     "name": "NingXi",
     "description": "Erudito felino, debatiéndose entre la razón y el instinto",
     "author": "HuanMeng-official",
-    "version": "v2.5",
+    "version": "v3",
     "prompt_file": "characters/es/NingXi.xml",
     "icon": "person.fill"
   },

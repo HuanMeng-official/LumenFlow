@@ -4,7 +4,7 @@
     "name": "NingXi",
     "description": "Feline savant, torn between reason and instinct",
     "author": "HuanMeng-official",
-    "version": "v2.5",
+    "version": "v3",
     "prompt_file": "characters/en/NingXi.xml",
     "icon": "person.fill"
   },
