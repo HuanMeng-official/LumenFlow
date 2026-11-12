@@ -397,9 +397,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get memoryTools => 'Herramientas de memoria';
 
   @override
-  String get memoryToolsAvailability => 'Se activan automáticamente con la compresión de memoria; no tienen un interruptor propio.';
-
-  @override
   String get memoryToolsAuto => 'Automático';
 
   @override

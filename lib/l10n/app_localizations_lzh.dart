@@ -397,19 +397,16 @@ class AppLocalizationsLzh extends AppLocalizations {
   String get memoryTools => '記憶之器';
 
   @override
-  String get memoryToolsAvailability => '隨「記憶壓縮」自啟，不別設開關。';
-
-  @override
   String get memoryToolsAuto => '自啟';
 
   @override
-  String get memoryNoteToolName => '記便簽';
+  String get memoryNoteToolName => '記憶便簽';
 
   @override
   String get memoryNoteToolDesc => '談中自記約定、事實、情之轉折與所否之策；次整時合入記憶。';
 
   @override
-  String get memoryRecallToolName => '檢舊憶';
+  String get memoryRecallToolName => '記憶檢索';
 
   @override
   String get memoryRecallToolDesc => '以關鍵詞檢原文窗外之舊言與全帳；舊言出窗後可用。';

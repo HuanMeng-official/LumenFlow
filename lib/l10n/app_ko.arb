@@ -169,7 +169,6 @@
   "memoryViewerUpdatedAt": "업데이트: {time}",
   "memoryViewerLocalOnly": "메모리는 기기에만 저장되며 대화에 따라 자동 업데이트됩니다.",
   "memoryTools": "메모리 도구",
-  "memoryToolsAvailability": "메모리 압축과 함께 자동으로 활성화됩니다. 별도 스위치는 없습니다.",
   "memoryToolsAuto": "자동",
   "memoryNoteToolName": "기억 메모",
   "memoryNoteToolDesc": "대화 중 약속, 사실, 감정 전환, 거부된 안을 기록합니다. 다음 정리 시 메모리에 병합됩니다.",

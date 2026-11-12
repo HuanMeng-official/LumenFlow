@@ -183,7 +183,6 @@
   },
   "memoryViewerLocalOnly": "Memory is stored only on this device and updates automatically with the conversation.",
   "memoryTools": "Memory Tools",
-  "memoryToolsAvailability": "Enabled automatically with Memory Compression; no separate switch.",
   "memoryToolsAuto": "Auto",
   "memoryNoteToolName": "Remember Note",
   "memoryNoteToolDesc": "Records agreements, facts, emotional turns, or rejected proposals during the conversation; merged into memory on the next maintenance pass.",

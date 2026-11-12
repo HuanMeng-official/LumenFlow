@@ -169,7 +169,6 @@
   "memoryViewerUpdatedAt": "更新: {time}",
   "memoryViewerLocalOnly": "メモリは端末内にのみ保存され、会話に合わせて自動更新されます。",
   "memoryTools": "メモリツール",
-  "memoryToolsAvailability": "メモリ圧縮と連動して自動的に有効になります。個別のスイッチはありません。",
   "memoryToolsAuto": "自動",
   "memoryNoteToolName": "記憶メモ",
   "memoryNoteToolDesc": "会話中に約定、事実、感情の転換、却下された案を記録します。次回の整理時にメモリへ統合されます。",

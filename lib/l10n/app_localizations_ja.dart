@@ -397,9 +397,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get memoryTools => 'メモリツール';
 
   @override
-  String get memoryToolsAvailability => 'メモリ圧縮と連動して自動的に有効になります。個別のスイッチはありません。';
-
-  @override
   String get memoryToolsAuto => '自動';
 
   @override

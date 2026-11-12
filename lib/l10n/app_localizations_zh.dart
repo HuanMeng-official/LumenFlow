@@ -397,19 +397,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get memoryTools => '记忆工具';
 
   @override
-  String get memoryToolsAvailability => '随「记忆压缩」自动启用，不单独开关。';
-
-  @override
   String get memoryToolsAuto => '自动';
 
   @override
-  String get memoryNoteToolName => '记住便签';
+  String get memoryNoteToolName => '记忆便签';
 
   @override
   String get memoryNoteToolDesc => '对话中主动记录约定、事实、情绪转折或被否方案；下次维护时合并进记忆。';
 
   @override
-  String get memoryRecallToolName => '检索旧记忆';
+  String get memoryRecallToolName => '记忆检索';
 
   @override
   String get memoryRecallToolDesc => '按关键词检索原文窗口之外的旧消息和完整记忆账本；旧消息滑出窗口后可用。';

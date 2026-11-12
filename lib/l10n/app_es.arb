@@ -169,7 +169,6 @@
   "memoryViewerUpdatedAt": "Actualizado {time}",
   "memoryViewerLocalOnly": "La memoria solo se guarda en este dispositivo y se actualiza con la conversación.",
   "memoryTools": "Herramientas de memoria",
-  "memoryToolsAvailability": "Se activan automáticamente con la compresión de memoria; no tienen un interruptor propio.",
   "memoryToolsAuto": "Automático",
   "memoryNoteToolName": "Nota de memoria",
   "memoryNoteToolDesc": "Registra acuerdos, hechos, giros emocionales o propuestas rechazadas durante la conversación; se integran en la memoria en el siguiente mantenimiento.",

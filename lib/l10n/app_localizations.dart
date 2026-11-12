@@ -847,12 +847,6 @@ abstract class AppLocalizations {
   /// **'Memory Tools'**
   String get memoryTools;
 
-  /// No description provided for @memoryToolsAvailability.
-  ///
-  /// In en, this message translates to:
-  /// **'Enabled automatically with Memory Compression; no separate switch.'**
-  String get memoryToolsAvailability;
-
   /// No description provided for @memoryToolsAuto.
   ///
   /// In en, this message translates to:

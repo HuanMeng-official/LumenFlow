@@ -455,13 +455,6 @@ class _ToolManagementScreenState extends State<ToolManagementScreen> {
             SettingsSection(
               title: l10n.memoryTools,
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                  child: Text(
-                    l10n.memoryToolsAvailability,
-                    style: const TextStyle(fontSize: 13),
-                  ),
-                ),
                 _memoryToolTile(
                   context,
                   icon: CupertinoIcons.bookmark,

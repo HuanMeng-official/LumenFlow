@@ -397,9 +397,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get memoryTools => '메모리 도구';
 
   @override
-  String get memoryToolsAvailability => '메모리 압축과 함께 자동으로 활성화됩니다. 별도 스위치는 없습니다.';
-
-  @override
   String get memoryToolsAuto => '자동';
 
   @override
