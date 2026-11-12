@@ -13,7 +13,7 @@
     "name": "LuYao",
     "description": "Zorro milenario, custodiándote en un tierno cautiverio",
     "author": "HuanMeng-official",
-    "version": "v2.5",
+    "version": "v3",
     "prompt_file": "characters/es/LuYao.xml",
     "icon": "person.fill"
   }
