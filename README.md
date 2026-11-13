@@ -262,8 +262,8 @@ Role-play presets pair a small metadata record with an optional character-card b
 ### Prompt assembly
 
 - The final system prompt is composed of localized base rules (including the reply-language rule) → custom prompt → selected preset → memory block.
-- Presets support `${userProfile.username}`, `${userProfile.gender}`, and `${userProfile.birthday}` substitution.
 - The AI reply language can follow the UI, follow the user, or be pinned; a character card's own language and tone take priority.
+- Prompts are not interpolated with `${userProfile.*}` values. When a card needs the user's name, gender, or birthday, it should call `builtin__get_user_profile`.
 
 The character-card generator opens a local web page served by the app (`HttpServerService`, loopback port 5050).
 

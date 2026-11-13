@@ -9,7 +9,6 @@ import 'memory_service.dart';
 import 'settings_service.dart';
 import 'system_prompt_builder.dart';
 import 'tool_chat_service.dart';
-import 'user_service.dart';
 import '../ai/contracts/ai_error.dart';
 import '../ai/contracts/ai_tool_executor.dart';
 import '../ai/mcp/mcp_client.dart';
@@ -31,7 +30,6 @@ import '../ai/tools/builtin_unit_convert_tool.dart';
 import '../ai/tools/composite_tool_executor.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
-import '../models/user_profile.dart';
 import '../providers/ai_provider.dart';
 import '../providers/openai_provider.dart';
 import '../providers/gemini_provider.dart';
@@ -49,8 +47,6 @@ import '../providers/xiaomimimo_provider.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/ai_tools/time_utils.dart';
 
-import 'package:intl/intl.dart';
-
 /// AI服务类，负责处理与AI模型的通信
 /// 支持文本对话、文件附件处理、流式输出等功能
 /// 提供统一的接口供聊天界面调用，隐藏不同API的差异
@@ -62,15 +58,12 @@ import 'package:intl/intl.dart';
 class AIService {
   AIService({
     SettingsService? settingsService,
-    UserService? userService,
     this._toolManagerFactory,
     this._toolChatServiceFactory,
     this.toolRefreshInterval = const Duration(seconds: 30),
-  }) : _settingsService = settingsService ?? SettingsService(),
-       _userService = userService ?? UserService();
+  }) : _settingsService = settingsService ?? SettingsService();
 
   final SettingsService _settingsService;
-  final UserService _userService;
   final McpToolManager Function(List<McpServerConfig> servers)?
   _toolManagerFactory;
   final ToolChatService Function(AIToolExecutor executor)?
@@ -300,37 +293,6 @@ class AIService {
     _lastToolRefresh = null;
   }
 
-  /// 替换系统提示词中的变量占位符
-  ///
-  /// 参数:
-  ///   systemPrompt - 原始系统提示词
-  ///   userProfile - 用户配置对象
-  /// 返回值:
-  ///   替换变量后的系统提示词
-  String _replaceSystemPromptVariables(
-    String systemPrompt,
-    UserProfile userProfile,
-  ) {
-    String result = systemPrompt.replaceAll(
-      '\${userProfile.username}',
-      userProfile.username,
-    );
-    if (userProfile.gender != null) {
-      result = result.replaceAll('\${userProfile.gender}', userProfile.gender!);
-    } else {
-      // 如果性别为空，替换为空字符串
-      result = result.replaceAll('\${userProfile.gender}', '');
-    }
-    if (userProfile.birthday != null) {
-      final formattedDate = DateFormat.yMMMd().format(userProfile.birthday!);
-      result = result.replaceAll('\${userProfile.birthday}', formattedDate);
-    } else {
-      // 如果生日为空，替换为空字符串
-      result = result.replaceAll('\${userProfile.birthday}', '');
-    }
-    return result;
-  }
-
   /// 构建完整的系统提示词
   ///
   /// 按“基础规则 → 自定义提示 → 角色预设”的顺序拼接。角色预设保留在最后，
@@ -354,7 +316,6 @@ class AIService {
     bool memoryNoteEnabled = false,
     bool memoryRecallEnabled = false,
   }) async {
-    final userProfile = await _userService.getUserProfile();
     final customSystemPrompt = await _settingsService.getCustomSystemPrompt();
 
     // 使用本地化的基础系统提示词，并追加独立的回复语言规则。
@@ -362,15 +323,9 @@ class AIService {
     final baseSystemPrompt = '${l10n.baseSystemPrompt}\n$languageRule';
 
     final stablePrefix = composeSystemPrompt(
-      basePrompt: _replaceSystemPromptVariables(baseSystemPrompt, userProfile),
-      customPrompt: _replaceSystemPromptVariables(
-        customSystemPrompt,
-        userProfile,
-      ),
-      presetPrompt: _replaceSystemPromptVariables(
-        presetSystemPrompt,
-        userProfile,
-      ),
+      basePrompt: baseSystemPrompt,
+      customPrompt: customSystemPrompt,
+      presetPrompt: presetSystemPrompt,
       noteInstruction: memoryNoteEnabled ? _memoryNoteInstruction : '',
       recallInstruction: memoryRecallEnabled ? _memoryRecallInstruction : '',
     );

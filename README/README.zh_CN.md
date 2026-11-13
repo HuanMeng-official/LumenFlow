@@ -262,8 +262,8 @@ MCP 工具会带上服务器前缀，避免不同服务器的同名工具冲突�
 ### 提示词拼接
 
 - 最终系统提示词按“本地化基础规则（含回复语言规则）→ 用户自定义提示 → 角色预设 → 记忆块”拼接。
-- 预设支持 `${userProfile.username}`、`${userProfile.gender}` 和 `${userProfile.birthday}` 变量替换。
 - AI 回复语言可跟随界面、跟随用户输入或指定语言；角色卡自带的语言和文风优先。
+- 提示词不再替换 `${userProfile.*}` 变量；角色卡需要称呼、性别或生日时，应调用 `builtin__get_user_profile`。
 
 角色卡生成器由应用内置的本地 HTTP 服务提供（`HttpServerService`，回环地址端口 5050）。
 
