@@ -685,10 +685,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get selectInterfaceLanguage => 'Select app interface language';
 
   @override
-  String get thinkChain => 'Chain of Thinking';
-
-  @override
-  String get expandChain => 'View reasoning process';
+  String get reasoningDone => 'Thought';
 
   @override
   String get downloadDirectory => 'Download Directory';

@@ -685,10 +685,7 @@ class AppLocalizationsLzh extends AppLocalizations {
   String get selectInterfaceLanguage => '擇此器所用之語';
 
   @override
-  String get thinkChain => '推演之理';
-
-  @override
-  String get expandChain => '觀其推演之跡';
+  String get reasoningDone => '已思';
 
   @override
   String get downloadDirectory => '拓本之所';

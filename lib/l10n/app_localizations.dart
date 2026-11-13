@@ -1411,17 +1411,11 @@ abstract class AppLocalizations {
   /// **'Select app interface language'**
   String get selectInterfaceLanguage;
 
-  /// No description provided for @thinkChain.
+  /// No description provided for @reasoningDone.
   ///
   /// In en, this message translates to:
-  /// **'Chain of Thinking'**
-  String get thinkChain;
-
-  /// No description provided for @expandChain.
-  ///
-  /// In en, this message translates to:
-  /// **'View reasoning process'**
-  String get expandChain;
+  /// **'Thought'**
+  String get reasoningDone;
 
   /// No description provided for @downloadDirectory.
   ///

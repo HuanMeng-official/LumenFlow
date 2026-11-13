@@ -685,10 +685,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get selectInterfaceLanguage => 'アプリのインターフェース言語を選択';
 
   @override
-  String get thinkChain => '思考の連鎖';
-
-  @override
-  String get expandChain => '推論プロセスを表示';
+  String get reasoningDone => '思考しました';
 
   @override
   String get downloadDirectory => 'ダウンロードディレクトリ';

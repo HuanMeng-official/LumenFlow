@@ -685,10 +685,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get selectInterfaceLanguage => '앱 인터페이스 언어 선택';
 
   @override
-  String get thinkChain => '사고 체인';
-
-  @override
-  String get expandChain => '추론 과정 보기';
+  String get reasoningDone => '생각함';
 
   @override
   String get downloadDirectory => '다운로드 디렉터리';

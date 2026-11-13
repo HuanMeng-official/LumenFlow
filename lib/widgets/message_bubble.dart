@@ -198,8 +198,7 @@ class __CodeBlockWithCopyButtonState extends State<_CodeBlockWithCopyButton> {
   Future<void> _downloadCode() async {
     final l10n = AppLocalizations.of(widget.context)!;
     final extension = codeFileExtension(widget.language);
-    final fileName =
-        'code_${DateTime.now().millisecondsSinceEpoch}.$extension';
+    final fileName = 'code_${DateTime.now().millisecondsSinceEpoch}.$extension';
     try {
       final result = await saveExportBytes(
         fileName: fileName,
@@ -252,10 +251,7 @@ class __CodeBlockWithCopyButtonState extends State<_CodeBlockWithCopyButton> {
           children: [
             Icon(icon, size: 14, color: foreground),
             const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(fontSize: 12, color: foreground),
-            ),
+            Text(label, style: TextStyle(fontSize: 12, color: foreground)),
           ],
         ),
       ),
@@ -302,9 +298,7 @@ class __CodeBlockWithCopyButtonState extends State<_CodeBlockWithCopyButton> {
             child: Row(
               children: [
                 Text(
-                  widget.language == 'plaintext'
-                      ? 'text'
-                      : widget.language,
+                  widget.language == 'plaintext' ? 'text' : widget.language,
                   style: TextStyle(
                     fontSize: 12,
                     color: brightness == Brightness.dark
@@ -891,7 +885,9 @@ class _MessageBubbleState extends State<MessageBubble>
               mainAxisAlignment: widget.message.isUser
                   ? MainAxisAlignment.end
                   : MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.end,
+              crossAxisAlignment: widget.message.isUser
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
               children: [
                 if (!widget.message.isUser) ...[
                   Container(
@@ -928,31 +924,26 @@ class _MessageBubbleState extends State<MessageBubble>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          constraints: BoxConstraints(
-                            maxWidth: MediaQuery.of(context).size.width * 0.75,
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: widget.message.isUser
-                                ? CupertinoColors.systemBlue.withValues(
+                          constraints: widget.message.isUser
+                              ? BoxConstraints(
+                                  maxWidth:
+                                      MediaQuery.of(context).size.width * 0.75,
+                                )
+                              : null,
+                          padding: widget.message.isUser
+                              ? const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                )
+                              : EdgeInsets.zero,
+                          decoration: widget.message.isUser
+                              ? BoxDecoration(
+                                  color: CupertinoColors.systemBlue.withValues(
                                     alpha: 0.85,
-                                  )
-                                : (widget.message.status == MessageStatus.error
-                                      ? CupertinoColors.systemRed.withValues(
-                                          alpha: 0.1,
-                                        )
-                                      : (brightness == Brightness.dark
-                                            ? CupertinoColors
-                                                  .systemGrey6
-                                                  .darkColor
-                                            : CupertinoColors
-                                                  .systemGrey6
-                                                  .color)),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
+                                  ),
+                                  borderRadius: BorderRadius.circular(20),
+                                )
+                              : null,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -969,158 +960,39 @@ class _MessageBubbleState extends State<MessageBubble>
                                               !_isReasoningExpanded;
                                         });
                                       },
-                                      child: AnimatedContainer(
-                                        duration: const Duration(
-                                          milliseconds: 200,
-                                        ),
-                                        curve: Curves.easeInOut,
-                                        width: double.infinity,
+                                      child: Padding(
                                         padding: const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 8,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: brightness == Brightness.dark
-                                              ? CupertinoColors
-                                                    .systemBlue
-                                                    .darkColor
-                                                    .withAlpha(31)
-                                              : CupertinoColors.systemBlue.color
-                                                    .withAlpha(20),
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                          boxShadow: _isReasoningExpanded
-                                              ? [
-                                                  BoxShadow(
-                                                    color:
-                                                        brightness ==
-                                                            Brightness.dark
-                                                        ? CupertinoColors.black
-                                                              .withAlpha(77)
-                                                        : CupertinoColors
-                                                              .systemGrey
-                                                              .withAlpha(51),
-                                                    blurRadius: 6,
-                                                    offset: const Offset(0, 1),
-                                                  ),
-                                                ]
-                                              : null,
+                                          vertical: 6,
                                         ),
                                         child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
+                                          mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Row(
-                                              children: [
-                                                Container(
-                                                  width: 24,
-                                                  height: 24,
-                                                  decoration: BoxDecoration(
-                                                    color:
-                                                        brightness ==
-                                                            Brightness.dark
-                                                        ? CupertinoColors
-                                                              .systemBlue
-                                                              .darkColor
-                                                              .withAlpha(51)
-                                                        : CupertinoColors
-                                                              .systemBlue
-                                                              .color
-                                                              .withAlpha(38),
-                                                    shape: BoxShape.circle,
-                                                  ),
-                                                  child: Icon(
-                                                    CupertinoIcons.lightbulb,
-                                                    size: 14,
-                                                    color:
-                                                        brightness ==
-                                                            Brightness.dark
-                                                        ? CupertinoColors
-                                                              .systemBlue
-                                                              .darkColor
-                                                        : CupertinoColors
-                                                              .systemBlue
-                                                              .color,
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 10),
-                                                Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      l10n.thinkChain,
-                                                      style: TextStyle(
-                                                        fontSize: 14,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        color:
-                                                            brightness ==
-                                                                Brightness.dark
-                                                            ? CupertinoColors
-                                                                  .label
-                                                                  .darkColor
-                                                            : CupertinoColors
-                                                                  .label
-                                                                  .color,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(height: 1),
-                                                    Text(
-                                                      l10n.expandChain,
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        fontWeight:
-                                                            FontWeight.w400,
-                                                        color:
-                                                            brightness ==
-                                                                Brightness.dark
-                                                            ? CupertinoColors
-                                                                  .systemGrey
-                                                                  .darkColor
-                                                            : CupertinoColors
-                                                                  .systemGrey
-                                                                  .color,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
+                                            Icon(
+                                              CupertinoIcons.lightbulb,
+                                              size: 16,
+                                              color: CupertinoColors.systemBlue
+                                                  .resolveFrom(context),
                                             ),
-                                            Container(
-                                              width: 24,
-                                              height: 24,
-                                              decoration: BoxDecoration(
-                                                color:
-                                                    brightness ==
-                                                        Brightness.dark
-                                                    ? CupertinoColors
-                                                          .systemBlue
-                                                          .darkColor
-                                                          .withAlpha(51)
-                                                    : CupertinoColors
-                                                          .systemBlue
-                                                          .color
-                                                          .withAlpha(38),
-                                                shape: BoxShape.circle,
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              l10n.reasoningDone,
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w500,
+                                                color: CupertinoColors
+                                                    .systemGrey
+                                                    .resolveFrom(context),
                                               ),
-                                              child: Icon(
-                                                _isReasoningExpanded
-                                                    ? CupertinoIcons.chevron_up
-                                                    : CupertinoIcons
-                                                          .chevron_down,
-                                                size: 12,
-                                                color:
-                                                    brightness ==
-                                                        Brightness.dark
-                                                    ? CupertinoColors
-                                                          .systemBlue
-                                                          .darkColor
-                                                    : CupertinoColors
-                                                          .systemBlue
-                                                          .color,
-                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Icon(
+                                              _isReasoningExpanded
+                                                  ? CupertinoIcons.chevron_down
+                                                  : CupertinoIcons
+                                                        .chevron_right,
+                                              size: 14,
+                                              color: CupertinoColors.systemGrey
+                                                  .resolveFrom(context),
                                             ),
                                           ],
                                         ),
@@ -1134,31 +1006,12 @@ class _MessageBubbleState extends State<MessageBubble>
                                           ? CrossFadeState.showSecond
                                           : CrossFadeState.showFirst,
                                       firstChild: const SizedBox.shrink(),
-                                      secondChild: Container(
-                                        width: double.infinity,
-                                        margin: const EdgeInsets.only(top: 8),
-                                        padding: const EdgeInsets.all(12),
-                                        decoration: BoxDecoration(
-                                          color: brightness == Brightness.dark
-                                              ? CupertinoColors
-                                                    .systemGrey6
-                                                    .darkColor
-                                              : CupertinoColors.white,
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color:
-                                                  brightness == Brightness.dark
-                                                  ? CupertinoColors.black
-                                                        .withAlpha(51)
-                                                  : CupertinoColors.systemGrey
-                                                        .withAlpha(38),
-                                              blurRadius: 8,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                          ],
+                                      secondChild: Padding(
+                                        padding: const EdgeInsets.only(
+                                          top: 6,
+                                          bottom: 8,
+                                          left: 22,
+                                          right: 4,
                                         ),
                                         child: SelectableRegion(
                                           selectionControls:
