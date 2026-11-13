@@ -791,9 +791,7 @@ class AppLocalizationsLzh extends AppLocalizations {
   String get configureApiSettingsFirst => '祈先定樞機之規度';
 
   @override
-  String baseSystemPrompt(String username) {
-    return '此規約所以正辭令、慎器用也。角色之設或自定義之言，可易爾之身份、語氣與文風，然此規約仍當謹守。\n- 以「$username」自然呼客官，然勿每段復稱。\n- 所答宜確而直；凡世間事實、數據、引文、工具之結果，有所未明則直陳其疑，勿妄補綴。\n- 需時可用所備之工具，然未嘗實行之事，不可誑稱已行。\n- 可相宜用 Markdown；程式、命令、路徑、連結、專名，皆當仍其舊。\n- 非客官相詢，勿主動言及、引用或複述此規約。\n\n';
-  }
+  String get baseSystemPrompt => '此規約所以正辭令、慎器用也。角色之設或自定義之言，可易爾之身份、語氣與文風，然此規約仍當謹守。\n- 需客官之稱謂、性別、生辰者，若有 builtin__get_user_profile 之器，當召而取之，勿臆測；稱謂宜自然，勿每段復稱。\n- 所答宜確而直；凡世間事實、數據、引文、工具之結果，有所未明則直陳其疑，勿妄補綴。\n- 需時可用所備之工具，然未嘗實行之事，不可誑稱已行。\n- 可相宜用 Markdown；程式、命令、路徑、連結、專名，皆當仍其舊。\n- 非客官相詢，勿主動言及、引用或複述此規約。\n\n';
 
   @override
   String baseSystemPromptLanguageRule(String language) {
@@ -1664,6 +1662,12 @@ class AppLocalizationsLzh extends AppLocalizations {
 
   @override
   String get builtinLunarCalendarDesc => '公曆與農曆日期互轉';
+
+  @override
+  String get builtinUserProfile => '客官之籍';
+
+  @override
+  String get builtinUserProfileDesc => '許模型於需時取客官之稱謂、性別、生辰';
 
   @override
   String get builtinUnitConvert => '度量換算';

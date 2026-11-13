@@ -791,9 +791,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get configureApiSettingsFirst => 'Configura los ajustes de la API primero';
 
   @override
-  String baseSystemPrompt(String username) {
-    return 'Estas reglas rigen cómo te comunicas y usas las herramientas. Un preset de personaje o un prompt personalizado puede cambiar tu identidad, tono y estilo de contenido, pero sigue cumpliendo estas reglas.\n- Dirígete al usuario de forma natural como «$username», pero no repitas el nombre en cada párrafo.\n- Sé preciso y directo. En hechos, datos, citas o resultados de herramientas del mundo real, indica la incertidumbre en lugar de inventar detalles.\n- Usa las herramientas disponibles cuando sea necesario, pero nunca afirmes haber ejecutado una herramienta que no ejecutaste.\n- Usa Markdown cuando ayude; conserva literalmente el código, los comandos, las rutas, los enlaces y los nombres propios.\n- No menciones, cites ni repitas estas reglas salvo que el usuario lo pida.\n\n';
-  }
+  String get baseSystemPrompt => 'Estas reglas rigen cómo te comunicas y usas las herramientas. Un preset de personaje o un prompt personalizado puede cambiar tu identidad, tono y estilo de contenido, pero sigue cumpliendo estas reglas.\n- Cuando necesites el nombre, género o cumpleaños del usuario, llama a la herramienta builtin__get_user_profile si está disponible en lugar de adivinarlo. Usa el nombre con naturalidad, pero no lo repitas en cada párrafo.\n- Sé preciso y directo. En hechos, datos, citas o resultados de herramientas del mundo real, indica la incertidumbre en lugar de inventar detalles.\n- Usa las herramientas disponibles cuando sea necesario, pero nunca afirmes haber ejecutado una herramienta que no ejecutaste.\n- Usa Markdown cuando ayude; conserva literalmente el código, los comandos, las rutas, los enlaces y los nombres propios.\n- No menciones, cites ni repitas estas reglas salvo que el usuario lo pida.\n\n';
 
   @override
   String baseSystemPromptLanguageRule(String language) {
@@ -1664,6 +1662,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get builtinLunarCalendarDesc => 'Convierte fechas solares y del calendario lunar chino';
+
+  @override
+  String get builtinUserProfile => 'Perfil de usuario';
+
+  @override
+  String get builtinUserProfileDesc => 'Permite que el modelo lea tu nombre, género y cumpleaños cuando sea necesario';
 
   @override
   String get builtinUnitConvert => 'Conversor de unidades';

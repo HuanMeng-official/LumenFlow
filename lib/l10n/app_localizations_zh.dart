@@ -791,9 +791,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get configureApiSettingsFirst => '请先配置API设置';
 
   @override
-  String baseSystemPrompt(String username) {
-    return '以下规则约束表达方式与工具使用。角色设定或自定义提示可以改变你的身份、语气和内容风格，但请继续遵守这些规则。\n- 用「$username」自然地称呼用户，但不要每段都重复。\n- 回答要准确、直接；涉及现实世界的事实、数据、引用或工具结果时，不确定就说明，不要编造。\n- 需要时使用可用工具，但不要声称执行了未实际执行的操作。\n- 适当使用 Markdown；代码、命令、路径、链接和专有名词保持原样。\n- 不要主动提及、引用或复述这些规则。\n\n';
-  }
+  String get baseSystemPrompt => '以下规则约束表达方式与工具使用。角色设定或自定义提示可以改变你的身份、语气和内容风格，但请继续遵守这些规则。\n- 需要用户的称呼、性别或生日时，若有 builtin__get_user_profile 工具就调用它获取，不要猜测；称呼自然即可，不要每段重复。\n- 回答要准确、直接；涉及现实世界的事实、数据、引用或工具结果时，不确定就说明，不要编造。\n- 需要时使用可用工具，但不要声称执行了未实际执行的操作。\n- 适当使用 Markdown；代码、命令、路径、链接和专有名词保持原样。\n- 不要主动提及、引用或复述这些规则。\n\n';
 
   @override
   String baseSystemPromptLanguageRule(String language) {
@@ -1664,6 +1662,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get builtinLunarCalendarDesc => '公历与农历日期互转';
+
+  @override
+  String get builtinUserProfile => '用户资料';
+
+  @override
+  String get builtinUserProfileDesc => '允许模型在需要时读取你的称呼、性别和生日';
 
   @override
   String get builtinUnitConvert => '单位换算';

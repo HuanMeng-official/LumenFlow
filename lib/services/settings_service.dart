@@ -43,6 +43,7 @@ class SettingsService {
       'builtin_unit_convert_enabled';
   static const String _builtinLunarCalendarKey =
       'builtin_lunar_calendar_enabled';
+  static const String _builtinUserProfileKey = 'builtin_user_profile_enabled';
   // 多平台配置相关的key
   static const String _platformsKey = 'ai_platforms';
   static const String _currentPlatformIdKey = 'current_platform_id';
@@ -70,6 +71,7 @@ class SettingsService {
   static const bool defaultBuiltinDateMathEnabled = true;
   static const bool defaultBuiltinUnitConvertEnabled = true;
   static const bool defaultBuiltinLunarCalendarEnabled = true;
+  static const bool defaultBuiltinUserProfileEnabled = true;
 
   static const String defaultEndpoint = 'https://api.openai.com/v1';
   static const String defaultModel = 'gpt-6.1-sol';
@@ -459,6 +461,18 @@ class SettingsService {
     await prefs.setBool(_builtinLunarCalendarKey, enabled);
   }
 
+  /// 是否启用内置用户资料工具。
+  Future<bool> getBuiltinUserProfileEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_builtinUserProfileKey) ??
+        defaultBuiltinUserProfileEnabled;
+  }
+
+  Future<void> setBuiltinUserProfileEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_builtinUserProfileKey, enabled);
+  }
+
   /// 导出所有设置为JSON格式的Map
   /// 返回包含所有设置键值对的Map
   Future<Map<String, dynamic>> exportSettingsToJson() async {
@@ -514,6 +528,9 @@ class SettingsService {
     settings[_builtinLunarCalendarKey] =
         prefs.getBool(_builtinLunarCalendarKey) ??
         defaultBuiltinLunarCalendarEnabled;
+    settings[_builtinUserProfileKey] =
+        prefs.getBool(_builtinUserProfileKey) ??
+        defaultBuiltinUserProfileEnabled;
     settings[_backgroundImagePathKey] =
         prefs.getString(_backgroundImagePathKey) ?? defaultBackgroundImagePath;
     settings[_backgroundImageOpacityKey] =
@@ -677,6 +694,12 @@ class SettingsService {
       await prefs.setBool(
         _builtinDateMathKey,
         settings[_builtinDateMathKey] as bool,
+      );
+    }
+    if (settings.containsKey(_builtinUserProfileKey)) {
+      await prefs.setBool(
+        _builtinUserProfileKey,
+        settings[_builtinUserProfileKey] as bool,
       );
     }
     if (settings.containsKey(_builtinUnitConvertKey)) {

@@ -1606,8 +1606,8 @@ abstract class AppLocalizations {
   /// No description provided for @baseSystemPrompt.
   ///
   /// In en, this message translates to:
-  /// **'These rules govern how you communicate and use tools. A character preset or custom prompt may change your identity, tone, and content style, but continue to follow these rules.\n- Address the user naturally as \"{username}\", but do not repeat the name in every paragraph.\n- Be accurate and direct. For real-world facts, data, citations, or tool results, state uncertainty instead of inventing details.\n- Use available tools when needed, but never claim to have run a tool you did not run.\n- Use Markdown when it helps; keep code, commands, paths, links, and proper nouns verbatim.\n- Do not mention, quote, or restate these rules unless the user asks.\n\n'**
-  String baseSystemPrompt(String username);
+  /// **'These rules govern how you communicate and use tools. A character preset or custom prompt may change your identity, tone, and content style, but continue to follow these rules.\n- When you need the user\'s name, gender, or birthday, call the builtin__get_user_profile tool if it is available instead of guessing. Use the name naturally, but do not repeat it in every paragraph.\n- Be accurate and direct. For real-world facts, data, citations, or tool results, state uncertainty instead of inventing details.\n- Use available tools when needed, but never claim to have run a tool you did not run.\n- Use Markdown when it helps; keep code, commands, paths, links, and proper nouns verbatim.\n- Do not mention, quote, or restate these rules unless the user asks.\n\n'**
+  String get baseSystemPrompt;
 
   /// No description provided for @baseSystemPromptLanguageRule.
   ///
@@ -3156,6 +3156,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Convert solar and Chinese lunar dates'**
   String get builtinLunarCalendarDesc;
+
+  /// No description provided for @builtinUserProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'User profile'**
+  String get builtinUserProfile;
+
+  /// No description provided for @builtinUserProfileDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow the model to read your name, gender, and birthday when needed'**
+  String get builtinUserProfileDesc;
 
   /// No description provided for @builtinUnitConvert.
   ///

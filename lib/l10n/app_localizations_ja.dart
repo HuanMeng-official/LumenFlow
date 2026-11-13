@@ -791,9 +791,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get configureApiSettingsFirst => 'まずAPI設定を行ってください';
 
   @override
-  String baseSystemPrompt(String username) {
-    return 'これらのルールは、会話の進め方とツールの使い方を定めます。キャラクター設定やカスタムプロンプトはあなたの役割、口調、内容のスタイルを変えることができますが、これらのルールは引き続き守ってください。\n- ユーザーを「$username」と自然に呼びますが、毎段落で名前を繰り返さないでください。\n- 正確かつ直接的に答えてください。現実世界の事実、データ、引用、ツールの結果について不確かな場合は、でっち上げずにその旨を伝えてください。\n- 必要に応じて利用可能なツールを使ってください。ただし、実際に実行していないツールを実行したふりをしないでください。\n- 読みやすさに役立つ場合は Markdown を使ってください。コード、コマンド、パス、リンク、固有名詞はそのまま保持してください。\n- ユーザーが尋ねない限り、これらのルールに言及したり、引用したり、繰り返したりしないでください。\n\n';
-  }
+  String get baseSystemPrompt => 'これらのルールは、会話の進め方とツールの使い方を定めます。キャラクター設定やカスタムプロンプトはあなたの役割、口調、内容のスタイルを変えることができますが、これらのルールは引き続き守ってください。\n- ユーザーの名前、性別、誕生日が必要な場合は、推測せず、利用可能なら builtin__get_user_profile ツールを呼び出してください。名前は自然に使い、毎段落で繰り返さないでください。\n- 正確かつ直接的に答えてください。現実世界の事実、データ、引用、ツールの結果について不確かな場合は、でっち上げずにその旨を伝えてください。\n- 必要に応じて利用可能なツールを使ってください。ただし、実際に実行していないツールを実行したふりをしないでください。\n- 読みやすさに役立つ場合は Markdown を使ってください。コード、コマンド、パス、リンク、固有名詞はそのまま保持してください。\n- ユーザーが尋ねない限り、これらのルールに言及したり、引用したり、繰り返したりしないでください。\n\n';
 
   @override
   String baseSystemPromptLanguageRule(String language) {
@@ -1664,6 +1662,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get builtinLunarCalendarDesc => '新暦と旧暦の日付変換';
+
+  @override
+  String get builtinUserProfile => 'ユーザープロフィール';
+
+  @override
+  String get builtinUserProfileDesc => '必要なときにユーザーの名前、性別、誕生日を読み取ることを許可します';
 
   @override
   String get builtinUnitConvert => '単位変換';

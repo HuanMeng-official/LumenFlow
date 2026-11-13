@@ -26,6 +26,7 @@ import '../ai/tools/builtin_lunar_calendar_tool.dart';
 import '../ai/tools/builtin_read_attachment_tool.dart';
 import '../ai/tools/builtin_text_tools.dart';
 import '../ai/tools/builtin_time_tool.dart';
+import '../ai/tools/builtin_user_profile_tool.dart';
 import '../ai/tools/builtin_unit_convert_tool.dart';
 import '../ai/tools/composite_tool_executor.dart';
 import '../models/message.dart';
@@ -179,6 +180,7 @@ class AIService {
     required bool dateMathEnabled,
     required bool unitConvertEnabled,
     required bool lunarCalendarEnabled,
+    bool userProfileEnabled = true,
     AttachmentToolContext? attachmentContext,
     McpToolManager? manager,
     MemoryNoteSink? memoryNoteSink,
@@ -194,6 +196,7 @@ class AIService {
       if (dateMathEnabled) BuiltInDateMathTool(),
       if (unitConvertEnabled) BuiltInUnitConvertTool(),
       if (lunarCalendarEnabled) BuiltInLunarCalendarTool(),
+      if (userProfileEnabled) BuiltInUserProfileTool(),
       if (attachmentContext != null)
         BuiltInReadAttachmentTool(context: attachmentContext),
       if (memoryNoteSink != null) MemoryNoteTool(sink: memoryNoteSink),
@@ -356,8 +359,7 @@ class AIService {
 
     // 使用本地化的基础系统提示词，并追加独立的回复语言规则。
     final languageRule = await _buildReplyLanguageRule(l10n);
-    final baseSystemPrompt =
-        '${l10n.baseSystemPrompt(userProfile.username)}\n$languageRule';
+    final baseSystemPrompt = '${l10n.baseSystemPrompt}\n$languageRule';
 
     final stablePrefix = composeSystemPrompt(
       basePrompt: _replaceSystemPromptVariables(baseSystemPrompt, userProfile),
@@ -595,6 +597,8 @@ class AIService {
             .getBuiltinUnitConvertEnabled();
         final lunarCalendarEnabled = await _settingsService
             .getBuiltinLunarCalendarEnabled();
+        final userProfileEnabled = await _settingsService
+            .getBuiltinUserProfileEnabled();
         final executor = buildToolExecutor(
           timeEnabled: addTimeToPrompt,
           calculatorEnabled: calculatorEnabled,
@@ -602,6 +606,7 @@ class AIService {
           dateMathEnabled: dateMathEnabled,
           unitConvertEnabled: unitConvertEnabled,
           lunarCalendarEnabled: lunarCalendarEnabled,
+          userProfileEnabled: userProfileEnabled,
           attachmentContext: attachmentContext,
           manager: manager,
           memoryNoteSink: memoryNoteSink,

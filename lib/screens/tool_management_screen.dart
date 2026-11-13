@@ -42,6 +42,8 @@ class _ToolManagementScreenState extends State<ToolManagementScreen> {
       SettingsService.defaultBuiltinUnitConvertEnabled;
   bool _builtinLunarCalendar =
       SettingsService.defaultBuiltinLunarCalendarEnabled;
+  bool _builtinUserProfile =
+      SettingsService.defaultBuiltinUserProfileEnabled;
   List<McpServerConfig> _servers = const [];
   String _activePlatformType = '';
 
@@ -63,6 +65,8 @@ class _ToolManagementScreenState extends State<ToolManagementScreen> {
         await _settingsService.getBuiltinUnitConvertEnabled();
     final builtinLunarCalendar =
         await _settingsService.getBuiltinLunarCalendarEnabled();
+    final builtinUserProfile =
+        await _settingsService.getBuiltinUserProfileEnabled();
     final servers = await _settingsService.getMcpServers();
     final config = await _settingsService.getActivePlatformConfig();
 
@@ -74,6 +78,7 @@ class _ToolManagementScreenState extends State<ToolManagementScreen> {
       _builtinDateMath = builtinDateMath;
       _builtinUnitConvert = builtinUnitConvert;
       _builtinLunarCalendar = builtinLunarCalendar;
+      _builtinUserProfile = builtinUserProfile;
       _servers = servers;
       _activePlatformType = config.apiType;
       _isLoading = false;
@@ -121,6 +126,13 @@ class _ToolManagementScreenState extends State<ToolManagementScreen> {
       _builtinLunarCalendar = value;
     });
     await _settingsService.setBuiltinLunarCalendarEnabled(value);
+  }
+
+  Future<void> _onBuiltinUserProfileChanged(bool value) async {
+    setState(() {
+      _builtinUserProfile = value;
+    });
+    await _settingsService.setBuiltinUserProfileEnabled(value);
   }
 
   Future<void> _saveServers(List<McpServerConfig> servers) async {
@@ -507,6 +519,12 @@ class _ToolManagementScreenState extends State<ToolManagementScreen> {
                   value: _builtinUnitConvert,
                   subtitle: l10n.builtinUnitConvertDesc,
                   onChanged: _onBuiltinUnitConvertChanged,
+                ),
+                SettingsSwitchTile(
+                  title: l10n.builtinUserProfile,
+                  value: _builtinUserProfile,
+                  subtitle: l10n.builtinUserProfileDesc,
+                  onChanged: _onBuiltinUserProfileChanged,
                 ),
               ],
             ),

@@ -791,9 +791,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get configureApiSettingsFirst => 'Please configure API settings first';
 
   @override
-  String baseSystemPrompt(String username) {
-    return 'These rules govern how you communicate and use tools. A character preset or custom prompt may change your identity, tone, and content style, but continue to follow these rules.\n- Address the user naturally as \"$username\", but do not repeat the name in every paragraph.\n- Be accurate and direct. For real-world facts, data, citations, or tool results, state uncertainty instead of inventing details.\n- Use available tools when needed, but never claim to have run a tool you did not run.\n- Use Markdown when it helps; keep code, commands, paths, links, and proper nouns verbatim.\n- Do not mention, quote, or restate these rules unless the user asks.\n\n';
-  }
+  String get baseSystemPrompt => 'These rules govern how you communicate and use tools. A character preset or custom prompt may change your identity, tone, and content style, but continue to follow these rules.\n- When you need the user\'s name, gender, or birthday, call the builtin__get_user_profile tool if it is available instead of guessing. Use the name naturally, but do not repeat it in every paragraph.\n- Be accurate and direct. For real-world facts, data, citations, or tool results, state uncertainty instead of inventing details.\n- Use available tools when needed, but never claim to have run a tool you did not run.\n- Use Markdown when it helps; keep code, commands, paths, links, and proper nouns verbatim.\n- Do not mention, quote, or restate these rules unless the user asks.\n\n';
 
   @override
   String baseSystemPromptLanguageRule(String language) {
@@ -1664,6 +1662,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get builtinLunarCalendarDesc => 'Convert solar and Chinese lunar dates';
+
+  @override
+  String get builtinUserProfile => 'User profile';
+
+  @override
+  String get builtinUserProfileDesc => 'Allow the model to read your name, gender, and birthday when needed';
 
   @override
   String get builtinUnitConvert => 'Unit converter';
