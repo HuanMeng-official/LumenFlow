@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import '../models/message.dart';
 import '../services/conversation_service.dart';
 
@@ -23,7 +24,8 @@ class ChatSendController {
     String initialReasoning = '',
     this._appendInitialMessage = true,
   }) : _answer = StringBuffer(initialAnswer),
-       _reasoning = StringBuffer(initialReasoning);
+       _reasoning = StringBuffer(initialReasoning),
+       _toolCalls = List<MessageToolCall>.from(_initialMessage.toolCalls);
 
   final ConversationService _conversationService;
   final String _conversationId;
@@ -41,6 +43,7 @@ class ChatSendController {
 
   final StringBuffer _answer;
   final StringBuffer _reasoning;
+  final List<MessageToolCall> _toolCalls;
 
   StreamSubscription<Map<String, dynamic>>? _subscription;
   Timer? _persistTimer;
@@ -99,9 +102,51 @@ class ChatSendController {
     if (!_active || _finalized) return;
 
     final type = chunk['type'] as String?;
-    if (type == 'tool_call' ||
-        type == 'tool_result' ||
-        type == 'tool_status') {
+    if (type == 'tool_call') {
+      _toolCalls.add(
+        MessageToolCall(
+          id: chunk['id'] as String? ?? '',
+          name: chunk['name'] as String? ?? '',
+          argumentsJson: chunk['arguments'] as String? ?? '',
+          running: true,
+        ),
+      );
+      _emitToolUpdate();
+      onToolEvent?.call(chunk);
+      return;
+    }
+    if (type == 'tool_result') {
+      final id = chunk['id'] as String? ?? '';
+      final name = chunk['name'] as String? ?? '';
+      var index = id.isEmpty
+          ? -1
+          : _toolCalls.indexWhere((call) => call.id == id);
+      if (index == -1) {
+        index = _toolCalls.lastIndexWhere(
+          (call) => call.name == name && call.running,
+        );
+      }
+      if (index == -1) {
+        index = _toolCalls.lastIndexWhere((call) => call.name == name);
+      }
+      final result = chunk['content'] as String? ?? '';
+      final isError = chunk['isError'] as bool? ?? false;
+      if (index == -1) {
+        _toolCalls.add(
+          MessageToolCall(id: id, name: name, result: result, isError: isError),
+        );
+      } else {
+        _toolCalls[index] = _toolCalls[index].copyWith(
+          result: result,
+          isError: isError,
+          running: false,
+        );
+      }
+      _emitToolUpdate();
+      onToolEvent?.call(chunk);
+      return;
+    }
+    if (type == 'tool_status') {
       onToolEvent?.call(chunk);
       return;
     }
@@ -202,6 +247,12 @@ class ChatSendController {
     callback(message);
   }
 
+  void _emitToolUpdate() {
+    final message = _build(MessageStatus.sending);
+    _onUpdate(message);
+    _schedulePersist(message);
+  }
+
   Message _build(MessageStatus status) {
     return _buildMessage(
       _answer.toString(),
@@ -217,6 +268,7 @@ class ChatSendController {
   ) {
     var variants = _initialMessage.variants;
     var activeVariantIndex = _initialMessage.activeVariantIndex;
+    final toolCalls = List<MessageToolCall>.from(_toolCalls);
 
     if (variants.isNotEmpty) {
       final updated = List<MessageVariant>.from(variants);
@@ -226,6 +278,7 @@ class ChatSendController {
         reasoningContent: reasoning,
         timestamp: _initialMessage.timestamp,
         status: status,
+        toolCalls: toolCalls,
       );
       variants = updated;
       activeVariantIndex = index;
@@ -241,6 +294,7 @@ class ChatSendController {
       attachments: _initialMessage.attachments,
       variants: variants,
       activeVariantIndex: activeVariantIndex,
+      toolCalls: toolCalls,
     );
   }
 
@@ -275,11 +329,11 @@ class ChatSendController {
 
   void _persist(Message message) {
     unawaited(
-      _conversationService
-          .updateMessage(_conversationId, message)
-          .catchError((Object _) {
-            // Intermediate persistence failures are non-fatal.
-          }),
+      _conversationService.updateMessage(_conversationId, message).catchError((
+        Object _,
+      ) {
+        // Intermediate persistence failures are non-fatal.
+      }),
     );
   }
 }

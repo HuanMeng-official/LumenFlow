@@ -11,27 +11,27 @@ import '../models/attachment.dart';
 import 'dart:async';
 import '../utils/path_utils.dart';
 
-/// 数据库版本（预留用于未来版本升级）
-// const int _dbVersion = 1;
-
-/// 数据库管理类，使用 sqlite3 实现对话数据的持久化存储
+/// 数据库管理类，使用 sqlite3 实现对话数据与记忆的持久化存储。
 ///
-/// 数据库结构:
-/// - conversations: 对话表
-/// - messages: 消息表
-/// - attachments: 附件表
-/// - settings: 设置表 (存储当前对话ID等)
+/// 数据库结构：
+/// - `conversations`：对话元数据和对话级设置（思考模式、预设角色、置顶）。
+/// - `messages`：消息正文、思考内容、多版本回复和工具调用记录。
+/// - `attachments`：消息附件（文件、图片等）。
+/// - `conversation_memory`：长会话的滚动记忆、情绪快照和记忆账本。
+/// - `conversation_memory_notes`：模型主动写入、等待合并的记忆便签。
+/// - `settings`：应用级键值数据，例如当前对话 ID 和迁移标记。
 ///
-/// 特性:
-/// - 单例模式，全局共享数据库连接
-/// - 启用外键约束，确保数据完整性
-/// - 主 isolate 使用锁防止并发冲突（注意：sqlite3 非 isolate-safe）
-/// - 自动初始化数据库和表结构
-/// - 支持从 SharedPreferences 迁移数据
+/// 特性：
+/// - 单例模式，全局共享数据库连接。
+/// - 启用外键约束，确保对话、消息和附件之间的数据完整性。
+/// - 同一 isolate 内使用异步写锁串行化写操作（sqlite3 非 isolate-safe）。
+/// - 打开数据库时自动建表，并通过 `PRAGMA user_version` 前向迁移结构。
+/// - 支持从 SharedPreferences 迁移旧版本数据。
 ///
-/// 重要提示:
-/// - 此类设计为仅在主 isolate 使用
-/// - 未来如需跨 isolate 访问，需要使用专门的 DB isolate 模式
+/// 重要提示：
+/// - 此类设计为仅在主 isolate 使用。
+/// - 未来如需跨 isolate 访问，需要使用专门的 DB isolate 模式。
+/// - 记忆表刻意不使用外键级联，避免 `INSERT OR REPLACE` 对话时误删记忆。
 class ConversationDatabase {
   // 单例实例
   static final ConversationDatabase _instance = ConversationDatabase._internal();
@@ -67,9 +67,17 @@ class ConversationDatabase {
 
   /// 当前数据库结构版本。
   ///
-  /// v3 新增 `conversation_memory` 表；v4 新增 `conversation_memory_notes`
-  /// 表；v5 为记忆增加 `roleplay_state` 结构化角色状态。
-  static const int schemaVersion = 5;
+  /// - v1：初始结构，包含 `conversations`、`messages`、`attachments` 和
+  ///   `settings` 表。
+  /// - v2：对话级设置（思考模式、预设角色开关与 ID、置顶），以及消息的
+  ///   多版本字段（`variants`、`active_variant_index`）。
+  /// - v3：新增 `conversation_memory`，用于长会话的滚动记忆。
+  /// - v4：新增 `conversation_memory_notes`，用于模型主动写入、等待合并的
+  ///   记忆便签。
+  /// - v5：`conversation_memory` 新增 `roleplay_state`，保存角色扮演的
+  ///   结构化状态。
+  /// - v6：`messages` 新增 `tool_calls`，保存每轮回复的工具调用与结果。
+  static const int schemaVersion = 6;
 
   Database? _db;
   Future<void>? _initFuture;
@@ -231,6 +239,9 @@ class ConversationDatabase {
         'ALTER TABLE messages ADD COLUMN active_variant_index INTEGER NOT NULL DEFAULT 0',
       );
     }
+    if (!messageColumns.contains('tool_calls')) {
+      db.execute('ALTER TABLE messages ADD COLUMN tool_calls TEXT');
+    }
 
     final memoryColumns = db
         .select('PRAGMA table_info(conversation_memory)')
@@ -276,6 +287,7 @@ class ConversationDatabase {
         status INTEGER NOT NULL,
         variants TEXT,
         active_variant_index INTEGER NOT NULL DEFAULT 0,
+        tool_calls TEXT,
         FOREIGN KEY (conversation_id) REFERENCES conversations (id) ON DELETE CASCADE
       )
     ''');
@@ -415,9 +427,9 @@ class ConversationDatabase {
           db.execute('''
             INSERT OR REPLACE INTO messages (
               id, conversation_id, content, reasoning_content, is_user,
-              timestamp, status, variants, active_variant_index
+              timestamp, status, variants, active_variant_index, tool_calls
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ''', [
             message.id,
             conversation.id,
@@ -430,6 +442,9 @@ class ConversationDatabase {
                 ? null
                 : jsonEncode(message.variants.map((v) => v.toJson()).toList()),
             message.activeVariantIndex,
+            message.toolCalls.isEmpty
+                ? null
+                : jsonEncode(message.toolCalls.map((call) => call.toJson()).toList()),
           ]);
 
           // 插入附件
@@ -554,7 +569,7 @@ class ConversationDatabase {
     // 获取消息
     final messagesResult = db.select('''
       SELECT id, content, reasoning_content, is_user, timestamp, status,
-             variants, active_variant_index
+             variants, active_variant_index, tool_calls
       FROM messages
       WHERE conversation_id = ?
       ORDER BY timestamp ASC
@@ -599,6 +614,16 @@ class ConversationDatabase {
       final activeVariantIndex = variants.isEmpty
           ? 0
           : rawVariantIndex.clamp(0, variants.length - 1);
+      final toolCallsJson = msgRow['tool_calls'] as String?;
+      final toolCalls = toolCallsJson == null || toolCallsJson.isEmpty
+          ? <MessageToolCall>[]
+          : (jsonDecode(toolCallsJson) as List)
+                .map(
+                  (value) => MessageToolCall.fromJson(
+                    (value as Map).cast<String, dynamic>(),
+                  ),
+                )
+                .toList();
 
       messages.add(Message(
         id: messageId,
@@ -610,6 +635,7 @@ class ConversationDatabase {
         attachments: attachments,
         variants: variants,
         activeVariantIndex: activeVariantIndex,
+        toolCalls: toolCalls,
       ));
     }
 
@@ -721,9 +747,9 @@ class ConversationDatabase {
     db.execute('''
       $verb INTO messages (
         id, conversation_id, content, reasoning_content, is_user,
-        timestamp, status, variants, active_variant_index
+        timestamp, status, variants, active_variant_index, tool_calls
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', [
       message.id,
       conversationId,
@@ -736,6 +762,9 @@ class ConversationDatabase {
           ? null
           : jsonEncode(message.variants.map((v) => v.toJson()).toList()),
       message.activeVariantIndex,
+      message.toolCalls.isEmpty
+          ? null
+          : jsonEncode(message.toolCalls.map((call) => call.toJson()).toList()),
     ]);
   }
 
@@ -808,9 +837,9 @@ class ConversationDatabase {
           db.execute('''
             INSERT OR REPLACE INTO messages (
               id, conversation_id, content, reasoning_content, is_user,
-              timestamp, status, variants, active_variant_index
+              timestamp, status, variants, active_variant_index, tool_calls
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ''', [
             message.id,
             conversation.id,
@@ -823,6 +852,9 @@ class ConversationDatabase {
                 ? null
                 : jsonEncode(message.variants.map((v) => v.toJson()).toList()),
             message.activeVariantIndex,
+            message.toolCalls.isEmpty
+                ? null
+                : jsonEncode(message.toolCalls.map((call) => call.toJson()).toList()),
           ]);
 
           // 删除旧附件
@@ -934,7 +966,7 @@ class ConversationDatabase {
         db.execute('''
           UPDATE messages
           SET content = ?, reasoning_content = ?, is_user = ?, timestamp = ?,
-              status = ?, variants = ?, active_variant_index = ?
+              status = ?, variants = ?, active_variant_index = ?, tool_calls = ?
           WHERE id = ?
         ''', [
           message.content,
@@ -946,6 +978,9 @@ class ConversationDatabase {
               ? null
               : jsonEncode(message.variants.map((v) => v.toJson()).toList()),
           message.activeVariantIndex,
+          message.toolCalls.isEmpty
+              ? null
+              : jsonEncode(message.toolCalls.map((call) => call.toJson()).toList()),
           message.id,
         ]);
 

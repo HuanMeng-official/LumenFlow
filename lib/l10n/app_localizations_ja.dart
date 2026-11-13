@@ -688,6 +688,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get reasoningDone => '思考しました';
 
   @override
+  String get toolCallsLabel => 'ツール呼び出し';
+
+  @override
+  String get toolArguments => '引数';
+
+  @override
+  String get toolResult => '結果';
+
+  @override
+  String get toolCallRunning => '実行中…';
+
+  @override
+  String get toolResultEmpty => '（結果なし）';
+
+  @override
   String get downloadDirectory => 'ダウンロードディレクトリ';
 
   @override

@@ -688,6 +688,21 @@ class AppLocalizationsKo extends AppLocalizations {
   String get reasoningDone => '생각함';
 
   @override
+  String get toolCallsLabel => '도구 호출';
+
+  @override
+  String get toolArguments => '인자';
+
+  @override
+  String get toolResult => '결과';
+
+  @override
+  String get toolCallRunning => '실행 중…';
+
+  @override
+  String get toolResultEmpty => '(결과 없음)';
+
+  @override
   String get downloadDirectory => '다운로드 디렉터리';
 
   @override

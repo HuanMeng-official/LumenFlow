@@ -99,6 +99,7 @@ class ToolChatService {
         for (final call in event.calls) {
           yield {
             'type': 'tool_call',
+            'id': call.id,
             'name': call.name,
             'arguments': call.argumentsJson,
           };
@@ -106,7 +107,9 @@ class ToolChatService {
       } else if (event is AIToolResultEvent) {
         yield {
           'type': 'tool_result',
+          'id': event.call.id,
           'name': event.result.name,
+          'content': event.result.content,
           'isError': event.result.isError,
         };
       }

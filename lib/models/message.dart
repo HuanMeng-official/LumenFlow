@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import './attachment.dart';
 
 /// 消息数据模型，表示聊天中的一条消息
@@ -27,6 +29,9 @@ class Message {
   final List<MessageVariant> variants;
   final int activeVariantIndex;
 
+  /// AI 生成本轮回复时调用过的工具及其结果。
+  final List<MessageToolCall> toolCalls;
+
   Message({
     required this.id,
     required this.content,
@@ -37,6 +42,7 @@ class Message {
     this.attachments = const [],
     this.variants = const [],
     this.activeVariantIndex = 0,
+    this.toolCalls = const [],
   });
 
   Map<String, dynamic> toJson() {
@@ -50,6 +56,7 @@ class Message {
       'attachments': attachments.map((a) => a.toJson()).toList(),
       'variants': variants.map((v) => v.toJson()).toList(),
       'activeVariantIndex': activeVariantIndex,
+      'toolCalls': toolCalls.map((c) => c.toJson()).toList(),
     };
   }
 
@@ -63,6 +70,7 @@ class Message {
     final activeIndex = variants.isEmpty
         ? 0
         : rawIndex.clamp(0, variants.length - 1);
+    final toolCallsJson = json['toolCalls'] as List? ?? [];
 
     return Message(
       id: json['id'],
@@ -74,6 +82,13 @@ class Message {
       attachments: attachmentsJson.map((a) => Attachment.fromJson(a)).toList(),
       variants: variants,
       activeVariantIndex: activeIndex,
+      toolCalls: toolCallsJson
+          .map(
+            (value) => MessageToolCall.fromJson(
+              (value as Map).cast<String, dynamic>(),
+            ),
+          )
+          .toList(),
     );
   }
 
@@ -87,6 +102,7 @@ class Message {
     List<Attachment>? attachments,
     List<MessageVariant>? variants,
     int? activeVariantIndex,
+    List<MessageToolCall>? toolCalls,
   }) {
     return Message(
       id: id ?? this.id,
@@ -98,6 +114,7 @@ class Message {
       attachments: attachments ?? this.attachments,
       variants: variants ?? this.variants,
       activeVariantIndex: activeVariantIndex ?? this.activeVariantIndex,
+      toolCalls: toolCalls ?? this.toolCalls,
     );
   }
 }
@@ -108,20 +125,30 @@ class MessageVariant {
   final String? reasoningContent;
   final DateTime timestamp;
   final MessageStatus status;
+  final List<MessageToolCall> toolCalls;
 
   const MessageVariant({
     required this.content,
     this.reasoningContent,
     required this.timestamp,
     required this.status,
+    this.toolCalls = const [],
   });
 
   factory MessageVariant.fromJson(Map<String, dynamic> json) {
+    final rawToolCalls = json['toolCalls'] as List? ?? const [];
     return MessageVariant(
       content: json['content'] as String? ?? '',
       reasoningContent: json['reasoningContent'] as String?,
       timestamp: DateTime.parse(json['timestamp'] as String),
       status: MessageStatus.values[json['status'] as int],
+      toolCalls: rawToolCalls
+          .map(
+            (value) => MessageToolCall.fromJson(
+              (value as Map).cast<String, dynamic>(),
+            ),
+          )
+          .toList(),
     );
   }
 
@@ -131,7 +158,83 @@ class MessageVariant {
       'reasoningContent': reasoningContent,
       'timestamp': timestamp.toIso8601String(),
       'status': status.index,
+      'toolCalls': toolCalls.map((call) => call.toJson()).toList(),
     };
+  }
+}
+
+/// AI 在一次回复中执行的一次工具调用。
+class MessageToolCall {
+  const MessageToolCall({
+    required this.id,
+    required this.name,
+    this.argumentsJson = '',
+    this.result,
+    this.isError = false,
+    this.running = false,
+  });
+
+  final String id;
+  final String name;
+  final String argumentsJson;
+
+  /// 工具返回的原始内容；仍在执行时为 null。
+  final String? result;
+  final bool isError;
+  final bool running;
+
+  String get formattedArguments {
+    final trimmed = argumentsJson.trim();
+    if (trimmed.isEmpty) return '';
+    try {
+      final decoded = jsonDecode(trimmed);
+      if (decoded is Map || decoded is List) {
+        return const JsonEncoder.withIndent('  ').convert(decoded);
+      }
+    } catch (_) {
+      // Keep the raw payload so malformed or streaming JSON stays visible.
+    }
+    return argumentsJson;
+  }
+
+  MessageToolCall copyWith({
+    String? id,
+    String? name,
+    String? argumentsJson,
+    String? result,
+    bool? isError,
+    bool? running,
+  }) {
+    return MessageToolCall(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      argumentsJson: argumentsJson ?? this.argumentsJson,
+      result: result ?? this.result,
+      isError: isError ?? this.isError,
+      running: running ?? this.running,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'argumentsJson': argumentsJson,
+      'result': result,
+      'isError': isError,
+      'running': running,
+    };
+  }
+
+  factory MessageToolCall.fromJson(Map<String, dynamic> json) {
+    return MessageToolCall(
+      id: json['id'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      argumentsJson: json['argumentsJson'] as String? ?? '',
+      result: json['result'] as String?,
+      isError: json['isError'] as bool? ?? false,
+      running: json['running'] as bool? ?? false,
+    );
   }
 }
 
@@ -142,9 +245,4 @@ class MessageVariant {
 /// - sent: 消息已成功发送/接收
 /// - error: 消息发送/接收失败
 /// - stopped: 消息生成被用户手动停止
-enum MessageStatus {
-  sending,
-  sent,
-  error,
-  stopped,
-}
+enum MessageStatus { sending, sent, error, stopped }

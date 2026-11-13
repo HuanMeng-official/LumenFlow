@@ -688,6 +688,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get reasoningDone => '已思考';
 
   @override
+  String get toolCallsLabel => '工具调用';
+
+  @override
+  String get toolArguments => '参数';
+
+  @override
+  String get toolResult => '结果';
+
+  @override
+  String get toolCallRunning => '执行中…';
+
+  @override
+  String get toolResultEmpty => '（空结果）';
+
+  @override
   String get downloadDirectory => '下载目录';
 
   @override

@@ -688,6 +688,21 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reasoningDone => 'Pensado';
 
   @override
+  String get toolCallsLabel => 'Llamadas a herramientas';
+
+  @override
+  String get toolArguments => 'Argumentos';
+
+  @override
+  String get toolResult => 'Resultado';
+
+  @override
+  String get toolCallRunning => 'Ejecutando…';
+
+  @override
+  String get toolResultEmpty => '(resultado vacío)';
+
+  @override
   String get downloadDirectory => 'Directorio de descargas';
 
   @override

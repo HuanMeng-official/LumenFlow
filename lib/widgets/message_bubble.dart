@@ -615,6 +615,15 @@ class _MessageBubbleState extends State<MessageBubble>
   @override
   bool get wantKeepAlive => true;
 
+  @override
+  void didUpdateWidget(covariant MessageBubble oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.message.toolCalls.isEmpty &&
+        widget.message.toolCalls.isNotEmpty) {
+      _isReasoningExpanded = true;
+    }
+  }
+
   Widget _buildAttachment(Attachment attachment, Brightness brightness) {
     final isImage = attachment.type == AttachmentType.image;
     final hasLocalFile =
@@ -859,6 +868,11 @@ class _MessageBubbleState extends State<MessageBubble>
           : CupertinoColors.systemGrey4.color,
       width: 0.5,
     );
+    final hasReasoning =
+        widget.message.reasoningContent != null &&
+        widget.message.reasoningContent!.isNotEmpty;
+    final toolCalls = widget.message.toolCalls;
+    final hasToolCalls = toolCalls.isNotEmpty;
 
     TextStyle codeFallback(TextStyle style) {
       return style.copyWith(
@@ -948,8 +962,7 @@ class _MessageBubbleState extends State<MessageBubble>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               if (!widget.message.isUser &&
-                                  widget.message.reasoningContent != null &&
-                                  widget.message.reasoningContent!.isNotEmpty)
+                                  (hasReasoning || hasToolCalls))
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -968,14 +981,18 @@ class _MessageBubbleState extends State<MessageBubble>
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             Icon(
-                                              CupertinoIcons.lightbulb,
+                                              hasReasoning
+                                                  ? CupertinoIcons.lightbulb
+                                                  : CupertinoIcons.wrench,
                                               size: 16,
                                               color: CupertinoColors.systemBlue
                                                   .resolveFrom(context),
                                             ),
                                             const SizedBox(width: 6),
                                             Text(
-                                              l10n.reasoningDone,
+                                              hasReasoning
+                                                  ? l10n.reasoningDone
+                                                  : l10n.toolCallsLabel,
                                               style: TextStyle(
                                                 fontSize: 15,
                                                 fontWeight: FontWeight.w500,
@@ -984,6 +1001,14 @@ class _MessageBubbleState extends State<MessageBubble>
                                                     .resolveFrom(context),
                                               ),
                                             ),
+                                            if (toolCalls.any(
+                                              (call) => call.running,
+                                            )) ...[
+                                              const SizedBox(width: 6),
+                                              const CupertinoActivityIndicator(
+                                                radius: 6,
+                                              ),
+                                            ],
                                             const SizedBox(width: 4),
                                             Icon(
                                               _isReasoningExpanded
@@ -998,186 +1023,222 @@ class _MessageBubbleState extends State<MessageBubble>
                                         ),
                                       ),
                                     ),
-                                    AnimatedCrossFade(
-                                      duration: const Duration(
-                                        milliseconds: 200,
-                                      ),
-                                      crossFadeState: _isReasoningExpanded
-                                          ? CrossFadeState.showSecond
-                                          : CrossFadeState.showFirst,
-                                      firstChild: const SizedBox.shrink(),
-                                      secondChild: Padding(
-                                        padding: const EdgeInsets.only(
-                                          top: 6,
-                                          bottom: 8,
-                                          left: 22,
-                                          right: 4,
+                                    if (hasToolCalls)
+                                      AnimatedCrossFade(
+                                        duration: const Duration(
+                                          milliseconds: 200,
                                         ),
-                                        child: SelectableRegion(
-                                          selectionControls:
-                                              cupertinoTextSelectionControls,
-                                          child: MathMarkdownBody(
-                                            data: widget
-                                                .message
-                                                .reasoningContent!,
-                                            builders: {
-                                              'pre': CodeBlockBuilder(
-                                                context,
-                                                brightness,
-                                              ),
-                                            },
-                                            styleSheet: MarkdownStyleSheet(
-                                              p: materialTheme
-                                                  .textTheme
-                                                  .bodyMedium!
-                                                  .copyWith(
-                                                    fontSize: 13,
-                                                    height: 1.6,
-                                                    color:
-                                                        brightness ==
-                                                            Brightness.dark
-                                                        ? CupertinoColors
-                                                              .systemGrey2
-                                                              .darkColor
-                                                        : CupertinoColors
-                                                              .systemGrey
-                                                              .color,
-                                                  ),
-                                              code: codeFallback(
-                                                inlineCodeStyle(
-                                                  brightness: brightness,
-                                                  fontSize: 12,
+                                        crossFadeState: _isReasoningExpanded
+                                            ? CrossFadeState.showSecond
+                                            : CrossFadeState.showFirst,
+                                        firstChild: const SizedBox.shrink(),
+                                        secondChild: Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 4,
+                                            bottom: 4,
+                                            left: 22,
+                                            right: 4,
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              for (final call in toolCalls)
+                                                _ToolCallView(
+                                                  call: call,
+                                                  l10n: l10n,
+                                                  fallback: cjkFallback,
                                                 ),
-                                              ),
-                                              codeblockPadding:
-                                                  const EdgeInsets.all(12),
-                                              codeblockDecoration:
-                                                  BoxDecoration(
-                                                    color:
-                                                        brightness ==
-                                                            Brightness.dark
-                                                        ? const Color(
-                                                            0xFF1E1E1E,
-                                                          )
-                                                        : const Color(
-                                                            0xFFF8F9FA,
-                                                          ),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          10,
-                                                        ),
-                                                    border: Border.all(
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    if (hasReasoning)
+                                      AnimatedCrossFade(
+                                        duration: const Duration(
+                                          milliseconds: 200,
+                                        ),
+                                        crossFadeState: _isReasoningExpanded
+                                            ? CrossFadeState.showSecond
+                                            : CrossFadeState.showFirst,
+                                        firstChild: const SizedBox.shrink(),
+                                        secondChild: Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 6,
+                                            bottom: 8,
+                                            left: 22,
+                                            right: 4,
+                                          ),
+                                          child: SelectableRegion(
+                                            selectionControls:
+                                                cupertinoTextSelectionControls,
+                                            child: MathMarkdownBody(
+                                              data: widget
+                                                  .message
+                                                  .reasoningContent!,
+                                              builders: {
+                                                'pre': CodeBlockBuilder(
+                                                  context,
+                                                  brightness,
+                                                ),
+                                              },
+                                              styleSheet: MarkdownStyleSheet(
+                                                p: materialTheme
+                                                    .textTheme
+                                                    .bodyMedium!
+                                                    .copyWith(
+                                                      fontSize: 13,
+                                                      height: 1.6,
+                                                      color:
+                                                          brightness ==
+                                                              Brightness.dark
+                                                          ? CupertinoColors
+                                                                .systemGrey2
+                                                                .darkColor
+                                                          : CupertinoColors
+                                                                .systemGrey
+                                                                .color,
+                                                    ),
+                                                code: codeFallback(
+                                                  inlineCodeStyle(
+                                                    brightness: brightness,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                                codeblockPadding:
+                                                    const EdgeInsets.all(12),
+                                                codeblockDecoration:
+                                                    BoxDecoration(
                                                       color:
                                                           brightness ==
                                                               Brightness.dark
                                                           ? const Color(
-                                                              0xFF404040,
+                                                              0xFF1E1E1E,
                                                             )
                                                           : const Color(
-                                                              0xFFE0E0E0,
+                                                              0xFFF8F9FA,
                                                             ),
-                                                      width: 1,
-                                                    ),
-                                                    boxShadow: [
-                                                      BoxShadow(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            10,
+                                                          ),
+                                                      border: Border.all(
                                                         color:
                                                             brightness ==
                                                                 Brightness.dark
-                                                            ? CupertinoColors
-                                                                  .black
-                                                                  .withAlpha(
-                                                                    100,
-                                                                  )
-                                                            : CupertinoColors
-                                                                  .systemGrey
-                                                                  .withAlpha(
-                                                                    30,
-                                                                  ),
-                                                        blurRadius: 8,
-                                                        offset: const Offset(
-                                                          0,
-                                                          2,
-                                                        ),
+                                                            ? const Color(
+                                                                0xFF404040,
+                                                              )
+                                                            : const Color(
+                                                                0xFFE0E0E0,
+                                                              ),
+                                                        width: 1,
                                                       ),
-                                                    ],
-                                                  ),
-                                              blockquote: materialTheme
-                                                  .textTheme
-                                                  .bodyMedium!
-                                                  .copyWith(
-                                                    fontSize: 13,
-                                                    fontStyle: FontStyle.italic,
-                                                    color:
-                                                        brightness ==
-                                                            Brightness.dark
-                                                        ? CupertinoColors
-                                                              .systemGrey2
-                                                              .darkColor
-                                                        : CupertinoColors
-                                                              .systemGrey
-                                                              .color,
-                                                  ),
-                                              tableHead: materialTheme
-                                                  .textTheme
-                                                  .bodyMedium!
-                                                  .copyWith(
-                                                    fontSize: 13,
-                                                    fontWeight: FontWeight.w600,
-                                                    color:
-                                                        reasoningTableTextColor,
-                                                  ),
-                                              tableBody: materialTheme
-                                                  .textTheme
-                                                  .bodyMedium!
-                                                  .copyWith(
-                                                    fontSize: 13,
-                                                    color:
-                                                        reasoningTableTextColor,
-                                                  ),
-                                              tableBorder: markdownTableBorder,
-                                              blockquoteDecoration:
-                                                  BoxDecoration(
-                                                    color:
-                                                        brightness ==
-                                                            Brightness.dark
-                                                        ? CupertinoColors
-                                                              .systemGrey5
-                                                              .darkColor
-                                                              .withAlpha(128)
-                                                        : CupertinoColors
-                                                              .systemGrey6
-                                                              .color,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          4,
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color:
+                                                              brightness ==
+                                                                  Brightness
+                                                                      .dark
+                                                              ? CupertinoColors
+                                                                    .black
+                                                                    .withAlpha(
+                                                                      100,
+                                                                    )
+                                                              : CupertinoColors
+                                                                    .systemGrey
+                                                                    .withAlpha(
+                                                                      30,
+                                                                    ),
+                                                          blurRadius: 8,
+                                                          offset: const Offset(
+                                                            0,
+                                                            2,
+                                                          ),
                                                         ),
-                                                    border: Border(
-                                                      left: BorderSide(
-                                                        color:
-                                                            brightness ==
-                                                                Brightness.dark
-                                                            ? CupertinoColors
-                                                                  .systemBlue
-                                                                  .darkColor
-                                                            : CupertinoColors
-                                                                  .systemBlue
-                                                                  .color,
-                                                        width: 3,
+                                                      ],
+                                                    ),
+                                                blockquote: materialTheme
+                                                    .textTheme
+                                                    .bodyMedium!
+                                                    .copyWith(
+                                                      fontSize: 13,
+                                                      fontStyle:
+                                                          FontStyle.italic,
+                                                      color:
+                                                          brightness ==
+                                                              Brightness.dark
+                                                          ? CupertinoColors
+                                                                .systemGrey2
+                                                                .darkColor
+                                                          : CupertinoColors
+                                                                .systemGrey
+                                                                .color,
+                                                    ),
+                                                tableHead: materialTheme
+                                                    .textTheme
+                                                    .bodyMedium!
+                                                    .copyWith(
+                                                      fontSize: 13,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color:
+                                                          reasoningTableTextColor,
+                                                    ),
+                                                tableBody: materialTheme
+                                                    .textTheme
+                                                    .bodyMedium!
+                                                    .copyWith(
+                                                      fontSize: 13,
+                                                      color:
+                                                          reasoningTableTextColor,
+                                                    ),
+                                                tableBorder:
+                                                    markdownTableBorder,
+                                                blockquoteDecoration:
+                                                    BoxDecoration(
+                                                      color:
+                                                          brightness ==
+                                                              Brightness.dark
+                                                          ? CupertinoColors
+                                                                .systemGrey5
+                                                                .darkColor
+                                                                .withAlpha(128)
+                                                          : CupertinoColors
+                                                                .systemGrey6
+                                                                .color,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            4,
+                                                          ),
+                                                      border: Border(
+                                                        left: BorderSide(
+                                                          color:
+                                                              brightness ==
+                                                                  Brightness
+                                                                      .dark
+                                                              ? CupertinoColors
+                                                                    .systemBlue
+                                                                    .darkColor
+                                                              : CupertinoColors
+                                                                    .systemBlue
+                                                                    .color,
+                                                          width: 3,
+                                                        ),
                                                       ),
                                                     ),
-                                                  ),
-                                              blockquotePadding:
-                                                  const EdgeInsets.only(
-                                                    left: 12,
-                                                    top: 6,
-                                                    bottom: 6,
-                                                    right: 6,
-                                                  ),
+                                                blockquotePadding:
+                                                    const EdgeInsets.only(
+                                                      left: 12,
+                                                      top: 6,
+                                                      bottom: 6,
+                                                      right: 6,
+                                                    ),
+                                              ),
                                             ),
                                           ),
                                         ),
                                       ),
-                                    ),
                                     const SizedBox(height: 12),
                                   ],
                                 ),
@@ -1594,6 +1655,176 @@ class _MessageBubbleState extends State<MessageBubble>
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// 思考区里的一次工具调用，可展开查看参数与结果。
+class _ToolCallView extends StatefulWidget {
+  const _ToolCallView({
+    required this.call,
+    required this.l10n,
+    required this.fallback,
+  });
+
+  final MessageToolCall call;
+  final AppLocalizations l10n;
+  final List<String> fallback;
+
+  @override
+  State<_ToolCallView> createState() => _ToolCallViewState();
+}
+
+class _ToolCallViewState extends State<_ToolCallView> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final call = widget.call;
+    final l10n = widget.l10n;
+    final brightness = CupertinoTheme.of(context).brightness!;
+    final labelColor = brightness == Brightness.dark
+        ? CupertinoColors.label.darkColor
+        : CupertinoColors.label.color;
+    final secondaryColor = CupertinoColors.systemGrey.resolveFrom(context);
+    final result = call.result;
+    final arguments = call.formattedArguments;
+    final hasDetails = arguments.trim().isNotEmpty || result != null;
+    final errorColor = CupertinoColors.systemRed.resolveFrom(context);
+    final successColor = CupertinoColors.activeGreen.resolveFrom(context);
+    final statusColor = call.isError ? errorColor : successColor;
+    final monospaceFallback = [
+      'SF Mono',
+      'Courier',
+      'monospace',
+      ...widget.fallback,
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: hasDetails
+                ? () => setState(() => _expanded = !_expanded)
+                : null,
+            child: Row(
+              children: [
+                Icon(CupertinoIcons.wrench, size: 14, color: secondaryColor),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    call.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: labelColor,
+                      fontFamilyFallback: widget.fallback,
+                    ),
+                  ),
+                ),
+                if (call.running)
+                  const CupertinoActivityIndicator(radius: 6)
+                else
+                  Icon(
+                    call.isError
+                        ? CupertinoIcons.xmark_circle_fill
+                        : CupertinoIcons.checkmark_circle_fill,
+                    size: 14,
+                    color: statusColor,
+                  ),
+                if (hasDetails) ...[
+                  const SizedBox(width: 4),
+                  Icon(
+                    _expanded
+                        ? CupertinoIcons.chevron_up
+                        : CupertinoIcons.chevron_down,
+                    size: 12,
+                    color: secondaryColor,
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (call.running && !hasDetails)
+            Padding(
+              padding: const EdgeInsets.only(left: 20, top: 2),
+              child: Text(
+                l10n.toolCallRunning,
+                style: TextStyle(fontSize: 12, color: secondaryColor),
+              ),
+            ),
+          if (_expanded && hasDetails)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(top: 6, left: 20),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: brightness == Brightness.dark
+                    ? CupertinoColors.systemGrey5.darkColor
+                    : CupertinoColors.systemGrey6.color,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (arguments.trim().isNotEmpty) ...[
+                    Text(
+                      l10n.toolArguments,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: secondaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    SelectableText(
+                      arguments,
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.4,
+                        color: labelColor,
+                        fontFamily: 'JetBrains Mono',
+                        fontFamilyFallback: monospaceFallback,
+                      ),
+                    ),
+                  ],
+                  if (result != null) ...[
+                    if (arguments.trim().isNotEmpty) const SizedBox(height: 8),
+                    Text(
+                      l10n.toolResult,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: call.isError ? errorColor : secondaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 260),
+                      child: SingleChildScrollView(
+                        child: SelectableText(
+                          result.isEmpty ? l10n.toolResultEmpty : result,
+                          style: TextStyle(
+                            fontSize: 12,
+                            height: 1.4,
+                            color: call.isError ? errorColor : labelColor,
+                            fontFamily: 'JetBrains Mono',
+                            fontFamilyFallback: monospaceFallback,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }

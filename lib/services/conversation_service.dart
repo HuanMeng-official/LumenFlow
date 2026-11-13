@@ -332,9 +332,8 @@ class ConversationService {
   }
 
   /// 读取会话记忆；不存在时返回 null。
-  Future<ConversationMemory?> getConversationMemory(
-    String conversationId,
-  ) => _db.getConversationMemory(conversationId);
+  Future<ConversationMemory?> getConversationMemory(String conversationId) =>
+      _db.getConversationMemory(conversationId);
 
   /// 保存会话记忆。
   Future<void> saveConversationMemory(
@@ -347,8 +346,7 @@ class ConversationService {
       _db.deleteConversationMemory(conversationId);
 
   /// 追加一条对话模型主动记录的记忆便签。
-  Future<void> appendMemoryNote(MemoryNote note) =>
-      _db.appendMemoryNote(note);
+  Future<void> appendMemoryNote(MemoryNote note) => _db.appendMemoryNote(note);
 
   /// 读取会话记忆便签；[onlyPending] 为 true 时只返回待合并条目。
   Future<List<MemoryNote>> getMemoryNotes(
@@ -498,9 +496,7 @@ class ConversationService {
       onlyPending: true,
     );
     if (pendingNotes.isNotEmpty) {
-      json['memory_notes'] = pendingNotes
-          .map((note) => note.toJson())
-          .toList();
+      json['memory_notes'] = pendingNotes.map((note) => note.toJson()).toList();
     }
     final snapshot = await _buildPresetSnapshot(
       conversation,
@@ -614,6 +610,7 @@ class ConversationService {
           attachments: attachments,
           variants: sourceMessage.variants,
           activeVariantIndex: sourceMessage.activeVariantIndex,
+          toolCalls: sourceMessage.toolCalls,
         ),
       );
     }
@@ -780,6 +777,7 @@ class ConversationService {
           attachments: attachments,
           variants: message.variants,
           activeVariantIndex: message.activeVariantIndex,
+          toolCalls: message.toolCalls,
         ),
       );
     }
@@ -829,15 +827,11 @@ class ConversationService {
       for (final rawNote in rawNotes) {
         if (rawNote is! Map) continue;
         try {
-          final note = MemoryNote.fromJson(
-            rawNote.cast<String, dynamic>(),
-          );
+          final note = MemoryNote.fromJson(rawNote.cast<String, dynamic>());
           if (note.text.trim().isEmpty) continue;
 
           final oldSource = note.sourceMessageId;
-          final source = oldSource == null
-              ? null
-              : messageIdMap[oldSource];
+          final source = oldSource == null ? null : messageIdMap[oldSource];
           await _db.appendMemoryNote(
             MemoryNote(
               id: '${conversation.id}_note_${noteIndex++}',

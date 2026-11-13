@@ -688,6 +688,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reasoningDone => 'Thought';
 
   @override
+  String get toolCallsLabel => 'Tool calls';
+
+  @override
+  String get toolArguments => 'Arguments';
+
+  @override
+  String get toolResult => 'Result';
+
+  @override
+  String get toolCallRunning => 'Running…';
+
+  @override
+  String get toolResultEmpty => '(empty result)';
+
+  @override
   String get downloadDirectory => 'Download Directory';
 
   @override

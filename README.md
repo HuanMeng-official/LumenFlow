@@ -33,6 +33,7 @@ LumenFlow (Chinese: 流光) is a Flutter-based AI chat application for Android, 
 - **Unified tool loop**: `AgentRunner` alternates model turns and tool executions with a bounded iteration budget.
 - **Attachment-aware tool mode**: text attachments are listed in a compact manifest with request-scoped ids, and `builtin__read_attachment` reads their content on demand with paging. Tool-enabled chats no longer fall back to a text-only provider request when text files are attached.
 - **Parallel tool calls**: multiple function calls in one model turn are executed and returned together.
+- **Visible tool activity**: each AI turn records its tool calls inside the expandable reasoning section, including arguments and results. The record is persisted with the message and stays available after switching conversations.
 - **Protocol-aware adapters**:
   - Chat Completions: DeepSeek, Kimi, MiniMax, Zhipu, SiliconFlow, Xiaomi MiMo, Other
   - Responses API: OpenAI, Grok, OpenRouter, LM Studio

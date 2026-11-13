@@ -1417,6 +1417,36 @@ abstract class AppLocalizations {
   /// **'Thought'**
   String get reasoningDone;
 
+  /// No description provided for @toolCallsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tool calls'**
+  String get toolCallsLabel;
+
+  /// No description provided for @toolArguments.
+  ///
+  /// In en, this message translates to:
+  /// **'Arguments'**
+  String get toolArguments;
+
+  /// No description provided for @toolResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get toolResult;
+
+  /// No description provided for @toolCallRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Running…'**
+  String get toolCallRunning;
+
+  /// No description provided for @toolResultEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'(empty result)'**
+  String get toolResultEmpty;
+
   /// No description provided for @downloadDirectory.
   ///
   /// In en, this message translates to:

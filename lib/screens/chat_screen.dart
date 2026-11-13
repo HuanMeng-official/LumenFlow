@@ -4,7 +4,6 @@ import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'dart:io';
 import 'dart:async';
 
-import '../ai/tools/builtin_memory_note_tool.dart';
 import '../ai/tools/builtin_memory_recall_tool.dart';
 import '../controllers/chat_send_controller.dart';
 import '../controllers/chat_screen_controller.dart';
@@ -120,7 +119,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   // AI生成控制相关变量
   ChatSendController? _sendController; // 当前流式发送的编排器
-  String? _toolStatus; // 当前工具调用状态
   String? _memoryStatus; // 当前记忆整理状态
   bool _isGenerating = false; // 是否正在生成AI回复
   bool _isPreparingSend = false; // 防止记忆整理期间重复发送
@@ -935,8 +933,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     var memoryBlock = '';
     final memoryEnabled = await _settingsService.getMemoryCompressionEnabled();
     final historyEnabled = await _settingsService.getEnableHistory();
-    final roleplayMode =
-        _promptPresetEnabled && _currentPresetId.isNotEmpty;
+    final roleplayMode = _promptPresetEnabled && _currentPresetId.isNotEmpty;
     final roleplayPreset = roleplayMode
         ? _findPresetById(_currentPresetId)
         : null;
@@ -1038,7 +1035,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         if (identical(_sendController, controllerRef) && mounted) {
           setState(() {
             _isGenerating = false;
-            _toolStatus = null;
           });
         }
         if (identical(_sendController, controllerRef) &&
@@ -1081,7 +1077,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         if (identical(_sendController, controllerRef) && mounted) {
           setState(() {
             _isGenerating = false;
-            _toolStatus = null;
           });
         }
         if (identical(_sendController, controllerRef) &&
@@ -1101,7 +1096,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         if (identical(_sendController, controllerRef) && mounted) {
           setState(() {
             _isGenerating = false;
-            _toolStatus = null;
           });
         }
         if (identical(_sendController, controllerRef) &&
@@ -1110,36 +1104,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             _liveUpdateEnabled) {
           await _liveUpdateService.stopLiveUpdate();
         }
-      },
-      onToolEvent: (event) {
-        if (!mounted) return;
-        final type = event['type'];
-        if (type == 'tool_status') {
-          setState(() {
-            _toolStatus = event['message'] as String? ?? '';
-          });
-          return;
-        }
-        final name = event['name'] as String? ?? '';
-        if (name == MemoryNoteTool.toolName) {
-          setState(() {
-            _toolStatus = type == 'tool_call'
-                ? l10n.memoryNoteToolCalling
-                : l10n.memoryNoteToolDone;
-          });
-          return;
-        }
-        if (name == MemoryRecallTool.toolName) {
-          setState(() {
-            _toolStatus = type == 'tool_call'
-                ? l10n.memoryRecallToolCalling
-                : l10n.memoryRecallToolDone;
-          });
-          return;
-        }
-        setState(() {
-          _toolStatus = type == 'tool_call' ? '正在调用工具: $name' : '工具完成: $name';
-        });
       },
       errorContentBuilder: (error) =>
           '${l10n.errorPrefix}: ${error.toString().replaceAll('Exception: ', '')}',
@@ -1178,7 +1142,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       if (mounted) {
         setState(() {
           _isGenerating = false;
-          _toolStatus = null;
         });
       }
       await _saveCurrentConversation();
@@ -1319,6 +1282,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               reasoningContent: target.reasoningContent,
               timestamp: target.timestamp,
               status: target.status,
+              toolCalls: target.toolCalls,
             ),
           ];
     final newVariant = MessageVariant(
@@ -1334,6 +1298,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       status: MessageStatus.sending,
       variants: [...variants, newVariant],
       activeVariantIndex: variants.length,
+      toolCalls: const [],
     );
     final history = messageIndex <= 1
         ? <Message>[]
@@ -1373,6 +1338,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               reasoningContent: message.reasoningContent,
               timestamp: message.timestamp,
               status: message.status,
+              toolCalls: message.toolCalls,
             ),
           ];
     final activeIndex = message.variants.isEmpty
@@ -1413,6 +1379,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       timestamp: variant.timestamp,
       status: variant.status,
       activeVariantIndex: index,
+      toolCalls: variant.toolCalls,
     );
 
     setState(() {
@@ -1661,7 +1628,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         },
                       ),
               ),
-              if (_toolStatus != null || _memoryStatus != null)
+              if (_memoryStatus != null)
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(
@@ -1675,7 +1642,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          _toolStatus ?? _memoryStatus!,
+                          _memoryStatus!,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -2090,8 +2057,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         builder: (_) => MemoryViewerScreen(
           conversationId: conversation.id,
           conversationService: _conversationService,
-          roleplayMode:
-              _promptPresetEnabled && _currentPresetId.isNotEmpty,
+          roleplayMode: _promptPresetEnabled && _currentPresetId.isNotEmpty,
           preset: _promptPresetEnabled
               ? _findPresetById(_currentPresetId)
               : null,

@@ -33,6 +33,7 @@ LumenFlow（中文名：流光）是一款使用 Flutter 构建的 AI 聊天应�
 - **统一工具循环**：`AgentRunner` 在模型回合和工具执行之间交替，并限制最大迭代次数。
 - **工具模式附件读取**：文本附件会以请求级 ID 列入清单，`builtin__read_attachment` 可按需分页读取内容；带文本附件时不再退化为纯文本请求。
 - **并行工具调用**：同一轮模型返回多个工具调用时统一执行并回传。
+- **工具过程可见**：每轮 AI 回复会把工具调用记录在可展开的思考区里，包含参数和结果；记录随消息持久化，切换对话后仍可查看。
 - **按协议适配**：
   - Chat Completions：DeepSeek、Kimi、MiniMax、智谱、硅基流动、小米 MiMo、其他
   - Responses API：OpenAI、Grok、OpenRouter、LM Studio

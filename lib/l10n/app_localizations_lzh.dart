@@ -688,6 +688,21 @@ class AppLocalizationsLzh extends AppLocalizations {
   String get reasoningDone => '已思';
 
   @override
+  String get toolCallsLabel => '工具之召';
+
+  @override
+  String get toolArguments => '參數';
+
+  @override
+  String get toolResult => '結果';
+
+  @override
+  String get toolCallRunning => '行之中…';
+
+  @override
+  String get toolResultEmpty => '（無所得）';
+
+  @override
   String get downloadDirectory => '拓本之所';
 
   @override
