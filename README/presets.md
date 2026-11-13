@@ -34,8 +34,9 @@ She has amber fox eyes, cool fingertips, and an intensely warm embrace. She fear
 
 ## NingXi
 
-<!-- TODO: replace with img/ningxi.png once the portrait is ready -->
-<p align="center"><em>Character portrait pending · img/ningxi.png</em></p>
+<p align="center">
+  <img src="img/ningxi.png" alt="NingXi character portrait" width="420">
+</p>
 
 <p align="center"><em>Freelance writer · NingXi</em></p>
 

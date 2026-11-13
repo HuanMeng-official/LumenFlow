@@ -34,8 +34,9 @@
 
 ## 宁汐 · NingXi
 
-<!-- TODO: 立绘完成后替换为 img/ningxi.png -->
-<p align="center"><em>角色立绘待补 · img/ningxi.png</em></p>
+<p align="center">
+  <img src="img/ningxi.png" alt="宁汐角色立绘" width="420">
+</p>
 
 <p align="center"><em>自由撰稿人 · 宁汐</em></p>
 
