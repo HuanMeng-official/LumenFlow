@@ -59,6 +59,26 @@ class _WorldInfoPreviewScreenState extends State<WorldInfoPreviewScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
           children: [
+            if (widget.info.name.trim().isNotEmpty ||
+                widget.info.description.trim().isNotEmpty) ...[
+              if (widget.info.name.trim().isNotEmpty)
+                Text(
+                  widget.info.name,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              if (widget.info.name.trim().isNotEmpty &&
+                  widget.info.description.trim().isNotEmpty)
+                const SizedBox(height: 4),
+              if (widget.info.description.trim().isNotEmpty)
+                Text(
+                  widget.info.description,
+                  style: TextStyle(fontSize: 13, height: 1.4, color: secondary),
+                ),
+              const SizedBox(height: 20),
+            ],
             _sectionTitle(l10n.worldInfoBackground, secondary),
             _Surface(
               child: ReadOnlyMarkdown(

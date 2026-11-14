@@ -9,6 +9,7 @@ import '../utils/app_theme.dart';
 import '../utils/preset_sections.dart';
 import '../utils/token_estimator.dart';
 import 'preset_sections_view.dart';
+import 'read_only_markdown.dart';
 
 /// 打开角色卡预览对话框。
 Future<void> showPresetPreviewDialog({
@@ -569,9 +570,25 @@ class _PresetPreviewDialogState extends State<PresetPreviewDialog> {
       return _emptyState(context, l10n.presetDetailNoWorldInfo);
     }
 
+    final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (info.name.trim().isNotEmpty) ...[
+          Text(
+            info.name,
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 4),
+        ],
+        if (info.description.trim().isNotEmpty) ...[
+          Text(
+            info.description,
+            style: TextStyle(fontSize: 13, color: secondary),
+          ),
+          const SizedBox(height: 14),
+        ],
         Row(
           children: [
             Expanded(
@@ -649,10 +666,7 @@ class _PresetPreviewDialogState extends State<PresetPreviewDialog> {
                 ],
                 if (entry.content.trim().isNotEmpty) ...[
                   const SizedBox(height: 6),
-                  Text(
-                    entry.content,
-                    style: const TextStyle(fontSize: 13, height: 1.5),
-                  ),
+                  ReadOnlyMarkdown(data: entry.content),
                 ],
               ],
             ),
