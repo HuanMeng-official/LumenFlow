@@ -111,6 +111,8 @@
         if (name === 'export') {
             updateTokenCount();
             document.getElementById('preview-section').classList.add('active');
+        } else {
+            updatePreview();
         }
         triggerAutoSave();
     }
@@ -340,10 +342,44 @@ ${example}
 </system_instruction>`;
     }
 
+    function buildPreviewState() {
+        const d = dict();
+        if (activeTab === 'worldinfo' && window.LFWorldInfo) {
+            const selected = window.LFWorldInfo.getSelectedEntry();
+            const data = selected || window.LFWorldInfo.getData();
+            return {
+                text: JSON.stringify(data, null, 2),
+                context: selected
+                    ? `${d.TabWorldInfo} · ${selected.title || selected.id}`
+                    : d.TabWorldInfo,
+            };
+        }
+        if (activeTab === 'meta') {
+            return {
+                text: JSON.stringify(buildMetaPayload(), null, 2),
+                context: d.MetaTitle,
+            };
+        }
+        if (activeTab === 'export') {
+            return { text: buildXMLString(), context: d.TabExport };
+        }
+        return { text: buildXMLString(), context: d.TabCharacter };
+    }
+
+    function buildPreviewText() {
+        return buildPreviewState().text;
+    }
+
+    function updatePreview() {
+        const preview = document.getElementById('xml-output');
+        const state = buildPreviewState();
+        if (preview) preview.innerText = state.text;
+        const context = document.getElementById('preview-context');
+        if (context) context.textContent = state.context;
+    }
+
     function updateTokenCount() {
         const xmlText = buildXMLString();
-        const preview = document.getElementById('xml-output');
-        if (preview) preview.innerText = xmlText;
 
         const tokens = estimateTokens(xmlText);
         const tokenValEl = document.getElementById('token-val');
@@ -361,6 +397,7 @@ ${example}
             tokenBox.classList.add('safe');
             tokenBox.title = d.TokenTipSafe;
         }
+        updatePreview();
     }
 
     function buildExportableXML() {
@@ -777,6 +814,26 @@ ${example}
         return (table[error.code] || error.code) + (error.title || '');
     }
 
+    function buildMetaPayload() {
+        const meta = {
+            _format: 'lumenflow_character_meta',
+            _version: 1,
+            name:
+                document.getElementById('MetaName').value.trim() ||
+                document.getElementById('RoleName').value.trim() ||
+                'Character',
+            description: document.getElementById('Identity').value.trim(),
+            author: document.getElementById('MetaAuthor').value.trim(),
+            version:
+                document.getElementById('MetaVersion').value.trim() || 'v1.0',
+            tags: splitTags(document.getElementById('MetaTags').value),
+            icon: document.getElementById('MetaIcon').value || 'person.fill',
+        };
+        const language = document.getElementById('MetaLanguage').value;
+        if (language) meta.language = language;
+        return meta;
+    }
+
     async function exportArchive() {
         const d = dict();
         const xml = buildExportableXML();
@@ -793,23 +850,7 @@ ${example}
         }
 
         try {
-            const meta = {
-                _format: 'lumenflow_character_meta',
-                _version: 1,
-                name:
-                    document.getElementById('MetaName').value.trim() ||
-                    document.getElementById('RoleName').value.trim() ||
-                    'Character',
-                description: document.getElementById('Identity').value.trim(),
-                author: document.getElementById('MetaAuthor').value.trim(),
-                version:
-                    document.getElementById('MetaVersion').value.trim() || 'v1.0',
-                tags: splitTags(document.getElementById('MetaTags').value),
-                icon:
-                    document.getElementById('MetaIcon').value || 'person.fill'
-            };
-            const language = document.getElementById('MetaLanguage').value;
-            if (language) meta.language = language;
+            const meta = buildMetaPayload();
 
             const files = [
                 {
@@ -1166,7 +1207,10 @@ ${example}
     function init() {
         currentLang = 'zh';
         window.LF_CURRENT_LANG = currentLang;
-        window.LFWorldInfo.init(triggerAutoSave);
+        window.LFWorldInfo.init(() => {
+            triggerAutoSave();
+            updatePreview();
+        });
 
         loadFromLocalStorage();
         if (UI[currentLang]) {
@@ -1245,7 +1289,7 @@ ${example}
     }
 
     function copyToClipboard() {
-        const xml = buildXMLString();
+        const content = buildPreviewText();
         const d = dict();
         const fallbackCopy = (text) => {
             const textarea = document.createElement('textarea');
@@ -1264,11 +1308,11 @@ ${example}
         };
         if (navigator.clipboard && window.isSecureContext) {
             navigator.clipboard
-                .writeText(xml)
+                .writeText(content)
                 .then(() => showToast(d.Copied))
-                .catch(() => fallbackCopy(xml));
+                .catch(() => fallbackCopy(content));
         } else {
-            fallbackCopy(xml);
+            fallbackCopy(content);
         }
     }
 

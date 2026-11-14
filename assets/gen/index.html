@@ -20,7 +20,7 @@
                 <span id="lbl-TokenCount">Tokens</span>
                 <strong id="token-val">0</strong>
             </div>
-            <select id="lang-selector">
+            <select id="lang-selector" aria-label="Language">
                 <option value="zh">中文</option>
                 <option value="en">English</option>
                 <option value="ja">日本語</option>
@@ -264,7 +264,10 @@
 
     <div id="preview-section" class="right-panel preview-area">
         <div class="preview-header">
-            <h3 id="ui-done">预览</h3>
+            <div class="preview-heading">
+                <h3 id="ui-done">预览</h3>
+                <span id="preview-context" class="preview-context"></span>
+            </div>
             <button type="button" class="secondary" id="btn-Copy" style="font-size: 12px; padding: 6px 12px; height: 32px;">复制内容</button>
         </div>
         <pre id="xml-output"></pre>
@@ -275,6 +278,7 @@
 
 <script src="js/vendor/jszip.min.js"></script>
 <script src="js/i18n.js"></script>
+<script src="js/select.js"></script>
 <script src="js/world_info.js"></script>
 <script src="js/app.js"></script>
 </body>

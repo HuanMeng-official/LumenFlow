@@ -12,7 +12,8 @@
         budgetTokens: 1000,
         minActivations: 0,
         recursionDepth: 0,
-        entries: []
+        entries: [],
+        activeEntryId: ''
     };
 
     let onChange = function () {};
@@ -109,7 +110,7 @@
                 )
                 .join('');
         return `
-        <div class="wi-entry" data-entry-index="${index}">
+        <div class="wi-entry${entry.id === state.activeEntryId ? ' is-active' : ''}" data-entry-index="${index}">
             <div class="wi-entry-head">
                 <input type="text" data-wi-field="title" value="${escapeHtml(entry.title)}"
                     placeholder="${escapeHtml(d.EntryTitle)}">
@@ -213,6 +214,34 @@
         container.innerHTML = state.entries
             .map((entry, index) => entryTemplate(entry, index))
             .join('');
+        if (window.LFSelect) window.LFSelect.enhanceAll(container);
+    }
+
+    function syncActiveEntryClasses() {
+        document
+            .querySelectorAll('#WorldInfoEntries .wi-entry')
+            .forEach((card) => {
+                const index = Number(card.dataset.entryIndex);
+                card.classList.toggle(
+                    'is-active',
+                    state.entries[index]?.id === state.activeEntryId
+                );
+            });
+    }
+
+    function selectEntry(index, notify) {
+        const entry = state.entries[index];
+        const nextId = entry ? entry.id : '';
+        if (state.activeEntryId === nextId) return;
+        state.activeEntryId = nextId;
+        syncActiveEntryClasses();
+        if (notify !== false) onChange();
+    }
+
+    function clearActiveEntry() {
+        if (!state.activeEntryId) return;
+        state.activeEntryId = '';
+        syncActiveEntryClasses();
     }
 
     function readEntryField(card, field, target) {
@@ -244,57 +273,48 @@
         const entries = document.getElementById('WorldInfoEntries');
         const add = document.getElementById('btn-AddEntry');
 
-        if (background) {
-            background.addEventListener('input', () => {
-                state.background = background.value;
+        const bindGlobalInput = (element, update) => {
+            if (!element) return;
+            element.addEventListener('input', () => {
+                clearActiveEntry();
+                update();
                 onChange();
             });
-        }
-        if (name) {
-            name.addEventListener('input', () => {
-                state.name = name.value;
-                onChange();
-            });
-        }
-        if (description) {
-            description.addEventListener('input', () => {
-                state.description = description.value;
-                onChange();
-            });
-        }
-        if (scanDepth) {
-            scanDepth.addEventListener('input', () => {
-                state.scanDepth = Math.max(0, Number(scanDepth.value) || 0);
-                onChange();
-            });
-        }
-        if (budget) {
-            budget.addEventListener('input', () => {
-                state.budgetTokens = Math.max(0, Number(budget.value) || 0);
-                onChange();
-            });
-        }
-        if (minActivations) {
-            minActivations.addEventListener('input', () => {
-                state.minActivations = Math.min(
-                    50,
-                    Math.max(0, Math.trunc(Number(minActivations.value) || 0))
-                );
-                onChange();
-            });
-        }
-        if (recursionDepth) {
-            recursionDepth.addEventListener('input', () => {
-                state.recursionDepth = Math.min(
-                    10,
-                    Math.max(0, Math.trunc(Number(recursionDepth.value) || 0))
-                );
-                onChange();
-            });
-        }
+        };
+
+        bindGlobalInput(background, () => {
+            state.background = background.value;
+        });
+        bindGlobalInput(name, () => {
+            state.name = name.value;
+        });
+        bindGlobalInput(description, () => {
+            state.description = description.value;
+        });
+        bindGlobalInput(scanDepth, () => {
+            state.scanDepth = Math.max(0, Number(scanDepth.value) || 0);
+        });
+        bindGlobalInput(budget, () => {
+            state.budgetTokens = Math.max(0, Number(budget.value) || 0);
+        });
+        bindGlobalInput(minActivations, () => {
+            state.minActivations = Math.min(
+                50,
+                Math.max(0, Math.trunc(Number(minActivations.value) || 0))
+            );
+        });
+        bindGlobalInput(recursionDepth, () => {
+            state.recursionDepth = Math.min(
+                10,
+                Math.max(0, Math.trunc(Number(recursionDepth.value) || 0))
+            );
+        });
+
         if (add) {
             add.addEventListener('click', () => {
-                state.entries.push(newEntry());
+                const entry = newEntry();
+                state.entries.push(entry);
+                state.activeEntryId = entry.id;
                 renderEntries();
                 onChange();
                 const cards = document.querySelectorAll('.wi-entry');
@@ -316,14 +336,30 @@
                 const field = event.target.dataset.wiField;
                 if (card && field) readEntryField(card, field, event.target);
             });
+            entries.addEventListener('focusin', (event) => {
+                const card = event.target.closest('[data-entry-index]');
+                if (card) selectEntry(Number(card.dataset.entryIndex));
+            });
             entries.addEventListener('click', (event) => {
                 const remove = event.target.closest('[data-remove-entry]');
-                if (!remove) return;
-                const card = remove.closest('[data-entry-index]');
-                const index = Number(card.dataset.entryIndex);
-                state.entries.splice(index, 1);
-                renderEntries();
-                onChange();
+                if (remove) {
+                    const card = remove.closest('[data-entry-index]');
+                    const index = Number(card.dataset.entryIndex);
+                    const wasActive =
+                        state.entries[index]?.id === state.activeEntryId;
+                    state.entries.splice(index, 1);
+                    if (wasActive) {
+                        state.activeEntryId =
+                            state.entries[
+                                Math.min(index, state.entries.length - 1)
+                            ]?.id || '';
+                    }
+                    renderEntries();
+                    onChange();
+                    return;
+                }
+                const card = event.target.closest('[data-entry-index]');
+                if (card) selectEntry(Number(card.dataset.entryIndex));
             });
         }
     }
@@ -393,7 +429,41 @@
                 : 0;
             return entry;
         });
+        if (!state.entries.some((entry) => entry.id === state.activeEntryId)) {
+            state.activeEntryId = state.entries[0]?.id || '';
+        }
         fillForm();
+    }
+
+    function serializeEntry(entry) {
+        return {
+            id: entry.id,
+            title: entry.title.trim(),
+            category: entry.category,
+            tags: entry.tags.filter((tag) => tag.trim()).map((tag) => tag.trim()),
+            keys: entry.keys.filter((key) => key.trim()).map((key) => key.trim()),
+            secondary_keys: entry.secondaryKeys
+                .filter((key) => key.trim())
+                .map((key) => key.trim()),
+            match: entry.match,
+            case_sensitive: entry.caseSensitive,
+            content: entry.content.trim(),
+            priority: Math.trunc(Number(entry.priority) || 0),
+            enabled: entry.enabled,
+            position: entry.position || 'system',
+            depth: Math.min(1000, Math.max(0, Math.trunc(Number(entry.depth) || 0))),
+            group: (entry.group || '').trim(),
+            probability: Math.min(
+                100,
+                Math.max(0, Math.trunc(Number(entry.probability) || 0))
+            ),
+            recursive: Boolean(entry.recursive),
+            sticky: Math.min(1000, Math.max(0, Math.trunc(Number(entry.sticky) || 0))),
+            cooldown: Math.min(
+                1000,
+                Math.max(0, Math.trunc(Number(entry.cooldown) || 0))
+            )
+        };
     }
 
     function getData() {
@@ -413,34 +483,7 @@
                 10,
                 Math.max(0, Math.trunc(Number(state.recursionDepth) || 0))
             ),
-            entries: state.entries.map((entry) => ({
-                id: entry.id,
-                title: entry.title.trim(),
-                category: entry.category,
-                tags: entry.tags.filter((tag) => tag.trim()).map((tag) => tag.trim()),
-                keys: entry.keys.filter((key) => key.trim()).map((key) => key.trim()),
-                secondary_keys: entry.secondaryKeys
-                    .filter((key) => key.trim())
-                    .map((key) => key.trim()),
-                match: entry.match,
-                case_sensitive: entry.caseSensitive,
-                content: entry.content.trim(),
-                priority: Math.trunc(Number(entry.priority) || 0),
-                enabled: entry.enabled,
-                position: entry.position || 'system',
-                depth: Math.min(1000, Math.max(0, Math.trunc(Number(entry.depth) || 0))),
-                group: (entry.group || '').trim(),
-                probability: Math.min(
-                    100,
-                    Math.max(0, Math.trunc(Number(entry.probability) || 0))
-                ),
-                recursive: Boolean(entry.recursive),
-                sticky: Math.min(1000, Math.max(0, Math.trunc(Number(entry.sticky) || 0))),
-                cooldown: Math.min(
-                    1000,
-                    Math.max(0, Math.trunc(Number(entry.cooldown) || 0))
-                )
-            }))
+            entries: state.entries.map(serializeEntry)
         };
     }
 
@@ -531,7 +574,16 @@
         state.minActivations = 0;
         state.recursionDepth = 0;
         state.entries = [];
+        state.activeEntryId = '';
         fillForm();
+    }
+
+    function getSelectedEntry() {
+        if (!state.activeEntryId) return null;
+        const entry = state.entries.find(
+            (item) => item.id === state.activeEntryId
+        );
+        return entry ? serializeEntry(entry) : null;
     }
 
     function init(callback) {
@@ -549,6 +601,7 @@
         refreshLanguage,
         setData,
         getData,
+        getSelectedEntry,
         hasContent,
         validate,
         importLegacyBackground,
