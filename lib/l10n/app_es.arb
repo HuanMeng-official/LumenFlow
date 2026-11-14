@@ -930,6 +930,7 @@
     }
   },
   "filePathError": "No se pudo obtener la ruta del archivo",
+  "unsupportedFileType": "Tipo de archivo no compatible",
   "authorLabel": "Autor:",
   "versionLabel": "Versión:",
   "descriptionLabel": "Descripción:",

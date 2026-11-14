@@ -931,6 +931,7 @@
     }
   },
   "filePathError": "ファイルパスを取得できません",
+  "unsupportedFileType": "未対応のファイル形式",
   "authorLabel": "作者:",
   "versionLabel": "バージョン:",
   "descriptionLabel": "説明:",

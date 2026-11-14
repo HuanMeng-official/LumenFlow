@@ -930,6 +930,7 @@
     }
   },
   "filePathError": "無從尋覓卷宗之跡",
+  "unsupportedFileType": "此類文檔未見容",
   "authorLabel": "撰稿人:",
   "versionLabel": "修次:",
   "descriptionLabel": "敘略:",

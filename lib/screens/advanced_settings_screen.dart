@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import '../l10n/app_localizations.dart';
-import 'package:file_picker/file_picker.dart';
 import '../services/settings_service.dart';
 import '../utils/file_save_utils.dart';
+import '../utils/import_file_picker.dart';
 import '../utils/lumenflow_error_messages.dart';
 import 'about_screen.dart';
 import 'credits_screen.dart';
@@ -148,9 +148,8 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
 
   Future<void> _importSettings() async {
     try {
-      final result = await FilePicker.pickFile(
-        type: FileType.custom,
-        allowedExtensions: ['lumenflow'],
+      final result = await pickImportFile(
+        allowedExtensions: const ['lumenflow'],
         dialogTitle: AppLocalizations.of(context)!.importSettings,
       );
 

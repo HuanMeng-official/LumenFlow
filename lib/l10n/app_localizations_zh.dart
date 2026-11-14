@@ -1534,6 +1534,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get filePathError => '无法获取文件路径';
 
   @override
+  String get unsupportedFileType => '不支持的文件类型';
+
+  @override
   String get authorLabel => '作者:';
 
   @override

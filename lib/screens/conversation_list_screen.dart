@@ -1,5 +1,4 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart' as material;
 
@@ -11,6 +10,7 @@ import '../l10n/app_localizations.dart';
 import '../models/conversation.dart';
 import '../services/conversation_service.dart';
 import '../services/preset_repository.dart';
+import '../utils/import_file_picker.dart';
 import '../utils/lumenflow_error_messages.dart';
 
 class ConversationListScreen extends StatefulWidget {
@@ -121,13 +121,16 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     try {
-      final picked = await FilePicker.pickFile(
-        type: FileType.custom,
-        allowedExtensions: ['lumenflow', 'json'],
+      const importExtensions = ['lumenflow', 'json'];
+      final picked = await pickImportFile(
+        allowedExtensions: importExtensions,
         dialogTitle: l10n.importConversation,
       );
       final path = picked?.path;
-      if (path == null) return;
+      if (picked == null || path == null) return;
+      if (!hasAllowedImportExtension(picked.name, importExtensions)) {
+        throw FormatException(l10n.conversationImportInvalid);
+      }
 
       Future<bool> confirmPresetImport(String name) async {
         if (!mounted) return false;
@@ -153,14 +156,14 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
       }
 
       final bytes = await File(path).readAsBytes();
-      final lowerPath = path.toLowerCase();
-      if (lowerPath.endsWith('.lumenflow')) {
+      final lowerName = picked.name.toLowerCase();
+      if (lowerName.endsWith('.lumenflow')) {
         await _conversationService.importConversationArchive(
           bytes: bytes,
           l10n: l10n,
           confirmPresetImport: confirmPresetImport,
         );
-      } else if (lowerPath.endsWith('.json')) {
+      } else if (lowerName.endsWith('.json')) {
         await _conversationService.importConversationFromJson(
           bytes: bytes,
           l10n: l10n,

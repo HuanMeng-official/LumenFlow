@@ -930,6 +930,7 @@
     }
   },
   "filePathError": "无法获取文件路径",
+  "unsupportedFileType": "不支持的文件类型",
   "authorLabel": "作者:",
   "versionLabel": "版本:",
   "descriptionLabel": "描述:",

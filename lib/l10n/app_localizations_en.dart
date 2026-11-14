@@ -1534,6 +1534,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filePathError => 'Unable to get file path';
 
   @override
+  String get unsupportedFileType => 'Unsupported file type';
+
+  @override
   String get authorLabel => 'Author:';
 
   @override

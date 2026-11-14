@@ -1534,6 +1534,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get filePathError => '파일 경로를 가져올 수 없습니다';
 
   @override
+  String get unsupportedFileType => '지원하지 않는 파일 형식';
+
+  @override
   String get authorLabel => '작성자:';
 
   @override

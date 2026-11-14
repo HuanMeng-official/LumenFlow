@@ -1534,6 +1534,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get filePathError => 'No se pudo obtener la ruta del archivo';
 
   @override
+  String get unsupportedFileType => 'Tipo de archivo no compatible';
+
+  @override
   String get authorLabel => 'Autor:';
 
   @override

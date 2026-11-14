@@ -2905,6 +2905,12 @@ abstract class AppLocalizations {
   /// **'Unable to get file path'**
   String get filePathError;
 
+  /// No description provided for @unsupportedFileType.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsupported file type'**
+  String get unsupportedFileType;
+
   /// No description provided for @authorLabel.
   ///
   /// In en, this message translates to:

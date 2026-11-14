@@ -1534,6 +1534,9 @@ class AppLocalizationsLzh extends AppLocalizations {
   String get filePathError => '無從尋覓卷宗之跡';
 
   @override
+  String get unsupportedFileType => '此類文檔未見容';
+
+  @override
   String get authorLabel => '撰稿人:';
 
   @override

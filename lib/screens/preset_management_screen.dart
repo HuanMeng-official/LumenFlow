@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cupertino_ui/cupertino_ui.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as path;
 import 'package:url_launcher/url_launcher.dart';
 
@@ -15,6 +14,7 @@ import '../models/preset_load_result.dart';
 import '../models/prompt_preset.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/file_save_utils.dart';
+import '../utils/import_file_picker.dart';
 import '../utils/lumenflow_error_messages.dart';
 import '../utils/preset_filter.dart';
 import '../utils/preset_tags.dart';
@@ -185,9 +185,9 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
     try {
-      final platformFile = await FilePicker.pickFile(
-        type: FileType.custom,
-        allowedExtensions: ['xml', 'txt', 'lumenflow'],
+      const importExtensions = ['xml', 'txt', 'lumenflow'];
+      final platformFile = await pickImportFile(
+        allowedExtensions: importExtensions,
       );
 
       if (platformFile == null) return;
@@ -198,10 +198,20 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
         }
         return;
       }
+      final fileName = platformFile.name.trim().isEmpty
+          ? path.basename(platformFile.path!)
+          : platformFile.name;
+      if (!hasAllowedImportExtension(fileName, importExtensions)) {
+        if (mounted) {
+          _showErrorMessage(l10n.unsupportedFileType);
+        }
+        return;
+      }
+
       // 需要将PlatformFile转换为File
       // 由于FilePicker返回的是PlatformFile，我们需要使用其路径创建File对象
       final sourceFile = File(platformFile.path!);
-      final extension = path.extension(sourceFile.path).toLowerCase();
+      final extension = path.extension(fileName).toLowerCase();
 
       if (extension == '.lumenflow') {
         final bytes = await sourceFile.readAsBytes();

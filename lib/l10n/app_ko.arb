@@ -930,6 +930,7 @@
     }
   },
   "filePathError": "파일 경로를 가져올 수 없습니다",
+  "unsupportedFileType": "지원하지 않는 파일 형식",
   "authorLabel": "작성자:",
   "versionLabel": "버전:",
   "descriptionLabel": "설명:",

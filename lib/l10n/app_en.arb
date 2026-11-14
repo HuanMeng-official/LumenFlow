@@ -950,6 +950,7 @@
     }
   },
   "filePathError": "Unable to get file path",
+  "unsupportedFileType": "Unsupported file type",
   "authorLabel": "Author:",
   "versionLabel": "Version:",
   "descriptionLabel": "Description:",

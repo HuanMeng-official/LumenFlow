@@ -1534,6 +1534,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get filePathError => 'ファイルパスを取得できません';
 
   @override
+  String get unsupportedFileType => '未対応のファイル形式';
+
+  @override
   String get authorLabel => '作者:';
 
   @override
