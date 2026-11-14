@@ -52,6 +52,7 @@ class MemoryUpdate {
     this.relationshipStage,
     this.scene,
     this.storyTime,
+    this.characterState,
     this.intimacy,
     this.intimacyNote,
     this.unresolved,
@@ -65,6 +66,7 @@ class MemoryUpdate {
   final String? relationshipStage;
   final String? scene;
   final String? storyTime;
+  final String? characterState;
   final int? intimacy;
   final String? intimacyNote;
   final String? unresolved;
@@ -99,12 +101,14 @@ class MemoryUpdateParser {
         ),
         mood: _stringOrNull(roleplayMap['mood']),
         relationshipStage: _stringOrNull(
-          roleplayMap['relationship_stage'] ??
-              roleplayMap['relationshipStage'],
+          roleplayMap['relationship_stage'] ?? roleplayMap['relationshipStage'],
         ),
         scene: _stringOrNull(roleplayMap['scene']),
         storyTime: _stringOrNull(
           roleplayMap['story_time'] ?? roleplayMap['storyTime'],
+        ),
+        characterState: _stringOrNull(
+          roleplayMap['character_state'] ?? roleplayMap['characterState'],
         ),
         intimacy: _intOrNull(roleplayMap['intimacy']),
         intimacyNote: _stringOrNull(
@@ -328,11 +332,7 @@ class MemoryUpdateApplier {
       }
     }
 
-    final roleplay = _applyRoleplay(
-      current.roleplay,
-      update,
-      addedFactIds,
-    );
+    final roleplay = _applyRoleplay(current.roleplay, update, addedFactIds);
 
     return current.copyWith(
       summary: _clamp(
@@ -361,6 +361,7 @@ class MemoryUpdateApplier {
         update.relationshipStage != null ||
         update.scene != null ||
         update.storyTime != null ||
+        update.characterState != null ||
         update.intimacy != null ||
         update.intimacyNote != null ||
         update.unresolved != null;
@@ -375,14 +376,15 @@ class MemoryUpdateApplier {
       ),
       scene: _resolveNarrative(update.scene, base.scene),
       storyTime: _resolveNarrative(update.storyTime, base.storyTime),
+      characterState: _resolveNarrative(
+        update.characterState,
+        base.characterState,
+      ),
       intimacy: update.intimacy ?? base.intimacy,
       previousIntimacy: update.intimacy != null
           ? base.intimacy
           : base.previousIntimacy,
-      intimacyNote: _resolveNarrative(
-        update.intimacyNote,
-        base.intimacyNote,
-      ),
+      intimacyNote: _resolveNarrative(update.intimacyNote, base.intimacyNote),
       unresolved: _resolveNarrative(update.unresolved, base.unresolved),
       newFactIds: <String>{
         ...base.newFactIds,
@@ -424,9 +426,7 @@ class MemoryUpdateApplier {
     return trimmed;
   }
 
-  static final RegExp _punctuation = RegExp(
-    r'[\s，。！？、；：（）()\[\]【】,\.!\?;:]+',
-  );
+  static final RegExp _punctuation = RegExp(r'[\s，。！？、；：（）()\[\]【】,\.!\?;:]+');
 
   static String _normalize(String value) =>
       value.toLowerCase().replaceAll(_punctuation, '');

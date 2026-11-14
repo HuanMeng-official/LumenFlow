@@ -193,6 +193,7 @@
   "memoryViewerRoleplayMood": "Mood",
   "memoryViewerRoleplayRelationship": "Relationship",
   "memoryViewerRoleplayScene": "Scene",
+  "memoryViewerRoleplayCharacterState": "Character state",
   "memoryViewerRoleplayStoryTime": "Story time",
   "memoryViewerRoleplayIntimacy": "Intimacy",
   "memoryViewerRoleplayNewMemories": "New memories",
@@ -204,7 +205,7 @@
       "minutes": {"type": "int"}
     }
   },
-  "memoryViewerRoleplayEmptyHint": "Keep chatting and this page will fill in mood, relationship, scene, and unresolved threads.",
+  "memoryViewerRoleplayEmptyHint": "Keep chatting and this page will fill in mood, relationship, scene, character state, and unresolved threads.",
   "memoryTools": "Memory Tools",
   "memoryToolsAuto": "Auto",
   "memoryNoteToolName": "Remember Note",
@@ -388,17 +389,14 @@
       }
     }
   },
-  "baseSystemPromptFollowUser": "Reply in the language the user writes in.",
+  "memoryNoteInstruction": "You can call the remember_note tool to save durable agreements, rules, critical facts, important emotional turning points, or rejected proposals as soon as they happen. Use it sparingly; never record small talk.",
+  "memoryRecallInstruction": "When the user asks about a specific earlier detail, exact wording, or a prior agreement that is not in your current context, call the recall tool before answering. If it returns no matches, say you cannot find it; do not invent.",
   "languageNameZh": "Chinese",
   "languageNameEn": "English",
   "languageNameJa": "Japanese",
   "languageNameKo": "Korean",
   "languageNameEs": "Spanish",
   "languageNameLzh": "Literary Chinese",
-  "replyLanguageTitle": "AI reply language",
-  "replyLanguageSubtitle": "Language and tone set by a character preset take priority over this option",
-  "replyLanguageFollowUi": "Follow app language",
-  "replyLanguageOptionFollowUser": "Follow user input",
   "requestTimeout": "Request timeout: Server response took too long, please check network connection or try again later. Error details: {error}",
   "@requestTimeout": {
     "placeholders": {

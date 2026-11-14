@@ -297,18 +297,6 @@ class AIService {
   ///
   /// 按“基础规则 → 自定义提示 → 角色预设”的顺序拼接。角色预设保留在最后，
   /// 因此它可以覆盖角色身份与文风，但不会丢掉用户的全局自定义要求。
-  static const String _memoryNoteInstruction =
-      'You can call the remember_note tool to save durable agreements, rules, '
-      'critical facts, important emotional turning points, or rejected '
-      'proposals as soon as they happen. Use it sparingly; never record small '
-      'talk.';
-
-  static const String _memoryRecallInstruction =
-      'When the user asks about a specific earlier detail, exact wording, or a '
-      'prior agreement that is not in your current context, call the recall '
-      'tool before answering. If it returns no matches, say you cannot find '
-      'it; do not invent.';
-
   Future<String> _buildSystemPrompt(
     String presetSystemPrompt,
     AppLocalizations l10n, {
@@ -319,16 +307,18 @@ class AIService {
   }) async {
     final customSystemPrompt = await _settingsService.getCustomSystemPrompt();
 
-    // 使用本地化的基础系统提示词，并追加独立的回复语言规则。
-    final languageRule = await _buildReplyLanguageRule(l10n);
+    // 使用本地化的基础系统提示词，并追加默认回复语言规则。
+    final languageRule = _buildReplyLanguageRule(l10n);
     final baseSystemPrompt = '${l10n.baseSystemPrompt}\n$languageRule';
 
     final stablePrefix = composeSystemPrompt(
       basePrompt: baseSystemPrompt,
       customPrompt: customSystemPrompt,
       presetPrompt: presetSystemPrompt,
-      noteInstruction: memoryNoteEnabled ? _memoryNoteInstruction : '',
-      recallInstruction: memoryRecallEnabled ? _memoryRecallInstruction : '',
+      noteInstruction: memoryNoteEnabled ? l10n.memoryNoteInstruction : '',
+      recallInstruction: memoryRecallEnabled
+          ? l10n.memoryRecallInstruction
+          : '',
     );
 
     // 记忆放最后：更靠近对话、演变状态压过静态人设，并保留稳定前缀缓存。
@@ -369,16 +359,8 @@ class AIService {
     );
   }
 
-  Future<String> _buildReplyLanguageRule(AppLocalizations l10n) async {
-    final setting = await _settingsService.getReplyLanguage();
-    if (setting == 'follow_user') {
-      return l10n.baseSystemPromptFollowUser;
-    }
-
-    final code = setting == SettingsService.defaultReplyLanguage
-        ? l10n.localeName
-        : setting;
-    final languageName = switch (code) {
+  String _buildReplyLanguageRule(AppLocalizations l10n) {
+    final languageName = switch (l10n.localeName) {
       'zh' => l10n.languageNameZh,
       'en' => l10n.languageNameEn,
       'ja' => l10n.languageNameJa,
@@ -583,8 +565,8 @@ class AIService {
           final toolMessage = attachmentContext == null
               ? message
               : message.trim().isEmpty
-                  ? attachmentContext.manifest
-                  : '$message\n\n${attachmentContext.manifest}';
+              ? attachmentContext.manifest
+              : '$message\n\n${attachmentContext.manifest}';
           yield* toolService.run(
             config: config,
             // 时间由内置工具提供，工具路径不再把时间拼进用户消息。

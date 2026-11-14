@@ -427,6 +427,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get memoryViewerRoleplayScene => '현재 장면';
 
   @override
+  String get memoryViewerRoleplayCharacterState => '캐릭터 상태';
+
+  @override
   String get memoryViewerRoleplayStoryTime => '이야기 시간';
 
   @override
@@ -444,7 +447,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get memoryViewerRoleplayEmptyHint => '대화를 계속하면 여기에 기분, 관계, 장면, 미완의 일이 정리됩니다.';
+  String get memoryViewerRoleplayEmptyHint => '대화를 계속하면 여기에 기분, 관계, 장면, 캐릭터 상태, 미완의 일이 정리됩니다.';
 
   @override
   String get memoryTools => '메모리 도구';
@@ -799,7 +802,10 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get baseSystemPromptFollowUser => '사용자가 입력한 언어로 답하세요.';
+  String get memoryNoteInstruction => '중요한 약속, 규칙, 핵심 사실, 감정적 전환점, 거절된 제안이 발생할 때 remember_note 도구를 호출해 기록할 수 있습니다. 남용하지 말고 잡담은 기록하지 마세요.';
+
+  @override
+  String get memoryRecallInstruction => '현재 컨텍스트에 없는 구체적인 과거 세부 사항, 정확한 표현, 이전 약속을 사용자가 묻는다면 답하기 전에 recall 도구를 호출하세요. 일치하는 결과가 없으면 찾을 수 없다고 말하고 꾸며내지 마세요.';
 
   @override
   String get languageNameZh => '중국어';
@@ -818,18 +824,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get languageNameLzh => '문어';
-
-  @override
-  String get replyLanguageTitle => 'AI 답변 언어';
-
-  @override
-  String get replyLanguageSubtitle => '캐릭터 카드의 언어와 문체 설정이 이 옵션보다 우선합니다';
-
-  @override
-  String get replyLanguageFollowUi => '앱 언어 따르기';
-
-  @override
-  String get replyLanguageOptionFollowUser => '사용자 입력 따르기';
 
   @override
   String requestTimeout(String error) {

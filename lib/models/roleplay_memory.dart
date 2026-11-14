@@ -1,13 +1,14 @@
 /// 角色扮演会话的结构化状态。
 ///
 /// 和自由文本的前情/情绪不同，这些字段用于查看器里的角色卡页面：
-/// 心情、关系阶段、当前场景、故事时间、亲密度和未完成的事。
+/// 心情、关系阶段、当前场景、故事时间、角色自身状态、亲密度和未完成的事。
 class RoleplayMemory {
   const RoleplayMemory({
     this.mood = '',
     this.relationshipStage = '',
     this.scene = '',
     this.storyTime = '',
+    this.characterState = '',
     this.intimacy,
     this.previousIntimacy,
     this.intimacyNote = '',
@@ -19,6 +20,9 @@ class RoleplayMemory {
   final String relationshipStage;
   final String scene;
   final String storyTime;
+
+  /// 角色自身可观察的当前状态：伤势、疲态、衣着、姿势、正在做的事等。
+  final String characterState;
 
   /// 0-100，未知时为 null。
   final int? intimacy;
@@ -36,6 +40,7 @@ class RoleplayMemory {
       relationshipStage.trim().isEmpty &&
       scene.trim().isEmpty &&
       storyTime.trim().isEmpty &&
+      characterState.trim().isEmpty &&
       intimacy == null &&
       intimacyNote.trim().isEmpty &&
       unresolved.trim().isEmpty &&
@@ -46,6 +51,7 @@ class RoleplayMemory {
     String? relationshipStage,
     String? scene,
     String? storyTime,
+    String? characterState,
     int? intimacy,
     int? previousIntimacy,
     String? intimacyNote,
@@ -57,6 +63,7 @@ class RoleplayMemory {
       relationshipStage: relationshipStage ?? this.relationshipStage,
       scene: scene ?? this.scene,
       storyTime: storyTime ?? this.storyTime,
+      characterState: characterState ?? this.characterState,
       intimacy: intimacy ?? this.intimacy,
       previousIntimacy: previousIntimacy ?? this.previousIntimacy,
       intimacyNote: intimacyNote ?? this.intimacyNote,
@@ -71,6 +78,7 @@ class RoleplayMemory {
       'relationshipStage': relationshipStage,
       'scene': scene,
       'storyTime': storyTime,
+      'characterState': characterState,
       'intimacy': intimacy,
       'previousIntimacy': previousIntimacy,
       'intimacyNote': intimacyNote,
@@ -87,8 +95,9 @@ class RoleplayMemory {
               as String? ??
           '',
       scene: json['scene'] as String? ?? '',
-      storyTime:
-          (json['storyTime'] ?? json['story_time']) as String? ?? '',
+      storyTime: (json['storyTime'] ?? json['story_time']) as String? ?? '',
+      characterState:
+          (json['characterState'] ?? json['character_state']) as String? ?? '',
       intimacy: _clampIntimacy(json['intimacy']),
       previousIntimacy: _clampIntimacy(
         json['previousIntimacy'] ?? json['previous_intimacy'],

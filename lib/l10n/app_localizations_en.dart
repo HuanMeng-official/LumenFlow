@@ -427,6 +427,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get memoryViewerRoleplayScene => 'Scene';
 
   @override
+  String get memoryViewerRoleplayCharacterState => 'Character state';
+
+  @override
   String get memoryViewerRoleplayStoryTime => 'Story time';
 
   @override
@@ -444,7 +447,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get memoryViewerRoleplayEmptyHint => 'Keep chatting and this page will fill in mood, relationship, scene, and unresolved threads.';
+  String get memoryViewerRoleplayEmptyHint => 'Keep chatting and this page will fill in mood, relationship, scene, character state, and unresolved threads.';
 
   @override
   String get memoryTools => 'Memory Tools';
@@ -799,7 +802,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get baseSystemPromptFollowUser => 'Reply in the language the user writes in.';
+  String get memoryNoteInstruction => 'You can call the remember_note tool to save durable agreements, rules, critical facts, important emotional turning points, or rejected proposals as soon as they happen. Use it sparingly; never record small talk.';
+
+  @override
+  String get memoryRecallInstruction => 'When the user asks about a specific earlier detail, exact wording, or a prior agreement that is not in your current context, call the recall tool before answering. If it returns no matches, say you cannot find it; do not invent.';
 
   @override
   String get languageNameZh => 'Chinese';
@@ -818,18 +824,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get languageNameLzh => 'Literary Chinese';
-
-  @override
-  String get replyLanguageTitle => 'AI reply language';
-
-  @override
-  String get replyLanguageSubtitle => 'Language and tone set by a character preset take priority over this option';
-
-  @override
-  String get replyLanguageFollowUi => 'Follow app language';
-
-  @override
-  String get replyLanguageOptionFollowUser => 'Follow user input';
 
   @override
   String requestTimeout(String error) {

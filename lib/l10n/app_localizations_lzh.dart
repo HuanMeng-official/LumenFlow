@@ -427,6 +427,9 @@ class AppLocalizationsLzh extends AppLocalizations {
   String get memoryViewerRoleplayScene => '當前之景';
 
   @override
+  String get memoryViewerRoleplayCharacterState => '角色狀態';
+
+  @override
   String get memoryViewerRoleplayStoryTime => '故事之時';
 
   @override
@@ -444,7 +447,7 @@ class AppLocalizationsLzh extends AppLocalizations {
   }
 
   @override
-  String get memoryViewerRoleplayEmptyHint => '續談則此間自整心情、關係、場景與未了之事。';
+  String get memoryViewerRoleplayEmptyHint => '續談則此間自整心情、關係、場景、角色狀態與未了之事。';
 
   @override
   String get memoryTools => '記憶之器';
@@ -799,7 +802,10 @@ class AppLocalizationsLzh extends AppLocalizations {
   }
 
   @override
-  String get baseSystemPromptFollowUser => '從客官所用之語相復。';
+  String get memoryNoteInstruction => '可呼 remember_note 之器，凡要約、規則、要事、情轉、見卻之議，遇即記之；宜慎用，勿錄閒談。';
+
+  @override
+  String get memoryRecallInstruction => '客官問及今境所無之舊事、原語或前約，宜先呼 recall 之器而後對。若無所合，則言未得，毋妄造。';
 
   @override
   String get languageNameZh => '華文';
@@ -818,18 +824,6 @@ class AppLocalizationsLzh extends AppLocalizations {
 
   @override
   String get languageNameLzh => '文言';
-
-  @override
-  String get replyLanguageTitle => 'AI 復言之語';
-
-  @override
-  String get replyLanguageSubtitle => '錦囊所定之語與文風，優先於此選';
-
-  @override
-  String get replyLanguageFollowUi => '從界面之語';
-
-  @override
-  String get replyLanguageOptionFollowUser => '從客官所輸入';
 
   @override
   String requestTimeout(String error) {

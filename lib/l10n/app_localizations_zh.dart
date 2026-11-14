@@ -427,6 +427,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get memoryViewerRoleplayScene => '当前场景';
 
   @override
+  String get memoryViewerRoleplayCharacterState => '角色状态';
+
+  @override
   String get memoryViewerRoleplayStoryTime => '故事时间';
 
   @override
@@ -444,7 +447,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get memoryViewerRoleplayEmptyHint => '继续对话后，这里会整理出心情、关系、场景和未完成的事。';
+  String get memoryViewerRoleplayEmptyHint => '继续对话后，这里会整理出心情、关系、场景、角色状态和未完成的事。';
 
   @override
   String get memoryTools => '记忆工具';
@@ -799,7 +802,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get baseSystemPromptFollowUser => '使用用户输入的语言回答。';
+  String get memoryNoteInstruction => '你可以调用 remember_note 工具，在重要约定、规则、关键事实、情绪转折或被否方案发生时立即记录。请克制使用，不要记录闲聊。';
+
+  @override
+  String get memoryRecallInstruction => '当用户询问当前上下文里没有的具体旧细节、原话或先前约定时，先调用 recall 工具再回答。如果没有匹配结果，就说明找不到，不要编造。';
 
   @override
   String get languageNameZh => '中文';
@@ -818,18 +824,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get languageNameLzh => '文言';
-
-  @override
-  String get replyLanguageTitle => 'AI 回复语言';
-
-  @override
-  String get replyLanguageSubtitle => '角色卡自带的语言和文风设定优先于该选项';
-
-  @override
-  String get replyLanguageFollowUi => '跟随界面';
-
-  @override
-  String get replyLanguageOptionFollowUser => '跟随用户输入';
 
   @override
   String requestTimeout(String error) {

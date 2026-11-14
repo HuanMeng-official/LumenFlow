@@ -907,6 +907,12 @@ abstract class AppLocalizations {
   /// **'Scene'**
   String get memoryViewerRoleplayScene;
 
+  /// No description provided for @memoryViewerRoleplayCharacterState.
+  ///
+  /// In en, this message translates to:
+  /// **'Character state'**
+  String get memoryViewerRoleplayCharacterState;
+
   /// No description provided for @memoryViewerRoleplayStoryTime.
   ///
   /// In en, this message translates to:
@@ -940,7 +946,7 @@ abstract class AppLocalizations {
   /// No description provided for @memoryViewerRoleplayEmptyHint.
   ///
   /// In en, this message translates to:
-  /// **'Keep chatting and this page will fill in mood, relationship, scene, and unresolved threads.'**
+  /// **'Keep chatting and this page will fill in mood, relationship, scene, character state, and unresolved threads.'**
   String get memoryViewerRoleplayEmptyHint;
 
   /// No description provided for @memoryTools.
@@ -1615,11 +1621,17 @@ abstract class AppLocalizations {
   /// **'Default to {language}. If the user writes in or explicitly requests another language, follow the user.'**
   String baseSystemPromptLanguageRule(String language);
 
-  /// No description provided for @baseSystemPromptFollowUser.
+  /// No description provided for @memoryNoteInstruction.
   ///
   /// In en, this message translates to:
-  /// **'Reply in the language the user writes in.'**
-  String get baseSystemPromptFollowUser;
+  /// **'You can call the remember_note tool to save durable agreements, rules, critical facts, important emotional turning points, or rejected proposals as soon as they happen. Use it sparingly; never record small talk.'**
+  String get memoryNoteInstruction;
+
+  /// No description provided for @memoryRecallInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'When the user asks about a specific earlier detail, exact wording, or a prior agreement that is not in your current context, call the recall tool before answering. If it returns no matches, say you cannot find it; do not invent.'**
+  String get memoryRecallInstruction;
 
   /// No description provided for @languageNameZh.
   ///
@@ -1656,30 +1668,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Literary Chinese'**
   String get languageNameLzh;
-
-  /// No description provided for @replyLanguageTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'AI reply language'**
-  String get replyLanguageTitle;
-
-  /// No description provided for @replyLanguageSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Language and tone set by a character preset take priority over this option'**
-  String get replyLanguageSubtitle;
-
-  /// No description provided for @replyLanguageFollowUi.
-  ///
-  /// In en, this message translates to:
-  /// **'Follow app language'**
-  String get replyLanguageFollowUi;
-
-  /// No description provided for @replyLanguageOptionFollowUser.
-  ///
-  /// In en, this message translates to:
-  /// **'Follow user input'**
-  String get replyLanguageOptionFollowUser;
 
   /// No description provided for @requestTimeout.
   ///

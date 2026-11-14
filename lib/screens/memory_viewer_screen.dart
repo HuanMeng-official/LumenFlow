@@ -335,12 +335,7 @@ class _MemoryViewerScreenState extends State<MemoryViewerScreen> {
         padding: const EdgeInsets.only(bottom: 12),
         child: Row(
           children: [
-            _statCard(
-              context,
-              l10n.memoryViewerRoleplayMood,
-              mood,
-              fallback,
-            ),
+            _statCard(context, l10n.memoryViewerRoleplayMood, mood, fallback),
             const SizedBox(width: 12),
             _statCard(
               context,
@@ -372,6 +367,17 @@ class _MemoryViewerScreenState extends State<MemoryViewerScreen> {
         ),
       ),
     ];
+
+    final characterState = roleplay?.characterState.trim() ?? '';
+    if (characterState.isNotEmpty) {
+      children.add(
+        _roleplayCard(
+          context,
+          title: l10n.memoryViewerRoleplayCharacterState,
+          child: _bodyText(context, characterState, fallback),
+        ),
+      );
+    }
 
     if (roleplay?.intimacy != null) {
       children.add(_intimacyCard(context, l10n, roleplay!, fallback));
@@ -547,10 +553,7 @@ class _MemoryViewerScreenState extends State<MemoryViewerScreen> {
               width: 72,
               height: 72,
               alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: primary,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: primary, shape: BoxShape.circle),
               child: Text(
                 initial,
                 style: TextStyle(
@@ -736,8 +739,7 @@ class _MemoryViewerScreenState extends State<MemoryViewerScreen> {
                   alignment: Alignment.centerLeft,
                   child: Container(
                     width:
-                        constraints.maxWidth *
-                        (intimacy / 100).clamp(0.0, 1.0),
+                        constraints.maxWidth * (intimacy / 100).clamp(0.0, 1.0),
                     decoration: BoxDecoration(
                       color: primary,
                       borderRadius: BorderRadius.circular(4),
@@ -804,7 +806,10 @@ class _MemoryViewerScreenState extends State<MemoryViewerScreen> {
         l10n.memoryKindAgreement,
         CupertinoColors.systemPink,
       ),
-      MemoryFactKind.rule => (l10n.memoryKindRule, CupertinoColors.systemOrange),
+      MemoryFactKind.rule => (
+        l10n.memoryKindRule,
+        CupertinoColors.systemOrange,
+      ),
       MemoryFactKind.fact => (l10n.memoryKindFact, CupertinoColors.systemBlue),
       MemoryFactKind.decision => (
         l10n.memoryKindDecision,
@@ -976,9 +981,7 @@ class _MemoryViewerScreenState extends State<MemoryViewerScreen> {
           Padding(
             padding: const EdgeInsets.only(top: 2),
             child: Icon(
-              superseded
-                  ? CupertinoIcons.xmark
-                  : CupertinoIcons.checkmark_alt,
+              superseded ? CupertinoIcons.xmark : CupertinoIcons.checkmark_alt,
               size: 15,
               color: superseded
                   ? CupertinoColors.systemGrey.resolveFrom(context)

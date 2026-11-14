@@ -21,7 +21,6 @@ LumenFlow (Chinese: 流光) is a Flutter-based AI chat application for Android, 
 - **Model refresh**: fetch available models from supported provider APIs and select a default.
 - **Streaming responses**: incremental answer and reasoning output.
 - **Thinking mode**: expose reasoning summaries where the provider supports them.
-- **Reply language**: follow the UI, follow the user, or pin a supported language. A selected character card's own language and tone remain part of its prompt.
 - **Claude prompt caching**: stable system prompts are sent as content blocks with `cache_control: ephemeral`.
 - **Auto title generation**: title new conversations from recent messages.
 - **Retry and cancellation**: exponential backoff for transient HTTP failures and cancellation tokens for streaming/tool loops.
@@ -51,7 +50,7 @@ LumenFlow (Chinese: 流光) is a Flutter-based AI chat application for Android, 
 - **On-demand recall**: once older messages fall outside the raw window, the model can call `recall` with short keywords to search old messages and the full memory ledger, including superseded and rejected entries. The tool is only exposed when there is older content to search.
 - **Automatic invalidation**: editing, regenerating, or deleting covered messages invalidates the memory and triggers a rebuild.
 - **Read-only viewer**: chat ⋯ menu → **View Memory** shows the stored summary, emotional state, agreements, superseded entries, rejected proposals, and notes waiting to be merged. It does not modify anything.
-- **Roleplay memory page**: conversations using a role card get a dedicated view with the character profile, mood, relationship stage, scene, story time, intimacy change, newly learned memories, and unresolved threads, so the story state stays easy to check.
+- **Roleplay memory page**: conversations using a role card get a dedicated view with the character profile, mood, relationship stage, scene, story time, the character's own physical/visible state, intimacy change, newly learned memories, and unresolved threads, so the story state stays easy to check.
 - **Travels with the conversation**: JSON and `.lumenflow` conversation exports include memory and pending active notes; import remaps message IDs and restores them.
 
 ### Data and Export
@@ -269,8 +268,8 @@ Role-play presets pair a small metadata record with an optional character-card b
 
 ### Prompt assembly
 
-- The final system prompt is composed of localized base rules (including the reply-language rule) → custom prompt → selected preset → note/recall instructions → world info → memory.
-- The AI reply language can follow the UI, follow the user, or be pinned. A selected card's own language and tone remain part of its prompt.
+- The final system prompt is composed of localized base rules (including the default reply-language rule) → custom prompt → selected preset → note/recall instructions → world info → memory.
+- Replies default to the UI language and follow the user's input language. A selected card's own language and tone remain part of its prompt.
 - Prompts are not interpolated with `${userProfile.*}` values. When a card needs the user's name, gender, or birthday, it should call `builtin__get_user_profile`.
 
 The character-card generator opens a local web page served by the app (`HttpServerService`, loopback ports 5050–5059). It edits character fields, world info, metadata, an avatar, and a full-body illustration, then exports a `.lumenflow` archive.

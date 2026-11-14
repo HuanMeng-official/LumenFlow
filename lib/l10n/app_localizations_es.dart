@@ -427,6 +427,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get memoryViewerRoleplayScene => 'Escena actual';
 
   @override
+  String get memoryViewerRoleplayCharacterState => 'Estado del personaje';
+
+  @override
   String get memoryViewerRoleplayStoryTime => 'Tiempo de la historia';
 
   @override
@@ -444,7 +447,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get memoryViewerRoleplayEmptyHint => 'Sigue conversando y aquí se organizarán el ánimo, la relación, la escena y los asuntos pendientes.';
+  String get memoryViewerRoleplayEmptyHint => 'Sigue conversando y aquí se organizarán el ánimo, la relación, la escena, el estado del personaje y los asuntos pendientes.';
 
   @override
   String get memoryTools => 'Herramientas de memoria';
@@ -799,7 +802,10 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get baseSystemPromptFollowUser => 'Responde en el idioma en que escribe el usuario.';
+  String get memoryNoteInstruction => 'Puedes llamar a la herramienta remember_note para guardar acuerdos duraderos, reglas, hechos críticos, puntos de inflexión emocionales o propuestas rechazadas en cuanto ocurran. Úsala con moderación; nunca registres charlas triviales.';
+
+  @override
+  String get memoryRecallInstruction => 'Cuando el usuario pregunte por un detalle concreto del pasado, una frase exacta o un acuerdo anterior que no esté en tu contexto actual, llama a la herramienta recall antes de responder. Si no devuelve coincidencias, di que no lo encuentras; no inventes.';
 
   @override
   String get languageNameZh => 'chino';
@@ -818,18 +824,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get languageNameLzh => 'chino clásico';
-
-  @override
-  String get replyLanguageTitle => 'Idioma de respuesta de la IA';
-
-  @override
-  String get replyLanguageSubtitle => 'El idioma y el estilo del ajuste de personaje tienen prioridad sobre esta opción';
-
-  @override
-  String get replyLanguageFollowUi => 'Seguir el idioma de la app';
-
-  @override
-  String get replyLanguageOptionFollowUser => 'Seguir la entrada del usuario';
 
   @override
   String requestTimeout(String error) {

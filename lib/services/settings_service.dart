@@ -28,7 +28,6 @@ class SettingsService {
   static const String _autoTitleEnabledKey = 'auto_title_enabled';
   static const String _autoTitleRoundsKey = 'auto_title_rounds';
   static const String _localeKey = 'locale';
-  static const String _replyLanguageKey = 'reply_language';
   static const String _notificationEnabledKey = 'notification_enabled';
   static const String _liveUpdateEnabledKey = 'live_update_enabled';
   // 聊天背景设置相关的key
@@ -58,7 +57,6 @@ class SettingsService {
   static const bool defaultAutoTitleEnabled = true;
   static const int defaultAutoTitleRounds = 3;
   static const String defaultLocale = 'zh';
-  static const String defaultReplyLanguage = 'follow_ui';
   static const bool defaultNotificationEnabled = true;
   static const bool defaultLiveUpdateEnabled = true;
   // 聊天背景设置默认值
@@ -324,17 +322,6 @@ class SettingsService {
     await prefs.setString(_localeKey, locale);
   }
 
-  /// AI 回复语言：follow_ui / follow_user / zh / en / ja / ko / es / lzh。
-  Future<String> getReplyLanguage() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_replyLanguageKey) ?? defaultReplyLanguage;
-  }
-
-  Future<void> setReplyLanguage(String language) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_replyLanguageKey, language);
-  }
-
   Future<bool> getNotificationEnabled() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_notificationEnabledKey) ?? defaultNotificationEnabled;
@@ -506,8 +493,6 @@ class SettingsService {
     settings[_autoTitleRoundsKey] =
         prefs.getInt(_autoTitleRoundsKey) ?? defaultAutoTitleRounds;
     settings[_localeKey] = prefs.getString(_localeKey) ?? defaultLocale;
-    settings[_replyLanguageKey] =
-        prefs.getString(_replyLanguageKey) ?? defaultReplyLanguage;
     settings[_notificationEnabledKey] =
         prefs.getBool(_notificationEnabledKey) ?? defaultNotificationEnabled;
     settings[_liveUpdateEnabledKey] =
@@ -658,12 +643,6 @@ class SettingsService {
     }
     if (settings.containsKey(_localeKey)) {
       await prefs.setString(_localeKey, settings[_localeKey] as String);
-    }
-    if (settings.containsKey(_replyLanguageKey)) {
-      await prefs.setString(
-        _replyLanguageKey,
-        settings[_replyLanguageKey] as String,
-      );
     }
     if (settings.containsKey(_notificationEnabledKey)) {
       await prefs.setBool(

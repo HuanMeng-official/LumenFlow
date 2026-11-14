@@ -31,14 +31,16 @@ String formatMemoryBlock(
     final lines = <String>[];
     final mood = _escapeMemoryTags(roleplay.mood.trim());
     if (mood.isNotEmpty) lines.add('心情：$mood');
-    final relationship = _escapeMemoryTags(
-      roleplay.relationshipStage.trim(),
-    );
+    final relationship = _escapeMemoryTags(roleplay.relationshipStage.trim());
     if (relationship.isNotEmpty) lines.add('关系阶段：$relationship');
     final scene = _escapeMemoryTags(roleplay.scene.trim());
     if (scene.isNotEmpty) lines.add('当前场景：$scene');
     final storyTime = _escapeMemoryTags(roleplay.storyTime.trim());
     if (storyTime.isNotEmpty) lines.add('故事时间：$storyTime');
+    final characterState = _escapeMemoryTags(roleplay.characterState.trim());
+    if (characterState.isNotEmpty) {
+      lines.add('角色自身状态：$characterState');
+    }
     if (roleplay.intimacy != null) {
       lines.add(
         roleplay.previousIntimacy == null
@@ -46,9 +48,7 @@ String formatMemoryBlock(
             : '亲密度：${roleplay.previousIntimacy} → ${roleplay.intimacy}',
       );
     }
-    final intimacyNote = _escapeMemoryTags(
-      roleplay.intimacyNote.trim(),
-    );
+    final intimacyNote = _escapeMemoryTags(roleplay.intimacyNote.trim());
     if (intimacyNote.isNotEmpty) lines.add('亲密度说明：$intimacyNote');
     final unresolved = _escapeMemoryTags(roleplay.unresolved.trim());
     if (unresolved.isNotEmpty) lines.add('未完成：$unresolved');
@@ -151,7 +151,7 @@ String buildMemoryUpdateSystemPrompt() {
 9. 输出必须是严格 JSON，不要输出解释文字或 Markdown 代码块。
 10. 所有自然语言字段使用 <conversation> 对话本身的语言，不要翻译成其他语言。
 11. <pending_notes> 是对话模型在事件发生时主动留下的便签，优先级更高；除非对话明确推翻，否则必须合并进记忆，不要忽略。
-12. 如果用户消息里有 <roleplay>，还要更新 roleplay_state：心情、关系阶段、当前场景、故事时间、亲密度（0-100 的整数，无法判断时省略）、亲密度说明、未完成的事。没有变化的字段写 "unchanged"。
+12. 如果用户消息里有 <roleplay>，还要更新 roleplay_state：心情、关系阶段、当前场景、故事时间、角色自身状态、亲密度（0-100 的整数，无法判断时省略）、亲密度说明、未完成的事。character_state 只写角色身体/伤势/疲态、衣着与外貌变化、姿势与正在做的事、当前目的等可观察状态，不写内心想法或用户状态。没有变化的字段写 "unchanged"。
 
 输出 schema：
 {
@@ -171,6 +171,7 @@ String buildMemoryUpdateSystemPrompt() {
     "relationship_stage": "关系阶段或 unchanged",
     "scene": "当前场景或 unchanged",
     "story_time": "故事内的时间或 unchanged",
+    "character_state": "角色自身状态或 unchanged",
     "intimacy": 68,
     "intimacy_note": "亲密度变化的简短说明",
     "unresolved": "尚未解决/未回答的事或 unchanged"
@@ -216,7 +217,8 @@ String buildMemoryUpdateUserPrompt({
             '${safeName.isEmpty ? '未命名角色' : safeName}。'
             '${safeDescription.isEmpty ? '' : '角色描述：$safeDescription。'}\n'
             '请更新 roleplay_state：心情、关系阶段、当前场景、故事时间、'
-            '亲密度（0-100 的整数，无法判断时省略）、亲密度说明、未完成的事。'
+            '角色自身状态、亲密度（0-100 的整数，无法判断时省略）、'
+            '亲密度说明、未完成的事。'
             '没有变化的字段返回 "unchanged"；使用对话语言。\n'
             '</roleplay>\n\n'
       : '';
@@ -230,9 +232,7 @@ String buildMemoryUpdateUserPrompt({
 }
 
 String _noteLine(MemoryNote note) {
-  final parts = <String>[
-    '[${note.kind.name}] ${_escapePromptTags(note.text)}',
-  ];
+  final parts = <String>['[${note.kind.name}] ${_escapePromptTags(note.text)}'];
 
   final quote = note.quote?.trim();
   if (quote != null && quote.isNotEmpty) {
