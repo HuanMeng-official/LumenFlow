@@ -1042,6 +1042,7 @@
   "lumenflowMissingCharacter": "LumenFlow archive is missing the character card file",
   "lumenflowWorldInfoInvalid": "World info file is invalid or corrupt",
   "lumenflowAvatarInvalid": "Avatar image is invalid or corrupt",
+  "lumenflowIllustrationInvalid": "Illustration image is invalid or corrupt",
   "lumenflowLegacyUnsupported": "Legacy LumenFlow format is not supported"
 ,
   "presetSectionWorldviewBackground": "Worldview & Background",

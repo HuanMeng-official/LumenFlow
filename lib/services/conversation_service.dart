@@ -574,6 +574,8 @@ class ConversationService {
               worldInfo:
                   characterArchive.files['character/world_info.json'],
               avatar: characterArchive.files['character/avatar.png'],
+              illustration:
+                  characterArchive.files['character/illustration.png'],
             );
           }
         } catch (error) {
@@ -1052,6 +1054,12 @@ class ConversationService {
           path: 'character/avatar.png',
           role: 'avatar',
           bytes: character.avatar!,
+        ),
+      if (character.illustration != null)
+        LumenflowArchiveFile(
+          path: 'character/illustration.png',
+          role: 'illustration',
+          bytes: character.illustration!,
         ),
     ];
     final manifest = LumenflowManifest(

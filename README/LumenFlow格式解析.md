@@ -41,7 +41,8 @@ conversation.lumenflow
     ├── meta.json
     ├── character.xml
     ├── world_info.json           # 可选
-    └── avatar.png                # 可选
+    ├── avatar.png                # 可选
+    └── illustration.png          # 可选
 ```
 
 ### 2.3 独立角色卡
@@ -53,7 +54,8 @@ character.lumenflow
     ├── meta.json
     ├── character.xml
     ├── world_info.json           # 可选
-    └── avatar.png                # 可选
+    ├── avatar.png                # 可选
+    └── illustration.png          # 可选
 ```
 
 ## 3. manifest.json
@@ -108,6 +110,7 @@ character.lumenflow
 | `character` | `character/character.xml` |
 | `world_info` | `character/world_info.json` |
 | `avatar` | `character/avatar.png` |
+| `illustration` | `character/illustration.png` |
 
 ## 4. 安全与上限
 
@@ -227,6 +230,15 @@ match：`substring` / `word` / `regex`。
 - 仍然超过 2 MB 则拒绝。
 - 头像损坏时忽略，角色卡仍可导入并使用备用图标。
 
+### 5.7 character/illustration.png
+
+- 仅 PNG；校验文件签名。
+- 可选的角色全身立绘，用于角色卡预览。
+- 最长边缩到不超过 **2048**。
+- 编码后超过 **8 MB** 时，依次降到 **1024**、**768**、**512**。
+- 仍然超过 8 MB 则拒绝。
+- 立绘损坏时忽略，角色卡仍可导入并显示“无立绘”占位。
+
 ## 6. 世界书激活
 
 1. 调用方传入扫描文本。应用使用当前消息 + 最近 `scan_depth` 条消息。
@@ -268,12 +280,13 @@ match：`substring` / `word` / `regex`。
     { "path": "character/meta.json", "role": "meta", "size": 236, "sha256": "…" },
     { "path": "character/character.xml", "role": "character", "size": 535, "sha256": "…" },
     { "path": "character/world_info.json", "role": "world_info", "size": 578, "sha256": "…" },
-    { "path": "character/avatar.png", "role": "avatar", "size": 29728, "sha256": "…" }
+    { "path": "character/avatar.png", "role": "avatar", "size": 29728, "sha256": "…" },
+    { "path": "character/illustration.png", "role": "illustration", "size": 84512, "sha256": "…" }
   ]
 }
 ```
 
-背景与条目都为空时不写 `character/world_info.json`；未选择头像时不写 `character/avatar.png`。
+背景与条目都为空时不写 `character/world_info.json`；未选择头像时不写 `character/avatar.png`；未选择立绘时不写 `character/illustration.png`。
 
 ## 8. 兼容性
 

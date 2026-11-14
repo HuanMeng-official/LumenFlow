@@ -41,7 +41,8 @@ conversation.lumenflow
     ├── meta.json
     ├── character.xml
     ├── world_info.json           # optional
-    └── avatar.png                # optional
+    ├── avatar.png                # optional
+    └── illustration.png          # optional
 ```
 
 ### 2.3 Standalone character card
@@ -53,7 +54,8 @@ character.lumenflow
     ├── meta.json
     ├── character.xml
     ├── world_info.json           # optional
-    └── avatar.png                # optional
+    ├── avatar.png                # optional
+    └── illustration.png          # optional
 ```
 
 ## 3. manifest.json
@@ -108,6 +110,7 @@ Each `files` entry has `path`, `role`, `size`, and `sha256`. The reader exposes 
 | `character` | `character/character.xml` |
 | `world_info` | `character/world_info.json` |
 | `avatar` | `character/avatar.png` |
+| `illustration` | `character/illustration.png` |
 
 ## 4. Security and limits
 
@@ -226,6 +229,15 @@ Match modes: `substring`, `word`, `regex`.
 - If the encoded PNG exceeds **2 MB**, it is downsampled to **768**, then **512**.
 - If it is still over 2 MB, the avatar is rejected.
 - A corrupt avatar is ignored; the character card remains importable with its fallback icon.
+
+### 5.7 character/illustration.png
+
+- PNG only; the signature is validated.
+- Optional full-body illustration for the character card preview.
+- The longest side is resized to at most **2048**.
+- If the encoded PNG exceeds **8 MB**, it is downsampled to **1024**, **768**, then **512**.
+- If it is still over 8 MB, the illustration is rejected.
+- A corrupt illustration is ignored; the card remains importable and shows the no-illustration placeholder.
 
 ## 6. World info activation
 

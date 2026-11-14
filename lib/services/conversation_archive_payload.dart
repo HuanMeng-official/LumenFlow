@@ -9,12 +9,14 @@ class CharacterArchiveFiles {
     required this.xml,
     this.worldInfo,
     this.avatar,
+    this.illustration,
   });
 
   final List<int>? meta;
   final List<int> xml;
   final List<int>? worldInfo;
   final List<int>? avatar;
+  final List<int>? illustration;
 }
 
 /// 对话 `.lumenflow` 归档的纯构建/解析层。
@@ -34,12 +36,9 @@ class ConversationArchivePayload {
       throw const FormatException('Not a conversation archive');
     }
 
-    final conversationBytes =
-        archive.files['conversation/conversation.json'];
+    final conversationBytes = archive.files['conversation/conversation.json'];
     if (conversationBytes == null) {
-      throw const FormatException(
-        'Missing conversation/conversation.json',
-      );
+      throw const FormatException('Missing conversation/conversation.json');
     }
 
     final decoded = jsonDecode(utf8.decode(conversationBytes));
@@ -62,6 +61,7 @@ class ConversationArchivePayload {
         xml: xml,
         worldInfo: archive.files['character/world_info.json'],
         avatar: archive.files['character/avatar.png'],
+        illustration: archive.files['character/illustration.png'],
       );
     } else if (archive.manifest.includesCharacter) {
       throw const FormatException('Missing character/character.xml');
@@ -117,6 +117,12 @@ class ConversationArchivePayload {
             path: 'character/avatar.png',
             role: 'avatar',
             bytes: character.avatar!,
+          ),
+        if (character.illustration != null)
+          LumenflowArchiveFile(
+            path: 'character/illustration.png',
+            role: 'illustration',
+            bytes: character.illustration!,
           ),
       ],
     ];

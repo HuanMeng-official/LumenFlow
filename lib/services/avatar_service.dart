@@ -5,6 +5,9 @@ import 'dart:ui' as ui;
 class AvatarService {
   const AvatarService._();
 
+  static const int illustrationMaxDimension = 2048;
+  static const int illustrationMaxBytes = 8 * 1024 * 1024;
+
   static const List<int> _pngSignature = [
     0x89,
     0x50,
@@ -56,6 +59,17 @@ class AvatarService {
     }
 
     throw const FormatException('PNG avatar exceeds the size limit');
+  }
+
+  /// 校验并归一化 PNG 立绘。
+  ///
+  /// 最长边不超过 2048，编码结果不超过 8 MB；超限时继续降采样。
+  static Future<Uint8List> normalizeIllustration(Uint8List bytes) {
+    return normalizePng(
+      bytes,
+      maxDimension: illustrationMaxDimension,
+      maxBytes: illustrationMaxBytes,
+    );
   }
 
   static void _validatePngSignature(Uint8List bytes) {

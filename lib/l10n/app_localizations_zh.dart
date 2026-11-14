@@ -1731,6 +1731,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get lumenflowAvatarInvalid => '头像文件无效或损坏';
 
   @override
+  String get lumenflowIllustrationInvalid => '立绘文件无效或损坏';
+
+  @override
   String get lumenflowLegacyUnsupported => '旧版 LumenFlow 格式不受支持';
 
   @override

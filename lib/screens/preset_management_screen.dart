@@ -480,6 +480,16 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
                           ),
                         ),
                       ],
+                      if (archivePreview?.illustrationInvalid == true) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          l10n.lumenflowIllustrationInvalid,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: CupertinoColors.systemOrange,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

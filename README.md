@@ -69,8 +69,8 @@ LumenFlow (Chinese: 流光) is a Flutter-based AI chat application for Android, 
 
 - **Cupertino-style UI** with light/dark/system themes.
 - **User profiles** with avatar, name, gender, and birthday.
-- **Prompt presets and role-play**: localized built-in cards plus user-imported XML, TXT, and `.lumenflow` cards; editable metadata, world info with an activation preview, avatars, language/tag filters, token estimates, duplicate detection, and conversation snapshots.
-- **Character card generator**: a local web page with character fields, a world info editor, metadata/avatar handling, and `.lumenflow` export.
+- **Prompt presets and role-play**: localized built-in cards plus user-imported XML, TXT, and `.lumenflow` cards; editable metadata, world info with an activation preview, avatars and full-body illustrations, language/tag filters, token estimates, duplicate detection, and conversation snapshots.
+- **Character card generator**: a local web page with character fields, a world info editor, metadata/avatar/illustration handling, and `.lumenflow` export.
 - **Markdown extras**: fenced code with Night Owl syntax highlighting, copy/download actions, inline-code styling, and inline/block math rendering.
 - **Adaptive layout**: two-column desktop workspace that falls back to a single column when the window is narrow.
 - **Local notifications**; Android live-update support.
@@ -255,17 +255,17 @@ Role-play presets pair a small metadata record with an optional character-card b
 
 - `assets/prompt/presets-<locale>.json` contains metadata; `prompt_file` points to XML cards under `assets/prompt/characters/<locale>/`, and `world_info_file` points to the matching `*.world_info.json`.
 - Locale fallback is `lzh → zh → en`; other locales fall back to `en → zh`. Missing cards are shown as unavailable instead of disappearing silently.
-- Built-in metadata is available in Chinese, English, Japanese, Korean, and Spanish. LuYao and NingXi include bundled PNG avatars.
+- Built-in metadata is available in Chinese, English, Japanese, Korean, and Spanish. LuYao and NingXi include bundled PNG avatars and full-body illustrations.
 
 ### User presets
 
 - Import XML, TXT, or `.lumenflow` character cards from **Settings → Preset Management**. XML/TXT files are limited to 200 KB and validated for UTF-8, XML structure/root, and an optional `<role_name>`.
 - Editable metadata covers name, description, author, version, icon, language, and tags. The import dialog shows a token estimate and warns above 4,000/8,000 tokens.
 - World info supports a background plus keyword-activated entries. The app shows an activation preview; editing happens in the bundled generator.
-- PNG avatars are normalized to at most 1024 px and 2 MB. A missing or invalid avatar falls back to the selected preset icon.
+- PNG avatars are normalized to at most 1024 px and 2 MB. PNG illustrations are normalized to at most 2048 px and 8 MB. A missing or invalid avatar falls back to the selected preset icon; a missing or invalid illustration shows the no-illustration placeholder.
 - Duplicate detection uses a SHA-256 hash of normalized card content, combined with world info when present; importing a duplicate requires confirmation.
 - Presets can be duplicated, exported, deleted, and filtered by language or tag.
-- User data lives in `user_prompts/`: `user_presets.json` plus card files. Imported `.lumenflow` cards use a `<preset-id>/` directory with `character.xml`, optional `world_info.json`, and optional `avatar.png`; direct XML/TXT imports use flat files.
+- User data lives in `user_prompts/`: `user_presets.json` plus card files. Imported `.lumenflow` cards use a `<preset-id>/` directory with `character.xml`, optional `world_info.json`, optional `avatar.png`, and optional `illustration.png`; direct XML/TXT imports use flat files.
 
 ### Prompt assembly
 
@@ -273,7 +273,7 @@ Role-play presets pair a small metadata record with an optional character-card b
 - The AI reply language can follow the UI, follow the user, or be pinned. A selected card's own language and tone remain part of its prompt.
 - Prompts are not interpolated with `${userProfile.*}` values. When a card needs the user's name, gender, or birthday, it should call `builtin__get_user_profile`.
 
-The character-card generator opens a local web page served by the app (`HttpServerService`, loopback ports 5050–5059). It edits character fields, world info, metadata, and an avatar, then exports a `.lumenflow` archive.
+The character-card generator opens a local web page served by the app (`HttpServerService`, loopback ports 5050–5059). It edits character fields, world info, metadata, an avatar, and a full-body illustration, then exports a `.lumenflow` archive.
 
 ## Data Storage
 
@@ -290,8 +290,8 @@ User presets live next to the database in `user_prompts/`:
 
 - `user_presets.json` — preset metadata.
 - `<preset-id>.xml` / `.txt` — flat card bodies from direct XML/TXT import.
-- `<preset-id>.world_info.json` / `<preset-id>.avatar.png` — optional flat sidecars.
-- `<preset-id>/character.xml`, `<preset-id>/world_info.json`, `<preset-id>/avatar.png` — card directory used by `.lumenflow` import.
+- `<preset-id>.world_info.json` / `<preset-id>.avatar.png` / `<preset-id>.illustration.png` — optional flat sidecars.
+- `<preset-id>/character.xml`, `<preset-id>/world_info.json`, `<preset-id>/avatar.png`, `<preset-id>/illustration.png` — card directory used by `.lumenflow` import.
 
 All conversation data, API keys, and profiles stay on the device. Use the settings export feature if you want a backup.
 
@@ -363,7 +363,7 @@ This repository does not include any distribution certificates. macOS and iOS ar
 - Tool-call failures are returned to the model as tool results instead of aborting the whole turn when possible.
 - Provider errors are mapped to localized messages for supported locales.
 - Preset load problems (corrupt JSON, invalid entries, missing or unreadable cards) are collected and shown in the preset manager instead of aborting startup.
-- `.lumenflow` imports reject unsafe paths, wrong formats, size mismatches, and SHA-256 mismatches. A bad world info file or avatar is skipped with a localized warning instead of failing the whole character card.
+- `.lumenflow` imports reject unsafe paths, wrong formats, size mismatches, and SHA-256 mismatches. A bad world info file, avatar, or illustration is skipped with a localized warning instead of failing the whole character card.
 - Cancellation is propagated to streaming reads and tool execution.
 
 ## License

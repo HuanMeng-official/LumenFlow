@@ -1,11 +1,11 @@
 import 'dart:math' as math;
 
 import 'package:cupertino_ui/cupertino_ui.dart';
-import 'package:path/path.dart' as path;
 
 import '../l10n/app_localizations.dart';
 import '../models/prompt_preset.dart';
 import '../utils/app_theme.dart';
+import '../utils/preset_illustration.dart';
 import '../utils/preset_sections.dart';
 import '../utils/token_estimator.dart';
 import 'preset_sections_view.dart';
@@ -209,7 +209,7 @@ class _PresetPreviewDialogState extends State<PresetPreviewDialog> {
   }
 
   Widget _illustrationPanel(BuildContext context, {required bool wide}) {
-    final asset = _illustrationAsset();
+    final provider = presetIllustrationProvider(_preset);
     final panel = Padding(
       padding: EdgeInsets.fromLTRB(
         wide ? 20 : 0,
@@ -224,9 +224,9 @@ class _PresetPreviewDialogState extends State<PresetPreviewDialog> {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              if (asset != null)
-                Image.asset(
-                  asset,
+              if (provider != null)
+                Image(
+                  image: provider,
                   fit: wide ? BoxFit.contain : BoxFit.cover,
                   alignment: wide ? Alignment.center : Alignment.topCenter,
                   errorBuilder: (context, error, stackTrace) =>
@@ -234,14 +234,14 @@ class _PresetPreviewDialogState extends State<PresetPreviewDialog> {
                 )
               else
                 _illustrationPlaceholder(context),
-              if (asset != null)
+              if (provider != null)
                 Positioned(
                   right: 12,
                   bottom: 12,
                   child: _illustrationButton(
                     context,
                     icon: CupertinoIcons.fullscreen,
-                    onTap: () => _showIllustration(context, asset),
+                    onTap: () => _showIllustration(context, provider),
                   ),
                 ),
             ],
@@ -304,7 +304,7 @@ class _PresetPreviewDialogState extends State<PresetPreviewDialog> {
     );
   }
 
-  Future<void> _showIllustration(BuildContext context, String asset) {
+  Future<void> _showIllustration(BuildContext context, ImageProvider provider) {
     return showGeneralDialog<void>(
       context: context,
       barrierDismissible: true,
@@ -320,8 +320,8 @@ class _PresetPreviewDialogState extends State<PresetPreviewDialog> {
                   child: InteractiveViewer(
                     minScale: 0.8,
                     maxScale: 4,
-                    child: Image.asset(
-                      asset,
+                    child: Image(
+                      image: provider,
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) =>
                           const Center(
@@ -740,13 +740,5 @@ class _PresetPreviewDialogState extends State<PresetPreviewDialog> {
   void _closeThen(VoidCallback action) {
     Navigator.of(context).pop();
     action();
-  }
-
-  String? _illustrationAsset() {
-    if (_preset.isUserPreset) return null;
-    final promptFile = _preset.promptFile;
-    if (promptFile == null || promptFile.isEmpty) return null;
-    final base = path.basenameWithoutExtension(promptFile).toLowerCase();
-    return 'assets/prompt/characters/img/illustration/$base.png';
   }
 }

@@ -22,11 +22,17 @@ class PromptPreset {
   /// 角色卡头像文件的相对路径（相对 user_prompts/ 或 assets/prompt/）。
   final String? avatarFile;
 
+  /// 角色立绘文件的相对路径（相对 user_prompts/ 或 assets/prompt/）。
+  final String? illustrationFile;
+
   /// 运行期状态：已解析的世界书，不写入 JSON。
   final WorldInfo? worldInfo;
 
   /// 运行期状态：头像缓存的绝对路径，不写入 JSON。
   final String? avatarPath;
+
+  /// 运行期状态：立绘缓存的绝对路径，不写入 JSON。
+  final String? illustrationPath;
 
   /// 运行期状态：是否来自 user_prompts/，不写入 JSON。
   final bool isUserPreset;
@@ -60,8 +66,10 @@ class PromptPreset {
     this.icon = 'person.fill',
     this.worldInfoFile,
     this.avatarFile,
+    this.illustrationFile,
     this.worldInfo,
     this.avatarPath,
+    this.illustrationPath,
     this.isUserPreset = false,
     this.contentHash,
     this.language,
@@ -79,6 +87,9 @@ class PromptPreset {
 
   bool get hasAvatarFile => avatarFile != null && avatarFile!.isNotEmpty;
 
+  bool get hasIllustrationFile =>
+      illustrationFile != null && illustrationFile!.isNotEmpty;
+
   PromptPreset copyWith({
     String? id,
     String? name,
@@ -93,8 +104,12 @@ class PromptPreset {
     bool clearWorldInfoFile = false,
     String? avatarFile,
     bool clearAvatarFile = false,
+    String? illustrationFile,
+    bool clearIllustrationFile = false,
     WorldInfo? worldInfo,
     String? avatarPath,
+    String? illustrationPath,
+    bool clearIllustrationPath = false,
     bool? isUserPreset,
     String? contentHash,
     String? language,
@@ -118,8 +133,14 @@ class PromptPreset {
           ? null
           : (worldInfoFile ?? this.worldInfoFile),
       avatarFile: clearAvatarFile ? null : (avatarFile ?? this.avatarFile),
+      illustrationFile: clearIllustrationFile
+          ? null
+          : (illustrationFile ?? this.illustrationFile),
       worldInfo: worldInfo ?? this.worldInfo,
       avatarPath: avatarPath ?? this.avatarPath,
+      illustrationPath: clearIllustrationPath
+          ? null
+          : (illustrationPath ?? this.illustrationPath),
       isUserPreset: isUserPreset ?? this.isUserPreset,
       contentHash: contentHash ?? this.contentHash,
       language: clearLanguage ? null : (language ?? this.language),
@@ -172,6 +193,7 @@ class PromptPreset {
       icon: json['icon'] as String? ?? 'person.fill',
       worldInfoFile: json['world_info_file'] as String?,
       avatarFile: json['avatar_file'] as String?,
+      illustrationFile: json['illustration_file'] as String?,
       contentHash: json['content_hash'] as String?,
       language: json['language'] as String?,
       tags:
@@ -197,6 +219,7 @@ class PromptPreset {
       'icon': icon,
       if (worldInfoFile != null) 'world_info_file': worldInfoFile,
       if (avatarFile != null) 'avatar_file': avatarFile,
+      if (illustrationFile != null) 'illustration_file': illustrationFile,
       if (contentHash != null) 'content_hash': contentHash,
       if (language != null) 'language': language,
       if (tags.isNotEmpty) 'tags': tags,

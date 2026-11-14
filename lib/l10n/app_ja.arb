@@ -1023,6 +1023,7 @@
   "lumenflowMissingCharacter": "LumenFlow アーカイブにキャラクターカードがありません",
   "lumenflowWorldInfoInvalid": "ワールド情報ファイルが無効または破損しています",
   "lumenflowAvatarInvalid": "アバター画像が無効または破損しています",
+  "lumenflowIllustrationInvalid": "立ち絵画像が無効または破損しています",
   "lumenflowLegacyUnsupported": "旧形式の LumenFlow はサポートされていません"
 ,
   "presetSectionWorldviewBackground": "世界観と背景ストーリー",

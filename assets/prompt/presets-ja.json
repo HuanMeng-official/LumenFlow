@@ -8,7 +8,8 @@
     "prompt_file": "characters/ja/NingXi.xml",
     "icon": "person.fill",
     "world_info_file": "characters/ja/NingXi.world_info.json",
-    "avatar_file": "characters/img/avatar/ningxi.png"
+    "avatar_file": "characters/img/avatar/ningxi.png",
+    "illustration_file": "characters/img/illustration/ningxi.png"
   },
   {
     "id": "luyao",
@@ -19,6 +20,7 @@
     "prompt_file": "characters/ja/LuYao.xml",
     "icon": "person.fill",
     "world_info_file": "characters/ja/LuYao.world_info.json",
-    "avatar_file": "characters/img/avatar/luyao.png"
+    "avatar_file": "characters/img/avatar/luyao.png",
+    "illustration_file": "characters/img/illustration/luyao.png"
   }
 ]

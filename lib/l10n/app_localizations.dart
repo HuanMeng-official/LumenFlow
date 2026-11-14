@@ -3283,6 +3283,12 @@ abstract class AppLocalizations {
   /// **'Avatar image is invalid or corrupt'**
   String get lumenflowAvatarInvalid;
 
+  /// No description provided for @lumenflowIllustrationInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Illustration image is invalid or corrupt'**
+  String get lumenflowIllustrationInvalid;
+
   /// No description provided for @lumenflowLegacyUnsupported.
   ///
   /// In en, this message translates to:

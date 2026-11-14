@@ -18,6 +18,7 @@ import 'settings_service.dart';
 import 'version_service.dart';
 import 'world_info_service.dart';
 import '../utils/path_utils.dart';
+import '../utils/preset_illustration.dart';
 
 /// 角色卡 `.lumenflow` 导入前的只读预览信息。
 class CharacterCardArchivePreview {
@@ -32,8 +33,10 @@ class CharacterCardArchivePreview {
     required this.tags,
     required this.hasWorldInfo,
     required this.hasAvatar,
+    this.hasIllustration = false,
     this.worldInfoInvalid = false,
     this.avatarInvalid = false,
+    this.illustrationInvalid = false,
   });
 
   final PresetValidationResult validation;
@@ -46,12 +49,16 @@ class CharacterCardArchivePreview {
   final List<String> tags;
   final bool hasWorldInfo;
   final bool hasAvatar;
+  final bool hasIllustration;
 
   /// 归档里有世界书，但无法解析；导入时会被跳过。
   final bool worldInfoInvalid;
 
   /// 归档里有头像，但无法解码或归一化；导入时会被跳过。
   final bool avatarInvalid;
+
+  /// 归档里有立绘，但无法解码或归一化；导入时会被跳过。
+  final bool illustrationInvalid;
 }
 
 /// 预设提示词服务，负责加载和管理预设提示词
@@ -208,32 +215,73 @@ class PromptService {
     }
   }
 
+  Future<String?> _storePresetImage({
+    required String id,
+    required Uint8List bytes,
+    required Directory userPresetsDir,
+    required String kind,
+    required int maxDimension,
+    required int maxBytes,
+    bool useCharacterDirectory = false,
+  }) async {
+    try {
+      final normalized = await AvatarService.normalizePng(
+        bytes,
+        maxDimension: maxDimension,
+        maxBytes: maxBytes,
+      );
+      if (useCharacterDirectory) {
+        final presetDir = Directory(path.join(userPresetsDir.path, id));
+        await presetDir.create(recursive: true);
+        final file = File(path.join(presetDir.path, '$kind.png'));
+        await file.writeAsBytes(normalized, flush: true);
+        return '$id/$kind.png';
+      }
+      final fileName = '$id.$kind.png';
+      final file = File(path.join(userPresetsDir.path, fileName));
+      await file.writeAsBytes(normalized, flush: true);
+      return fileName;
+    } catch (_) {
+      // 损坏的图片不应阻止角色卡导入。
+      return null;
+    }
+  }
+
   Future<String?> _storePresetAvatar({
     required String id,
     required Uint8List bytes,
     required Directory userPresetsDir,
     bool useCharacterDirectory = false,
-  }) async {
-    try {
-      final normalized = await AvatarService.normalizePng(bytes);
-      if (useCharacterDirectory) {
-        final presetDir = Directory(path.join(userPresetsDir.path, id));
-        await presetDir.create(recursive: true);
-        final file = File(path.join(presetDir.path, 'avatar.png'));
-        await file.writeAsBytes(normalized, flush: true);
-        return '$id/avatar.png';
-      }
-      final fileName = '$id.avatar.png';
-      final file = File(path.join(userPresetsDir.path, fileName));
-      await file.writeAsBytes(normalized, flush: true);
-      return fileName;
-    } catch (_) {
-      // 损坏的头像不应阻止角色卡导入；保留预设图标。
-      return null;
-    }
+  }) {
+    return _storePresetImage(
+      id: id,
+      bytes: bytes,
+      userPresetsDir: userPresetsDir,
+      kind: 'avatar',
+      maxDimension: 1024,
+      maxBytes: 2 * 1024 * 1024,
+      useCharacterDirectory: useCharacterDirectory,
+    );
   }
 
-  Future<String?> _resolveUserAvatarPath(String? rawPath) async {
+  Future<String?> _storePresetIllustration({
+    required String id,
+    required Uint8List bytes,
+    required Directory userPresetsDir,
+    bool useCharacterDirectory = false,
+  }) {
+    return _storePresetImage(
+      id: id,
+      bytes: bytes,
+      userPresetsDir: userPresetsDir,
+      kind: 'illustration',
+      maxDimension: AvatarService.illustrationMaxDimension,
+      maxBytes: AvatarService.illustrationMaxBytes,
+      useCharacterDirectory: useCharacterDirectory,
+    );
+  }
+
+  Future<String?> _resolveUserImagePath(String? rawPath) async {
     if (rawPath == null || rawPath.trim().isEmpty) return null;
     final safePath = _sanitizePromptFile(rawPath);
     if (safePath == null) return null;
@@ -342,16 +390,30 @@ class PromptService {
       }
     }
 
+    Uint8List? illustrationBytes;
+    var illustrationInvalid = false;
+    final illustration = archive.files['character/illustration.png'];
+    if (illustration != null) {
+      try {
+        illustrationBytes = await AvatarService.normalizeIllustration(
+          Uint8List.fromList(illustration),
+        );
+      } catch (error) {
+        debugPrint('Ignoring invalid character illustration: $error');
+        illustrationInvalid = true;
+      }
+    }
+
     return _ParsedCharacterArchive(
       validation: validation,
       meta: meta,
       worldInfo: worldInfo,
-      worldInfoJson: worldInfo == null
-          ? null
-          : jsonEncode(worldInfo.toJson()),
+      worldInfoJson: worldInfo == null ? null : jsonEncode(worldInfo.toJson()),
       avatarBytes: avatarBytes,
+      illustrationBytes: illustrationBytes,
       worldInfoInvalid: worldInfoInvalid,
       avatarInvalid: avatarInvalid,
+      illustrationInvalid: illustrationInvalid,
     );
   }
 
@@ -530,7 +592,10 @@ class PromptService {
       final List<PromptPreset> processedPresets = [];
       for (final preset in presets) {
         final worldInfoResult = await _loadWorldInfo(preset);
-        final avatarPath = await _resolveUserAvatarPath(preset.avatarFile);
+        final avatarPath = await _resolveUserImagePath(preset.avatarFile);
+        final illustrationPath = await _resolveUserImagePath(
+          preset.illustrationFile,
+        );
         if (preset.hasWorldInfoFile && worldInfoResult.info == null) {
           issues.add(
             PresetLoadIssue(
@@ -547,6 +612,7 @@ class PromptService {
             preset.copyWith(
               worldInfo: worldInfoResult.info,
               avatarPath: avatarPath,
+              illustrationPath: illustrationPath,
             ),
           );
           continue;
@@ -580,6 +646,7 @@ class PromptService {
             brokenReason: loaded ? null : rawPromptFile,
             worldInfo: worldInfoResult.info,
             avatarPath: avatarPath,
+            illustrationPath: illustrationPath,
           ),
         );
       }
@@ -948,10 +1015,7 @@ class PromptService {
     return CharacterCardArchivePreview(
       validation: parsed.validation,
       name:
-          _firstNonEmpty([
-            meta.name,
-            parsed.validation.extractedName,
-          ]) ??
+          _firstNonEmpty([meta.name, parsed.validation.extractedName]) ??
           'Character',
       description: meta.description ?? '',
       author: meta.author ?? '',
@@ -961,8 +1025,10 @@ class PromptService {
       tags: meta.tags,
       hasWorldInfo: parsed.worldInfo != null,
       hasAvatar: parsed.avatarBytes != null,
+      hasIllustration: parsed.illustrationBytes != null,
       worldInfoInvalid: parsed.worldInfoInvalid,
       avatarInvalid: parsed.avatarInvalid,
+      illustrationInvalid: parsed.illustrationInvalid,
     );
   }
 
@@ -978,10 +1044,7 @@ class PromptService {
     List<String>? tags,
     bool allowDuplicate = false,
   }) async {
-    final parsed = await _parseCharacterCardArchive(
-      bytes,
-      fallbackName: name,
-    );
+    final parsed = await _parseCharacterCardArchive(bytes, fallbackName: name);
     final meta = parsed.meta;
     final resolvedLanguage = language != null
         ? (language.trim().isEmpty ? null : language.trim())
@@ -992,11 +1055,7 @@ class PromptService {
       validation: parsed.validation,
       extension: 'xml',
       name:
-          _firstNonEmpty([
-            name,
-            meta.name,
-            parsed.validation.extractedName,
-          ]) ??
+          _firstNonEmpty([name, meta.name, parsed.validation.extractedName]) ??
           'Character',
       description: description ?? meta.description ?? '用户导入的预设',
       author: author ?? meta.author ?? '用户',
@@ -1006,6 +1065,7 @@ class PromptService {
       tags: tags ?? meta.tags,
       allowDuplicate: allowDuplicate,
       avatarBytes: parsed.avatarBytes,
+      illustrationBytes: parsed.illustrationBytes,
       useCharacterDirectory: true,
       worldInfo: parsed.worldInfo,
       worldInfoJson: parsed.worldInfoJson,
@@ -1047,7 +1107,7 @@ class PromptService {
     }
     if (avatarBytes == null && preset.hasAvatarFile) {
       if (preset.isUserPreset) {
-        final resolved = await _resolveUserAvatarPath(preset.avatarFile);
+        final resolved = await _resolveUserImagePath(preset.avatarFile);
         if (resolved != null) {
           avatarBytes = await File(resolved).readAsBytes();
         }
@@ -1062,6 +1122,36 @@ class PromptService {
           );
         } catch (_) {
           // Built-in cards currently have no avatar; export without one.
+        }
+      }
+    }
+
+    Uint8List? illustrationBytes;
+    final illustrationPath = preset.illustrationPath;
+    if (illustrationPath != null && illustrationPath.isNotEmpty) {
+      final file = File(illustrationPath);
+      if (await file.exists()) {
+        illustrationBytes = await file.readAsBytes();
+      }
+    }
+    if (illustrationBytes == null && preset.hasIllustrationFile) {
+      if (preset.isUserPreset) {
+        final resolved = await _resolveUserImagePath(preset.illustrationFile);
+        if (resolved != null) {
+          illustrationBytes = await File(resolved).readAsBytes();
+        }
+      } else {
+        final assetPath = builtInIllustrationAssetPath(preset);
+        if (assetPath != null) {
+          try {
+            final data = await _assetBundle.load('assets/prompt/$assetPath');
+            illustrationBytes = data.buffer.asUint8List(
+              data.offsetInBytes,
+              data.lengthInBytes,
+            );
+          } catch (_) {
+            // Built-in cards without an illustration export without one.
+          }
         }
       }
     }
@@ -1112,6 +1202,12 @@ class PromptService {
           role: 'avatar',
           bytes: avatarBytes,
         ),
+      if (illustrationBytes != null)
+        LumenflowArchiveFile(
+          path: 'character/illustration.png',
+          role: 'illustration',
+          bytes: illustrationBytes,
+        ),
     ]);
   }
 
@@ -1157,6 +1253,7 @@ class PromptService {
     List<String>? tags,
     bool allowDuplicate = false,
     Uint8List? avatarBytes,
+    Uint8List? illustrationBytes,
     bool useCharacterDirectory = false,
     WorldInfo? worldInfo,
     String? worldInfoJson,
@@ -1217,6 +1314,14 @@ class PromptService {
             userPresetsDir: userPresetsDir,
             useCharacterDirectory: useCharacterDirectory,
           );
+    final illustrationFileName = illustrationBytes == null
+        ? null
+        : await _storePresetIllustration(
+            id: id,
+            bytes: illustrationBytes,
+            userPresetsDir: userPresetsDir,
+            useCharacterDirectory: useCharacterDirectory,
+          );
 
     final now = DateTime.now();
     final preset = PromptPreset(
@@ -1233,6 +1338,10 @@ class PromptService {
       avatarPath: avatarFileName == null
           ? null
           : path.join(userPresetsDir.path, avatarFileName),
+      illustrationFile: illustrationFileName,
+      illustrationPath: illustrationFileName == null
+          ? null
+          : path.join(userPresetsDir.path, illustrationFileName),
       isUserPreset: true,
       contentHash: validation.contentHash,
       language: language,
@@ -1345,12 +1454,11 @@ class PromptService {
     await File(path.join(userPresetsDir.path, fileName)).writeAsString(content);
 
     String? avatarFileName;
-    final sourceAvatarPath = await _resolveUserAvatarPath(source.avatarFile);
+    final sourceAvatarPath = await _resolveUserImagePath(source.avatarFile);
     if (sourceAvatarPath != null) {
       avatarFileName = '$id.avatar.png';
-      await File(sourceAvatarPath).copy(
-        path.join(userPresetsDir.path, avatarFileName),
-      );
+      await File(sourceAvatarPath)
+          .copy(path.join(userPresetsDir.path, avatarFileName));
     } else if (source.hasAvatarFile && !source.isUserPreset) {
       try {
         final data = await _assetBundle.load(
@@ -1370,6 +1478,37 @@ class PromptService {
       }
     }
 
+    String? illustrationFileName;
+    final sourceIllustrationPath =
+        source.illustrationPath != null &&
+            source.illustrationPath!.isNotEmpty &&
+            await File(source.illustrationPath!).exists()
+        ? source.illustrationPath
+        : await _resolveUserImagePath(source.illustrationFile);
+    if (sourceIllustrationPath != null) {
+      illustrationFileName = '$id.illustration.png';
+      await File(sourceIllustrationPath)
+          .copy(path.join(userPresetsDir.path, illustrationFileName));
+    } else if (source.hasIllustrationFile && !source.isUserPreset) {
+      try {
+        final assetPath = builtInIllustrationAssetPath(source);
+        if (assetPath != null) {
+          final data = await _assetBundle.load('assets/prompt/$assetPath');
+          final bytes = data.buffer.asUint8List(
+            data.offsetInBytes,
+            data.lengthInBytes,
+          );
+          illustrationFileName = await _storePresetIllustration(
+            id: id,
+            bytes: bytes,
+            userPresetsDir: userPresetsDir,
+          );
+        }
+      } catch (_) {
+        // A missing built-in illustration should not block duplication.
+      }
+    }
+
     var worldInfo = source.worldInfo;
     if (worldInfo == null && source.hasWorldInfoFile) {
       worldInfo = await loadWorldInfoForPreset(source);
@@ -1377,9 +1516,8 @@ class PromptService {
     String? worldInfoFileName;
     if (worldInfo != null) {
       worldInfoFileName = '$id.world_info.json';
-      await File(
-        path.join(userPresetsDir.path, worldInfoFileName),
-      ).writeAsString(jsonEncode(worldInfo.toJson()));
+      await File(path.join(userPresetsDir.path, worldInfoFileName))
+          .writeAsString(jsonEncode(worldInfo.toJson()));
     }
 
     final now = DateTime.now();
@@ -1397,6 +1535,10 @@ class PromptService {
       avatarPath: avatarFileName == null
           ? null
           : path.join(userPresetsDir.path, avatarFileName),
+      illustrationFile: illustrationFileName,
+      illustrationPath: illustrationFileName == null
+          ? null
+          : path.join(userPresetsDir.path, illustrationFileName),
       isUserPreset: true,
       contentHash:
           source.contentHash ??
@@ -1459,6 +1601,22 @@ class PromptService {
         }
       }
 
+      // 删除关联的立绘文件
+      final illustrationFileName = presetToDelete.illustrationFile;
+      if (illustrationFileName != null && illustrationFileName.isNotEmpty) {
+        final safePath = _sanitizePromptFile(illustrationFileName);
+        if (safePath != null) {
+          final userPresetsDir = await _getUserPresetsDirectory();
+          final fullPath = path.join(userPresetsDir.path, safePath);
+          if (path.isWithin(userPresetsDir.path, fullPath)) {
+            final illustrationFile = File(fullPath);
+            if (await illustrationFile.exists()) {
+              await illustrationFile.delete();
+            }
+          }
+        }
+      }
+
       // 删除扁平布局的世界书文件。
       final worldInfoFileName = presetToDelete.worldInfoFile;
       if (worldInfoFileName != null && worldInfoFileName.isNotEmpty) {
@@ -1478,12 +1636,9 @@ class PromptService {
       // 删除角色卡归档使用的子目录（XML、世界书、头像等）。
       try {
         final safeId = path.basename(id);
-        if (safeId == id &&
-            RegExp(r'^[A-Za-z0-9_-]+$').hasMatch(safeId)) {
+        if (safeId == id && RegExp(r'^[A-Za-z0-9_-]+$').hasMatch(safeId)) {
           final userPresetsDir = await _getUserPresetsDirectory();
-          final presetDir = Directory(
-            path.join(userPresetsDir.path, safeId),
-          );
+          final presetDir = Directory(path.join(userPresetsDir.path, safeId));
           if (await presetDir.exists()) {
             await presetDir.delete(recursive: true);
           }
@@ -1669,8 +1824,10 @@ class _ParsedCharacterArchive {
     required this.worldInfo,
     required this.worldInfoJson,
     required this.avatarBytes,
+    required this.illustrationBytes,
     required this.worldInfoInvalid,
     required this.avatarInvalid,
+    required this.illustrationInvalid,
   });
 
   final PresetValidationResult validation;
@@ -1678,8 +1835,10 @@ class _ParsedCharacterArchive {
   final WorldInfo? worldInfo;
   final String? worldInfoJson;
   final Uint8List? avatarBytes;
+  final Uint8List? illustrationBytes;
   final bool worldInfoInvalid;
   final bool avatarInvalid;
+  final bool illustrationInvalid;
 }
 
 String? _optionalTrimmed(Object? value) {

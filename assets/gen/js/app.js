@@ -4,6 +4,7 @@
     const STORAGE_KEY = 'lumenflow_generator_v2';
     const LEGACY_STORAGE_KEY = 'lumenflow_autosave_data';
     const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
+    const MAX_ILLUSTRATION_BYTES = 8 * 1024 * 1024;
 
     let currentLang = 'zh';
     let saveTimeout = null;
@@ -12,6 +13,7 @@
     let clearConfirmPending = false;
     let clearConfirmTimeout = null;
     let avatarDataUrl = '';
+    let illustrationDataUrl = '';
     let activeTab = 'character';
 
     function dict() {
@@ -153,6 +155,10 @@
                 data.avatarDataUrl.startsWith('data:image/png')) {
                 avatarDataUrl = data.avatarDataUrl;
             }
+            if (typeof data.illustrationDataUrl === 'string' &&
+                data.illustrationDataUrl.startsWith('data:image/png')) {
+                illustrationDataUrl = data.illustrationDataUrl;
+            }
             if (['character', 'worldinfo', 'meta', 'export'].includes(data.tab)) {
                 activeTab = data.tab;
             }
@@ -162,6 +168,7 @@
             }
             syncMetaName();
             renderAvatar();
+            renderIllustration();
         } catch (error) {
             console.error('Failed to load local storage data:', error);
         }
@@ -175,6 +182,10 @@
         );
         if (avatarDataUrl && avatarDataUrl.length < 800000) {
             data.avatarDataUrl = avatarDataUrl;
+        }
+        // 立绘通常较大，超过 localStorage 安全阈值时不自动保存，避免写满配额。
+        if (illustrationDataUrl && illustrationDataUrl.length < 1500000) {
+            data.illustrationDataUrl = illustrationDataUrl;
         }
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         const indicator = document.getElementById('save-indicator');
@@ -223,6 +234,7 @@
         document.getElementById('AdvancedOptionsPanel').open = false;
         window.LFWorldInfo.reset();
         clearAvatar(false);
+        clearIllustration(false);
         syncMetaName();
         updateTokenCount();
         saveToLocalStorage();
@@ -525,9 +537,27 @@ ${example}
         if (remove) remove.disabled = !avatarDataUrl;
     }
 
+    function renderIllustration() {
+        const preview = document.getElementById('IllustrationPreview');
+        if (!preview) return;
+        if (illustrationDataUrl) {
+            preview.innerHTML = `<img src="${illustrationDataUrl}" alt="illustration">`;
+        } else {
+            preview.innerHTML = '<span class="illustration-placeholder">PNG</span>';
+        }
+        const remove = document.getElementById('btn-RemoveIllustration');
+        if (remove) remove.disabled = !illustrationDataUrl;
+    }
+
     function clearAvatar(save = true) {
         avatarDataUrl = '';
         renderAvatar();
+        if (save) triggerAutoSave();
+    }
+
+    function clearIllustration(save = true) {
+        illustrationDataUrl = '';
+        renderIllustration();
         if (save) triggerAutoSave();
     }
 
@@ -557,17 +587,17 @@ ${example}
         return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
     }
 
-    async function handleAvatarFile(file) {
-        const d = dict();
+    async function processPngFile(file, caps, maxBytes, invalidMessage, tooLargeMessage) {
         try {
             const bytes = new Uint8Array(await file.arrayBuffer());
             if (!isPng(bytes)) {
-                showToast(d.AvatarInvalid);
-                return;
+                showToast(invalidMessage);
+                return null;
             }
-            const bitmap = await createImageBitmap(new Blob([bytes], { type: 'image/png' }));
+            const bitmap = await createImageBitmap(
+                new Blob([bytes], { type: 'image/png' })
+            );
             const longest = Math.max(bitmap.width, bitmap.height);
-            const caps = [1024, 768, 512];
             let accepted = null;
             for (const cap of caps) {
                 const scale = longest > cap ? cap / longest : 1;
@@ -579,23 +609,52 @@ ${example}
                 const context = canvas.getContext('2d');
                 context.drawImage(bitmap, 0, 0, width, height);
                 const blob = await canvasToPngBlob(canvas);
-                if (blob && blob.size <= MAX_AVATAR_BYTES) {
+                if (blob && blob.size <= maxBytes) {
                     accepted = blob;
                     break;
                 }
             }
             if (!accepted) {
-                showToast(d.AvatarTooLarge);
-                return;
+                showToast(tooLargeMessage);
+                return null;
             }
             const acceptedBytes = new Uint8Array(await accepted.arrayBuffer());
-            avatarDataUrl = await bytesToDataUrl(acceptedBytes, 'image/png');
-            renderAvatar();
-            triggerAutoSave();
+            return await bytesToDataUrl(acceptedBytes, 'image/png');
         } catch (error) {
             console.error(error);
-            showToast(d.AvatarInvalid);
+            showToast(invalidMessage);
+            return null;
         }
+    }
+
+    async function handleAvatarFile(file) {
+        const d = dict();
+        const dataUrl = await processPngFile(
+            file,
+            [1024, 768, 512],
+            MAX_AVATAR_BYTES,
+            d.AvatarInvalid,
+            d.AvatarTooLarge
+        );
+        if (!dataUrl) return;
+        avatarDataUrl = dataUrl;
+        renderAvatar();
+        triggerAutoSave();
+    }
+
+    async function handleIllustrationFile(file) {
+        const d = dict();
+        const dataUrl = await processPngFile(
+            file,
+            [2048, 1024, 768, 512],
+            MAX_ILLUSTRATION_BYTES,
+            d.IllustrationInvalid,
+            d.IllustrationTooLarge
+        );
+        if (!dataUrl) return;
+        illustrationDataUrl = dataUrl;
+        renderIllustration();
+        triggerAutoSave();
     }
 
     async function sha256Hex(bytes) {
@@ -755,6 +814,18 @@ ${example}
                 });
             }
 
+            let illustrationBytes = null;
+            if (illustrationDataUrl) {
+                illustrationBytes = dataUrlToBytes(illustrationDataUrl);
+            }
+            if (illustrationBytes) {
+                files.push({
+                    path: 'character/illustration.png',
+                    role: 'illustration',
+                    bytes: illustrationBytes
+                });
+            }
+
             for (const file of files) {
                 file.size = file.bytes.length;
                 file.sha256 = await sha256Hex(file.bytes);
@@ -872,7 +943,17 @@ ${example}
             } else {
                 avatarDataUrl = '';
             }
+            const illustrationFile = zip.file('character/illustration.png');
+            if (illustrationFile) {
+                const bytes = await illustrationFile.async('uint8array');
+                illustrationDataUrl = isPng(bytes)
+                    ? await bytesToDataUrl(bytes, 'image/png')
+                    : '';
+            } else {
+                illustrationDataUrl = '';
+            }
             renderAvatar();
+            renderIllustration();
             document.getElementById('FileName').value = safeFileName(
                 (meta && meta.name) || document.getElementById('RoleName').value
             );
@@ -971,6 +1052,8 @@ ${example}
         setText('lbl-MetaIcon', d.MetaIcon);
         setText('lbl-Avatar', d.Avatar);
         setText('hint-Avatar', d.AvatarHint);
+        setText('lbl-Illustration', d.Illustration);
+        setText('hint-Illustration', d.IllustrationHint);
         setText('hint-Export', d.ExportHint);
         setText('hint-WorldInfoOptional', d.WorldInfoOptional);
         setText('tab-character', d.TabCharacter);
@@ -980,6 +1063,8 @@ ${example}
         setText('btn-AddEntry', d.AddEntry);
         setText('btn-ChooseAvatar', d.ChooseAvatar);
         setText('btn-RemoveAvatar', d.RemoveAvatar);
+        setText('btn-ChooseIllustration', d.ChooseIllustration);
+        setText('btn-RemoveIllustration', d.RemoveIllustration);
         setText('btn-DownloadLumenflow', d.ExportLumenflow);
         setText('btn-ImportLumenflow', d.ImportLumenflow);
         setText('btn-ExportXml', d.ExportXml);
@@ -988,6 +1073,8 @@ ${example}
         setText('btn-Copy', d.BtnCopy || '复制内容');
         document.getElementById('btn-Clear').title = d.BtnClear;
         document.getElementById('btn-RemoveAvatar').disabled = !avatarDataUrl;
+        document.getElementById('btn-RemoveIllustration').disabled =
+            !illustrationDataUrl;
         window.LFWorldInfo.refreshLanguage();
         updateTokenCount();
     }
@@ -1093,6 +1180,17 @@ ${example}
             event.target.value = '';
         });
         document.getElementById('btn-RemoveAvatar').addEventListener('click', () => clearAvatar());
+        document.getElementById('btn-ChooseIllustration').addEventListener('click', () => {
+            document.getElementById('IllustrationInput').click();
+        });
+        document.getElementById('IllustrationInput').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) handleIllustrationFile(file);
+            event.target.value = '';
+        });
+        document.getElementById('btn-RemoveIllustration').addEventListener('click', () =>
+            clearIllustration()
+        );
 
         // World info fields also autosave and live-preview.
         ['WorldInfoName', 'WorldInfoDescription', 'WorldInfoBackground',

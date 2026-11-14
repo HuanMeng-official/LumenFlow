@@ -1731,6 +1731,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get lumenflowAvatarInvalid => '아바타 이미지가 잘못되었거나 손상되었습니다';
 
   @override
+  String get lumenflowIllustrationInvalid => '일러스트 이미지가 잘못되었거나 손상되었습니다';
+
+  @override
   String get lumenflowLegacyUnsupported => '이전 LumenFlow 형식은 지원되지 않습니다';
 
   @override

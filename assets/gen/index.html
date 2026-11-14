@@ -34,7 +34,7 @@
         <div class="tab-bar">
             <button type="button" class="tab-button active" data-tab="character" id="tab-character">角色卡</button>
             <button type="button" class="tab-button" data-tab="worldinfo" id="tab-worldinfo">世界书</button>
-            <button type="button" class="tab-button" data-tab="meta" id="tab-meta">元数据与头像</button>
+            <button type="button" class="tab-button" data-tab="meta" id="tab-meta">元数据、头像与立绘</button>
             <button type="button" class="tab-button" data-tab="export" id="tab-export">导出</button>
         </div>
 
@@ -218,6 +218,20 @@
                     </div>
                 </div>
             </div>
+            <div class="form-group">
+                <label id="lbl-Illustration">角色立绘</label>
+                <span class="hint" id="hint-Illustration">PNG，推荐透明背景；最长边自动缩到 2048，超过 8 MB 继续压缩。</span>
+                <div class="illustration-row">
+                    <div id="IllustrationPreview" class="illustration-preview">
+                        <span class="illustration-placeholder">PNG</span>
+                    </div>
+                    <div class="button-row">
+                        <button type="button" class="secondary" id="btn-ChooseIllustration">选择 PNG</button>
+                        <button type="button" class="secondary" id="btn-RemoveIllustration">移除立绘</button>
+                        <input type="file" id="IllustrationInput" accept="image/png" hidden>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <section class="tab-panel" data-panel="export" id="panel-export">
@@ -225,7 +239,7 @@
                 <label id="lbl-OutputFile">输出文件名</label>
                 <input type="text" id="FileName" placeholder="character.lumenflow">
             </div>
-            <p class="hint" id="hint-Export">导出包含角色 XML、世界书、元数据与头像的 ZIP。</p>
+            <p class="hint" id="hint-Export">导出包含角色 XML、世界书、元数据、头像与立绘的 ZIP。</p>
             <p class="hint" id="hint-WorldInfoOptional">世界书没有背景和条目时不会写入归档。</p>
             <div class="actions">
                 <button type="button" class="primary" id="btn-DownloadLumenflow">导出 .lumenflow</button>

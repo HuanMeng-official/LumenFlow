@@ -1731,6 +1731,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get lumenflowAvatarInvalid => 'アバター画像が無効または破損しています';
 
   @override
+  String get lumenflowIllustrationInvalid => '立ち絵画像が無効または破損しています';
+
+  @override
   String get lumenflowLegacyUnsupported => '旧形式の LumenFlow はサポートされていません';
 
   @override

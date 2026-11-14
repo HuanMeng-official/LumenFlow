@@ -69,8 +69,8 @@ LumenFlow（中文名：流光）是一款使用 Flutter 构建的 AI 聊天应�
 
 - **Cupertino 风格界面**：支持亮色、暗色和跟随系统主题。
 - **用户资料**：头像、用户名、性别、生日。
-- **预设提示词与角色扮演**：内置多语言角色卡，支持导入 XML、TXT、`.lumenflow` 用户角色卡；可编辑元数据、查看世界书激活预览、使用头像、按语言/标签筛选、估算 token、检测重复和保存会话快照。
-- **角色卡生成器**：本地网页，提供角色字段、世界书编辑、元数据/头像处理和 `.lumenflow` 导出。
+- **预设提示词与角色扮演**：内置多语言角色卡，支持导入 XML、TXT、`.lumenflow` 用户角色卡；可编辑元数据、查看世界书激活预览、使用头像与全身立绘、按语言/标签筛选、估算 token、检测重复和保存会话快照。
+- **角色卡生成器**：本地网页，提供角色字段、世界书编辑、元数据/头像/立绘处理和 `.lumenflow` 导出。
 - **Markdown 增强**：代码块支持 Night Owl 语法高亮、复制/下载，行内代码独立配色，并支持行内与块级数学公式。
 - **自适应布局**：桌面端默认两栏；窗口变窄时自动退回单栏。
 - **本地通知**：重要事件通知；Android 支持 Live Update。
@@ -255,17 +255,17 @@ MCP 工具会带上服务器前缀，避免不同服务器的同名工具冲突�
 
 - `assets/prompt/presets-<locale>.json` 保存元数据；`prompt_file` 指向 `assets/prompt/characters/<locale>/` 下的 XML 角色卡，`world_info_file` 指向对应的 `*.world_info.json`。
 - 语言回退链为 `lzh → zh → en`，其他语言回退到 `en → zh`。角色卡缺失时会在管理页显示为“不可用”。
-- 内置元数据提供中文、英文、日文、韩文和西班牙文五个版本。陆瑶与宁汐包含内置 PNG 头像。
+- 内置元数据提供中文、英文、日文、韩文和西班牙文五个版本。陆瑶与宁汐包含内置 PNG 头像与全身立绘。
 
 ### 用户预设
 
 - 在 **设置 → 预设管理** 导入 XML、TXT 或 `.lumenflow` 角色卡。XML/TXT 文件上限 200 KB，会校验 UTF-8、XML 结构和根节点，并读取可选的 `<role_name>`。
 - 可编辑名称、描述、作者、版本、图标、语言和标签；导入弹窗会显示 token 估算，超过 4,000 / 8,000 tokens 时给出成本提示。
 - 世界书由常驻背景和按关键词激活的条目组成；应用提供激活预览，编辑在生成器网页中完成。
-- PNG 头像最长边限制为 1024、大小限制为 2 MB；头像缺失或损坏时回退到预设图标。
+- PNG 头像最长边限制为 1024、大小限制为 2 MB；PNG 立绘最长边限制为 2048、大小限制为 8 MB。头像缺失或损坏时回退到预设图标；立绘缺失或损坏时显示“无立绘”占位。
 - 使用规范化正文的 SHA-256 做重复检测，存在世界书时合并计算；重复导入需要二次确认。
 - 预设支持复制、导出、删除，以及按语言或标签筛选。
-- 用户数据保存在 `user_prompts/`：`user_presets.json` 和角色卡文件。`.lumenflow` 导入使用 `<preset-id>/` 目录，包含 `character.xml`、可选 `world_info.json` 和可选 `avatar.png`；直接导入 XML/TXT 时使用扁平文件。
+- 用户数据保存在 `user_prompts/`：`user_presets.json` 和角色卡文件。`.lumenflow` 导入使用 `<preset-id>/` 目录，包含 `character.xml`、可选 `world_info.json`、可选 `avatar.png` 和可选 `illustration.png`；直接导入 XML/TXT 时使用扁平文件。
 
 ### 提示词拼接
 
@@ -273,7 +273,7 @@ MCP 工具会带上服务器前缀，避免不同服务器的同名工具冲突�
 - AI 回复语言可跟随界面、跟随用户输入或指定语言。所选角色卡自身的语言和文风仍作为角色卡提示词的一部分。
 - 提示词不替换 `${userProfile.*}` 变量；角色卡需要称呼、性别或生日时，应调用 `builtin__get_user_profile`。
 
-角色卡生成器由应用内置的本地 HTTP 服务提供（`HttpServerService`，回环地址端口 5050–5059）。页面可编辑角色字段、世界书、元数据和头像，并导出 `.lumenflow` 归档。
+角色卡生成器由应用内置的本地 HTTP 服务提供（`HttpServerService`，回环地址端口 5050–5059）。页面可编辑角色字段、世界书、元数据、头像和全身立绘，并导出 `.lumenflow` 归档。
 
 ## 数据存储
 
@@ -290,8 +290,8 @@ SQLite 数据库位置：
 
 - `user_presets.json`：预设元数据。
 - `<preset-id>.xml` / `.txt`：直接导入 XML/TXT 时的角色卡正文。
-- `<preset-id>.world_info.json` / `<preset-id>.avatar.png`：可选的扁平附属文件。
-- `<preset-id>/character.xml`、`<preset-id>/world_info.json`、`<preset-id>/avatar.png`：`.lumenflow` 导入使用的角色卡目录。
+- `<preset-id>.world_info.json` / `<preset-id>.avatar.png` / `<preset-id>.illustration.png`：可选的扁平附属文件。
+- `<preset-id>/character.xml`、`<preset-id>/world_info.json`、`<preset-id>/avatar.png`、`<preset-id>/illustration.png`：`.lumenflow` 导入使用的角色卡目录。
 
 所有对话、API Key 和用户资料都保存在设备本地。需要备份时使用设置导出功能。
 
@@ -363,7 +363,7 @@ Android release 签名从 `android/key.properties` 读取。
 - 工具调用失败会尽量作为工具结果返回给模型，而不是直接中断整个回合。
 - 各平台错误会映射为对应语言的本地化消息。
 - 预设加载问题（JSON 损坏、单条数据无效、角色卡缺失或不可读）会集中收集并在预设管理页展示，不会阻断启动。
-- `.lumenflow` 导入会拒绝不安全路径、错误格式、大小不匹配和 SHA-256 不匹配；世界书或头像损坏时会跳过并给出本地化提示，不会让整张角色卡导入失败。
+- `.lumenflow` 导入会拒绝不安全路径、错误格式、大小不匹配和 SHA-256 不匹配；世界书、头像或立绘损坏时会跳过并给出本地化提示，不会让整张角色卡导入失败。
 - 取消操作会传递到流式读取和工具执行。
 
 ## 许可证
