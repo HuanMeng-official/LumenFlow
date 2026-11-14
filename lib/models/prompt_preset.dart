@@ -1,3 +1,5 @@
+import 'world_info.dart';
+
 class PromptPreset {
   final String id;
   final String name;
@@ -13,6 +15,21 @@ class PromptPreset {
   final String? promptFile;
 
   final String icon;
+
+  /// 世界书文件的相对路径（相对 user_prompts/ 或 assets/prompt/）。
+  final String? worldInfoFile;
+
+  /// 角色卡头像文件的相对路径（相对 user_prompts/ 或 assets/prompt/）。
+  final String? avatarFile;
+
+  /// 运行期状态：已解析的世界书，不写入 JSON。
+  final WorldInfo? worldInfo;
+
+  /// 运行期状态：头像缓存的绝对路径，不写入 JSON。
+  final String? avatarPath;
+
+  /// 运行期状态：是否来自 user_prompts/，不写入 JSON。
+  final bool isUserPreset;
 
   /// 规范化内容的 sha256，用于重复导入检测。
   final String? contentHash;
@@ -41,6 +58,11 @@ class PromptPreset {
     this.systemPrompt = '',
     this.promptFile,
     this.icon = 'person.fill',
+    this.worldInfoFile,
+    this.avatarFile,
+    this.worldInfo,
+    this.avatarPath,
+    this.isUserPreset = false,
     this.contentHash,
     this.language,
     this.tags = const [],
@@ -52,6 +74,11 @@ class PromptPreset {
 
   bool get hasPromptFile => promptFile != null && promptFile!.isNotEmpty;
 
+  bool get hasWorldInfoFile =>
+      worldInfoFile != null && worldInfoFile!.isNotEmpty;
+
+  bool get hasAvatarFile => avatarFile != null && avatarFile!.isNotEmpty;
+
   PromptPreset copyWith({
     String? id,
     String? name,
@@ -62,6 +89,13 @@ class PromptPreset {
     String? promptFile,
     bool clearPromptFile = false,
     String? icon,
+    String? worldInfoFile,
+    bool clearWorldInfoFile = false,
+    String? avatarFile,
+    bool clearAvatarFile = false,
+    WorldInfo? worldInfo,
+    String? avatarPath,
+    bool? isUserPreset,
     String? contentHash,
     String? language,
     bool clearLanguage = false,
@@ -80,6 +114,13 @@ class PromptPreset {
       systemPrompt: systemPrompt ?? this.systemPrompt,
       promptFile: clearPromptFile ? null : (promptFile ?? this.promptFile),
       icon: icon ?? this.icon,
+      worldInfoFile: clearWorldInfoFile
+          ? null
+          : (worldInfoFile ?? this.worldInfoFile),
+      avatarFile: clearAvatarFile ? null : (avatarFile ?? this.avatarFile),
+      worldInfo: worldInfo ?? this.worldInfo,
+      avatarPath: avatarPath ?? this.avatarPath,
+      isUserPreset: isUserPreset ?? this.isUserPreset,
       contentHash: contentHash ?? this.contentHash,
       language: clearLanguage ? null : (language ?? this.language),
       tags: tags ?? this.tags,
@@ -129,6 +170,8 @@ class PromptPreset {
       systemPrompt: systemPrompt,
       promptFile: promptFile,
       icon: json['icon'] as String? ?? 'person.fill',
+      worldInfoFile: json['world_info_file'] as String?,
+      avatarFile: json['avatar_file'] as String?,
       contentHash: json['content_hash'] as String?,
       language: json['language'] as String?,
       tags:
@@ -152,6 +195,8 @@ class PromptPreset {
       'system_prompt': systemPrompt,
       if (promptFile != null) 'prompt_file': promptFile,
       'icon': icon,
+      if (worldInfoFile != null) 'world_info_file': worldInfoFile,
+      if (avatarFile != null) 'avatar_file': avatarFile,
       if (contentHash != null) 'content_hash': contentHash,
       if (language != null) 'language': language,
       if (tags.isNotEmpty) 'tags': tags,

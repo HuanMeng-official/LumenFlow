@@ -1328,6 +1328,11 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String presetIssueWorldInfoInvalid(String name) {
+    return 'ワールド情報ファイルが見つからないか無効です: $name';
+  }
+
+  @override
   String presetIssueUserEntryInvalid(String detail) {
     return 'ユーザープリセットの 1 件を読み込めません: $detail';
   }
@@ -1674,4 +1679,48 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get builtinUnitConvertDesc => '長さ・重さ・温度などの単位を変換';
+
+  @override
+  String get worldInfo => 'ワールド情報';
+
+  @override
+  String get worldInfoPreview => '発動プレビュー';
+
+  @override
+  String get worldInfoBackground => '世界背景';
+
+  @override
+  String get worldInfoTestText => 'テストテキスト';
+
+  @override
+  String get worldInfoMatched => '一致した項目';
+
+  @override
+  String get worldInfoUnmatched => '未激活の項目';
+
+  @override
+  String worldInfoTokens(int background, int entry, int total) {
+    return '背景 $background · 項目 $entry · 合計 $total tokens';
+  }
+
+  @override
+  String get worldInfoNoMatches => '一致する項目はありません';
+
+  @override
+  String get worldInfoRun => 'プレビューを実行';
+
+  @override
+  String get lumenflowInvalidArchive => '無効な LumenFlow アーカイブです';
+
+  @override
+  String get lumenflowMissingCharacter => 'LumenFlow アーカイブにキャラクターカードがありません';
+
+  @override
+  String get lumenflowWorldInfoInvalid => 'ワールド情報ファイルが無効または破損しています';
+
+  @override
+  String get lumenflowAvatarInvalid => 'アバター画像が無効または破損しています';
+
+  @override
+  String get lumenflowLegacyUnsupported => '旧形式の LumenFlow はサポートされていません';
 }

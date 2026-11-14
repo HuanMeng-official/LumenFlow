@@ -779,6 +779,14 @@
       }
     }
   },
+  "presetIssueWorldInfoInvalid": "Falta el archivo de información del mundo o no es válido: {name}",
+  "@presetIssueWorldInfoInvalid": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "presetIssueUserEntryInvalid": "No se pudo leer una entrada de ajustes del usuario: {detail}",
   "@presetIssueUserEntryInvalid": {
     "placeholders": {
@@ -989,5 +997,27 @@
   "builtinUserProfile": "Perfil de usuario",
   "builtinUserProfileDesc": "Permite que el modelo lea tu nombre, género y cumpleaños cuando sea necesario",
   "builtinUnitConvert": "Conversor de unidades",
-  "builtinUnitConvertDesc": "Convierte longitud, masa, temperatura y más"
+  "builtinUnitConvertDesc": "Convierte longitud, masa, temperatura y más",
+  "worldInfo": "Información del mundo",
+  "worldInfoPreview": "Vista previa de activación",
+  "worldInfoBackground": "Trasfondo del mundo",
+  "worldInfoTestText": "Texto de prueba",
+  "worldInfoMatched": "Entradas coincidentes",
+  "worldInfoUnmatched": "Entradas inactivas",
+  "worldInfoTokens": "Trasfondo {background} · Entradas {entry} · Total {total} tokens",
+  "@worldInfoTokens": {
+    "placeholders": {
+      "background": {"type": "int"},
+      "entry": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "worldInfoNoMatches": "Ninguna entrada coincide",
+  "worldInfoRun": "Ejecutar vista previa"
+,
+  "lumenflowInvalidArchive": "Archivo LumenFlow no válido",
+  "lumenflowMissingCharacter": "Al archivo LumenFlow le falta la tarjeta de personaje",
+  "lumenflowWorldInfoInvalid": "El archivo de información del mundo no es válido o está dañado",
+  "lumenflowAvatarInvalid": "La imagen del avatar no es válida o está dañada",
+  "lumenflowLegacyUnsupported": "El formato LumenFlow anterior no es compatible"
 }

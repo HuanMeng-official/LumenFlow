@@ -799,6 +799,14 @@
       }
     }
   },
+  "presetIssueWorldInfoInvalid": "World info file missing or invalid: {name}",
+  "@presetIssueWorldInfoInvalid": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "presetIssueUserEntryInvalid": "One user preset entry could not be read: {detail}",
   "@presetIssueUserEntryInvalid": {
     "placeholders": {
@@ -1009,5 +1017,27 @@
   "builtinUserProfile": "User profile",
   "builtinUserProfileDesc": "Allow the model to read your name, gender, and birthday when needed",
   "builtinUnitConvert": "Unit converter",
-  "builtinUnitConvertDesc": "Convert length, mass, temperature, and more"
+  "builtinUnitConvertDesc": "Convert length, mass, temperature, and more",
+  "worldInfo": "World Info",
+  "worldInfoPreview": "Activation Preview",
+  "worldInfoBackground": "World Background",
+  "worldInfoTestText": "Test text",
+  "worldInfoMatched": "Matched entries",
+  "worldInfoUnmatched": "Inactive entries",
+  "worldInfoTokens": "Background {background} · Entries {entry} · Total {total} tokens",
+  "@worldInfoTokens": {
+    "placeholders": {
+      "background": {"type": "int"},
+      "entry": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "worldInfoNoMatches": "No entries matched",
+  "worldInfoRun": "Run preview"
+,
+  "lumenflowInvalidArchive": "Invalid LumenFlow archive",
+  "lumenflowMissingCharacter": "LumenFlow archive is missing the character card file",
+  "lumenflowWorldInfoInvalid": "World info file is invalid or corrupt",
+  "lumenflowAvatarInvalid": "Avatar image is invalid or corrupt",
+  "lumenflowLegacyUnsupported": "Legacy LumenFlow format is not supported"
 }

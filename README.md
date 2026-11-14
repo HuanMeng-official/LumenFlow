@@ -1,12 +1,12 @@
 ![LumenFlow](./README/img/cover.png)
 
-> A local-first, cross-platform AI chat client built with Flutter. 13 AI platforms, streaming chat, tool calling, MCP, long-conversation memory, role presets, syntax-highlighted Markdown with math, SQLite storage, and native CJK/PDF support.
+> A local-first, cross-platform AI chat client built with Flutter. It supports 13 platform types, streaming chat, a bounded tool-calling loop, MCP tools, long-conversation memory, role cards with world info and avatars, syntax-highlighted Markdown with math, SQLite storage, and PDF export with bundled CJK fonts.
 
 [English](./README.md) | [中文版本](./README/README.zh_CN.md)
 
 ## Overview
 
-LumenFlow (Chinese: 流光) is a Flutter-based AI chat application for Android, iOS, Windows, Linux, and macOS. It combines multi-platform model access, a tool-calling agent runtime, local SQLite storage, and a Cupertino-style interface.
+LumenFlow (Chinese: 流光) is a Flutter-based AI chat application for Android, iOS, Windows, Linux, and macOS. It combines multi-platform model access, a bounded tool-calling loop, local SQLite storage, role cards with world info, and a Cupertino-style interface.
 
 - **License**: MIT (bundled Noto Sans SC fonts are OFL-1.1)
 - **UI stack**: Flutter 3.47.8 / Dart 3.13.7, `material_ui`, `cupertino_ui`
@@ -21,7 +21,7 @@ LumenFlow (Chinese: 流光) is a Flutter-based AI chat application for Android, 
 - **Model refresh**: fetch available models from supported provider APIs and select a default.
 - **Streaming responses**: incremental answer and reasoning output.
 - **Thinking mode**: expose reasoning summaries where the provider supports them.
-- **Reply language**: follow the UI, follow the user, or pin a supported language. Character cards can override this setting.
+- **Reply language**: follow the UI, follow the user, or pin a supported language. A selected character card's own language and tone remain part of its prompt.
 - **Claude prompt caching**: stable system prompts are sent as content blocks with `cache_control: ephemeral`.
 - **Auto title generation**: title new conversations from recent messages.
 - **Retry and cancellation**: exponential backoff for transient HTTP failures and cancellation tokens for streaming/tool loops.
@@ -29,11 +29,11 @@ LumenFlow (Chinese: 流光) is a Flutter-based AI chat application for Android, 
 ### Tool Calling and MCP
 
 - **Built-in tools**: current time, date math, Chinese lunar calendar conversion, calculator, text comparison, text statistics, unit conversion, and user profile lookup.
-- **User profile tool**: when the model needs the user's name, gender, or birthday, it calls `builtin__get_user_profile` on demand. The built-in system prompt no longer embeds these personal details.
+- **User profile tool**: when the model needs the user's name, gender, or birthday, it calls `builtin__get_user_profile` on demand. The built-in system prompt does not embed these personal details.
 - **MCP tools**: connect Streamable HTTP MCP servers, discover their tools, and expose them to the model.
 - **Unified tool loop**: `AgentRunner` alternates model turns and tool executions with a bounded iteration budget.
-- **Attachment-aware tool mode**: text attachments are listed in a compact manifest with request-scoped ids, and `builtin__read_attachment` reads their content on demand with paging. Tool-enabled chats no longer fall back to a text-only provider request when text files are attached.
-- **Parallel tool calls**: multiple function calls in one model turn are executed and returned together.
+- **Attachment-aware tool mode**: text attachments are listed in a compact manifest with request-scoped ids, and `builtin__read_attachment` reads their content on demand with paging. Tool-enabled chats keep the tool request path when text files are attached.
+- **Sequential tool calls**: when one model turn contains multiple function calls, they are executed in order and the results are returned together.
 - **Visible tool activity**: each AI turn records its tool calls inside the expandable reasoning section, including arguments and results. The record is persisted with the message and stays available after switching conversations.
 - **Protocol-aware adapters**:
   - Chat Completions: DeepSeek, Kimi, MiniMax, Zhipu, SiliconFlow, Xiaomi MiMo, Other
@@ -52,28 +52,28 @@ LumenFlow (Chinese: 流光) is a Flutter-based AI chat application for Android, 
 - **Automatic invalidation**: editing, regenerating, or deleting covered messages invalidates the memory and triggers a rebuild.
 - **Read-only viewer**: chat ⋯ menu → **View Memory** shows the stored summary, emotional state, agreements, superseded entries, rejected proposals, and notes waiting to be merged. It does not modify anything.
 - **Roleplay memory page**: conversations using a role card get a dedicated view with the character profile, mood, relationship stage, scene, story time, intimacy change, newly learned memories, and unresolved threads, so the story state stays easy to check.
-- **Travels with the conversation**: JSON, LumenFlow archive, and ZIP exports include memory and pending active notes; import remaps message IDs and restores them.
+- **Travels with the conversation**: JSON and `.lumenflow` conversation exports include memory and pending active notes; import remaps message IDs and restores them.
 
 ### Data and Export
 
-- **SQLite storage** with foreign keys, indexes, transactions, and automatic migration from legacy SharedPreferences.
+- **SQLite storage** with foreign keys, indexes, and transactions.
 - **Conversation management**: history, message search, edit, regenerate, resubmit, delete, and per-conversation settings.
 - **Attachments**: images, video, audio, PDF, and text extraction.
-- **Export formats**: TXT, JSON, PDF, and LumenFlow archive. JSON, LumenFlow, and ZIP exports include rolling memory and pending active notes, and can optionally embed the active user role card.
-- **Conversation import**: LumenFlow archives (including ZIP) and raw conversation JSON; missing user presets can be recreated from the embedded snapshot after confirmation. Imported memory is restored with remapped message IDs.
+- **Export formats**: TXT, JSON, PDF, and `.lumenflow` archives. JSON and `.lumenflow` conversation exports include rolling memory and pending notes; `.lumenflow` can embed the active character card and its attachments.
+- **Conversation import**: `.lumenflow` v2 archives and raw conversation JSON. An embedded character card can recreate a missing local preset after confirmation. Imported memory is restored with remapped message IDs.
   - [LumenFlow format specification](./LumenFlowFormatSpecification.md)
 - **PDF export**: CJK-safe PDFs using embedded Noto Sans SC; fonts are subset per document.
-- **Settings backup**: export/import JSON settings and restore defaults.
+- **Settings backup**: export/import `.lumenflow` settings archives.
 
 ### Experience
 
 - **Cupertino-style UI** with light/dark/system themes.
 - **User profiles** with avatar, name, gender, and birthday.
-- **Prompt presets and role-play**: localized built-in cards plus user-imported XML/TXT presets, editable metadata, language/tag filters, token estimates, duplicate detection, and conversation snapshots.
-- **Character card generator**: bundled web generator served locally by the app.
+- **Prompt presets and role-play**: localized built-in cards plus user-imported XML, TXT, and `.lumenflow` cards; editable metadata, world info with an activation preview, avatars, language/tag filters, token estimates, duplicate detection, and conversation snapshots.
+- **Character card generator**: a local web page with character fields, a world info editor, metadata/avatar handling, and `.lumenflow` export.
 - **Markdown extras**: fenced code with Night Owl syntax highlighting, copy/download actions, inline-code styling, and inline/block math rendering.
 - **Adaptive layout**: two-column desktop workspace that falls back to a single column when the window is narrow.
-- **Local notifications** and live-update support.
+- **Local notifications**; Android live-update support.
 - **Local-first**: conversations and credentials are stored on the device.
 
 ## AI Platforms
@@ -127,14 +127,18 @@ lib/
 │   ├── chat_screen_controller.dart   # Interface between desktop shell and embedded chat
 │   └── chat_send_controller.dart     # One streaming send lifecycle
 ├── l10n/                             # ARB files and generated localizations
-├── models/                           # Conversation, message, attachment, memory, memory-note, platform, profile, preset models
+├── models/                           # Conversation, message, attachment, memory, platform, profile, preset, world-info models
 ├── providers/                        # Per-platform chat/streaming providers
-├── screens/                          # Chat, conversations, settings, tools, profiles, preset management, memory viewer
+├── screens/                          # Chat, conversations, settings, tools, profiles, preset management, world-info preview, memory viewer
 ├── services/
 │   ├── ai_service.dart               # Provider selection and standard chat path
 │   ├── tool_chat_service.dart        # Tool-capable provider turn
-│   ├── conversation_database.dart    # SQLite and migration
-│   ├── conversation_service.dart     # Conversation CRUD, export/import, snapshots
+│   ├── conversation_database.dart    # SQLite schema and persistence
+│   ├── conversation_service.dart     # Conversation CRUD and export/import
+│   ├── conversation_archive_payload.dart # Conversation `.lumenflow` payload builder/parser
+│   ├── lumenflow_archive.dart        # v2 ZIP manifest, hashes, limits, and path validation
+│   ├── world_info_service.dart       # World-info parsing, activation, budget, formatting
+│   ├── avatar_service.dart           # PNG validation, resizing, and encoding
 │   ├── memory_service.dart           # Rolling memory coverage, updates, and injection
 │   ├── memory_recall.dart            # Local search over old messages and memory ledger
 │   ├── memory_policy.dart            # Window/coverage/chunk policy
@@ -142,8 +146,8 @@ lib/
 │   ├── memory_update.dart            # Model output parsing and ledger merge
 │   ├── memory_transfer.dart          # Import-time message ID/fingerprint remap
 │   ├── conversation_memory_store.dart # SQLite-backed memory store
-│   ├── system_prompt_builder.dart    # Base/custom/preset/memory composition
-│   ├── prompt_service.dart           # Preset loading, schema migration, card validation
+│   ├── system_prompt_builder.dart    # Base/custom/preset/instruction/world-info/memory composition
+│   ├── prompt_service.dart           # Preset loading, validation, archive import/export
 │   ├── preset_repository.dart        # Shared preset state between chat and settings
 │   ├── settings_service.dart         # Settings and active platform snapshot
 │   └── ...                           # Files, notifications, live updates, HTTP server
@@ -153,6 +157,7 @@ lib/
 │   ├── markdown_math.dart            # Inline/block math preprocessing and builders
 │   ├── memory_fingerprint.dart       # Covered-message content fingerprint
 │   ├── preset_*.dart                 # Preset filtering, icons, tags, token estimation
+│   ├── lumenflow_error_messages.dart # Localized archive/world-info/avatar errors
 │   └── path_utils.dart               # Cross-platform data paths
 └── widgets/                          # Chat input, message bubble, preset editors, avatars, settings tiles
 ```
@@ -164,13 +169,14 @@ lib/
 | `material_ui` / `cupertino_ui` | Standalone Material and Cupertino design systems |
 | `http` | Provider API and MCP HTTP transport |
 | `sqlite3` | Conversation, message, attachment, memory, and settings storage |
-| `shared_preferences` | Lightweight settings and legacy migration |
+| `shared_preferences` | Lightweight settings storage |
 | `file_picker` / `image_picker` | File and image selection |
-| `pdf` / `archive` | PDF generation and LumenFlow archive export |
+| `pdf` / `archive` | PDF generation and `.lumenflow` ZIP containers |
 | `flutter_markdown_plus` | Markdown rendering |
 | `flutter_highlight` | Fenced-code syntax highlighting |
 | `flutter_math_fork` | Inline and block math typesetting |
-| `crypto` / `xml` | Preset content hashing, memory fingerprints, and XML card validation |
+| `crypto` / `xml` | Hashing, memory fingerprints, and XML card validation |
+| `path` / `charset` | Cross-platform paths and text decoding |
 | `flutter_svg` | Platform icons and vector UI assets |
 | `flutter_local_notifications` | Local notifications |
 | `window_manager` | Desktop window configuration |
@@ -196,7 +202,8 @@ UI (screens/widgets)
 - **Protocol layer**: each provider family has a dedicated streaming/tool adapter with its own request and event mapping.
 - **Data layer**: SQLite for conversations/messages/attachments/memory; `SettingsService` for configuration and active-platform resolution.
 - **Memory layer**: `MemoryService` validates coverage/fingerprints, rolls old messages into `ConversationMemory`, merges active `remember_note` notes, and appends a `<memory>` block to the end of the system prompt. `MemoryRecallService` provides local, on-demand search over older messages and the full ledger. The ledger lives in SQLite and travels with conversation exports.
-- **Preset layer**: `PromptService` loads localized built-in cards and schema-v2 user presets; `PresetRepository` shares one loading state between chat and settings.
+- **Archive layer**: `LumenflowArchive` reads and writes v2 ZIP containers with a manifest, size limits, path checks, and SHA-256 verification. `ConversationArchivePayload` builds and parses conversation payloads; `WorldInfoService` parses, activates, and formats world info; `AvatarService` validates and normalizes PNG avatars.
+- **Preset layer**: `PromptService` loads localized built-in cards and user cards, handles XML/TXT and `.lumenflow` import/export, and loads world info and avatars. `PresetRepository` shares one loading state between chat and settings.
 - **Localization layer**: generated `AppLocalizations` from ARB files.
 
 ### Provider Protocol Adapters
@@ -238,7 +245,7 @@ Open **Settings → History Conversation**:
 - Once older messages fall outside the raw window, the model can call `recall` with short keywords to search old messages and the full ledger.
 - In a chat, open the ⋯ menu → **View Memory** to inspect the current memory. The view is read-only.
 
-Memory is stored only on the device and is included in conversation JSON/LumenFlow/ZIP exports.
+Memory is stored only on the device and is included in JSON and `.lumenflow` conversation exports.
 
 ## Prompt Presets
 
@@ -246,26 +253,27 @@ Role-play presets pair a small metadata record with an optional character-card b
 
 ### [Built-in presets](./README/presets.md)
 
-- `assets/prompt/presets-<locale>.json` contains metadata; `prompt_file` points to XML cards under `assets/prompt/characters/<locale>/`.
+- `assets/prompt/presets-<locale>.json` contains metadata; `prompt_file` points to XML cards under `assets/prompt/characters/<locale>/`, and `world_info_file` points to the matching `*.world_info.json`.
 - Locale fallback is `lzh → zh → en`; other locales fall back to `en → zh`. Missing cards are shown as unavailable instead of disappearing silently.
 - Built-in metadata is available in Chinese, English, Japanese, Korean, and Spanish.
 
 ### User presets
 
-- Import XML or TXT cards from **Settings → Preset Management**. Files are limited to 200 KB and validated for UTF-8, XML structure/root, and an optional `<role_name>`.
+- Import XML, TXT, or `.lumenflow` character cards from **Settings → Preset Management**. XML/TXT files are limited to 200 KB and validated for UTF-8, XML structure/root, and an optional `<role_name>`.
 - Editable metadata covers name, description, author, version, icon, language, and tags. The import dialog shows a token estimate and warns above 4,000/8,000 tokens.
-- Duplicate detection uses a SHA-256 hash of normalized card content; importing a duplicate requires confirmation.
+- World info supports a background plus keyword-activated entries. The app shows an activation preview; editing happens in the bundled generator.
+- PNG avatars are normalized to at most 1024 px and 2 MB. A missing or invalid avatar falls back to the selected preset icon.
+- Duplicate detection uses a SHA-256 hash of normalized card content, combined with world info when present; importing a duplicate requires confirmation.
 - Presets can be duplicated, exported, deleted, and filtered by language or tag.
-- User data lives in `user_prompts/`: `user_presets.json` (schema v2) plus card files. Legacy v1 files are backed up and migrated automatically.
-- Schema v2 separates inline `system_prompt` from `prompt_file`, persists language/tags/timestamps/content hash, isolates malformed entries, and surfaces load problems in the preset manager.
+- User data lives in `user_prompts/`: `user_presets.json` plus card files. Imported `.lumenflow` cards use a `<preset-id>/` directory with `character.xml`, optional `world_info.json`, and optional `avatar.png`; direct XML/TXT imports use flat files.
 
 ### Prompt assembly
 
-- The final system prompt is composed of localized base rules (including the reply-language rule) → custom prompt → selected preset → memory block.
-- The AI reply language can follow the UI, follow the user, or be pinned; a character card's own language and tone take priority.
+- The final system prompt is composed of localized base rules (including the reply-language rule) → custom prompt → selected preset → note/recall instructions → world info → memory.
+- The AI reply language can follow the UI, follow the user, or be pinned. A selected card's own language and tone remain part of its prompt.
 - Prompts are not interpolated with `${userProfile.*}` values. When a card needs the user's name, gender, or birthday, it should call `builtin__get_user_profile`.
 
-The character-card generator opens a local web page served by the app (`HttpServerService`, loopback port 5050).
+The character-card generator opens a local web page served by the app (`HttpServerService`, loopback ports 5050–5059). It edits character fields, world info, metadata, and an avatar, then exports a `.lumenflow` archive.
 
 ## Data Storage
 
@@ -280,8 +288,10 @@ Tables: `conversations`, `messages`, `attachments`, `conversation_memory`, `conv
 
 User presets live next to the database in `user_prompts/`:
 
-- `user_presets.json` — schema-v2 metadata.
-- `<preset-id>.xml` / `.txt` — character-card bodies.
+- `user_presets.json` — preset metadata.
+- `<preset-id>.xml` / `.txt` — flat card bodies from direct XML/TXT import.
+- `<preset-id>.world_info.json` / `<preset-id>.avatar.png` — optional flat sidecars.
+- `<preset-id>/character.xml`, `<preset-id>/world_info.json`, `<preset-id>/avatar.png` — card directory used by `.lumenflow` import.
 
 All conversation data, API keys, and profiles stay on the device. Use the settings export feature if you want a backup.
 
@@ -353,6 +363,7 @@ This repository does not include any distribution certificates. macOS and iOS ar
 - Tool-call failures are returned to the model as tool results instead of aborting the whole turn when possible.
 - Provider errors are mapped to localized messages for supported locales.
 - Preset load problems (corrupt JSON, invalid entries, missing or unreadable cards) are collected and shown in the preset manager instead of aborting startup.
+- `.lumenflow` imports reject unsafe paths, wrong formats, size mismatches, and SHA-256 mismatches. A bad world info file or avatar is skipped with a localized warning instead of failing the whole character card.
 - Cancellation is propagated to streaming reads and tool execution.
 
 ## License
@@ -370,6 +381,7 @@ Issues and pull requests are welcome. Please keep changes focused, run `flutter 
 - [Flutter](https://flutter.dev/) and the `material_ui` / `cupertino_ui` packages
 - AI providers: OpenAI, Anthropic, Google Gemini, DeepSeek, Kimi, MiniMax, Zhipu AI, SiliconFlow, Xiaomi MiMo, xAI, OpenRouter, LM Studio
 - [Noto Sans SC](https://fonts.google.com/noto/specimen/Noto+Sans+SC) (OFL 1.1)
+- [JSZip](https://stuk.github.io/jszip/) (MIT) for the bundled card generator
 - [Cupertino Icons](https://pub.dev/packages/cupertino_icons)
 - [MCP](https://modelcontextprotocol.io/) for the tool integration protocol
 

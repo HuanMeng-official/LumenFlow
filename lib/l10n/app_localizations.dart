@@ -2545,6 +2545,12 @@ abstract class AppLocalizations {
   /// **'Character card file unreadable: {name}'**
   String presetIssueCardFileUnreadable(String name);
 
+  /// No description provided for @presetIssueWorldInfoInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'World info file missing or invalid: {name}'**
+  String presetIssueWorldInfoInvalid(String name);
+
   /// No description provided for @presetIssueUserEntryInvalid.
   ///
   /// In en, this message translates to:
@@ -3180,6 +3186,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Convert length, mass, temperature, and more'**
   String get builtinUnitConvertDesc;
+
+  /// No description provided for @worldInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'World Info'**
+  String get worldInfo;
+
+  /// No description provided for @worldInfoPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Activation Preview'**
+  String get worldInfoPreview;
+
+  /// No description provided for @worldInfoBackground.
+  ///
+  /// In en, this message translates to:
+  /// **'World Background'**
+  String get worldInfoBackground;
+
+  /// No description provided for @worldInfoTestText.
+  ///
+  /// In en, this message translates to:
+  /// **'Test text'**
+  String get worldInfoTestText;
+
+  /// No description provided for @worldInfoMatched.
+  ///
+  /// In en, this message translates to:
+  /// **'Matched entries'**
+  String get worldInfoMatched;
+
+  /// No description provided for @worldInfoUnmatched.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive entries'**
+  String get worldInfoUnmatched;
+
+  /// No description provided for @worldInfoTokens.
+  ///
+  /// In en, this message translates to:
+  /// **'Background {background} · Entries {entry} · Total {total} tokens'**
+  String worldInfoTokens(int background, int entry, int total);
+
+  /// No description provided for @worldInfoNoMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No entries matched'**
+  String get worldInfoNoMatches;
+
+  /// No description provided for @worldInfoRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Run preview'**
+  String get worldInfoRun;
+
+  /// No description provided for @lumenflowInvalidArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid LumenFlow archive'**
+  String get lumenflowInvalidArchive;
+
+  /// No description provided for @lumenflowMissingCharacter.
+  ///
+  /// In en, this message translates to:
+  /// **'LumenFlow archive is missing the character card file'**
+  String get lumenflowMissingCharacter;
+
+  /// No description provided for @lumenflowWorldInfoInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'World info file is invalid or corrupt'**
+  String get lumenflowWorldInfoInvalid;
+
+  /// No description provided for @lumenflowAvatarInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Avatar image is invalid or corrupt'**
+  String get lumenflowAvatarInvalid;
+
+  /// No description provided for @lumenflowLegacyUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Legacy LumenFlow format is not supported'**
+  String get lumenflowLegacyUnsupported;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

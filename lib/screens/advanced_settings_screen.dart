@@ -1,10 +1,10 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import '../l10n/app_localizations.dart';
 import 'package:file_picker/file_picker.dart';
 import '../services/settings_service.dart';
 import '../utils/file_save_utils.dart';
+import '../utils/lumenflow_error_messages.dart';
 import 'about_screen.dart';
 import 'credits_screen.dart';
 import '../widgets/settings/settings_page_scaffold.dart';
@@ -81,19 +81,9 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
   Future<void> _exportSettings() async {
     final l10n = AppLocalizations.of(context)!;
     try {
-      final lumenflowData = await _settingsService.exportSettingsToLumenflow();
-      if (lumenflowData.isEmpty) {
-        throw Exception('设置数据为空，无法导出');
-      }
-
-      final jsonString = jsonEncode(lumenflowData);
-      if (jsonString.isEmpty) {
-        throw Exception('编码结果为空');
-      }
-
-      final bytes = utf8.encode(jsonString);
+      final bytes = await _settingsService.exportSettingsArchive();
       if (bytes.isEmpty) {
-        throw Exception('字节数据为空，无法保存文件');
+        throw Exception('设置数据为空，无法导出');
       }
 
       final fileName =
@@ -160,14 +150,13 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
     try {
       final result = await FilePicker.pickFile(
         type: FileType.custom,
-        allowedExtensions: ['lumenflow', 'json'],
+        allowedExtensions: ['lumenflow'],
         dialogTitle: AppLocalizations.of(context)!.importSettings,
       );
 
       if (result != null && result.path != null) {
         final file = File(result.path!);
-        final jsonString = await file.readAsString();
-        final data = jsonDecode(jsonString) as Map<String, dynamic>;
+        final bytes = await file.readAsBytes();
 
         if (!mounted) return;
         final l10n = AppLocalizations.of(context)!;
@@ -191,7 +180,7 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
         );
 
         if (confirmed == true) {
-          await _settingsService.importSettingsFromLumenflow(data);
+          await _settingsService.importSettingsArchive(bytes);
 
           if (mounted) {
             showCupertinoDialog(
@@ -217,7 +206,7 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
           context: context,
           builder: (context) => CupertinoAlertDialog(
             title: Text(l10n.importFailed),
-            content: Text(l10n.importError(e.toString())),
+            content: Text(l10n.importError(lumenflowErrorMessage(e, l10n))),
             actions: [
               CupertinoDialogAction(
                 child: Text(l10n.ok),

@@ -1,14 +1,72 @@
 import 'dart:io';
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
+import 'package:path/path.dart' as path;
 
 class HttpServerService {
   static const int _defaultPort = 5050;
   static const int _maxPort = 5059;
-  static const String _htmlFilePath = 'assets/gen/generator.html';
+  static const String _indexPath = 'assets/gen/index.html';
+
+  static const Set<String> _allowedExtensions = {
+    '.html',
+    '.css',
+    '.js',
+    '.png',
+    '.svg',
+    '.woff2',
+    '.json',
+  };
+
+  @visibleForTesting
+  static String? resolveGenAssetPath(String requestPath) {
+    if (!requestPath.startsWith('/')) return null;
+    if (requestPath.contains('\\') || requestPath.contains('%')) {
+      return null;
+    }
+    if (requestPath == '/') return _indexPath;
+
+    final relative = requestPath.substring(1);
+    final segments = relative.split('/');
+    for (final segment in segments) {
+      if (segment.isEmpty ||
+          segment == '.' ||
+          segment == '..' ||
+          segment.contains(':')) {
+        return null;
+      }
+    }
+
+    final extension = path.posix.extension(relative).toLowerCase();
+    if (!_allowedExtensions.contains(extension)) {
+      return null;
+    }
+    return 'assets/gen/$relative';
+  }
+
+  @visibleForTesting
+  static ContentType contentTypeForGenAsset(String assetPath) {
+    switch (path.posix.extension(assetPath).toLowerCase()) {
+      case '.html':
+        return ContentType.html;
+      case '.css':
+        return ContentType('text', 'css', charset: 'utf-8');
+      case '.js':
+        return ContentType('application', 'javascript', charset: 'utf-8');
+      case '.png':
+        return ContentType('image', 'png');
+      case '.svg':
+        return ContentType('image', 'svg+xml', charset: 'utf-8');
+      case '.woff2':
+        return ContentType('font', 'woff2');
+      case '.json':
+        return ContentType.json;
+      default:
+        return ContentType.binary;
+    }
+  }
 
   // 单例实例
   static HttpServerService? _instance;
@@ -79,32 +137,36 @@ class HttpServerService {
 
   Future<void> _handleRequest(HttpRequest request) async {
     try {
-      // 只处理根路径请求
-      if (request.uri.path == '/' || request.uri.path == '/generator.html') {
-        await _serveHtmlFile(request);
-      } else {
+      final assetPath = resolveGenAssetPath(request.uri.path);
+      if (assetPath == null) {
         await _sendNotFound(request);
+        return;
       }
+      await _serveGenAsset(request, assetPath);
     } catch (e) {
       await _sendError(request, e.toString());
     }
   }
 
-  Future<void> _serveHtmlFile(HttpRequest request) async {
+  Future<void> _serveGenAsset(HttpRequest request, String assetPath) async {
+    ByteData byteData;
     try {
-      // 从assets加载HTML文件
-      final byteData = await rootBundle.load(_htmlFilePath);
-      final htmlContent = utf8.decode(byteData.buffer.asUint8List());
-
-      request.response
-        ..statusCode = HttpStatus.ok
-        ..headers.contentType = ContentType.html
-        ..write(htmlContent);
-
-      await request.response.close();
-    } catch (e) {
+      byteData = await rootBundle.load(assetPath);
+    } catch (_) {
       await _sendNotFound(request);
+      return;
     }
+
+    final bytes = byteData.buffer.asUint8List(
+      byteData.offsetInBytes,
+      byteData.lengthInBytes,
+    );
+    request.response
+      ..statusCode = HttpStatus.ok
+      ..headers.contentType = contentTypeForGenAsset(assetPath)
+      ..add(bytes);
+
+    await request.response.close();
   }
 
   Future<void> _sendNotFound(HttpRequest request) async {

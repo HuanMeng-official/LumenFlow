@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:file_picker/file_picker.dart';
@@ -16,12 +17,14 @@ import '../models/prompt_preset.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/app_theme.dart';
 import '../utils/file_save_utils.dart';
+import '../utils/lumenflow_error_messages.dart';
 import '../utils/preset_filter.dart';
-import '../utils/preset_icons.dart';
 import '../utils/preset_tags.dart';
+import '../widgets/preset_avatar.dart';
 import '../utils/token_estimator.dart';
 import '../widgets/preset_metadata_fields.dart';
 import '../widgets/settings/settings_page_scaffold.dart';
+import 'world_info_preview_screen.dart';
 
 /// 预设管理界面
 ///
@@ -185,7 +188,7 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
     try {
       final platformFile = await FilePicker.pickFile(
         type: FileType.custom,
-        allowedExtensions: ['xml', 'txt'],
+        allowedExtensions: ['xml', 'txt', 'lumenflow'],
       );
 
       if (platformFile == null) return;
@@ -199,8 +202,29 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
       // 需要将PlatformFile转换为File
       // 由于FilePicker返回的是PlatformFile，我们需要使用其路径创建File对象
       final sourceFile = File(platformFile.path!);
-      final isText = path.extension(sourceFile.path).toLowerCase() == '.txt';
+      final extension = path.extension(sourceFile.path).toLowerCase();
 
+      if (extension == '.lumenflow') {
+        final bytes = await sourceFile.readAsBytes();
+        final preview = await _promptService.inspectCharacterCardArchive(
+          bytes,
+        );
+        if (!mounted) return;
+        if (!preview.validation.isValid) {
+          await _showValidationErrors(preview.validation);
+          return;
+        }
+        await _showImportDialog(
+          sourceFile,
+          preview.validation,
+          isText: false,
+          characterArchiveBytes: bytes,
+          archivePreview: preview,
+        );
+        return;
+      }
+
+      final isText = extension == '.txt';
       final validation = isText
           ? await _promptService.validateTextFile(sourceFile)
           : await _promptService.validatePresetFile(sourceFile);
@@ -214,7 +238,9 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
       await _showImportDialog(sourceFile, validation, isText: isText);
     } catch (e) {
       if (mounted) {
-        _showErrorMessage(l10n.importFailedError(e.toString()));
+        _showErrorMessage(
+          l10n.importFailedError(lumenflowErrorMessage(e, l10n)),
+        );
       }
     }
   }
@@ -259,20 +285,31 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
     File sourceFile,
     PresetValidationResult validation, {
     required bool isText,
+    Uint8List? characterArchiveBytes,
+    CharacterCardArchivePreview? archivePreview,
   }) async {
     if (!mounted) return null;
     final l10n = AppLocalizations.of(context)!;
-    String? language;
-    String selectedIcon = 'person.fill';
+    String? language = archivePreview?.language;
+    String selectedIcon = archivePreview?.icon ?? 'person.fill';
     final nameController = TextEditingController(
       text:
+          archivePreview?.name ??
           validation.extractedName ??
           path.basenameWithoutExtension(sourceFile.path),
     );
-    final descriptionController = TextEditingController();
-    final authorController = TextEditingController();
-    final versionController = TextEditingController(text: 'v1.0');
-    final tagsController = TextEditingController();
+    final descriptionController = TextEditingController(
+      text: archivePreview?.description ?? '',
+    );
+    final authorController = TextEditingController(
+      text: archivePreview?.author ?? '',
+    );
+    final versionController = TextEditingController(
+      text: archivePreview?.version ?? 'v1.0',
+    );
+    final tagsController = TextEditingController(
+      text: archivePreview?.tags.join(', ') ?? '',
+    );
     var isImporting = false;
 
     List<String> parsedTags() {
@@ -281,6 +318,19 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
 
     Future<PromptPreset?> import({required bool allowDuplicate}) async {
       try {
+        if (characterArchiveBytes != null) {
+          return await _presetRepository.importCharacterCardArchive(
+            characterArchiveBytes,
+            name: nameController.text,
+            description: descriptionController.text,
+            author: authorController.text,
+            version: versionController.text,
+            icon: selectedIcon,
+            language: language ?? '',
+            tags: parsedTags(),
+            allowDuplicate: allowDuplicate,
+          );
+        }
         if (isText) {
           return await _presetRepository.importTextPreset(
             sourceFile,
@@ -403,6 +453,26 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
                           ),
                         ),
                       ],
+                      if (archivePreview?.worldInfoInvalid == true) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          l10n.lumenflowWorldInfoInvalid,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: CupertinoColors.systemOrange,
+                          ),
+                        ),
+                      ],
+                      if (archivePreview?.avatarInvalid == true) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          l10n.lumenflowAvatarInvalid,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: CupertinoColors.systemOrange,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -436,7 +506,9 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
                         // ignore: use_build_context_synchronously
                         Navigator.pop(dialogContext);
                         _showErrorMessage(
-                          l10n.importFailedError(error.toString()),
+                          l10n.importFailedError(
+                            lumenflowErrorMessage(error, l10n),
+                          ),
                         );
                       }
                     } finally {
@@ -583,6 +655,8 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
         return l10n.presetIssueCardFileMissing(_issuePresetName(issue));
       case PresetIssueType.cardFileUnreadable:
         return l10n.presetIssueCardFileUnreadable(_issuePresetName(issue));
+      case PresetIssueType.worldInfoInvalid:
+        return l10n.presetIssueWorldInfoInvalid(_issuePresetName(issue));
     }
   }
 
@@ -794,24 +868,13 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 图标
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: CupertinoColors.systemGrey.withAlpha(3),
-                  width: 1,
-                ),
-              ),
-              child: Icon(
-                presetIconForName(preset.icon),
-                size: 20,
-                color: preset.isBroken
-                    ? CupertinoColors.systemGrey2
-                    : CupertinoColors.activeBlue,
-              ),
+            PresetAvatar(
+              preset: preset,
+              size: 36,
+              showBorder: true,
+              iconColor: preset.isBroken
+                  ? CupertinoColors.systemGrey2
+                  : CupertinoColors.activeBlue,
             ),
             const SizedBox(width: 12),
             // 名称和描述
@@ -1003,6 +1066,36 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
                               ),
                             ),
                           ],
+                          if (preset.worldInfo != null) ...[
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    l10n.worldInfo,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () {
+                                    final navigator = Navigator.of(context);
+                                    Navigator.pop(dialogContext);
+                                    navigator.push(
+                                      CupertinoPageRoute(
+                                        builder: (_) => WorldInfoPreviewScreen(
+                                          info: preset.worldInfo!,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: Text(l10n.worldInfoPreview),
+                                ),
+                              ],
+                            ),
+                          ],
                           const SizedBox(height: 12),
                           Text(
                             l10n.presetFullContent,
@@ -1186,20 +1279,32 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
 
   Future<void> _exportPreset(PromptPreset preset) async {
     final l10n = AppLocalizations.of(context)!;
-    final content = preset.systemPrompt;
-    if (content.trim().isEmpty) {
-      _showErrorMessage(l10n.presetExportFailed);
-      return;
-    }
-    final extension = preset.promptFile?.toLowerCase().endsWith('.txt') ?? false
-        ? 'txt'
-        : 'xml';
     final safeName = preset.name
         .replaceAll(RegExp(r'[^\w一-鿿-]'), '')
         .replaceAll(RegExp(r'\s+'), '_');
-    final fileName =
-        '${safeName.isEmpty ? preset.id : safeName}_${DateTime.now().millisecondsSinceEpoch}.$extension';
+
     try {
+      final isText =
+          preset.promptFile?.toLowerCase().endsWith('.txt') ??
+          !preset.systemPrompt.trimLeft().startsWith('<system_instruction');
+      if (!isText) {
+        final bytes = await _promptService.exportCharacterCardArchive(preset);
+        final fileName = '${safeName.isEmpty ? preset.id : safeName}.lumenflow';
+        final result = await saveExportBytes(fileName: fileName, bytes: bytes);
+        if (result.isCancelled) return;
+        if (mounted) {
+          _showErrorMessage('${l10n.presetExportSuccess}: ${result.filePath}');
+        }
+        return;
+      }
+
+      final content = preset.systemPrompt;
+      if (content.trim().isEmpty) {
+        _showErrorMessage(l10n.presetExportFailed);
+        return;
+      }
+      final fileName =
+          '${safeName.isEmpty ? preset.id : safeName}_${DateTime.now().millisecondsSinceEpoch}.txt';
       final result = await saveExportBytes(
         fileName: fileName,
         bytes: utf8.encode(content),

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as path;
 import 'package:xml/xml.dart';
@@ -10,8 +11,48 @@ import 'package:xml/xml.dart';
 import '../models/preset_import_result.dart';
 import '../models/preset_load_result.dart';
 import '../models/prompt_preset.dart';
+import '../models/world_info.dart';
+import 'avatar_service.dart';
+import 'lumenflow_archive.dart';
 import 'settings_service.dart';
+import 'version_service.dart';
+import 'world_info_service.dart';
 import '../utils/path_utils.dart';
+
+/// 角色卡 `.lumenflow` 导入前的只读预览信息。
+class CharacterCardArchivePreview {
+  const CharacterCardArchivePreview({
+    required this.validation,
+    required this.name,
+    required this.description,
+    required this.author,
+    required this.version,
+    required this.icon,
+    required this.language,
+    required this.tags,
+    required this.hasWorldInfo,
+    required this.hasAvatar,
+    this.worldInfoInvalid = false,
+    this.avatarInvalid = false,
+  });
+
+  final PresetValidationResult validation;
+  final String name;
+  final String description;
+  final String author;
+  final String version;
+  final String icon;
+  final String? language;
+  final List<String> tags;
+  final bool hasWorldInfo;
+  final bool hasAvatar;
+
+  /// 归档里有世界书，但无法解析；导入时会被跳过。
+  final bool worldInfoInvalid;
+
+  /// 归档里有头像，但无法解码或归一化；导入时会被跳过。
+  final bool avatarInvalid;
+}
 
 /// 预设提示词服务，负责加载和管理预设提示词
 class PromptService {
@@ -87,6 +128,327 @@ class PromptService {
     return normalized;
   }
 
+  /// 加载预置角色卡关联的世界书；缺失或损坏时返回 null。
+  Future<WorldInfo?> loadWorldInfoForPreset(PromptPreset preset) async {
+    return (await _loadWorldInfo(preset)).info;
+  }
+
+  Future<_WorldInfoLoadResult> _loadWorldInfo(
+    PromptPreset preset, {
+    String? locale,
+  }) async {
+    final rawPath = preset.worldInfoFile?.trim();
+    if (rawPath == null || rawPath.isEmpty) {
+      return const _WorldInfoLoadResult(info: null, error: null);
+    }
+
+    final String? content;
+    if (preset.isUserPreset) {
+      content = await _loadUserWorldInfoText(rawPath);
+    } else {
+      final effectiveLocale = locale ?? await _settingsService.getLocale();
+      content = await _loadBuiltInWorldInfoText(rawPath, effectiveLocale);
+    }
+
+    if (content == null || content.trim().isEmpty) {
+      return _WorldInfoLoadResult(info: null, error: rawPath);
+    }
+
+    try {
+      final decoded = jsonDecode(content);
+      if (decoded is! Map) {
+        throw const FormatException('World info must be a JSON object');
+      }
+      return _WorldInfoLoadResult(
+        info: WorldInfoService.parse(decoded.cast<String, dynamic>()),
+        error: null,
+      );
+    } catch (error) {
+      return _WorldInfoLoadResult(info: null, error: '$rawPath: $error');
+    }
+  }
+
+  Future<String?> _loadBuiltInWorldInfoText(
+    String rawPath,
+    String locale,
+  ) async {
+    final candidates = <String>[rawPath];
+    for (final fallbackLocale in localeFallbackChain(locale)) {
+      final localized = _cardPathForLocale(rawPath, fallbackLocale);
+      if (!candidates.contains(localized)) {
+        candidates.add(localized);
+      }
+    }
+
+    for (final candidate in candidates) {
+      final safePath = _sanitizePromptFile(candidate);
+      if (safePath == null) continue;
+      final content = await _loadFileContent(safePath);
+      if (content.trim().isNotEmpty) {
+        return content;
+      }
+    }
+    return null;
+  }
+
+  Future<String?> _loadUserWorldInfoText(String rawPath) async {
+    final safePath = _sanitizePromptFile(rawPath);
+    if (safePath == null) return null;
+    try {
+      final userPresetsDir = await _getUserPresetsDirectory();
+      final fullPath = path.join(userPresetsDir.path, safePath);
+      if (!path.isWithin(userPresetsDir.path, fullPath)) {
+        return null;
+      }
+      final file = File(fullPath);
+      if (!await file.exists()) return null;
+      return await file.readAsString();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<String?> _storePresetAvatar({
+    required String id,
+    required Uint8List bytes,
+    required Directory userPresetsDir,
+    bool useCharacterDirectory = false,
+  }) async {
+    try {
+      final normalized = await AvatarService.normalizePng(bytes);
+      if (useCharacterDirectory) {
+        final presetDir = Directory(path.join(userPresetsDir.path, id));
+        await presetDir.create(recursive: true);
+        final file = File(path.join(presetDir.path, 'avatar.png'));
+        await file.writeAsBytes(normalized, flush: true);
+        return '$id/avatar.png';
+      }
+      final fileName = '$id.avatar.png';
+      final file = File(path.join(userPresetsDir.path, fileName));
+      await file.writeAsBytes(normalized, flush: true);
+      return fileName;
+    } catch (_) {
+      // 损坏的头像不应阻止角色卡导入；保留预设图标。
+      return null;
+    }
+  }
+
+  Future<String?> _resolveUserAvatarPath(String? rawPath) async {
+    if (rawPath == null || rawPath.trim().isEmpty) return null;
+    final safePath = _sanitizePromptFile(rawPath);
+    if (safePath == null) return null;
+    try {
+      final userPresetsDir = await _getUserPresetsDirectory();
+      final fullPath = path.join(userPresetsDir.path, safePath);
+      if (!path.isWithin(userPresetsDir.path, fullPath)) {
+        return null;
+      }
+      final file = File(fullPath);
+      return await file.exists() ? fullPath : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static final RegExp _legacyBackgroundPattern = RegExp(
+    r'\s*<worldview_background>([\s\S]*?)</worldview_background>',
+  );
+
+  Future<_ParsedCharacterArchive> _parseCharacterCardArchive(
+    Uint8List bytes, {
+    String? fallbackName,
+  }) async {
+    final archive = LumenflowArchive.read(bytes);
+    if (archive.manifest.type != LumenflowArchiveType.characterCard) {
+      throw const FormatException('Not a character card archive');
+    }
+
+    final xmlBytes = archive.files['character/character.xml'];
+    if (xmlBytes == null) {
+      throw const FormatException('Missing character/character.xml');
+    }
+
+    var validation = _validatePresetBytes(Uint8List.fromList(xmlBytes));
+    final meta = _parseCharacterMeta(archive.files['character/meta.json']);
+
+    _LegacyBackground? legacy;
+    if (validation.isValid) {
+      legacy = _extractLegacyBackground(validation.content);
+      if (legacy != null) {
+        validation = PresetValidationResult(
+          errors: validation.errors,
+          warnings: validation.warnings,
+          content: legacy.xml,
+          extractedName: validation.extractedName,
+          contentHash: sha256.convert(utf8.encode(legacy.xml)).toString(),
+        );
+      }
+    }
+
+    WorldInfo? worldInfo;
+    var worldInfoInvalid = false;
+    final worldInfoBytes = archive.files['character/world_info.json'];
+    if (worldInfoBytes != null) {
+      try {
+        final decoded = jsonDecode(utf8.decode(worldInfoBytes));
+        if (decoded is! Map) {
+          throw const FormatException('Invalid character world info');
+        }
+        worldInfo = WorldInfoService.parse(decoded.cast<String, dynamic>());
+      } catch (error) {
+        debugPrint('Ignoring invalid character world info: $error');
+        worldInfoInvalid = true;
+        worldInfo = null;
+      }
+    }
+    if (worldInfo == null && legacy != null) {
+      worldInfo = WorldInfo(
+        name:
+            _firstNonEmpty([
+              fallbackName,
+              meta.name,
+              validation.extractedName,
+            ]) ??
+            'Character',
+        description: '',
+        background: legacy.background,
+        scanDepth: 4,
+        budgetTokens: 1000,
+        entries: const [],
+      );
+      worldInfoInvalid = false;
+    }
+
+    final combinedHash = _combinedContentHash(validation.content, worldInfo);
+    validation = PresetValidationResult(
+      errors: validation.errors,
+      warnings: validation.warnings,
+      content: validation.content,
+      extractedName: validation.extractedName,
+      contentHash: combinedHash,
+    );
+
+    Uint8List? avatarBytes;
+    var avatarInvalid = false;
+    final avatar = archive.files['character/avatar.png'];
+    if (avatar != null) {
+      try {
+        avatarBytes = await AvatarService.normalizePng(
+          Uint8List.fromList(avatar),
+        );
+      } catch (error) {
+        debugPrint('Ignoring invalid character avatar: $error');
+        avatarInvalid = true;
+      }
+    }
+
+    return _ParsedCharacterArchive(
+      validation: validation,
+      meta: meta,
+      worldInfo: worldInfo,
+      worldInfoJson: worldInfo == null
+          ? null
+          : jsonEncode(worldInfo.toJson()),
+      avatarBytes: avatarBytes,
+      worldInfoInvalid: worldInfoInvalid,
+      avatarInvalid: avatarInvalid,
+    );
+  }
+
+  _CharacterMeta _parseCharacterMeta(List<int>? bytes) {
+    if (bytes == null) {
+      return const _CharacterMeta();
+    }
+    try {
+      final decoded = jsonDecode(utf8.decode(bytes));
+      if (decoded is! Map) return const _CharacterMeta();
+      final map = decoded.cast<String, dynamic>();
+      if (map['_format'] != 'lumenflow_character_meta') {
+        return const _CharacterMeta();
+      }
+      if (map['_version'] != null && map['_version'] != 1) {
+        return const _CharacterMeta();
+      }
+      final tags =
+          (map['tags'] as List<dynamic>?)
+              ?.whereType<String>()
+              .where((tag) => tag.trim().isNotEmpty)
+              .map((tag) => tag.trim())
+              .toList(growable: false) ??
+          const <String>[];
+      return _CharacterMeta(
+        name: _optionalTrimmed(map['name']),
+        description: _optionalTrimmed(map['description']),
+        author: _optionalTrimmed(map['author']),
+        version: _optionalTrimmed(map['version']),
+        language: _optionalTrimmed(map['language']),
+        tags: tags,
+        icon: _optionalTrimmed(map['icon']),
+      );
+    } catch (_) {
+      return const _CharacterMeta();
+    }
+  }
+
+  _LegacyBackground? _extractLegacyBackground(String xml) {
+    final match = _legacyBackgroundPattern.firstMatch(xml);
+    if (match == null) return null;
+    return _LegacyBackground(
+      background: _normalizeLegacyBackground(match.group(1) ?? ''),
+      xml: xml.replaceFirst(_legacyBackgroundPattern, ''),
+    );
+  }
+
+  String _normalizeLegacyBackground(String raw) {
+    final lines = raw
+        .replaceAll('\r\n', '\n')
+        .replaceAll('\r', '\n')
+        .split('\n');
+    while (lines.isNotEmpty && lines.first.trim().isEmpty) {
+      lines.removeAt(0);
+    }
+    while (lines.isNotEmpty && lines.last.trim().isEmpty) {
+      lines.removeLast();
+    }
+
+    var commonIndent = 1 << 30;
+    for (final line in lines) {
+      if (line.trim().isEmpty) continue;
+      final indent = line.length - line.trimLeft().length;
+      if (indent < commonIndent) commonIndent = indent;
+    }
+    if (commonIndent == 1 << 30) commonIndent = 0;
+
+    final dedented = lines.map((line) {
+      final rightTrimmed = line.replaceFirst(RegExp(r'[ \t]+$'), '');
+      if (rightTrimmed.isEmpty) return '';
+      if (rightTrimmed.length <= commonIndent) {
+        return rightTrimmed.trimLeft();
+      }
+      return rightTrimmed.substring(commonIndent);
+    });
+    return dedented.join('\n').trim();
+  }
+
+  String _combinedContentHash(String xml, WorldInfo? worldInfo) {
+    if (worldInfo == null) {
+      return sha256.convert(utf8.encode(xml)).toString();
+    }
+    return sha256
+        .convert(utf8.encode('$xml\n${jsonEncode(worldInfo.toJson())}'))
+        .toString();
+  }
+
+  String? _firstNonEmpty(List<String?> values) {
+    for (final value in values) {
+      final trimmed = value?.trim();
+      if (trimmed != null && trimmed.isNotEmpty) {
+        return trimmed;
+      }
+    }
+    return null;
+  }
+
   /// 获取用户预设存储目录
   Future<Directory> _getUserPresetsDirectory() async {
     final appDataDir = await _appDataDirectoryProvider();
@@ -151,7 +513,7 @@ class PromptService {
             PromptPreset.fromJson(
               entry,
               legacySystemPromptAsFile: needsMigration,
-            ),
+            ).copyWith(isUserPreset: true),
           );
         } catch (error) {
           hasInvalidEntries = true;
@@ -167,9 +529,26 @@ class PromptService {
 
       final List<PromptPreset> processedPresets = [];
       for (final preset in presets) {
+        final worldInfoResult = await _loadWorldInfo(preset);
+        final avatarPath = await _resolveUserAvatarPath(preset.avatarFile);
+        if (preset.hasWorldInfoFile && worldInfoResult.info == null) {
+          issues.add(
+            PresetLoadIssue(
+              type: PresetIssueType.worldInfoInvalid,
+              presetId: preset.id,
+              message: worldInfoResult.error ?? preset.worldInfoFile!,
+            ),
+          );
+        }
+
         if (!preset.hasPromptFile) {
           // 内联正文：绝不把 systemPrompt 当路径解析。
-          processedPresets.add(preset);
+          processedPresets.add(
+            preset.copyWith(
+              worldInfo: worldInfoResult.info,
+              avatarPath: avatarPath,
+            ),
+          );
           continue;
         }
 
@@ -199,6 +578,8 @@ class PromptService {
             systemPrompt: loaded ? fileResult.content : '',
             isBroken: !loaded,
             brokenReason: loaded ? null : rawPromptFile,
+            worldInfo: worldInfoResult.info,
+            avatarPath: avatarPath,
           ),
         );
       }
@@ -349,8 +730,7 @@ class PromptService {
 
   /// 校验 XML 角色卡文件，返回错误、警告、名称与内容哈希。
   Future<PresetValidationResult> validatePresetFile(File file) async {
-    final errors = <PresetValidationError>[];
-    List<int> bytes;
+    Uint8List bytes;
     try {
       bytes = await file.readAsBytes();
     } catch (_) {
@@ -359,7 +739,11 @@ class PromptService {
         warnings: [],
       );
     }
+    return _validatePresetBytes(bytes);
+  }
 
+  PresetValidationResult _validatePresetBytes(Uint8List bytes) {
+    final errors = <PresetValidationError>[];
     if (bytes.isEmpty) {
       return const PresetValidationResult(
         errors: [PresetValidationError.emptyFile],
@@ -455,8 +839,36 @@ class PromptService {
     String? language,
     List<String>? tags,
     bool allowDuplicate = false,
+    Uint8List? avatarBytes,
   }) async {
-    final validation = await validatePresetFile(xmlFile);
+    var validation = await validatePresetFile(xmlFile);
+    WorldInfo? worldInfo;
+    String? worldInfoJson;
+
+    if (validation.isValid) {
+      final legacy = _extractLegacyBackground(validation.content);
+      if (legacy != null) {
+        worldInfo = WorldInfo(
+          name:
+              _firstNonEmpty([name, validation.extractedName]) ??
+              path.basenameWithoutExtension(xmlFile.path),
+          description: '',
+          background: legacy.background,
+          scanDepth: 4,
+          budgetTokens: 1000,
+          entries: const [],
+        );
+        worldInfoJson = jsonEncode(worldInfo.toJson());
+        validation = PresetValidationResult(
+          errors: validation.errors,
+          warnings: validation.warnings,
+          content: legacy.xml,
+          extractedName: validation.extractedName,
+          contentHash: _combinedContentHash(legacy.xml, worldInfo),
+        );
+      }
+    }
+
     return _persistImportedPreset(
       sourceFile: xmlFile,
       validation: validation,
@@ -469,6 +881,9 @@ class PromptService {
       language: language,
       tags: tags,
       allowDuplicate: allowDuplicate,
+      avatarBytes: avatarBytes,
+      worldInfo: worldInfo,
+      worldInfoJson: worldInfoJson,
     );
   }
 
@@ -524,6 +939,182 @@ class PromptService {
     );
   }
 
+  /// 读取角色卡归档的元数据与校验结果，供导入对话框预填。
+  Future<CharacterCardArchivePreview> inspectCharacterCardArchive(
+    Uint8List bytes,
+  ) async {
+    final parsed = await _parseCharacterCardArchive(bytes);
+    final meta = parsed.meta;
+    return CharacterCardArchivePreview(
+      validation: parsed.validation,
+      name:
+          _firstNonEmpty([
+            meta.name,
+            parsed.validation.extractedName,
+          ]) ??
+          'Character',
+      description: meta.description ?? '',
+      author: meta.author ?? '',
+      version: meta.version ?? 'v1.0',
+      icon: meta.icon ?? 'person.fill',
+      language: meta.language,
+      tags: meta.tags,
+      hasWorldInfo: parsed.worldInfo != null,
+      hasAvatar: parsed.avatarBytes != null,
+      worldInfoInvalid: parsed.worldInfoInvalid,
+      avatarInvalid: parsed.avatarInvalid,
+    );
+  }
+
+  /// 从 v2 角色卡 `.lumenflow` 归档导入角色卡。
+  Future<PromptPreset> importCharacterCardArchive(
+    Uint8List bytes, {
+    String? name,
+    String? description,
+    String? author,
+    String? version,
+    String? icon,
+    String? language,
+    List<String>? tags,
+    bool allowDuplicate = false,
+  }) async {
+    final parsed = await _parseCharacterCardArchive(
+      bytes,
+      fallbackName: name,
+    );
+    final meta = parsed.meta;
+    final resolvedLanguage = language != null
+        ? (language.trim().isEmpty ? null : language.trim())
+        : meta.language;
+
+    return _persistImportedPreset(
+      sourceName: 'character.xml',
+      validation: parsed.validation,
+      extension: 'xml',
+      name:
+          _firstNonEmpty([
+            name,
+            meta.name,
+            parsed.validation.extractedName,
+          ]) ??
+          'Character',
+      description: description ?? meta.description ?? '用户导入的预设',
+      author: author ?? meta.author ?? '用户',
+      version: _firstNonEmpty([version, meta.version]) ?? 'v1.0',
+      icon: _firstNonEmpty([icon, meta.icon]) ?? 'person.fill',
+      language: resolvedLanguage,
+      tags: tags ?? meta.tags,
+      allowDuplicate: allowDuplicate,
+      avatarBytes: parsed.avatarBytes,
+      useCharacterDirectory: true,
+      worldInfo: parsed.worldInfo,
+      worldInfoJson: parsed.worldInfoJson,
+    );
+  }
+
+  /// 导出角色卡为 v2 `.lumenflow` 归档。
+  Future<List<int>> exportCharacterCardArchive(PromptPreset preset) async {
+    final promptFile = preset.promptFile;
+    if (promptFile != null && promptFile.toLowerCase().endsWith('.txt')) {
+      throw const FormatException('Not an XML character card');
+    }
+
+    var xml = preset.systemPrompt.trim();
+    if (xml.isEmpty && promptFile != null) {
+      if (preset.isUserPreset) {
+        final loaded = await _loadUserFileContent(promptFile);
+        xml = loaded.content.trim();
+      } else {
+        xml = (await _loadFileContent(promptFile)).trim();
+      }
+    }
+    if (xml.isEmpty || !xml.trimLeft().startsWith('<system_instruction')) {
+      throw const FormatException('Character XML is missing');
+    }
+
+    WorldInfo? worldInfo = preset.worldInfo;
+    if (worldInfo == null && preset.hasWorldInfoFile) {
+      worldInfo = await loadWorldInfoForPreset(preset);
+    }
+
+    Uint8List? avatarBytes;
+    final avatarPath = preset.avatarPath;
+    if (avatarPath != null && avatarPath.isNotEmpty) {
+      final file = File(avatarPath);
+      if (await file.exists()) {
+        avatarBytes = await file.readAsBytes();
+      }
+    }
+    if (avatarBytes == null && preset.hasAvatarFile) {
+      if (preset.isUserPreset) {
+        final resolved = await _resolveUserAvatarPath(preset.avatarFile);
+        if (resolved != null) {
+          avatarBytes = await File(resolved).readAsBytes();
+        }
+      } else {
+        try {
+          final data = await _assetBundle.load(
+            'assets/prompt/${preset.avatarFile}',
+          );
+          avatarBytes = data.buffer.asUint8List(
+            data.offsetInBytes,
+            data.lengthInBytes,
+          );
+        } catch (_) {
+          // Built-in cards currently have no avatar; export without one.
+        }
+      }
+    }
+
+    final meta = <String, dynamic>{
+      '_format': 'lumenflow_character_meta',
+      '_version': 1,
+      'name': preset.name,
+      'description': preset.description,
+      'author': preset.author,
+      'version': preset.version,
+      'language': ?preset.language,
+      'tags': preset.tags,
+      'icon': preset.icon,
+    };
+
+    final versionInfo = await VersionService().getVersionInfo();
+    final manifest = LumenflowManifest(
+      type: LumenflowArchiveType.characterCard,
+      created: DateTime.now().toUtc(),
+      appVersion: versionInfo['version'] ?? 'unknown',
+      title: preset.name,
+      language: preset.language ?? 'und',
+      includesCharacter: true,
+      files: const [],
+    );
+
+    return LumenflowArchive.write(manifest, [
+      LumenflowArchiveFile(
+        path: 'character/meta.json',
+        role: 'meta',
+        bytes: utf8.encode(jsonEncode(meta)),
+      ),
+      LumenflowArchiveFile(
+        path: 'character/character.xml',
+        role: 'character',
+        bytes: utf8.encode(xml),
+      ),
+      if (worldInfo != null)
+        LumenflowArchiveFile(
+          path: 'character/world_info.json',
+          role: 'world_info',
+          bytes: utf8.encode(jsonEncode(worldInfo.toJson())),
+        ),
+      if (avatarBytes != null)
+        LumenflowArchiveFile(
+          path: 'character/avatar.png',
+          role: 'avatar',
+          bytes: avatarBytes,
+        ),
+    ]);
+  }
+
   /// 导入纯文本预设。名称优先使用文件名。
   Future<PromptPreset> importPresetFromText(
     File textFile, {
@@ -553,7 +1144,8 @@ class PromptService {
   }
 
   Future<PromptPreset> _persistImportedPreset({
-    required File sourceFile,
+    File? sourceFile,
+    String? sourceName,
     required PresetValidationResult validation,
     required String extension,
     String? name,
@@ -564,6 +1156,10 @@ class PromptService {
     String? language,
     List<String>? tags,
     bool allowDuplicate = false,
+    Uint8List? avatarBytes,
+    bool useCharacterDirectory = false,
+    WorldInfo? worldInfo,
+    String? worldInfoJson,
   }) async {
     if (!validation.isValid) {
       throw PresetValidationException(validation);
@@ -584,15 +1180,43 @@ class PromptService {
       extractedName = validation.extractedName ?? '';
     }
     if (extractedName.isEmpty) {
-      extractedName = path.basenameWithoutExtension(sourceFile.path);
+      extractedName =
+          sourceName ??
+          (sourceFile == null
+              ? ''
+              : path.basenameWithoutExtension(sourceFile.path));
     }
 
     // 生成唯一ID
     final id = 'user_${DateTime.now().microsecondsSinceEpoch}';
     final userPresetsDir = await _getUserPresetsDirectory();
-    final fileName = '$id.$extension';
+    final fileName = useCharacterDirectory
+        ? '$id/character.xml'
+        : '$id.$extension';
     final destFile = File(path.join(userPresetsDir.path, fileName));
+    await destFile.parent.create(recursive: true);
     await destFile.writeAsString(validation.content);
+
+    String? worldInfoFileName;
+    if (worldInfoJson != null) {
+      worldInfoFileName = useCharacterDirectory
+          ? '$id/world_info.json'
+          : '$id.world_info.json';
+      final worldInfoFile = File(
+        path.join(userPresetsDir.path, worldInfoFileName),
+      );
+      await worldInfoFile.parent.create(recursive: true);
+      await worldInfoFile.writeAsString(worldInfoJson);
+    }
+
+    final avatarFileName = avatarBytes == null
+        ? null
+        : await _storePresetAvatar(
+            id: id,
+            bytes: avatarBytes,
+            userPresetsDir: userPresetsDir,
+            useCharacterDirectory: useCharacterDirectory,
+          );
 
     final now = DateTime.now();
     final preset = PromptPreset(
@@ -603,6 +1227,13 @@ class PromptService {
       version: version ?? 'v1.0',
       promptFile: fileName,
       icon: icon ?? 'person.fill',
+      worldInfoFile: worldInfoFileName,
+      worldInfo: worldInfo,
+      avatarFile: avatarFileName,
+      avatarPath: avatarFileName == null
+          ? null
+          : path.join(userPresetsDir.path, avatarFileName),
+      isUserPreset: true,
       contentHash: validation.contentHash,
       language: language,
       tags: tags ?? const [],
@@ -664,6 +1295,7 @@ class PromptService {
       version: version ?? 'v1.0',
       promptFile: fileName,
       icon: 'person.fill',
+      isUserPreset: true,
       contentHash: contentHash ?? sha256.convert(normalizedBytes).toString(),
       createdAt: now,
       updatedAt: now,
@@ -712,6 +1344,27 @@ class PromptService {
     final userPresetsDir = await _getUserPresetsDirectory();
     await File(path.join(userPresetsDir.path, fileName)).writeAsString(content);
 
+    String? avatarFileName;
+    final sourceAvatarPath = await _resolveUserAvatarPath(source.avatarFile);
+    if (sourceAvatarPath != null) {
+      avatarFileName = '$id.avatar.png';
+      await File(sourceAvatarPath).copy(
+        path.join(userPresetsDir.path, avatarFileName),
+      );
+    }
+
+    var worldInfo = source.worldInfo;
+    if (worldInfo == null && source.hasWorldInfoFile) {
+      worldInfo = await loadWorldInfoForPreset(source);
+    }
+    String? worldInfoFileName;
+    if (worldInfo != null) {
+      worldInfoFileName = '$id.world_info.json';
+      await File(
+        path.join(userPresetsDir.path, worldInfoFileName),
+      ).writeAsString(jsonEncode(worldInfo.toJson()));
+    }
+
     final now = DateTime.now();
     final preset = PromptPreset(
       id: id,
@@ -721,6 +1374,13 @@ class PromptService {
       version: source.version,
       promptFile: fileName,
       icon: source.icon,
+      worldInfoFile: worldInfoFileName,
+      worldInfo: worldInfo,
+      avatarFile: avatarFileName,
+      avatarPath: avatarFileName == null
+          ? null
+          : path.join(userPresetsDir.path, avatarFileName),
+      isUserPreset: true,
       contentHash:
           source.contentHash ??
           sha256
@@ -766,6 +1426,55 @@ class PromptService {
         }
       }
 
+      // 删除关联的头像文件
+      final avatarFileName = presetToDelete.avatarFile;
+      if (avatarFileName != null && avatarFileName.isNotEmpty) {
+        final safePath = _sanitizePromptFile(avatarFileName);
+        if (safePath != null) {
+          final userPresetsDir = await _getUserPresetsDirectory();
+          final fullPath = path.join(userPresetsDir.path, safePath);
+          if (path.isWithin(userPresetsDir.path, fullPath)) {
+            final avatarFile = File(fullPath);
+            if (await avatarFile.exists()) {
+              await avatarFile.delete();
+            }
+          }
+        }
+      }
+
+      // 删除扁平布局的世界书文件。
+      final worldInfoFileName = presetToDelete.worldInfoFile;
+      if (worldInfoFileName != null && worldInfoFileName.isNotEmpty) {
+        final safePath = _sanitizePromptFile(worldInfoFileName);
+        if (safePath != null) {
+          final userPresetsDir = await _getUserPresetsDirectory();
+          final fullPath = path.join(userPresetsDir.path, safePath);
+          if (path.isWithin(userPresetsDir.path, fullPath)) {
+            final worldInfoFile = File(fullPath);
+            if (await worldInfoFile.exists()) {
+              await worldInfoFile.delete();
+            }
+          }
+        }
+      }
+
+      // 删除角色卡归档使用的子目录（XML、世界书、头像等）。
+      try {
+        final safeId = path.basename(id);
+        if (safeId == id &&
+            RegExp(r'^[A-Za-z0-9_-]+$').hasMatch(safeId)) {
+          final userPresetsDir = await _getUserPresetsDirectory();
+          final presetDir = Directory(
+            path.join(userPresetsDir.path, safeId),
+          );
+          if (await presetDir.exists()) {
+            await presetDir.delete(recursive: true);
+          }
+        }
+      } catch (_) {
+        // 目录清理失败不应阻止预设删除。
+      }
+
       // 从列表中移除
       currentPresets.removeWhere((preset) => preset.id == id);
       await _saveUserPresets(currentPresets);
@@ -800,9 +1509,25 @@ class PromptService {
         final issues = <PresetLoadIssue>[];
         final List<PromptPreset> processedPresets = [];
         for (final preset in presets) {
+          final worldInfoResult = await _loadWorldInfo(
+            preset,
+            locale: metadataLocale,
+          );
+          if (preset.hasWorldInfoFile && worldInfoResult.info == null) {
+            issues.add(
+              PresetLoadIssue(
+                type: PresetIssueType.worldInfoInvalid,
+                presetId: preset.id,
+                message: worldInfoResult.error ?? preset.worldInfoFile!,
+              ),
+            );
+          }
+
           if (!preset.hasPromptFile) {
             // 内联正文：直接使用，不再尝试按路径加载。
-            processedPresets.add(preset);
+            processedPresets.add(
+              preset.copyWith(worldInfo: worldInfoResult.info),
+            );
             continue;
           }
 
@@ -830,6 +1555,7 @@ class PromptService {
               promptFile: rawPromptFile,
               isBroken: cardContent.isEmpty,
               brokenReason: cardContent.isEmpty ? rawPromptFile : null,
+              worldInfo: worldInfoResult.info,
             ),
           );
         }
@@ -883,4 +1609,64 @@ class _UserFileLoadResult {
 
   final String content;
   final bool exists;
+}
+
+class _WorldInfoLoadResult {
+  const _WorldInfoLoadResult({required this.info, required this.error});
+
+  final WorldInfo? info;
+  final String? error;
+}
+
+class _CharacterMeta {
+  const _CharacterMeta({
+    this.name,
+    this.description,
+    this.author,
+    this.version,
+    this.language,
+    this.tags = const [],
+    this.icon,
+  });
+
+  final String? name;
+  final String? description;
+  final String? author;
+  final String? version;
+  final String? language;
+  final List<String> tags;
+  final String? icon;
+}
+
+class _LegacyBackground {
+  const _LegacyBackground({required this.background, required this.xml});
+
+  final String background;
+  final String xml;
+}
+
+class _ParsedCharacterArchive {
+  const _ParsedCharacterArchive({
+    required this.validation,
+    required this.meta,
+    required this.worldInfo,
+    required this.worldInfoJson,
+    required this.avatarBytes,
+    required this.worldInfoInvalid,
+    required this.avatarInvalid,
+  });
+
+  final PresetValidationResult validation;
+  final _CharacterMeta meta;
+  final WorldInfo? worldInfo;
+  final String? worldInfoJson;
+  final Uint8List? avatarBytes;
+  final bool worldInfoInvalid;
+  final bool avatarInvalid;
+}
+
+String? _optionalTrimmed(Object? value) {
+  if (value is! String) return null;
+  final trimmed = value.trim();
+  return trimmed.isEmpty ? null : trimmed;
 }

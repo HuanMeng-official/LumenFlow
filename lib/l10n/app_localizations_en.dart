@@ -1328,6 +1328,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String presetIssueWorldInfoInvalid(String name) {
+    return 'World info file missing or invalid: $name';
+  }
+
+  @override
   String presetIssueUserEntryInvalid(String detail) {
     return 'One user preset entry could not be read: $detail';
   }
@@ -1674,4 +1679,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get builtinUnitConvertDesc => 'Convert length, mass, temperature, and more';
+
+  @override
+  String get worldInfo => 'World Info';
+
+  @override
+  String get worldInfoPreview => 'Activation Preview';
+
+  @override
+  String get worldInfoBackground => 'World Background';
+
+  @override
+  String get worldInfoTestText => 'Test text';
+
+  @override
+  String get worldInfoMatched => 'Matched entries';
+
+  @override
+  String get worldInfoUnmatched => 'Inactive entries';
+
+  @override
+  String worldInfoTokens(int background, int entry, int total) {
+    return 'Background $background · Entries $entry · Total $total tokens';
+  }
+
+  @override
+  String get worldInfoNoMatches => 'No entries matched';
+
+  @override
+  String get worldInfoRun => 'Run preview';
+
+  @override
+  String get lumenflowInvalidArchive => 'Invalid LumenFlow archive';
+
+  @override
+  String get lumenflowMissingCharacter => 'LumenFlow archive is missing the character card file';
+
+  @override
+  String get lumenflowWorldInfoInvalid => 'World info file is invalid or corrupt';
+
+  @override
+  String get lumenflowAvatarInvalid => 'Avatar image is invalid or corrupt';
+
+  @override
+  String get lumenflowLegacyUnsupported => 'Legacy LumenFlow format is not supported';
 }

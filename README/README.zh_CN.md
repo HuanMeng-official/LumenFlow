@@ -1,12 +1,12 @@
 ![LumenFlow](./img/cover.png)
 
-> 基于 Flutter 构建的本地优先跨平台 AI 聊天客户端：13 个 AI 平台、流式对话、工具调用、MCP、长会话记忆、角色预设、带数学公式和语法高亮的 Markdown、SQLite 本地存储，以及完整的中文 PDF 支持。
+> 基于 Flutter 构建的本地优先跨平台 AI 聊天客户端。支持 13 种平台类型、流式对话、有界工具调用循环、MCP 工具、长会话记忆、带世界书与头像的角色卡、带数学公式和语法高亮的 Markdown、SQLite 本地存储，以及使用内置中文字体的 PDF 导出。
 
 [English Version](../README.md) | [中文版本](./README.zh_CN.md)
 
 ## 概述
 
-LumenFlow（中文名：流光）是一款使用 Flutter 构建的 AI 聊天应用，支持 Android、iOS、Windows、Linux 和 macOS。它把多平台模型接入、工具调用 Agent、本地 SQLite 存储和 Cupertino 风格界面整合在一起。
+LumenFlow（中文名：流光）是一款使用 Flutter 构建的 AI 聊天应用，支持 Android、iOS、Windows、Linux 和 macOS。它把多平台模型接入、有界工具调用循环、本地 SQLite 存储、带世界书的角色卡和 Cupertino 风格界面整合在一起。
 
 - **许可证**：MIT（内置 Noto Sans SC 字体为 OFL-1.1）
 - **UI 技术栈**：Flutter 3.47.8 / Dart 3.13.7，`material_ui`、`cupertino_ui`
@@ -21,7 +21,7 @@ LumenFlow（中文名：流光）是一款使用 Flutter 构建的 AI 聊天应�
 - **模型列表刷新**：从支持的平台 API 拉取模型并选择默认模型。
 - **流式响应**：逐步输出正文和思考内容。
 - **思考模式**：在模型支持时展示推理摘要。
-- **回复语言**：可跟随界面、跟随用户输入，或指定语言；角色卡自带的语言和文风优先。
+- **回复语言**：可跟随界面、跟随用户输入，或指定语言。所选角色卡自身的语言和文风仍作为角色卡提示词的一部分。
 - **Claude 提示词缓存**：稳定的系统提示词以 content block 形式发送，并带 `cache_control: ephemeral`。
 - **自动标题**：根据最近消息自动生成对话标题。
 - **重试与取消**：网络错误指数退避重试；流式请求和工具循环支持取消。
@@ -29,11 +29,11 @@ LumenFlow（中文名：流光）是一款使用 Flutter 构建的 AI 聊天应�
 ### 工具调用与 MCP
 
 - **内置工具**：当前时间、日期计算、农历换算、计算器、文本对比、文本统计、单位换算、用户资料查询。
-- **用户资料工具**：模型需要称呼、性别或生日时，按需调用 `builtin__get_user_profile`；内置系统提示词不再直接写入这些个人信息。
+- **用户资料工具**：模型需要称呼、性别或生日时，按需调用 `builtin__get_user_profile`；内置系统提示词不写入这些个人信息。
 - **MCP 工具**：连接 Streamable HTTP MCP 服务器，发现并暴露其工具。
 - **统一工具循环**：`AgentRunner` 在模型回合和工具执行之间交替，并限制最大迭代次数。
-- **工具模式附件读取**：文本附件会以请求级 ID 列入清单，`builtin__read_attachment` 可按需分页读取内容；带文本附件时不再退化为纯文本请求。
-- **并行工具调用**：同一轮模型返回多个工具调用时统一执行并回传。
+- **工具模式附件读取**：文本附件会以请求级 ID 列入清单，`builtin__read_attachment` 可按需分页读取内容；带文本附件时仍保持工具请求路径。
+- **顺序工具调用**：同一轮模型返回多个工具调用时，按顺序执行并统一回传结果。
 - **工具过程可见**：每轮 AI 回复会把工具调用记录在可展开的思考区里，包含参数和结果；记录随消息持久化，切换对话后仍可查看。
 - **按协议适配**：
   - Chat Completions：DeepSeek、Kimi、MiniMax、智谱、硅基流动、小米 MiMo、其他
@@ -52,28 +52,28 @@ LumenFlow（中文名：流光）是一款使用 Flutter 构建的 AI 聊天应�
 - **自动失效**：编辑、重新生成或删除被记忆覆盖的消息会让记忆失效并触发重建。
 - **只读查看器**：聊天页 `⋯` 菜单 → **查看记忆**，展示前情、情绪、约定、已废止条目、被否方案和待合并便签，不提供编辑。
 - **角色扮演记忆页**：使用角色卡的对话会显示专属页面，包含角色资料、心情、关系阶段、当前场景、故事时间、亲密度变化、本次新增记忆和未完成的事，方便确认剧情状态。
-- **随对话导出**：JSON、LumenFlow 压缩包和 ZIP 导出都包含记忆和待合并的主动便签；导入时重映射消息 ID 并恢复。
+- **随对话导出**：JSON 与 `.lumenflow` 对话导出包含记忆和待合并的主动便签；导入时重映射消息 ID 并恢复。
 
 ### 数据与导出
 
-- **SQLite 存储**：外键、索引、事务和 SharedPreferences 自动迁移。
+- **SQLite 存储**：外键、索引和事务。
 - **对话管理**：历史列表、消息搜索、编辑、重新生成、重新提交、删除和对话级设置。
 - **附件处理**：图片、视频、音频、PDF 和文本内容提取。
-- **导出格式**：TXT、JSON、PDF、LumenFlow 压缩包。JSON、LumenFlow 和 ZIP 导出包含滚动记忆和待合并的主动便签，并可选附带当前用户角色卡正文。
-- **对话导入**：支持 LumenFlow 压缩包、ZIP 和裸 JSON 会话；本地缺少角色卡时，可从内嵌快照确认重建。导入的记忆会重映射消息 ID 后恢复。
+- **导出格式**：TXT、JSON、PDF、`.lumenflow` 归档。JSON 与 `.lumenflow` 对话导出包含滚动记忆和待合并的主动便签；`.lumenflow` 可附带当前角色卡及其附件。
+- **对话导入**：`.lumenflow` v2 归档和裸 JSON 会话；本地缺少角色卡时，可从内嵌角色卡确认重建。导入的记忆会重映射消息 ID 后恢复。
   - [LumenFlow 格式说明](./LumenFlow格式解析.md)
-- **PDF 导出**：嵌入 Noto Sans SC，按实际使用字符做字体子集，中文不再乱码。
-- **设置备份**：导出/导入 JSON 设置，恢复默认设置。
+- **PDF 导出**：嵌入 Noto Sans SC，按实际使用字符做字体子集。
+- **设置备份**：导出/导入 `.lumenflow` 设置归档。
 
 ### 使用体验
 
 - **Cupertino 风格界面**：支持亮色、暗色和跟随系统主题。
 - **用户资料**：头像、用户名、性别、生日。
-- **预设提示词与角色扮演**：内置多语言角色卡，支持导入 XML/TXT 用户预设、编辑元数据、语言/标签筛选、token 估算、重复检测和会话快照。
-- **角色卡生成器**：内置网页生成器，由本地 HTTP 服务提供。
+- **预设提示词与角色扮演**：内置多语言角色卡，支持导入 XML、TXT、`.lumenflow` 用户角色卡；可编辑元数据、查看世界书激活预览、使用头像、按语言/标签筛选、估算 token、检测重复和保存会话快照。
+- **角色卡生成器**：本地网页，提供角色字段、世界书编辑、元数据/头像处理和 `.lumenflow` 导出。
 - **Markdown 增强**：代码块支持 Night Owl 语法高亮、复制/下载，行内代码独立配色，并支持行内与块级数学公式。
 - **自适应布局**：桌面端默认两栏；窗口变窄时自动退回单栏。
-- **本地通知与实时更新**：重要事件通知和 Live Update 支持。
+- **本地通知**：重要事件通知；Android 支持 Live Update。
 - **本地优先**：对话内容和 API Key 保存在设备本地。
 
 ## AI 平台
@@ -127,14 +127,18 @@ lib/
 │   ├── chat_screen_controller.dart   # 桌面壳与嵌入聊天区的窄接口
 │   └── chat_send_controller.dart     # 单次流式发送生命周期
 ├── l10n/                             # ARB 文件和生成的本地化代码
-├── models/                           # 对话、消息、附件、记忆、记忆便签、平台、用户资料、预设模型
+├── models/                           # 对话、消息、附件、记忆、平台、用户资料、预设、世界书模型
 ├── providers/                        # 各平台普通聊天/流式 Provider
-├── screens/                          # 聊天、对话、设置、工具、资料、预设管理、记忆查看页面
+├── screens/                          # 聊天、对话、设置、工具、资料、预设管理、世界书预览、记忆查看页面
 ├── services/
 │   ├── ai_service.dart               # Provider 选择和普通聊天路径
 │   ├── tool_chat_service.dart        # 带工具的平台回合
-│   ├── conversation_database.dart    # SQLite 与数据迁移
-│   ├── conversation_service.dart     # 对话 CRUD、导入导出与快照
+│   ├── conversation_database.dart    # SQLite 结构与持久化
+│   ├── conversation_service.dart     # 对话 CRUD 与导入导出
+│   ├── conversation_archive_payload.dart # 对话 `.lumenflow` payload 构建/解析
+│   ├── lumenflow_archive.dart        # v2 ZIP manifest、哈希、上限与路径校验
+│   ├── world_info_service.dart       # 世界书解析、激活、预算与格式化
+│   ├── avatar_service.dart           # PNG 校验、缩放与编码
 │   ├── memory_service.dart           # 滚动记忆覆盖、更新与注入
 │   ├── memory_recall.dart            # 旧消息与记忆账本的本地检索
 │   ├── memory_policy.dart            # 窗口/覆盖/chunk 策略
@@ -142,8 +146,8 @@ lib/
 │   ├── memory_update.dart            # 模型输出解析与账本合并
 │   ├── memory_transfer.dart          # 导入时消息 ID/指纹重映射
 │   ├── conversation_memory_store.dart # SQLite 记忆存储适配
-│   ├── system_prompt_builder.dart    # 基础/自定义/预设/记忆拼接
-│   ├── prompt_service.dart           # 预设加载、schema 迁移、角色卡校验
+│   ├── system_prompt_builder.dart    # 基础/自定义/预设/指令/世界书/记忆拼接
+│   ├── prompt_service.dart           # 预设加载、校验、归档导入导出
 │   ├── preset_repository.dart        # 聊天与设置共享的预设状态
 │   ├── settings_service.dart         # 设置与当前平台快照
 │   └── ...                           # 文件、通知、实时更新、HTTP 服务
@@ -153,6 +157,7 @@ lib/
 │   ├── markdown_math.dart            # 行内/块级数学公式预处理与构建
 │   ├── memory_fingerprint.dart       # 被覆盖消息的内容指纹
 │   ├── preset_*.dart                 # 预设筛选、图标、标签、token 估算
+│   ├── lumenflow_error_messages.dart # 归档/世界书/头像的本地化错误
 │   └── path_utils.dart               # 跨平台数据目录
 └── widgets/                          # 聊天输入、消息气泡、预设编辑、头像、设置组件
 ```
@@ -164,13 +169,14 @@ lib/
 | `material_ui` / `cupertino_ui` | 独立发布的 Material 和 Cupertino 设计系统 |
 | `http` | 平台 API 和 MCP HTTP 传输 |
 | `sqlite3` | 对话、消息、附件、记忆和设置存储 |
-| `shared_preferences` | 轻量设置和旧数据迁移 |
+| `shared_preferences` | 轻量设置存储 |
 | `file_picker` / `image_picker` | 文件和图片选择 |
-| `pdf` / `archive` | PDF 生成和 LumenFlow 压缩包导出 |
+| `pdf` / `archive` | PDF 生成和 `.lumenflow` ZIP 容器 |
 | `flutter_markdown_plus` | Markdown 渲染 |
 | `flutter_highlight` | 代码块语法高亮 |
 | `flutter_math_fork` | 行内与块级数学公式排版 |
-| `crypto` / `xml` | 预设内容哈希、记忆指纹与 XML 角色卡校验 |
+| `crypto` / `xml` | 哈希、记忆指纹与 XML 角色卡校验 |
+| `path` / `charset` | 跨平台路径和文本解码 |
 | `flutter_svg` | 平台图标和矢量 UI 资源 |
 | `flutter_local_notifications` | 本地通知 |
 | `window_manager` | 桌面窗口配置 |
@@ -196,7 +202,8 @@ UI（screens/widgets）
 - **协议层**：每类平台有独立的流式和工具适配器，负责请求构造和事件映射。
 - **数据层**：SQLite 保存对话、消息、附件和记忆；`SettingsService` 管理配置和当前平台解析。
 - **记忆层**：`MemoryService` 校验覆盖范围和指纹，把旧消息滚动整理成 `ConversationMemory`，合并 `remember_note` 主动便签，并把 `<memory>` 块追加到 system prompt 末尾。`MemoryRecallService` 负责对旧消息和完整账本做本地按需检索。账本存在 SQLite 中，随对话导出。
-- **预设层**：`PromptService` 加载内置多语言角色卡和 schema v2 用户预设；`PresetRepository` 在聊天页与设置页之间共享加载状态。
+- **归档层**：`LumenflowArchive` 读写 v2 ZIP 容器，校验 manifest、大小上限、路径和 SHA-256；`ConversationArchivePayload` 构建/解析对话 payload；`WorldInfoService` 解析、激活和格式化世界书；`AvatarService` 校验并归一化 PNG 头像。
+- **预设层**：`PromptService` 加载内置多语言角色卡和用户角色卡，处理 XML/TXT 与 `.lumenflow` 导入导出，并加载世界书和头像；`PresetRepository` 在聊天页与设置页之间共享加载状态。
 - **本地化层**：由 ARB 文件生成 `AppLocalizations`。
 
 ### Provider 协议适配
@@ -215,7 +222,7 @@ UI（screens/widgets）
 5. 选择默认模型。
 6. 保存后点击平台卡片，将其设为当前平台。
 
-每个平台独立保存端点、凭据、模型列表和参数。旧版的单平台 API 设置页面仍然保留。
+每个平台独立保存端点、凭据、模型列表和参数。单平台 API 设置页面仍然保留。
 
 ### 工具管理
 
@@ -238,7 +245,7 @@ MCP 工具会带上服务器前缀，避免不同服务器的同名工具冲突�
 - 旧消息滑出原文窗口后，模型可以调用 `recall`，用简短关键词搜索旧消息和完整账本。
 - 在聊天页打开 `⋯` 菜单 → **查看记忆**，可以只读查看当前记忆。
 
-记忆只保存在本机，并随会话 JSON / LumenFlow / ZIP 导出。
+记忆只保存在本机，并随 JSON 与 `.lumenflow` 对话导出。
 
 ## 预设提示词
 
@@ -246,26 +253,27 @@ MCP 工具会带上服务器前缀，避免不同服务器的同名工具冲突�
 
 ### [内置预设](./presets.zh_CN.md)
 
-- `assets/prompt/presets-<locale>.json` 保存元数据；`prompt_file` 指向 `assets/prompt/characters/<locale>/` 下的 XML 角色卡。
-- 语言回退链为 `lzh → zh → en`，其他语言回退到 `en → zh`。角色卡缺失时会在管理页显示为“不可用”，不再静默消失。
+- `assets/prompt/presets-<locale>.json` 保存元数据；`prompt_file` 指向 `assets/prompt/characters/<locale>/` 下的 XML 角色卡，`world_info_file` 指向对应的 `*.world_info.json`。
+- 语言回退链为 `lzh → zh → en`，其他语言回退到 `en → zh`。角色卡缺失时会在管理页显示为“不可用”。
 - 内置元数据提供中文、英文、日文、韩文和西班牙文五个版本。
 
 ### 用户预设
 
-- 在 **设置 → 预设管理** 导入 XML 或 TXT 角色卡。文件上限 200 KB，会校验 UTF-8、XML 结构和根节点，并读取可选的 `<role_name>`。
+- 在 **设置 → 预设管理** 导入 XML、TXT 或 `.lumenflow` 角色卡。XML/TXT 文件上限 200 KB，会校验 UTF-8、XML 结构和根节点，并读取可选的 `<role_name>`。
 - 可编辑名称、描述、作者、版本、图标、语言和标签；导入弹窗会显示 token 估算，超过 4,000 / 8,000 tokens 时给出成本提示。
-- 使用规范化正文的 SHA-256 做重复检测；重复导入需要二次确认。
+- 世界书由常驻背景和按关键词激活的条目组成；应用提供激活预览，编辑在生成器网页中完成。
+- PNG 头像最长边限制为 1024、大小限制为 2 MB；头像缺失或损坏时回退到预设图标。
+- 使用规范化正文的 SHA-256 做重复检测，存在世界书时合并计算；重复导入需要二次确认。
 - 预设支持复制、导出、删除，以及按语言或标签筛选。
-- 用户数据保存在 `user_prompts/`：`user_presets.json`（schema v2）和角色卡文件。旧版 v1 数据会自动备份并迁移。
-- schema v2 将内联 `system_prompt` 和 `prompt_file` 分开，持久化语言、标签、时间戳和内容哈希，单条损坏不会影响其他预设，加载问题会在管理页集中展示。
+- 用户数据保存在 `user_prompts/`：`user_presets.json` 和角色卡文件。`.lumenflow` 导入使用 `<preset-id>/` 目录，包含 `character.xml`、可选 `world_info.json` 和可选 `avatar.png`；直接导入 XML/TXT 时使用扁平文件。
 
 ### 提示词拼接
 
-- 最终系统提示词按“本地化基础规则（含回复语言规则）→ 用户自定义提示 → 角色预设 → 记忆块”拼接。
-- AI 回复语言可跟随界面、跟随用户输入或指定语言；角色卡自带的语言和文风优先。
-- 提示词不再替换 `${userProfile.*}` 变量；角色卡需要称呼、性别或生日时，应调用 `builtin__get_user_profile`。
+- 最终系统提示词按“本地化基础规则（含回复语言规则）→ 用户自定义提示 → 角色预设 → note/recall 指令 → 世界书 → 记忆块”拼接。
+- AI 回复语言可跟随界面、跟随用户输入或指定语言。所选角色卡自身的语言和文风仍作为角色卡提示词的一部分。
+- 提示词不替换 `${userProfile.*}` 变量；角色卡需要称呼、性别或生日时，应调用 `builtin__get_user_profile`。
 
-角色卡生成器由应用内置的本地 HTTP 服务提供（`HttpServerService`，回环地址端口 5050）。
+角色卡生成器由应用内置的本地 HTTP 服务提供（`HttpServerService`，回环地址端口 5050–5059）。页面可编辑角色字段、世界书、元数据和头像，并导出 `.lumenflow` 归档。
 
 ## 数据存储
 
@@ -280,8 +288,10 @@ SQLite 数据库位置：
 
 用户预设保存在数据库同级的 `user_prompts/` 目录：
 
-- `user_presets.json`：schema v2 元数据。
-- `<preset-id>.xml` / `.txt`：角色卡正文。
+- `user_presets.json`：预设元数据。
+- `<preset-id>.xml` / `.txt`：直接导入 XML/TXT 时的角色卡正文。
+- `<preset-id>.world_info.json` / `<preset-id>.avatar.png`：可选的扁平附属文件。
+- `<preset-id>/character.xml`、`<preset-id>/world_info.json`、`<preset-id>/avatar.png`：`.lumenflow` 导入使用的角色卡目录。
 
 所有对话、API Key 和用户资料都保存在设备本地。需要备份时使用设置导出功能。
 
@@ -353,6 +363,7 @@ Android release 签名从 `android/key.properties` 读取。
 - 工具调用失败会尽量作为工具结果返回给模型，而不是直接中断整个回合。
 - 各平台错误会映射为对应语言的本地化消息。
 - 预设加载问题（JSON 损坏、单条数据无效、角色卡缺失或不可读）会集中收集并在预设管理页展示，不会阻断启动。
+- `.lumenflow` 导入会拒绝不安全路径、错误格式、大小不匹配和 SHA-256 不匹配；世界书或头像损坏时会跳过并给出本地化提示，不会让整张角色卡导入失败。
 - 取消操作会传递到流式读取和工具执行。
 
 ## 许可证
@@ -370,6 +381,7 @@ Android release 签名从 `android/key.properties` 读取。
 - [Flutter](https://flutter.dev/) 以及 `material_ui` / `cupertino_ui` 包
 - AI 平台：OpenAI、Anthropic、Google Gemini、DeepSeek、Kimi、MiniMax、智谱 AI、硅基流动、小米 MiMo、xAI、OpenRouter、LM Studio
 - [Noto Sans SC](https://fonts.google.com/noto/specimen/Noto+Sans+SC)（OFL 1.1）
+- [JSZip](https://stuk.github.io/jszip/)（MIT），用于内置角色卡生成器
 - [Cupertino Icons](https://pub.dev/packages/cupertino_icons)
 - [MCP](https://modelcontextprotocol.io/) 工具集成协议
 

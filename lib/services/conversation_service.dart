@@ -6,6 +6,7 @@ import '../models/conversation.dart';
 import '../models/conversation_memory.dart';
 import '../models/memory_note.dart';
 import '../models/message.dart';
+import '../models/preset_import_result.dart';
 import '../models/prompt_preset.dart';
 import '../l10n/app_localizations.dart';
 
@@ -25,8 +26,10 @@ import '../utils/file_save_utils.dart';
 import 'dart:async';
 import 'dart:convert';
 
+import 'conversation_archive_payload.dart';
 import 'conversation_database.dart';
 import 'file_service.dart';
+import 'lumenflow_archive.dart';
 import 'memory_transfer.dart';
 import 'prompt_service.dart';
 
@@ -508,52 +511,99 @@ class ConversationService {
     return json;
   }
 
-  /// 导出对话为Lumenflow格式
-  /// 包含元数据和对话内容
-  Future<Map<String, dynamic>> exportConversationToLumenflow(
+  /// 导出 v2 对话 `.lumenflow` 归档。
+  Future<List<int>> exportConversationArchive(
     String conversationId,
     AppLocalizations l10n, {
-    bool includePresetSnapshot = false,
+    bool includeCharacter = false,
   }) async {
     final conversation = await getConversationById(conversationId);
     if (conversation == null) {
       throw Exception(l10n.exportConversationNotFound);
     }
 
-    final versionService = VersionService();
-    final versionInfo = await versionService.getVersionInfo();
-
-    final conversationJson = conversation.toJson();
-    final memory = await getConversationMemory(conversationId);
-    if (memory != null && !memory.isEmpty) {
-      conversationJson['memory'] = memory.toJson();
+    PromptPreset? preset;
+    if (includeCharacter &&
+        conversation.promptPresetEnabled &&
+        conversation.promptPresetId.isNotEmpty) {
+      preset = await _promptService.findPresetById(
+        conversation.promptPresetId,
+      );
     }
-    final pendingNotes = await getMemoryNotes(
+
+    var conversationJson = await exportConversationToJson(
       conversationId,
-      onlyPending: true,
+      l10n,
     );
-    if (pendingNotes.isNotEmpty) {
-      conversationJson['memory_notes'] = pendingNotes
-          .map((note) => note.toJson())
-          .toList();
-    }
-    final snapshot = await _buildPresetSnapshot(
-      conversation,
-      includePresetSnapshot,
-    );
-    if (snapshot != null) {
-      conversationJson['prompt_preset_snapshot'] = snapshot;
-    }
-    final lumenflowData = {
-      '_format': 'lumenflow',
-      '_version': '1.0',
-      '_type': 'conversation',
-      '_created': DateTime.now().toUtc().toIso8601String(),
-      '_app_version': versionInfo['version'] ?? 'unknown',
-      'conversation': conversationJson,
-    };
 
-    return lumenflowData;
+    final attachmentFiles = await _collectAttachmentFiles(conversation);
+    final attachments = <String, List<int>>{};
+    var attachmentIndex = 1;
+    for (final entry in attachmentFiles.entries) {
+      final bytes = await File(entry.key).readAsBytes();
+      final base = _safeAttachmentName(
+        entry.value.fileName,
+        attachmentIndex,
+      );
+      attachments['conversation/attachments/${attachmentIndex}_$base'] =
+          bytes;
+      attachmentIndex++;
+    }
+
+    CharacterArchiveFiles? character;
+    if (includeCharacter && preset != null && !preset.isBroken) {
+      final promptFile = preset.promptFile;
+      final canExportCharacter =
+          promptFile == null
+              ? preset.systemPrompt.trimLeft().startsWith(
+                  '<system_instruction',
+                )
+              : !promptFile.toLowerCase().endsWith('.txt');
+      if (canExportCharacter) {
+        try {
+          final characterArchiveBytes =
+              await _promptService.exportCharacterCardArchive(preset);
+          final characterArchive = LumenflowArchive.read(
+            characterArchiveBytes,
+          );
+          final xml = characterArchive.files['character/character.xml'];
+          if (xml != null) {
+            character = CharacterArchiveFiles(
+              meta: characterArchive.files['character/meta.json'],
+              xml: xml,
+              worldInfo:
+                  characterArchive.files['character/world_info.json'],
+              avatar: characterArchive.files['character/avatar.png'],
+            );
+          }
+        } catch (error) {
+          debugPrint('Skipping character archive in conversation export: $error');
+        }
+      }
+    }
+    if (includeCharacter && character == null && preset != null) {
+      // 非 XML 或无法读取的角色卡改用快照，避免整个对话导出失败。
+      conversationJson = await exportConversationToJson(
+        conversationId,
+        l10n,
+        includePresetSnapshot: true,
+      );
+    }
+
+    final versionInfo = await VersionService().getVersionInfo();
+    return ConversationArchivePayload.buildArchive(
+      conversation: conversationJson,
+      attachments: attachments,
+      character: character,
+      title: conversation.title,
+      language: l10n.localeName,
+      appVersion: versionInfo['version'] ?? 'unknown',
+    );
+  }
+
+  String _safeAttachmentName(String raw, int index) {
+    final name = _sanitizeAttachmentName(raw);
+    return name == 'attachment' ? 'attachment_$index' : name;
   }
 
   /// 从指定消息处分叉出一个新会话，源会话保持不变。
@@ -641,18 +691,73 @@ class ConversationService {
     return fork;
   }
 
-  /// 导入 LumenFlow 对话包。
-  ///
-  /// 支持会话列表导出的裸 `.lumenflow` 文件，也支持聊天页导出的 ZIP
-  /// （内含 `conversation.lumenflow` 和 `attachments/`）。
-  Future<Conversation> importConversationFromLumenflow({
+  /// 导入 v2 `.lumenflow` 对话归档。
+  Future<Conversation> importConversationArchive({
     required List<int> bytes,
     required AppLocalizations l10n,
     Future<bool> Function(String name)? confirmPresetImport,
   }) async {
-    final package = _decodeLumenflowPackage(bytes, l10n);
-    final rawConversation = package.data['conversation'];
-    final rawMap = (rawConversation as Map).cast<String, dynamic>();
+    final ConversationArchivePayload payload;
+    try {
+      payload = ConversationArchivePayload.parse(
+        LumenflowArchive.read(bytes),
+      );
+    } on FormatException catch (error) {
+      if (error.message.contains('Legacy lumenflow v1') ||
+          error.message.contains('Missing character')) {
+        rethrow;
+      }
+      throw FormatException(l10n.conversationImportInvalid);
+    } catch (_) {
+      throw FormatException(l10n.conversationImportInvalid);
+    }
+    return _importConversationPayload(
+      payload,
+      l10n: l10n,
+      confirmPresetImport: confirmPresetImport,
+    );
+  }
+
+  /// 导入裸 JSON 对话文件（不带附件）。
+  Future<Conversation> importConversationFromJson({
+    required List<int> bytes,
+    required AppLocalizations l10n,
+    Future<bool> Function(String name)? confirmPresetImport,
+  }) async {
+    final Map<String, dynamic> rawMap;
+    try {
+      final decoded = jsonDecode(utf8.decode(bytes));
+      if (decoded is! Map) {
+        throw const FormatException('not an object');
+      }
+      final map = decoded.cast<String, dynamic>();
+      if (map['_format'] == 'lumenflow' || map['_type'] == 'conversation') {
+        throw const FormatException('legacy lumenflow');
+      }
+      if (map['messages'] is! List || map['id'] is! String) {
+        throw const FormatException('not a conversation');
+      }
+      rawMap = map;
+    } catch (_) {
+      throw FormatException(l10n.conversationImportInvalid);
+    }
+
+    return _importConversationPayload(
+      ConversationArchivePayload(
+        conversation: rawMap,
+        attachments: const {},
+      ),
+      l10n: l10n,
+      confirmPresetImport: confirmPresetImport,
+    );
+  }
+
+  Future<Conversation> _importConversationPayload(
+    ConversationArchivePayload payload, {
+    required AppLocalizations l10n,
+    Future<bool> Function(String name)? confirmPresetImport,
+  }) async {
+    final rawMap = payload.conversation;
     Conversation imported;
     try {
       imported = Conversation.fromJson(rawMap);
@@ -706,19 +811,43 @@ class ConversationService {
       }
     }
 
-    final stamp = DateTime.now().microsecondsSinceEpoch;
-    final conversationId = 'imported_$stamp';
-    final attachmentEntries = <String, List<int>>{};
-    if (package.archive != null) {
-      for (final file in package.archive!.files) {
-        if (!file.isFile) continue;
-        final entryName = file.name.replaceAll('\\', '/');
-        if (!entryName.startsWith('attachments/')) continue;
-        attachmentEntries[entryName] = List<int>.from(
-          file.content as List<int>,
-        );
+    if (payload.character != null) {
+      final characterName = _characterName(
+        payload.character!,
+        imported.title,
+      );
+      final local = importedPresetId.isEmpty
+          ? null
+          : await _promptService.findPresetById(importedPresetId);
+      if (local == null) {
+        final confirmed =
+            confirmPresetImport == null ||
+            await confirmPresetImport(characterName);
+        if (confirmed) {
+          final characterBytes = _buildCharacterArchive(
+            payload.character!,
+            characterName,
+            l10n.localeName,
+          );
+          try {
+            final created = await _promptService.importCharacterCardArchive(
+              characterBytes,
+            );
+            importedPresetId = created.id;
+          } on PresetDuplicateException catch (duplicate) {
+            importedPresetId = duplicate.existing.id;
+          } catch (error) {
+            debugPrint('Skipping embedded character card: $error');
+          }
+        }
+      } else {
+        importedPresetId = local.id;
       }
     }
+
+    final stamp = DateTime.now().microsecondsSinceEpoch;
+    final conversationId = 'imported_$stamp';
+    final attachmentEntries = payload.attachments;
 
     final fileService = FileService();
     final usedAttachmentEntries = <String>{};
@@ -864,64 +993,91 @@ class ConversationService {
     return conversation;
   }
 
-  _LumenflowPackage _decodeLumenflowPackage(
-    List<int> bytes,
-    AppLocalizations l10n,
-  ) {
-    Archive? archive;
-    dynamic decoded;
-
-    try {
-      if (bytes.length >= 2 && bytes[0] == 0x50 && bytes[1] == 0x4B) {
-        archive = ZipDecoder().decodeBytes(bytes);
-        ArchiveFile? conversationFile;
-        for (final file in archive.files) {
-          if (file.isFile && file.name.toLowerCase().endsWith('.lumenflow')) {
-            conversationFile = file;
-            break;
+  String _characterName(CharacterArchiveFiles character, String fallback) {
+    final meta = character.meta;
+    if (meta != null) {
+      try {
+        final decoded = jsonDecode(utf8.decode(meta));
+        if (decoded is Map) {
+          final name = decoded['name'];
+          if (name is String && name.trim().isNotEmpty) {
+            return name.trim();
           }
         }
-        if (conversationFile == null) {
-          throw FormatException(l10n.conversationImportInvalid);
-        }
-        decoded = jsonDecode(
-          utf8.decode(List<int>.from(conversationFile.content as List<int>)),
-        );
-      } else {
-        decoded = jsonDecode(utf8.decode(bytes));
+      } catch (_) {
+        // Fall through to role_name.
+      }
+    }
+
+    try {
+      final xml = utf8.decode(character.xml);
+      final match = RegExp(
+        r'<role_name>([\s\S]*?)</role_name>',
+      ).firstMatch(xml);
+      final name = match?.group(1)?.trim();
+      if (name != null && name.isNotEmpty) {
+        return name;
       }
     } catch (_) {
-      throw FormatException(l10n.conversationImportInvalid);
+      // Fall through to the conversation title.
     }
+    return fallback;
+  }
 
-    if (decoded is! Map) {
-      throw FormatException(l10n.conversationImportInvalid);
+  Uint8List _buildCharacterArchive(
+    CharacterArchiveFiles character,
+    String title,
+    String language,
+  ) {
+    final files = <LumenflowArchiveFile>[
+      if (character.meta != null)
+        LumenflowArchiveFile(
+          path: 'character/meta.json',
+          role: 'meta',
+          bytes: character.meta!,
+        ),
+      LumenflowArchiveFile(
+        path: 'character/character.xml',
+        role: 'character',
+        bytes: character.xml,
+      ),
+      if (character.worldInfo != null)
+        LumenflowArchiveFile(
+          path: 'character/world_info.json',
+          role: 'world_info',
+          bytes: character.worldInfo!,
+        ),
+      if (character.avatar != null)
+        LumenflowArchiveFile(
+          path: 'character/avatar.png',
+          role: 'avatar',
+          bytes: character.avatar!,
+        ),
+    ];
+    final manifest = LumenflowManifest(
+      type: LumenflowArchiveType.characterCard,
+      created: DateTime.now().toUtc(),
+      appVersion: 'unknown',
+      title: title,
+      language: language,
+      includesCharacter: true,
+      files: const [],
+    );
+    return Uint8List.fromList(LumenflowArchive.write(manifest, files));
+  }
+
+  String _sanitizeAttachmentName(String raw) {
+    var name = raw
+        .replaceAll(RegExp(r'[\\/:*?"<>|]'), '_')
+        .replaceAll(RegExp(r'[\u0000-\u001F]'), '')
+        .trim();
+    if (name.isEmpty || name == '.' || name == '..') {
+      name = 'attachment';
     }
-    var data = decoded.cast<String, dynamic>();
-
-    // 裸 JSON 会话导出没有 LumenFlow 元数据，本身就是一个 conversation 对象。
-    // 只在结构明确像会话时才包装，避免把设置 JSON 误当成对话。
-    if (data['_format'] == null &&
-        data['_type'] == null &&
-        data['messages'] is List &&
-        data['id'] is String) {
-      data = {
-        '_format': 'lumenflow',
-        '_version': '1.0',
-        '_type': 'conversation',
-        '_created': DateTime.now().toUtc().toIso8601String(),
-        '_app_version': 'unknown',
-        'conversation': data,
-      };
+    if (name.length > 120) {
+      name = name.substring(0, 120);
     }
-
-    if (data['_format'] != 'lumenflow' ||
-        data['_type'] != 'conversation' ||
-        data['conversation'] is! Map) {
-      throw FormatException(l10n.conversationImportInvalid);
-    }
-
-    return _LumenflowPackage(data: data, archive: archive);
+    return name;
   }
 
   String? _findAttachmentEntry(
@@ -929,21 +1085,15 @@ class ConversationService {
     Set<String> used,
     String fileName,
   ) {
-    final baseName = path.basename(fileName);
-    final exact = 'attachments/$baseName';
-    if (entries.containsKey(exact) && !used.contains(exact)) {
-      return exact;
-    }
-
+    final target = _sanitizeAttachmentName(fileName);
     for (final name in entries.keys) {
-      if (used.contains(name) || !name.startsWith('attachments/')) continue;
-      final zipName = name.substring('attachments/'.length);
-      if (zipName == baseName) return name;
-      final normalized = zipName.replaceFirst(
-        RegExp(r'_\(\d+\)(?=\.[^.]+$)'),
-        '',
-      );
-      if (normalized == baseName) return name;
+      if (used.contains(name)) continue;
+      final archived = path.posix.basename(name);
+      final withoutIndex = archived.replaceFirst(RegExp(r'^\d+_'), '');
+      if (withoutIndex == target) return name;
+    }
+    for (final name in entries.keys) {
+      if (!used.contains(name)) return name;
     }
     return null;
   }
@@ -1270,15 +1420,6 @@ class ConversationService {
         );
         conversationContent = jsonEncode(jsonData);
         conversationFileName = 'conversation.json';
-        break;
-      case 'lumenflow':
-        final lumenflowData = await exportConversationToLumenflow(
-          conversation.id,
-          l10n,
-          includePresetSnapshot: includePresetSnapshot,
-        );
-        conversationContent = jsonEncode(lumenflowData);
-        conversationFileName = 'conversation.lumenflow';
         break;
       default:
         throw Exception('不支持的导出格式: $format');
@@ -1735,11 +1876,4 @@ class ConversationService {
     final result = await saveExportBytes(fileName: fileName, bytes: bytes);
     return {'filePath': result.filePath, 'locationType': result.locationType};
   }
-}
-
-class _LumenflowPackage {
-  final Map<String, dynamic> data;
-  final Archive? archive;
-
-  const _LumenflowPackage({required this.data, this.archive});
 }

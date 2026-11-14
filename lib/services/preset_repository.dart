@@ -106,6 +106,32 @@ class PresetRepository extends ChangeNotifier {
     return preset;
   }
 
+  Future<PromptPreset> importCharacterCardArchive(
+    Uint8List bytes, {
+    String? name,
+    String? description,
+    String? author,
+    String? version,
+    String? icon,
+    String? language,
+    List<String>? tags,
+    bool allowDuplicate = false,
+  }) async {
+    final preset = await _promptService.importCharacterCardArchive(
+      bytes,
+      name: name,
+      description: description,
+      author: author,
+      version: version,
+      icon: icon,
+      language: language,
+      tags: tags,
+      allowDuplicate: allowDuplicate,
+    );
+    await ensureLoaded(force: true);
+    return preset;
+  }
+
   Future<PromptPreset> importTextPreset(
     File file, {
     String? name,

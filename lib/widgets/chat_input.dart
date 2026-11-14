@@ -10,7 +10,7 @@ import '../services/ai_service.dart';
 import '../models/attachment.dart';
 import '../models/prompt_preset.dart';
 import '../utils/app_theme.dart';
-import '../utils/preset_icons.dart';
+import 'preset_avatar.dart';
 import 'attachment_preview_chip.dart';
 import 'preset_unavailable_dialog.dart';
 
@@ -163,10 +163,10 @@ class _ChatInputState extends State<ChatInput> {
                 },
                 child: Row(
                   children: [
-                    Icon(
-                      presetIconForName(preset.icon),
-                      size: 20,
-                      color: preset.isBroken
+                    PresetAvatar(
+                      preset: preset,
+                      size: 28,
+                      iconColor: preset.isBroken
                           ? CupertinoColors.systemGrey2
                           : primaryColor,
                     ),

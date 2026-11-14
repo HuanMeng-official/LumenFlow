@@ -1,271 +1,282 @@
-## *LumenFlow 格式解析文档*
+# LumenFlow 格式说明
 
-### 概述
-Lumenflow 格式是 LumenFlow 应用的自定义设置文件格式，专为应用设置导出/导入功能设计。它在 JSON格式基础上增加了元数据层，提供了更好的版本控制和兼容性管理。
+> 版本：**2.0**  
+> 扩展名：`.lumenflow`  
+> 容器：**ZIP**（`application/zip`）  
+> 状态：v1 `.lumenflow` 不再支持。
 
-> 版本：1.0  
-> 扩展名：.lumenflow  
-> 类型：application/json
+## 1. 概述
 
-### 文件结构
-```json
-{
-    "_format": "lumenflow",       // 格式标识
-    "_version": "1.0",            // 格式版本
-    "_created": "2025-12-31T10:30:00.000Z",  // 创建时间（UTC ISO 8601）
-    "_app_version": "1.9.0",      // 应用版本
+`.lumenflow` 是一个 ZIP 容器，根目录必须有 `manifest.json`，并按类型携带一种或多种 payload。同一格式服务三类用途：
 
-    "settings": {
-      // 原有的所有设置键值对
-        "api_endpoint": "https://api.openai.com/v1",
-        "api_key": "sk-...",
-        "model": "gpt-5",
-        "temperature": 0.7,
-        "max_tokens": 8192,
-        "enable_history": true,
-        "history_context_length": 30,
-        "custom_system_prompt": "",
-        "api_type": "openai",
-        "dark_mode": false,
-        "follow_system_theme": true,
-        "app_theme": "light",
-        "thinking_mode": false,
-        "prompt_preset_enabled": false,
-        "prompt_preset_id": "",
-        "auto_title_enabled": true,
-        "auto_title_rounds": 3,
-        "locale": "zh",
-        "ai_platforms": "[{\"id\":\"openai\",\"name\":\"OpenAI\",...}]",
-        "current_platform_id": "openai"
-    }
-  }
-  ```
+| `_type` | 用途 |
+| --- | --- |
+| `settings` | 应用设置备份 |
+| `conversation` | 对话、记忆、便签、附件，可选内置角色卡 |
+| `character_card` | 独立角色卡 |
 
-  ### 字段说明
-  元数据字段（以 _ 开头）
+读取方必须拒绝未知 `_format`、不支持的 `_version`、未知 `_type`、缺失文件、大小或 SHA-256 不匹配、危险路径，以及旧版 v1 JSON。
 
-  | 字段名       | 类型   | 必需 | 说明                         |
-  | ------------ | ------ | ---- | ---------------------------- |
-  | _format      | string | YES  | 格式标识，固定为 "lumenflow" |
-  | _version     | string | YES  | 格式版本，当前为 "1.0"       |
-  | _created     | string | YES  | 创建时间戳（UTC ISO 8601）   |
-  | _app_version | string | YES  | 导出时应用的版本号           |
+## 2. 容器结构
 
-  设置数据字段
+### 2.1 设置
 
-  | 字段名   | 类型   | 必需 | 说明                         |
-  | -------- | ------ | ---- | ---------------------------- |
-  | settings | object | YES  | 包含所有应用设置的 JSON 对象 |
-
-### 注意事项
-1. 安全性
-    - 敏感信息：api_key 等敏感信息会包含在导出的文件中
-    - 存储安全：用户应妥善保管 .lumenflow 文件，避免泄露
-    - 本地处理：所有解析都在设备本地完成，无网络传输
-2. 文件管理
-    - 命名规范：lumenflow_settings_YYYY-MM-DD.lumenflow
-    - 文件大小：通常小于 10KB
-
-### 开发指导
-```python
-# Python 示例
-import json
-
-  def parse_lumenflow(file_path):
-      """
-      解析 Lumenflow 格式文件
-      Args:
-          file_path: Lumenflow 文件路径
-      Returns:
-          dict: 解析后的设置数据
-      Raises:
-          ValueError: 如果不是有效的 Lumenflow 格式
-          FileNotFoundError: 文件不存在
-          json.JSONDecodeError: JSON 解析错误
-      """
-      with open(file_path, 'r', encoding='utf-8') as f:
-          data = json.load(f)
-
-      # 验证必需字段
-      required_fields = ['_format', '_version', '_created', '_app_version', 'settings']
-      for field in required_fields:
-          if field not in data:
-              raise ValueError(f'无效的 Lumenflow 格式：缺少 {field} 字段')
-
-      # 验证格式标识
-      if data['_format'] != 'lumenflow':
-          raise ValueError(f'无效的格式标识：{data["_format"]}，应为 "lumenflow"')
-
-      # 验证版本
-      if data['_version'] != '1.0':
-          print(f'警告：不支持的 Lumenflow 版本 {data["_version"]}，当前支持 v1.0')
-
-      # 提取元数据
-      metadata = {
-          'format': data['_format'],
-          'version': data['_version'],
-          'created': data['_created'],
-          'app_version': data['_app_version']
-      }
-
-      # 返回设置数据和元数据
-      return {
-          'metadata': metadata,
-          'settings': data['settings']
-      }
-
-  # 使用示例
-  try:
-      result = parse_lumenflow('lumenflow_settings_2025-12-31.lumenflow')
-      print(f"应用版本: {result['metadata']['app_version']}")
-      print(f"创建时间: {result['metadata']['created']}")
-      print(f"API 端点: {result['settings'].get('api_endpoint', '未设置')}")
-  except ValueError as e:
-      print(f"格式错误: {e}")
-  except json.JSONDecodeError as e:
-      print(f"JSON 解析错误: {e}")
-  except FileNotFoundError:
-      print("文件不存在")
+```text
+settings.lumenflow
+├── manifest.json
+└── settings/
+    └── settings.json
 ```
 
-```javascript
-// JavaScript 示例
+### 2.2 对话
 
-/**
- * @param {string|File} input - Lumenflow JSON 字符串 或 File 对象
- * @returns {Promise<Object>} 包含元数据和设置的对象
- */
-async function parseLumenflow(input) {
-    let jsonData;
+```text
+conversation.lumenflow
+├── manifest.json
+├── conversation/
+│   ├── conversation.json
+│   └── attachments/
+│       └── 1_note.txt
+└── character/                    # includes_character = true 时存在
+    ├── meta.json
+    ├── character.xml
+    ├── world_info.json           # 可选
+    └── avatar.png                # 可选
+```
 
-    // 处理不同类型的输入
-    if (typeof input === 'string') {
-      // 直接解析 JSON 字符串
-      jsonData = JSON.parse(input);
-    } else if (input instanceof File) {
-      // 读取文件内容
-      const text = await input.text();
-      jsonData = JSON.parse(text);
-    } else {
-      throw new Error('无效的输入类型，应为字符串或 File 对象');
-    }
+### 2.3 独立角色卡
 
-    // 验证必需字段
-    const required = ['_format', '_version', '_created', '_app_version', 'settings'];
-    for (const field of required) {
-      if (!(field in jsonData)) {
-        throw new Error(`无效的 Lumenflow 格式：缺少 ${field} 字段`);
-      }
-    }
+```text
+character.lumenflow
+├── manifest.json
+└── character/
+    ├── meta.json
+    ├── character.xml
+    ├── world_info.json           # 可选
+    └── avatar.png                # 可选
+```
 
-    // 验证格式标识
-    if (jsonData._format !== 'lumenflow') {
-      throw new Error(`无效的格式标识：${jsonData._format}，应为 "lumenflow"`);
-    }
-
-    // 返回结构化数据
-    return {
-      metadata: {
-        format: jsonData._format,
-        version: jsonData._version,
-        created: jsonData._created,
-        appVersion: jsonData._app_version
-      },
-      settings: jsonData.settings
-    };
-  }
-
-  // 使用示例 - 从文件输入读取
-  document.getElementById('lumenflowFile').addEventListener('change', async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    try {
-      const result = await parseLumenflow(file);
-      console.log('元数据:', result.metadata);
-      console.log('设置数量:', Object.keys(result.settings).length);
-
-      // 显示在页面上
-      document.getElementById('appVersion').textContent = result.metadata.appVersion;
-      document.getElementById('createdTime').textContent = new Date(result.metadata.created).toLocaleString();
-    } catch (error) {
-      console.error('解析失败:', error);
-      alert(`解析失败: ${error.message}`);
-    }
-  });
-
-  // 使用示例 - 从字符串解析
-  const lumenflowString = `{
-    "_format": "lumenflow",
-    "_version": "1.0",
-    "_created": "2025-12-31T10:30:00.000Z",
-    "_app_version": "1.9.0",
-    "settings": {
-      "api_endpoint": "https://api.openai.com/v1",
-      "model": "gpt-5"
-    }
-  }`;
-
-  try {
-    const result = parseLumenflow(lumenflowString);
-    console.log('解析成功:', result);
-  } catch (error) {
-    console.error('解析失败:', error);
-  }
-  ```
-
----
-
-## 会话导出变体
-
-会话包沿用同一套元数据，但使用 `_type: "conversation"`，对话内容放在 `conversation` 对象里。自 2026-11 起，`conversation.memory` 携带滚动记忆，用于保持长对话的连续性：
+## 3. manifest.json
 
 ```json
 {
   "_format": "lumenflow",
-  "_version": "1.0",
-  "_type": "conversation",
-  "_created": "2026-11-12T10:30:00.000Z",
+  "_version": "2.0",
+  "_type": "character_card",
+  "_created": "2026-11-14T10:30:00.000Z",
   "_app_version": "3.1.0",
-  "conversation": {
-    "id": "conversation_id",
-    "title": "对话标题",
-    "messages": [],
-    "memory": {
-      "summary": "前情梗概……",
-      "emotionalState": "当前关系与情绪……",
-      "facts": [],
-      "rejected": [],
-      "coveredUntilMessageId": "message_id",
-      "fingerprint": "sha256",
-      "updatedAt": 1730000000000
-    },
-    "memory_notes": [
-      {
-        "id": "note_id",
-        "conversationId": "conversation_id",
-        "kind": "agreement",
-        "text": "日落前回营地",
-        "quote": "我们约好日落前回营地",
-        "reason": null,
-        "sourceMessageId": "message_id",
-        "createdAt": 1730000000000,
-        "status": "pending"
-      }
-    ]
-  }
+  "_min_reader_version": "2.0",
+  "_title": "陆瑶",
+  "_language": "zh",
+  "_contains_secrets": false,
+  "includes_character": true,
+  "files": [
+    {
+      "path": "character/character.xml",
+      "role": "character",
+      "size": 12345,
+      "sha256": "……64 位小写十六进制……"
+    }
+  ]
 }
 ```
 
-- `memory` 是可选的新增字段；旧版本文件没有它仍然有效，导入后会按消息按需重建。
-- `memory_notes` 保存尚未合并进 `memory` 的主动便签；已处理的便签不会导出。导入时会重新生成便签 ID，并重映射 `sourceMessageId`。
-- 应用也接受裸 JSON 会话文件（即 `conversation` 对象本身，没有 LumenFlow 元数据）；只要文件包含 `id` 和 `messages`，就会被识别为会话导出。
-- 导入时会重新生成消息 ID。实现方必须把 `coveredUntilMessageId` 以及 `facts` / `rejected` 里的 `sourceMessageId` 重映射到新 ID，再按导入后的消息重新计算 `fingerprint`。
-- 如果边界消息无法映射，保留记忆内容但清空覆盖边界和指纹；应用会在下次发送时按需重建。
-- `facts` 保存约定、规则、事实和结论，带 `active` / `superseded` 状态；`rejected` 保存方案、否掉理由，带 `active` / `reopened` 状态。已废止和已否决条目不会从记忆里删除。
+| 字段 | 类型 | 必需 | 说明 |
+| --- | --- | --- | --- |
+| `_format` | string | 是 | 固定为 `lumenflow` |
+| `_version` | string | 是 | 容器版本，当前为 `2.0` |
+| `_type` | string | 是 | `settings`、`conversation` 或 `character_card` |
+| `_created` | string | 是 | UTC ISO 8601 创建时间 |
+| `_app_version` | string | 是 | 导出方应用版本 |
+| `_min_reader_version` | string | 是 | 最低读取版本，当前为 `2.0` |
+| `_title` | string | 是 | 人类可读标题 |
+| `_language` | string | 是 | 语言代码，或 `und` |
+| `_contains_secrets` | boolean | 否 | payload 可能包含 API Key 时为 `true` |
+| `includes_character` | boolean | 否 | 存在 `character/` 时为 `true` |
+| `files` | array | 是 | payload 文件；**不包含 `manifest.json` 自身** |
 
----
+每个 `files` 条目包含 `path`、`role`、`size`、`sha256`。读取方只暴露 manifest 列出的文件，ZIP 中多余条目忽略。列出的文件必须存在、大小一致、SHA-256 一致。
 
-最后更新：2026/11/13  
-维护者：幻梦official  
-文档版本：1.2
+### 3.1 角色
+
+| role | 常见路径 |
+| --- | --- |
+| `settings` | `settings/settings.json` |
+| `conversation` | `conversation/conversation.json` |
+| `attachment` | `conversation/attachments/…` |
+| `meta` | `character/meta.json` |
+| `character` | `character/character.xml` |
+| `world_info` | `character/world_info.json` |
+| `avatar` | `character/avatar.png` |
+
+## 4. 安全与上限
+
+- 拒绝空路径、绝对路径、盘符、反斜杠、`.`/`..` 段、空段、大小写冲突路径。
+- 路径统一使用 `/`。
+- 解压后总 payload 上限：**512 MB**。
+- 单文件上限：**256 MB**。
+- 条目数上限：**5000**。
+- payload 路径不得为 `manifest.json`。
+- 非 ZIP 的 v1 JSON 直接抛出 `FormatException('Legacy lumenflow v1 is not supported')`。
+- 设置归档的 `_contains_secrets` 为 `true`，因为其中包含 API Key 与平台凭据。
+
+## 5. payload 结构
+
+### 5.1 settings/settings.json
+
+应用设置键值对组成的扁平 JSON 对象，与 `SettingsService.exportSettingsToJson()` 的返回一致，包含平台配置。
+
+### 5.2 conversation/conversation.json
+
+原始对话文档，不再套一层 v1 包装：
+
+```json
+{
+  "id": "conversation-id",
+  "title": "对话标题",
+  "createdAt": "2026-11-14T10:00:00.000Z",
+  "updatedAt": "2026-11-14T10:30:00.000Z",
+  "messages": [],
+  "thinkingMode": false,
+  "promptPresetEnabled": true,
+  "promptPresetId": "luyao",
+  "isPinned": false,
+  "memory": {},
+  "memory_notes": [],
+  "prompt_preset_snapshot": {}
+}
+```
+
+`memory`、`memory_notes`、`prompt_preset_snapshot` 可选。类型与版本由 manifest 承载，对话 JSON 不重复 `_format`、`_version`、`_type`。
+
+附件位于 `conversation/attachments/<n>_<安全文件名>`，`n` 从 1 开始，按消息顺序编号。导入时按安全文件名配对，并重建本地路径。
+
+### 5.3 character/character.xml
+
+角色卡 XML，根元素为 `<system_instruction>`。v2 的角色 XML 不再包含 `<worldview_background>`；世界背景位于 `world_info.json`。导入旧 XML 时，如果发现该节且没有 world info，会一次性迁移：生成世界书文件并从存储的 XML 中删除该节。
+
+### 5.4 character/world_info.json
+
+```json
+{
+  "_format": "lumenflow_world_info",
+  "_version": 1,
+  "name": "浮生书店",
+  "description": "陆瑶的旧书店、邻里与千年过往。",
+  "background": "……世界背景全文……",
+  "scan_depth": 4,
+  "budget_tokens": 1000,
+  "entries": [
+    {
+      "id": "fushang-bookshop",
+      "title": "浮生书店",
+      "category": "location",
+      "tags": ["书店", "老宅"],
+      "keys": ["浮生", "旧书店", "书店"],
+      "secondary_keys": [],
+      "match": "substring",
+      "case_sensitive": false,
+      "content": "……",
+      "priority": 100,
+      "enabled": true,
+      "position": "system",
+      "depth": 0
+    }
+  ]
+}
+```
+
+限制与校验：
+
+- `_format` 必须为 `lumenflow_world_info`；`_version` 必须为 `1`。
+- 最多 **500** 条条目。
+- 单条 `content` 最多 **4000** 字符。
+- 每条最多 **20** 个主关键词、**20** 个次关键词。
+- 正则关键词最多 **200** 字符；非法正则拒绝。
+- 条目 ID 必须唯一。
+- 每条至少一个主关键词。
+- 未知 category 或 match 拒绝。
+
+category：`character` / `location` / `item` / `rule` / `event` / `lore` / `other`。  
+match：`substring` / `word` / `regex`。
+
+### 5.5 character/meta.json
+
+```json
+{
+  "_format": "lumenflow_character_meta",
+  "_version": 1,
+  "name": "陆瑶",
+  "description": "……",
+  "author": "……",
+  "version": "v3",
+  "language": "zh",
+  "tags": ["狐妖", "现代都市", "同居"],
+  "icon": "person.fill"
+}
+```
+
+`name`、`description`、`author`、`version`、`language`、`tags`、`icon` 均可选。缺失或损坏时回退到 XML `<role_name>` 与导入对话框字段。
+
+### 5.6 character/avatar.png
+
+- 仅 PNG；校验文件签名。
+- 存在 `avatar.png` 时优先于 `meta.icon`。
+- 最长边缩到不超过 **1024**。
+- 编码后超过 **2 MB** 时，依次降到 **768**、**512**。
+- 仍然超过 2 MB 则拒绝。
+- 头像损坏时忽略，角色卡仍可导入并使用备用图标。
+
+## 6. 世界书激活
+
+1. 调用方传入扫描文本。应用使用当前消息 + 最近 `scan_depth` 条消息。
+2. `background` 永远注入，不占用条目预算。
+3. 主关键词命中时条目可激活；若 `secondary_keys` 非空，还必须至少命中一个次关键词。
+4. `substring` 做子串匹配；`word` 使用单词边界，CJK 回退子串；`regex` 使用正则。
+5. 排序：priority 降序 → 命中关键词长度降序 → id。
+6. 按该顺序放入能装进 `budget_tokens` 的条目；装不下的条目跳过，后续更小、优先级更低的条目仍可能被放入。
+7. 注入格式：
+
+```text
+[世界书 · 浮生书店]
+[世界背景]
+……
+
+[浮生书店]
+……
+```
+
+8. system prompt 顺序：基础 → 自定义 → 角色预设 → note 指令 → recall 指令 → 世界书 → 记忆。
+
+## 7. 生成器输出
+
+内置生成器位于 `assets/gen/`，导出的角色卡 ZIP 先写 `manifest.json`，再用 Web Crypto 为每个 payload 计算 SHA-256。典型 manifest：
+
+```json
+{
+  "_format": "lumenflow",
+  "_version": "2.0",
+  "_type": "character_card",
+  "_created": "2026-11-14T10:30:00.000Z",
+  "_app_version": "web-generator",
+  "_min_reader_version": "2.0",
+  "_title": "陆瑶",
+  "_language": "zh",
+  "_contains_secrets": false,
+  "includes_character": true,
+  "files": [
+    { "path": "character/meta.json", "role": "meta", "size": 236, "sha256": "…" },
+    { "path": "character/character.xml", "role": "character", "size": 535, "sha256": "…" },
+    { "path": "character/world_info.json", "role": "world_info", "size": 578, "sha256": "…" },
+    { "path": "character/avatar.png", "role": "avatar", "size": 29728, "sha256": "…" }
+  ]
+}
+```
+
+背景与条目都为空时不写 `character/world_info.json`；未选择头像时不写 `character/avatar.png`。
+
+## 8. 兼容性
+
+- 只支持 v2 容器。
+- 裸 `.json` 对话导入仍保留，但不带附件与角色卡。
+- 原生世界书格式**不兼容** SillyTavern。

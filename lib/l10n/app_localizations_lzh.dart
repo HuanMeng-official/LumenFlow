@@ -1328,6 +1328,11 @@ class AppLocalizationsLzh extends AppLocalizations {
   }
 
   @override
+  String presetIssueWorldInfoInvalid(String name) {
+    return '世界書殘缺或不可讀：$name';
+  }
+
+  @override
   String presetIssueUserEntryInvalid(String detail) {
     return '閣下錦囊中有一端不可讀：$detail';
   }
@@ -1674,4 +1679,48 @@ class AppLocalizationsLzh extends AppLocalizations {
 
   @override
   String get builtinUnitConvertDesc => '換算長短、輕重、寒暖諸度';
+
+  @override
+  String get worldInfo => '世界書';
+
+  @override
+  String get worldInfoPreview => '激活預覽';
+
+  @override
+  String get worldInfoBackground => '世界背景';
+
+  @override
+  String get worldInfoTestText => '測試文本';
+
+  @override
+  String get worldInfoMatched => '命中條目';
+
+  @override
+  String get worldInfoUnmatched => '未激活條目';
+
+  @override
+  String worldInfoTokens(int background, int entry, int total) {
+    return '背景 $background · 條目 $entry · 總計 $total tokens';
+  }
+
+  @override
+  String get worldInfoNoMatches => '沒有命中條目';
+
+  @override
+  String get worldInfoRun => '執行預覽';
+
+  @override
+  String get lumenflowInvalidArchive => '無效之 LumenFlow 歸檔';
+
+  @override
+  String get lumenflowMissingCharacter => 'LumenFlow 歸檔缺角色卡';
+
+  @override
+  String get lumenflowWorldInfoInvalid => '世界書殘缺或不可讀';
+
+  @override
+  String get lumenflowAvatarInvalid => '頭像殘缺或不可讀';
+
+  @override
+  String get lumenflowLegacyUnsupported => '舊版 LumenFlow 格式不復支持';
 }

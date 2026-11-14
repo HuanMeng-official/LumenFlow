@@ -1328,6 +1328,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String presetIssueWorldInfoInvalid(String name) {
+    return '世界书文件缺失或无法解析：$name';
+  }
+
+  @override
   String presetIssueUserEntryInvalid(String detail) {
     return '用户预设中有一条无法读取：$detail';
   }
@@ -1674,4 +1679,48 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get builtinUnitConvertDesc => '换算长度、重量、温度等常用单位';
+
+  @override
+  String get worldInfo => '世界书';
+
+  @override
+  String get worldInfoPreview => '激活预览';
+
+  @override
+  String get worldInfoBackground => '世界背景';
+
+  @override
+  String get worldInfoTestText => '测试文本';
+
+  @override
+  String get worldInfoMatched => '命中的条目';
+
+  @override
+  String get worldInfoUnmatched => '未激活的条目';
+
+  @override
+  String worldInfoTokens(int background, int entry, int total) {
+    return '背景 $background · 条目 $entry · 总计 $total tokens';
+  }
+
+  @override
+  String get worldInfoNoMatches => '没有命中的条目';
+
+  @override
+  String get worldInfoRun => '运行预览';
+
+  @override
+  String get lumenflowInvalidArchive => '无效的 LumenFlow 归档';
+
+  @override
+  String get lumenflowMissingCharacter => 'LumenFlow 归档缺少角色卡文件';
+
+  @override
+  String get lumenflowWorldInfoInvalid => '世界书文件无效或损坏';
+
+  @override
+  String get lumenflowAvatarInvalid => '头像文件无效或损坏';
+
+  @override
+  String get lumenflowLegacyUnsupported => '旧版 LumenFlow 格式不受支持';
 }

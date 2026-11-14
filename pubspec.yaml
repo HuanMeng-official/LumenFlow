@@ -56,7 +56,10 @@ flutter:
     - assets/collection_code.png
     - assets/platform/
     - assets/image/
-    - assets/gen/generator.html
+    - assets/gen/
+    - assets/gen/css/
+    - assets/gen/js/
+    - assets/gen/js/vendor/
     - pubspec.yaml
   fonts:
     - family: NotoSansSC

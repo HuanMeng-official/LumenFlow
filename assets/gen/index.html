@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LumenFlow Generator</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="container">
+    <header>
+        <div>
+            <h1 id="ui-title">LumenFlow Generator</h1>
+            <div class="subtitle">Character Card System</div>
+        </div>
+        <div class="header-controls">
+            <span class="save-indicator" id="save-indicator">已自动保存</span>
+            <div class="token-counter safe" id="token-box" title="Token 健康：结构精炼，响应迅速">
+                <div class="status-dot"></div>
+                <span id="lbl-TokenCount">Tokens</span>
+                <strong id="token-val">0</strong>
+            </div>
+            <select id="lang-selector">
+                <option value="zh">中文</option>
+                <option value="en">English</option>
+                <option value="ja">日本語</option>
+                <option value="ko">한국어</option>
+                <option value="es">Español</option>
+            </select>
+        </div>
+    </header>
+
+    <div class="left-panel">
+        <div class="tab-bar">
+            <button type="button" class="tab-button active" data-tab="character" id="tab-character">角色卡</button>
+            <button type="button" class="tab-button" data-tab="worldinfo" id="tab-worldinfo">世界书</button>
+            <button type="button" class="tab-button" data-tab="meta" id="tab-meta">元数据与头像</button>
+            <button type="button" class="tab-button" data-tab="export" id="tab-export">导出</button>
+        </div>
+
+        <section class="tab-panel active" data-panel="character" id="panel-character">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label id="lbl-RoleName">角色名</label>
+                    <input type="text" id="RoleName">
+                </div>
+                <div class="form-group">
+                    <label id="lbl-RoleNameEN">角色英文名 / 拼音</label>
+                    <input type="text" id="RoleNameEN">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label id="lbl-Identity">角色身份描述</label>
+                <textarea id="Identity" class="compact"></textarea>
+            </div>
+            <div class="form-group">
+                <label id="lbl-Philosophy">角色核心哲学</label>
+                <textarea id="Philosophy" class="compact"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label id="lbl-Appearance">外貌与特征</label>
+                <span class="hint" id="hint-Appearance">发色、瞳色、穿着打扮、标志性物品等</span>
+                <textarea id="Appearance"></textarea>
+            </div>
+            <div class="form-group">
+                <label id="lbl-Personality">人格与心理逻辑</label>
+                <span class="hint" id="hint-Personality">描述角色的性格结构、内在矛盾与行为动机</span>
+                <textarea id="Personality"></textarea>
+            </div>
+            <div class="form-group">
+                <label id="lbl-Addressing">称呼与称谓规则</label>
+                <span class="hint" id="hint-Addressing">角色在不同亲密度、情境下对用户的称呼方式</span>
+                <textarea id="Addressing"></textarea>
+            </div>
+            <div class="form-group">
+                <label id="lbl-Linguistic">语言风格与表达习惯</label>
+                <span class="hint" id="hint-Linguistic">包括语速、用词、潜台词与修辞偏好</span>
+                <textarea id="Linguistic"></textarea>
+            </div>
+            <div class="form-group">
+                <label id="lbl-Behavior">行为叙事与非人特征规则</label>
+                <span class="hint" id="hint-Behavior">通过动作、感官、微表情体现角色特质</span>
+                <textarea id="Behavior"></textarea>
+            </div>
+            <div class="form-group">
+                <label id="lbl-Interaction">互动策略与关系推进方式</label>
+                <span class="hint" id="hint-Interaction">角色如何影响、照顾并逐步绑定用户</span>
+                <textarea id="Interaction"></textarea>
+            </div>
+
+            <details class="advanced-options" id="AdvancedOptionsPanel">
+                <summary id="lbl-AdvancedOptions">高级选项 (可选)</summary>
+                <div class="advanced-options-content">
+                    <div class="form-group">
+                        <label id="lbl-InternalMonologue">内心独白 / 思维链</label>
+                        <span class="hint" id="hint-InternalMonologue">强制规范 AI 的思考</span>
+                        <textarea id="InternalMonologue"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label id="lbl-EmotionalDepth">情感阈值 / 动态反馈</label>
+                        <span class="hint" id="hint-EmotionalDepth">定义当用户表现出冷漠、生气或过度热情时，角色的反应差异</span>
+                        <textarea id="EmotionalDepth"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label id="lbl-KnowledgeFilter">知识过滤</label>
+                        <span class="hint" id="hint-KnowledgeFilter">规定在处理硬核技术、严肃新闻等话题时的表现方式</span>
+                        <textarea id="KnowledgeFilter"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label id="lbl-NegativeConstraints">绝对禁忌 / 反向提示词</label>
+                        <span class="hint" id="hint-NegativeConstraints">明确告诉 AI 绝对不能做什么</span>
+                        <textarea id="NegativeConstraints"></textarea>
+                    </div>
+                </div>
+            </details>
+
+            <div class="form-group">
+                <label id="lbl-Example">示例对话 / 场景演示</label>
+                <span class="hint" id="hint-Example">用于展示角色在实际互动中的语气与行为</span>
+                <textarea id="Example"></textarea>
+            </div>
+        </section>
+
+        <section class="tab-panel" data-panel="worldinfo" id="panel-worldinfo">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label id="lbl-WorldInfoName">世界书名称</label>
+                    <input type="text" id="WorldInfoName">
+                </div>
+                <div class="form-group">
+                    <label id="lbl-WorldInfoDescription">简介</label>
+                    <input type="text" id="WorldInfoDescription">
+                </div>
+            </div>
+            <div class="form-group">
+                <label id="lbl-WorldInfoBackground">世界背景</label>
+                <span class="hint" id="hint-WorldInfoBackground">常驻注入；条目按关键词激活。</span>
+                <textarea id="WorldInfoBackground"></textarea>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label id="lbl-WorldInfoScanDepth">扫描深度</label>
+                    <input type="number" id="WorldInfoScanDepth" min="0" value="4">
+                </div>
+                <div class="form-group">
+                    <label id="lbl-WorldInfoBudget">条目 Token 预算</label>
+                    <input type="number" id="WorldInfoBudget" min="0" value="1000">
+                </div>
+            </div>
+            <div class="wi-header">
+                <h3 id="lbl-WorldInfoEntries">世界书条目</h3>
+                <button type="button" class="secondary" id="btn-AddEntry">添加条目</button>
+            </div>
+            <div id="WorldInfoEntries" class="wi-entries"></div>
+        </section>
+
+        <section class="tab-panel" data-panel="meta" id="panel-meta">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label id="lbl-MetaName">名称</label>
+                    <input type="text" id="MetaName" readonly>
+                </div>
+                <div class="form-group">
+                    <label id="lbl-MetaAuthor">作者</label>
+                    <input type="text" id="MetaAuthor">
+                </div>
+                <div class="form-group">
+                    <label id="lbl-MetaVersion">版本</label>
+                    <input type="text" id="MetaVersion" value="v1.0">
+                </div>
+                <div class="form-group">
+                    <label id="lbl-MetaLanguage">语言</label>
+                    <select id="MetaLanguage">
+                        <option value="">—</option>
+                        <option value="zh">中文</option>
+                        <option value="en">English</option>
+                        <option value="ja">日本語</option>
+                        <option value="ko">한국어</option>
+                        <option value="es">Español</option>
+                        <option value="lzh">文言</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label id="lbl-MetaTags">标签（逗号分隔）</label>
+                <input type="text" id="MetaTags">
+            </div>
+            <div class="form-group">
+                <label id="lbl-MetaIcon">备用图标</label>
+                <select id="MetaIcon">
+                    <option value="person.fill">person.fill</option>
+                    <option value="person.crop.circle">person.crop.circle</option>
+                    <option value="sparkles">sparkles</option>
+                    <option value="wand.and.stars">wand.and.stars</option>
+                    <option value="heart.fill">heart.fill</option>
+                    <option value="flame.fill">flame.fill</option>
+                    <option value="moon.stars">moon.stars</option>
+                    <option value="sun.max">sun.max</option>
+                    <option value="star.fill">star.fill</option>
+                    <option value="bolt.fill">bolt.fill</option>
+                    <option value="globe">globe</option>
+                    <option value="pencil">pencil</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label id="lbl-Avatar">角色头像</label>
+                <span class="hint" id="hint-Avatar">PNG；最长边自动缩到 1024，超过 2 MB 继续降到 768/512。</span>
+                <div class="avatar-row">
+                    <div id="AvatarPreview" class="avatar-preview">
+                        <span class="avatar-placeholder">PNG</span>
+                    </div>
+                    <div class="button-row">
+                        <button type="button" class="secondary" id="btn-ChooseAvatar">选择 PNG</button>
+                        <button type="button" class="secondary" id="btn-RemoveAvatar">移除头像</button>
+                        <input type="file" id="AvatarInput" accept="image/png" hidden>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="tab-panel" data-panel="export" id="panel-export">
+            <div class="form-group">
+                <label id="lbl-OutputFile">输出文件名</label>
+                <input type="text" id="FileName" placeholder="character.lumenflow">
+            </div>
+            <p class="hint" id="hint-Export">导出包含角色 XML、世界书、元数据与头像的 ZIP。</p>
+            <p class="hint" id="hint-WorldInfoOptional">世界书没有背景和条目时不会写入归档。</p>
+            <div class="actions">
+                <button type="button" class="primary" id="btn-DownloadLumenflow">导出 .lumenflow</button>
+                <button type="button" class="secondary" id="btn-ImportLumenflow">导入 .xml / .lumenflow</button>
+                <input type="file" id="file-import" accept=".xml,.lumenflow" hidden>
+                <button type="button" class="secondary" id="btn-ExportXml">预览 XML</button>
+                <button type="button" class="secondary" id="btn-DownloadXml">下载 XML</button>
+                <button type="button" class="secondary" id="btn-Clear">清空表单</button>
+            </div>
+        </section>
+    </div>
+
+    <div id="preview-section" class="right-panel preview-area">
+        <div class="preview-header">
+            <h3 id="ui-done">预览</h3>
+            <button type="button" class="secondary" id="btn-Copy" style="font-size: 12px; padding: 6px 12px; height: 32px;">复制内容</button>
+        </div>
+        <pre id="xml-output"></pre>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="js/vendor/jszip.min.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/world_info.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

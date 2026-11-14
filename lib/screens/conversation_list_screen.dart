@@ -11,6 +11,7 @@ import '../l10n/app_localizations.dart';
 import '../models/conversation.dart';
 import '../services/conversation_service.dart';
 import '../services/preset_repository.dart';
+import '../utils/lumenflow_error_messages.dart';
 
 class ConversationListScreen extends StatefulWidget {
   final Function(String? conversationId) onConversationSelected;
@@ -122,39 +123,52 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
     try {
       final picked = await FilePicker.pickFile(
         type: FileType.custom,
-        allowedExtensions: ['lumenflow', 'zip', 'json'],
+        allowedExtensions: ['lumenflow', 'json'],
         dialogTitle: l10n.importConversation,
       );
       final path = picked?.path;
       if (path == null) return;
 
+      Future<bool> confirmPresetImport(String name) async {
+        if (!mounted) return false;
+        final confirmed = await showCupertinoDialog<bool>(
+          context: context,
+          builder: (dialogContext) => CupertinoAlertDialog(
+            title: Text(l10n.importPresetSnapshotTitle),
+            content: Text(l10n.importPresetSnapshotMessage(name)),
+            actions: [
+              CupertinoDialogAction(
+                child: Text(l10n.cancel),
+                onPressed: () => Navigator.pop(dialogContext, false),
+              ),
+              CupertinoDialogAction(
+                isDefaultAction: true,
+                child: Text(l10n.importButton),
+                onPressed: () => Navigator.pop(dialogContext, true),
+              ),
+            ],
+          ),
+        );
+        return confirmed == true;
+      }
+
       final bytes = await File(path).readAsBytes();
-      await _conversationService.importConversationFromLumenflow(
-        bytes: bytes,
-        l10n: l10n,
-        confirmPresetImport: (name) async {
-          if (!mounted) return false;
-          final confirmed = await showCupertinoDialog<bool>(
-            context: context,
-            builder: (dialogContext) => CupertinoAlertDialog(
-              title: Text(l10n.importPresetSnapshotTitle),
-              content: Text(l10n.importPresetSnapshotMessage(name)),
-              actions: [
-                CupertinoDialogAction(
-                  child: Text(l10n.cancel),
-                  onPressed: () => Navigator.pop(dialogContext, false),
-                ),
-                CupertinoDialogAction(
-                  isDefaultAction: true,
-                  child: Text(l10n.importButton),
-                  onPressed: () => Navigator.pop(dialogContext, true),
-                ),
-              ],
-            ),
-          );
-          return confirmed == true;
-        },
-      );
+      final lowerPath = path.toLowerCase();
+      if (lowerPath.endsWith('.lumenflow')) {
+        await _conversationService.importConversationArchive(
+          bytes: bytes,
+          l10n: l10n,
+          confirmPresetImport: confirmPresetImport,
+        );
+      } else if (lowerPath.endsWith('.json')) {
+        await _conversationService.importConversationFromJson(
+          bytes: bytes,
+          l10n: l10n,
+          confirmPresetImport: confirmPresetImport,
+        );
+      } else {
+        throw FormatException(l10n.conversationImportInvalid);
+      }
       // 会话快照可能在导入时创建/重映射了角色预设，刷新共享仓库，
       // 否则聊天页会继续显示“角色不可用”。
       await PresetRepository.instance.ensureLoaded(force: true);
@@ -180,7 +194,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
         context: context,
         builder: (context) => CupertinoAlertDialog(
           title: Text(l10n.conversationImportFailed),
-          content: Text(e.toString()),
+          content: Text(lumenflowErrorMessage(e, l10n)),
           actions: [
             CupertinoDialogAction(
               child: Text(l10n.ok),
@@ -820,14 +834,11 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
           extension = 'json';
           break;
         case 'lumenflow':
-          final lumenflowData = await _conversationService
-              .exportConversationToLumenflow(
-                conversation.id,
-                l10n,
-                includePresetSnapshot: includePresetSnapshot,
-              );
-          final jsonString = jsonEncode(lumenflowData);
-          bytes = utf8.encode(jsonString);
+          bytes = await _conversationService.exportConversationArchive(
+            conversation.id,
+            l10n,
+            includeCharacter: includePresetSnapshot,
+          );
           extension = 'lumenflow';
           break;
         case 'pdf':

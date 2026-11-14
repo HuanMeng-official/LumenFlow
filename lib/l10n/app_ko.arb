@@ -779,6 +779,14 @@
       }
     }
   },
+  "presetIssueWorldInfoInvalid": "세계관 정보 파일이 없거나 잘못되었습니다: {name}",
+  "@presetIssueWorldInfoInvalid": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "presetIssueUserEntryInvalid": "사용자 프리셋 항목 하나를 읽을 수 없습니다: {detail}",
   "@presetIssueUserEntryInvalid": {
     "placeholders": {
@@ -989,5 +997,27 @@
   "builtinUserProfile": "사용자 프로필",
   "builtinUserProfileDesc": "필요할 때 모델이 사용자의 이름, 성별, 생일을 읽을 수 있도록 허용합니다",
   "builtinUnitConvert": "단위 변환",
-  "builtinUnitConvertDesc": "길이, 무게, 온도 등의 단위 변환"
+  "builtinUnitConvertDesc": "길이, 무게, 온도 등의 단위 변환",
+  "worldInfo": "세계관 정보",
+  "worldInfoPreview": "활성화 미리보기",
+  "worldInfoBackground": "세계 배경",
+  "worldInfoTestText": "테스트 텍스트",
+  "worldInfoMatched": "일치한 항목",
+  "worldInfoUnmatched": "비활성 항목",
+  "worldInfoTokens": "배경 {background} · 항목 {entry} · 합계 {total} tokens",
+  "@worldInfoTokens": {
+    "placeholders": {
+      "background": {"type": "int"},
+      "entry": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "worldInfoNoMatches": "일치하는 항목이 없습니다",
+  "worldInfoRun": "미리보기 실행"
+,
+  "lumenflowInvalidArchive": "유효하지 않은 LumenFlow 아카이브입니다",
+  "lumenflowMissingCharacter": "LumenFlow 아카이브에 캐릭터 카드 파일이 없습니다",
+  "lumenflowWorldInfoInvalid": "세계관 정보 파일이 잘못되었거나 손상되었습니다",
+  "lumenflowAvatarInvalid": "아바타 이미지가 잘못되었거나 손상되었습니다",
+  "lumenflowLegacyUnsupported": "이전 LumenFlow 형식은 지원되지 않습니다"
 }

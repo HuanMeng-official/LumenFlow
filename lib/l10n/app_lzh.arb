@@ -779,6 +779,14 @@
       }
     }
   },
+  "presetIssueWorldInfoInvalid": "世界書殘缺或不可讀：{name}",
+  "@presetIssueWorldInfoInvalid": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "presetIssueUserEntryInvalid": "閣下錦囊中有一端不可讀：{detail}",
   "@presetIssueUserEntryInvalid": {
     "placeholders": {
@@ -989,5 +997,27 @@
   "builtinUserProfile": "客官之籍",
   "builtinUserProfileDesc": "許模型於需時取客官之稱謂、性別、生辰",
   "builtinUnitConvert": "度量換算",
-  "builtinUnitConvertDesc": "換算長短、輕重、寒暖諸度"
+  "builtinUnitConvertDesc": "換算長短、輕重、寒暖諸度",
+  "worldInfo": "世界書",
+  "worldInfoPreview": "激活預覽",
+  "worldInfoBackground": "世界背景",
+  "worldInfoTestText": "測試文本",
+  "worldInfoMatched": "命中條目",
+  "worldInfoUnmatched": "未激活條目",
+  "worldInfoTokens": "背景 {background} · 條目 {entry} · 總計 {total} tokens",
+  "@worldInfoTokens": {
+    "placeholders": {
+      "background": {"type": "int"},
+      "entry": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "worldInfoNoMatches": "沒有命中條目",
+  "worldInfoRun": "執行預覽"
+,
+  "lumenflowInvalidArchive": "無效之 LumenFlow 歸檔",
+  "lumenflowMissingCharacter": "LumenFlow 歸檔缺角色卡",
+  "lumenflowWorldInfoInvalid": "世界書殘缺或不可讀",
+  "lumenflowAvatarInvalid": "頭像殘缺或不可讀",
+  "lumenflowLegacyUnsupported": "舊版 LumenFlow 格式不復支持"
 }

@@ -6,7 +6,8 @@
     "author": "幻夢official",
     "version": "v3",
     "prompt_file": "characters/ja/NingXi.xml",
-    "icon": "person.fill"
+    "icon": "person.fill",
+    "world_info_file": "characters/ja/NingXi.world_info.json"
   },
   {
     "id": "luyao",
@@ -15,6 +16,7 @@
     "author": "幻夢official",
     "version": "v3",
     "prompt_file": "characters/ja/LuYao.xml",
-    "icon": "person.fill"
+    "icon": "person.fill",
+    "world_info_file": "characters/ja/LuYao.world_info.json"
   }
 ]

@@ -779,6 +779,14 @@
       }
     }
   },
+  "presetIssueWorldInfoInvalid": "世界书文件缺失或无法解析：{name}",
+  "@presetIssueWorldInfoInvalid": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "presetIssueUserEntryInvalid": "用户预设中有一条无法读取：{detail}",
   "@presetIssueUserEntryInvalid": {
     "placeholders": {
@@ -989,5 +997,27 @@
   "builtinUserProfile": "用户资料",
   "builtinUserProfileDesc": "允许模型在需要时读取你的称呼、性别和生日",
   "builtinUnitConvert": "单位换算",
-  "builtinUnitConvertDesc": "换算长度、重量、温度等常用单位"
+  "builtinUnitConvertDesc": "换算长度、重量、温度等常用单位",
+  "worldInfo": "世界书",
+  "worldInfoPreview": "激活预览",
+  "worldInfoBackground": "世界背景",
+  "worldInfoTestText": "测试文本",
+  "worldInfoMatched": "命中的条目",
+  "worldInfoUnmatched": "未激活的条目",
+  "worldInfoTokens": "背景 {background} · 条目 {entry} · 总计 {total} tokens",
+  "@worldInfoTokens": {
+    "placeholders": {
+      "background": {"type": "int"},
+      "entry": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "worldInfoNoMatches": "没有命中的条目",
+  "worldInfoRun": "运行预览"
+,
+  "lumenflowInvalidArchive": "无效的 LumenFlow 归档",
+  "lumenflowMissingCharacter": "LumenFlow 归档缺少角色卡文件",
+  "lumenflowWorldInfoInvalid": "世界书文件无效或损坏",
+  "lumenflowAvatarInvalid": "头像文件无效或损坏",
+  "lumenflowLegacyUnsupported": "旧版 LumenFlow 格式不受支持"
 }

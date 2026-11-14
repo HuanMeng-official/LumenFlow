@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../ai/mcp/mcp_models.dart';
 import '../models/active_platform_config.dart';
 import '../models/ai_platform.dart';
+import 'lumenflow_archive.dart';
 import 'version_service.dart';
 
 class SettingsService {
@@ -80,9 +81,6 @@ class SettingsService {
   static const bool defaultEnableHistory = true;
   static const int defaultHistoryContextLength = 30;
   static const bool defaultMemoryCompressionEnabled = true;
-
-  static const String _lumenflowFormat = 'lumenflow';
-  static const String _lumenflowVersion = '1.0';
 
   static ActivePlatformConfig? _cachedActiveConfig;
   static Future<ActivePlatformConfig>? _activeConfigFuture;
@@ -548,22 +546,29 @@ class SettingsService {
     return settings;
   }
 
-  /// 导出所有设置为Lumenflow格式
-  /// 返回Lumenflow格式的Map，包含元数据和设置数据
-  Future<Map<String, dynamic>> exportSettingsToLumenflow() async {
+  /// 导出所有设置为 v2 `.lumenflow` ZIP 归档。
+  Future<List<int>> exportSettingsArchive() async {
     final settings = await exportSettingsToJson();
-    final versionService = VersionService();
-    final versionInfo = await versionService.getVersionInfo();
+    final versionInfo = await VersionService().getVersionInfo();
+    final content = utf8.encode(jsonEncode(settings));
 
-    final lumenflowData = {
-      '_format': _lumenflowFormat,
-      '_version': _lumenflowVersion,
-      '_created': DateTime.now().toUtc().toIso8601String(),
-      '_app_version': versionInfo['version'] ?? 'unknown',
-      'settings': settings,
-    };
+    final manifest = LumenflowManifest(
+      type: LumenflowArchiveType.settings,
+      created: DateTime.now().toUtc(),
+      appVersion: versionInfo['version'] ?? 'unknown',
+      title: 'LumenFlow Settings',
+      language: 'und',
+      containsSecrets: true,
+      files: const [],
+    );
 
-    return lumenflowData;
+    return LumenflowArchive.write(manifest, [
+      LumenflowArchiveFile(
+        path: 'settings/settings.json',
+        role: 'settings',
+        bytes: content,
+      ),
+    ]);
   }
 
   /// 从JSON Map导入设置
@@ -748,29 +753,24 @@ class SettingsService {
     _invalidateActiveConfig();
   }
 
-  /// 从Lumenflow格式或旧JSON格式导入设置
-  /// [data] 可以是Lumenflow格式（包含元数据）或旧JSON格式
-  /// [overwrite] 是否覆盖现有设置，默认为true
-  Future<void> importSettingsFromLumenflow(
-    Map<String, dynamic> data, {
-    bool overwrite = true,
-  }) async {
-    Map<String, dynamic> settings;
-
-    if (data.containsKey('_format') && data['_format'] == _lumenflowFormat) {
-      // 提取settings字段
-      if (data.containsKey('settings') &&
-          data['settings'] is Map<String, dynamic>) {
-        settings = data['settings'] as Map<String, dynamic>;
-      } else {
-        throw FormatException('无效的Lumenflow格式：缺少settings字段');
-      }
-    } else {
-      settings = data;
+  /// 从 v2 `.lumenflow` ZIP 归档导入设置。
+  Future<void> importSettingsArchive(List<int> bytes) async {
+    final archive = LumenflowArchive.read(bytes);
+    if (archive.manifest.type != LumenflowArchiveType.settings) {
+      throw const FormatException('Not a lumenflow settings archive');
     }
 
-    // 调用现有的导入函数
-    await importSettingsFromJson(settings, overwrite: overwrite);
+    final content = archive.files['settings/settings.json'];
+    if (content == null) {
+      throw const FormatException('Missing settings/settings.json');
+    }
+
+    final decoded = jsonDecode(utf8.decode(content));
+    if (decoded is! Map) {
+      throw const FormatException('Invalid settings/settings.json');
+    }
+
+    await importSettingsFromJson(decoded.cast<String, dynamic>());
   }
 
   /// 获取所有AI平台配置

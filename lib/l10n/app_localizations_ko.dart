@@ -1328,6 +1328,11 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String presetIssueWorldInfoInvalid(String name) {
+    return '세계관 정보 파일이 없거나 잘못되었습니다: $name';
+  }
+
+  @override
   String presetIssueUserEntryInvalid(String detail) {
     return '사용자 프리셋 항목 하나를 읽을 수 없습니다: $detail';
   }
@@ -1674,4 +1679,48 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get builtinUnitConvertDesc => '길이, 무게, 온도 등의 단위 변환';
+
+  @override
+  String get worldInfo => '세계관 정보';
+
+  @override
+  String get worldInfoPreview => '활성화 미리보기';
+
+  @override
+  String get worldInfoBackground => '세계 배경';
+
+  @override
+  String get worldInfoTestText => '테스트 텍스트';
+
+  @override
+  String get worldInfoMatched => '일치한 항목';
+
+  @override
+  String get worldInfoUnmatched => '비활성 항목';
+
+  @override
+  String worldInfoTokens(int background, int entry, int total) {
+    return '배경 $background · 항목 $entry · 합계 $total tokens';
+  }
+
+  @override
+  String get worldInfoNoMatches => '일치하는 항목이 없습니다';
+
+  @override
+  String get worldInfoRun => '미리보기 실행';
+
+  @override
+  String get lumenflowInvalidArchive => '유효하지 않은 LumenFlow 아카이브입니다';
+
+  @override
+  String get lumenflowMissingCharacter => 'LumenFlow 아카이브에 캐릭터 카드 파일이 없습니다';
+
+  @override
+  String get lumenflowWorldInfoInvalid => '세계관 정보 파일이 잘못되었거나 손상되었습니다';
+
+  @override
+  String get lumenflowAvatarInvalid => '아바타 이미지가 잘못되었거나 손상되었습니다';
+
+  @override
+  String get lumenflowLegacyUnsupported => '이전 LumenFlow 형식은 지원되지 않습니다';
 }

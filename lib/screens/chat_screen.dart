@@ -24,6 +24,7 @@ import '../services/notification_service.dart';
 import '../services/live_update_service.dart';
 import '../services/preset_repository.dart';
 import '../services/user_service.dart';
+import '../services/world_info_service.dart';
 import '../utils/app_theme.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/chat_input.dart';
@@ -547,6 +548,43 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     return null;
   }
 
+  /// 激活当前角色卡世界书，生成注入 system prompt 的文本块。
+  String _buildWorldInfoBlock(String currentContent, List<Message> history) {
+    if (!_promptPresetEnabled || _currentPresetId.isEmpty) return '';
+
+    final worldInfo = _findPresetById(_currentPresetId)?.worldInfo;
+    if (worldInfo == null) return '';
+
+    final eligible = history
+        .where(
+          (message) =>
+              message.status != MessageStatus.error &&
+              message.content.trim().isNotEmpty,
+        )
+        .toList(growable: false);
+    final depth = worldInfo.scanDepth;
+    final recent = eligible.length > depth
+        ? eligible.sublist(eligible.length - depth)
+        : eligible;
+
+    final scanParts = recent.map((message) => message.content).toList();
+    Message? lastUserInRecent;
+    for (final message in recent.reversed) {
+      if (message.isUser) {
+        lastUserInRecent = message;
+        break;
+      }
+    }
+    if (currentContent.trim().isNotEmpty &&
+        lastUserInRecent?.content != currentContent) {
+      scanParts.add(currentContent);
+    }
+
+    return WorldInfoService.formatBlock(
+      WorldInfoService.activate(worldInfo, scanParts.join('\n')),
+    );
+  }
+
   /// 当前会话已启用角色模式，但预设不存在或角色卡文件不可用。
   bool get _isCurrentPresetUnavailable {
     if (!_promptPresetEnabled || _currentPresetId.isEmpty) return false;
@@ -927,6 +965,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final titleAtSend = _currentTitle;
     final history =
         historyOverride ?? ChatSendController.buildHistory(_messages);
+    final worldInfoBlock = _buildWorldInfoBlock(content, history);
 
     // 发送前补齐记忆：旧消息即将滑出原文窗口时，宁可多等一会儿，也不能
     // 让模型在“没有前情”的状态下回答。
@@ -1000,6 +1039,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         attachments: attachments,
         thinkingMode: _thinkingMode,
         presetSystemPrompt: presetSystemPrompt,
+        worldInfoBlock: worldInfoBlock,
         memoryBlock: memoryBlock,
         memoryNoteSink: (memoryEnabled && historyEnabled)
             ? (draft) => _recordMemoryNote(
@@ -2153,24 +2193,33 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       List<int> bytes;
       String fileName;
 
-      // 使用新的导出方法（包含附件）
-      bytes = await _conversationService.exportConversationWithAttachments(
-        _currentConversation!.id,
-        format,
-        l10n,
-        includePresetSnapshot: includePresetSnapshot,
-      );
-
       // 生成文件名（包含时间戳确保唯一性）
       final safeTitle = _currentConversation!.title
           .replaceAll(RegExp(r'[^\w\s-]'), '')
           .replaceAll(' ', '_');
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      if (format == 'pdf') {
-        fileName = '${safeTitle}_$timestamp.pdf';
+
+      if (format == 'lumenflow') {
+        bytes = await _conversationService.exportConversationArchive(
+          _currentConversation!.id,
+          l10n,
+          includeCharacter: includePresetSnapshot,
+        );
+        fileName = '${safeTitle}_$timestamp.lumenflow';
       } else {
-        // 对于ZIP文件，在文件名中包含原始格式信息
-        fileName = '${safeTitle}_$timestamp.$format.zip';
+        // 使用新的导出方法（包含附件）
+        bytes = await _conversationService.exportConversationWithAttachments(
+          _currentConversation!.id,
+          format,
+          l10n,
+          includePresetSnapshot: includePresetSnapshot,
+        );
+        if (format == 'pdf') {
+          fileName = '${safeTitle}_$timestamp.pdf';
+        } else {
+          // 对于ZIP文件，在文件名中包含原始格式信息
+          fileName = '${safeTitle}_$timestamp.$format.zip';
+        }
       }
 
       // 保存文件

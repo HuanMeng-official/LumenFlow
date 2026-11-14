@@ -312,6 +312,7 @@ class AIService {
   Future<String> _buildSystemPrompt(
     String presetSystemPrompt,
     AppLocalizations l10n, {
+    String worldInfoBlock = '',
     String memoryBlock = '',
     bool memoryNoteEnabled = false,
     bool memoryRecallEnabled = false,
@@ -335,6 +336,7 @@ class AIService {
       basePrompt: stablePrefix,
       customPrompt: '',
       presetPrompt: '',
+      worldInfoBlock: worldInfoBlock,
       memoryBlock: memoryBlock,
     );
 
@@ -352,6 +354,7 @@ class AIService {
   Future<String> buildSystemPromptForTest(
     String presetSystemPrompt,
     AppLocalizations l10n, {
+    String worldInfoBlock = '',
     String memoryBlock = '',
     bool memoryNoteEnabled = false,
     bool memoryRecallEnabled = false,
@@ -359,6 +362,7 @@ class AIService {
     return _buildSystemPrompt(
       presetSystemPrompt,
       l10n,
+      worldInfoBlock: worldInfoBlock,
       memoryBlock: memoryBlock,
       memoryNoteEnabled: memoryNoteEnabled,
       memoryRecallEnabled: memoryRecallEnabled,
@@ -499,6 +503,7 @@ class AIService {
     List<Attachment> attachments = const [],
     bool thinkingMode = false,
     String presetSystemPrompt = '',
+    String worldInfoBlock = '',
     String memoryBlock = '',
     MemoryNoteSink? memoryNoteSink,
     MemoryRecallHandler? memoryRecallHandler,
@@ -514,6 +519,7 @@ class AIService {
     final systemPrompt = await _buildSystemPrompt(
       presetSystemPrompt,
       l10n,
+      worldInfoBlock: worldInfoBlock,
       memoryBlock: memoryBlock,
       memoryNoteEnabled: memoryNoteSink != null,
       memoryRecallEnabled: memoryRecallHandler != null,

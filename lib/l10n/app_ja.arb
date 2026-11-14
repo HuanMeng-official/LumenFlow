@@ -779,6 +779,14 @@
       }
     }
   },
+  "presetIssueWorldInfoInvalid": "ワールド情報ファイルが見つからないか無効です: {name}",
+  "@presetIssueWorldInfoInvalid": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "presetIssueUserEntryInvalid": "ユーザープリセットの 1 件を読み込めません: {detail}",
   "@presetIssueUserEntryInvalid": {
     "placeholders": {
@@ -990,5 +998,27 @@
   "builtinUserProfile": "ユーザープロフィール",
   "builtinUserProfileDesc": "必要なときにユーザーの名前、性別、誕生日を読み取ることを許可します",
   "builtinUnitConvert": "単位変換",
-  "builtinUnitConvertDesc": "長さ・重さ・温度などの単位を変換"
+  "builtinUnitConvertDesc": "長さ・重さ・温度などの単位を変換",
+  "worldInfo": "ワールド情報",
+  "worldInfoPreview": "発動プレビュー",
+  "worldInfoBackground": "世界背景",
+  "worldInfoTestText": "テストテキスト",
+  "worldInfoMatched": "一致した項目",
+  "worldInfoUnmatched": "未激活の項目",
+  "worldInfoTokens": "背景 {background} · 項目 {entry} · 合計 {total} tokens",
+  "@worldInfoTokens": {
+    "placeholders": {
+      "background": {"type": "int"},
+      "entry": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "worldInfoNoMatches": "一致する項目はありません",
+  "worldInfoRun": "プレビューを実行"
+,
+  "lumenflowInvalidArchive": "無効な LumenFlow アーカイブです",
+  "lumenflowMissingCharacter": "LumenFlow アーカイブにキャラクターカードがありません",
+  "lumenflowWorldInfoInvalid": "ワールド情報ファイルが無効または破損しています",
+  "lumenflowAvatarInvalid": "アバター画像が無効または破損しています",
+  "lumenflowLegacyUnsupported": "旧形式の LumenFlow はサポートされていません"
 }

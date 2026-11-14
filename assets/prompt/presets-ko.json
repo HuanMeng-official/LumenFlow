@@ -6,7 +6,8 @@
     "author": "HuanMeng-official",
     "version": "v3",
     "prompt_file": "characters/ko/NingXi.xml",
-    "icon": "person.fill"
+    "icon": "person.fill",
+    "world_info_file": "characters/ko/NingXi.world_info.json"
   },
   {
     "id": "luyao",
@@ -15,6 +16,7 @@
     "author": "HuanMeng-official",
     "version": "v3",
     "prompt_file": "characters/ko/LuYao.xml",
-    "icon": "person.fill"
+    "icon": "person.fill",
+    "world_info_file": "characters/ko/LuYao.world_info.json"
   }
 ]

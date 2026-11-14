@@ -22,6 +22,9 @@ enum PresetIssueType {
 
   /// 角色卡文件存在但读取失败。
   cardFileUnreadable,
+
+  /// 世界书文件缺失、不可读或无法解析。
+  worldInfoInvalid,
 }
 
 /// 一条预设加载问题。
