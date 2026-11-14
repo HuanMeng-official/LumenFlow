@@ -736,7 +736,7 @@ abstract class AppLocalizations {
   /// No description provided for @historyRoundsDesc.
   ///
   /// In en, this message translates to:
-  /// **'Number of conversation rounds AI remembers, recommended 5-20 rounds. Too many may exceed token limit'**
+  /// **'Number of conversation rounds AI remembers, recommended 20-60 rounds. Too many may exceed token limit'**
   String get historyRoundsDesc;
 
   /// No description provided for @memoryCompression.
@@ -3210,6 +3210,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'World Background'**
   String get worldInfoBackground;
+
+  /// No description provided for @worldInfoInjectionNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'The following is world-info background, not a user message. Use it naturally; do not repeat it verbatim.'**
+  String get worldInfoInjectionNotice;
+
+  /// No description provided for @worldInfoEntryCategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get worldInfoEntryCategoryLabel;
+
+  /// No description provided for @worldInfoEntryMatchLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Match'**
+  String get worldInfoEntryMatchLabel;
+
+  /// No description provided for @worldInfoEntryPositionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Position'**
+  String get worldInfoEntryPositionLabel;
+
+  /// No description provided for @worldInfoEntryPriorityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Priority'**
+  String get worldInfoEntryPriorityLabel;
+
+  /// No description provided for @worldInfoEntryGroupLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Group'**
+  String get worldInfoEntryGroupLabel;
+
+  /// No description provided for @worldInfoEntryProbabilityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Probability'**
+  String get worldInfoEntryProbabilityLabel;
+
+  /// No description provided for @worldInfoEntryStickyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sticky'**
+  String get worldInfoEntryStickyLabel;
+
+  /// No description provided for @worldInfoEntryCooldownLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cooldown'**
+  String get worldInfoEntryCooldownLabel;
+
+  /// No description provided for @worldInfoEntryRecursionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Recursion'**
+  String get worldInfoEntryRecursionLabel;
+
+  /// No description provided for @worldInfoCategoryCharacter.
+  ///
+  /// In en, this message translates to:
+  /// **'Character'**
+  String get worldInfoCategoryCharacter;
+
+  /// No description provided for @worldInfoCategoryLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get worldInfoCategoryLocation;
+
+  /// No description provided for @worldInfoCategoryItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Item'**
+  String get worldInfoCategoryItem;
+
+  /// No description provided for @worldInfoCategoryRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Rule'**
+  String get worldInfoCategoryRule;
+
+  /// No description provided for @worldInfoCategoryEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Event'**
+  String get worldInfoCategoryEvent;
+
+  /// No description provided for @worldInfoCategoryLore.
+  ///
+  /// In en, this message translates to:
+  /// **'Lore'**
+  String get worldInfoCategoryLore;
+
+  /// No description provided for @worldInfoCategoryOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get worldInfoCategoryOther;
+
+  /// No description provided for @worldInfoMatchSubstring.
+  ///
+  /// In en, this message translates to:
+  /// **'Substring'**
+  String get worldInfoMatchSubstring;
+
+  /// No description provided for @worldInfoMatchWord.
+  ///
+  /// In en, this message translates to:
+  /// **'Word'**
+  String get worldInfoMatchWord;
+
+  /// No description provided for @worldInfoMatchRegex.
+  ///
+  /// In en, this message translates to:
+  /// **'Regex'**
+  String get worldInfoMatchRegex;
+
+  /// No description provided for @worldInfoPositionSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System prompt'**
+  String get worldInfoPositionSystem;
+
+  /// No description provided for @worldInfoPositionBeforePreset.
+  ///
+  /// In en, this message translates to:
+  /// **'Before character card'**
+  String get worldInfoPositionBeforePreset;
+
+  /// No description provided for @worldInfoPositionAfterPreset.
+  ///
+  /// In en, this message translates to:
+  /// **'After character card'**
+  String get worldInfoPositionAfterPreset;
+
+  /// No description provided for @worldInfoPositionAtDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'At chat depth'**
+  String get worldInfoPositionAtDepth;
+
+  /// No description provided for @worldInfoSkipDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get worldInfoSkipDisabled;
+
+  /// No description provided for @worldInfoSkipNoPrimaryKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary key not matched'**
+  String get worldInfoSkipNoPrimaryKey;
+
+  /// No description provided for @worldInfoSkipMissingSecondaryKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Secondary key not matched'**
+  String get worldInfoSkipMissingSecondaryKey;
+
+  /// No description provided for @worldInfoSkipCooldown.
+  ///
+  /// In en, this message translates to:
+  /// **'Cooling down'**
+  String get worldInfoSkipCooldown;
+
+  /// No description provided for @worldInfoSkipProbability.
+  ///
+  /// In en, this message translates to:
+  /// **'Probability check failed'**
+  String get worldInfoSkipProbability;
+
+  /// No description provided for @worldInfoSkipGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Another entry in the group is active'**
+  String get worldInfoSkipGroup;
+
+  /// No description provided for @worldInfoSkipBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry token budget exceeded'**
+  String get worldInfoSkipBudget;
 
   /// No description provided for @worldInfoTestText.
   ///

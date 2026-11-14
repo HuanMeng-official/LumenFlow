@@ -2,6 +2,18 @@ const int _maxWorldInfoEntries = 500;
 const int _maxWorldInfoContentRunes = 4000;
 const int _maxWorldInfoKeys = 20;
 const int _maxWorldInfoRegexRunes = 200;
+const int _maxWorldInfoGroupRunes = 64;
+const int _maxWorldInfoTiming = 1000;
+const int _maxWorldInfoMinActivations = 50;
+const int _maxWorldInfoRecursionDepth = 10;
+
+/// 条目在提示词中的注入位置。
+const Set<String> worldInfoEntryPositions = {
+  'system',
+  'before_preset',
+  'after_preset',
+  'at_depth',
+};
 
 enum WorldInfoCategory { character, location, item, rule, event, lore, other }
 
@@ -22,6 +34,11 @@ class WorldInfoEntry {
     required this.enabled,
     required this.position,
     required this.depth,
+    this.group = '',
+    this.probability = 100,
+    this.recursive = false,
+    this.sticky = 0,
+    this.cooldown = 0,
   });
 
   final String id;
@@ -38,6 +55,21 @@ class WorldInfoEntry {
   final String position;
   final int depth;
 
+  /// 包含组：同一组最多激活一个条目，组名为空表示不分组。
+  final String group;
+
+  /// 命中后的激活概率，0-100。100 表示必定激活。
+  final int probability;
+
+  /// 激活后是否允许用本条内容继续触发其他条目。
+  final bool recursive;
+
+  /// 命中后继续保持在注入块中的消息数。
+  final int sticky;
+
+  /// 命中后抑制再次激活的消息数。
+  final int cooldown;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -53,6 +85,11 @@ class WorldInfoEntry {
       'enabled': enabled,
       'position': position,
       'depth': depth,
+      'group': group,
+      'probability': probability,
+      'recursive': recursive,
+      'sticky': sticky,
+      'cooldown': cooldown,
     };
   }
 }
@@ -65,6 +102,8 @@ class WorldInfo {
     required this.scanDepth,
     required this.budgetTokens,
     required this.entries,
+    this.minActivations = 0,
+    this.recursionDepth = 0,
   });
 
   static const String format = 'lumenflow_world_info';
@@ -77,6 +116,12 @@ class WorldInfo {
   final int budgetTokens;
   final List<WorldInfoEntry> entries;
 
+  /// 至少尝试激活多少条；聊天扫描会为它扩大回看窗口。
+  final int minActivations;
+
+  /// 递归激活的最大层数；0 表示关闭递归。
+  final int recursionDepth;
+
   Map<String, dynamic> toJson() {
     return {
       '_format': format,
@@ -86,6 +131,8 @@ class WorldInfo {
       'background': background,
       'scan_depth': scanDepth,
       'budget_tokens': budgetTokens,
+      'min_activations': minActivations,
+      'recursion_depth': recursionDepth,
       'entries': entries.map((entry) => entry.toJson()).toList(),
     };
   }
@@ -105,11 +152,19 @@ class WorldInfo {
     final background = _optionalString(json, 'background') ?? '';
     final scanDepth = _optionalInt(json, 'scan_depth') ?? 4;
     final budgetTokens = _optionalInt(json, 'budget_tokens') ?? 1000;
+    final minActivations = _optionalInt(json, 'min_activations') ?? 0;
+    final recursionDepth = _optionalInt(json, 'recursion_depth') ?? 0;
     if (scanDepth < 0) {
       throw const FormatException('scan_depth must not be negative');
     }
     if (budgetTokens < 0) {
       throw const FormatException('budget_tokens must not be negative');
+    }
+    if (minActivations < 0 || minActivations > _maxWorldInfoMinActivations) {
+      throw const FormatException('Invalid min_activations');
+    }
+    if (recursionDepth < 0 || recursionDepth > _maxWorldInfoRecursionDepth) {
+      throw const FormatException('Invalid recursion_depth');
     }
 
     final entriesValue = json['entries'] ?? const <dynamic>[];
@@ -140,6 +195,8 @@ class WorldInfo {
       scanDepth: scanDepth,
       budgetTokens: budgetTokens,
       entries: entries,
+      minActivations: minActivations,
+      recursionDepth: recursionDepth,
     );
   }
 }
@@ -154,9 +211,7 @@ WorldInfoEntry _entryFromJson(Map<String, dynamic> json) {
   if (titleValue != null && titleValue is! String) {
     throw FormatException('Invalid title for world info entry $id');
   }
-  final title = titleValue is String && titleValue.isNotEmpty
-      ? titleValue
-      : id;
+  final title = titleValue is String && titleValue.isNotEmpty ? titleValue : id;
 
   final category = _categoryFromJson(json['category']);
   final match = _matchFromJson(json['match']);
@@ -195,12 +250,41 @@ WorldInfoEntry _entryFromJson(Map<String, dynamic> json) {
     throw FormatException('Invalid enabled for world info entry $id');
   }
   final positionValue = json['position'] ?? 'system';
-  if (positionValue is! String) {
+  if (positionValue is! String ||
+      !worldInfoEntryPositions.contains(positionValue)) {
     throw FormatException('Invalid position for world info entry $id');
   }
   final depth = _optionalInt(json, 'depth') ?? 0;
-  if (depth < 0) {
+  if (depth < 0 || depth > _maxWorldInfoTiming) {
     throw FormatException('Invalid depth for world info entry $id');
+  }
+
+  final groupValue = json['group'] ?? '';
+  if (groupValue is! String) {
+    throw FormatException('Invalid group for world info entry $id');
+  }
+  final group = groupValue.trim();
+  if (group.runes.length > _maxWorldInfoGroupRunes) {
+    throw FormatException('World info entry $id group is too long');
+  }
+
+  final probability = _optionalInt(json, 'probability') ?? 100;
+  if (probability < 0 || probability > 100) {
+    throw FormatException('Invalid probability for world info entry $id');
+  }
+
+  final recursiveValue = json['recursive'] ?? false;
+  if (recursiveValue is! bool) {
+    throw FormatException('Invalid recursive for world info entry $id');
+  }
+
+  final sticky = _optionalInt(json, 'sticky') ?? 0;
+  final cooldown = _optionalInt(json, 'cooldown') ?? 0;
+  if (sticky < 0 || sticky > _maxWorldInfoTiming) {
+    throw FormatException('Invalid sticky for world info entry $id');
+  }
+  if (cooldown < 0 || cooldown > _maxWorldInfoTiming) {
+    throw FormatException('Invalid cooldown for world info entry $id');
   }
 
   if (match == WorldInfoMatchMode.regex) {
@@ -222,6 +306,11 @@ WorldInfoEntry _entryFromJson(Map<String, dynamic> json) {
     enabled: enabledValue,
     position: positionValue,
     depth: depth,
+    group: group,
+    probability: probability,
+    recursive: recursiveValue,
+    sticky: sticky,
+    cooldown: cooldown,
   );
 }
 
@@ -269,7 +358,9 @@ List<String> _stringList(Object? value, String field, String entryId) {
   final result = <String>[];
   for (final item in value) {
     if (item is! String || item.isEmpty) {
-      throw FormatException('Invalid $field value for world info entry $entryId');
+      throw FormatException(
+        'Invalid $field value for world info entry $entryId',
+      );
     }
     result.add(item);
   }

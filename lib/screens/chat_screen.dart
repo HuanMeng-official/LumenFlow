@@ -548,12 +548,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     return null;
   }
 
-  /// 激活当前角色卡世界书，生成注入 system prompt 的文本块。
-  String _buildWorldInfoBlock(String currentContent, List<Message> history) {
-    if (!_promptPresetEnabled || _currentPresetId.isEmpty) return '';
+  /// 激活当前角色卡世界书，并按 position 拆分注入块。
+  WorldInfoInjection _buildWorldInfoInjection(
+    String currentContent,
+    List<Message> history,
+  ) {
+    if (!_promptPresetEnabled || _currentPresetId.isEmpty) {
+      return const WorldInfoInjection();
+    }
 
     final worldInfo = _findPresetById(_currentPresetId)?.worldInfo;
-    if (worldInfo == null) return '';
+    if (worldInfo == null) return const WorldInfoInjection();
 
     final eligible = history
         .where(
@@ -562,27 +567,21 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               message.content.trim().isNotEmpty,
         )
         .toList(growable: false);
-    final depth = worldInfo.scanDepth;
-    final recent = eligible.length > depth
-        ? eligible.sublist(eligible.length - depth)
-        : eligible;
 
-    final scanParts = recent.map((message) => message.content).toList();
-    Message? lastUserInRecent;
-    for (final message in recent.reversed) {
-      if (message.isUser) {
-        lastUserInRecent = message;
-        break;
-      }
-    }
-    if (currentContent.trim().isNotEmpty &&
-        lastUserInRecent?.content != currentContent) {
-      scanParts.add(currentContent);
-    }
+    // 只有历史最后一条就是当前用户消息时才跳过追加；不能只在更早的消息里
+    // 找到相同文本，否则连续发送相同内容会少算一条扫描消息。
+    final currentAlreadyInHistory =
+        eligible.isNotEmpty &&
+        eligible.last.isUser &&
+        eligible.last.content == currentContent;
 
-    return WorldInfoService.formatBlock(
-      WorldInfoService.activate(worldInfo, scanParts.join('\n')),
+    final activation = WorldInfoService.activateWithExpansion(
+      worldInfo,
+      eligible.map((message) => message.content).toList(growable: false),
+      currentContent: currentContent,
+      currentAlreadyInHistory: currentAlreadyInHistory,
     );
+    return WorldInfoService.buildInjection(activation);
   }
 
   /// 当前会话已启用角色模式，但预设不存在或角色卡文件不可用。
@@ -965,7 +964,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final titleAtSend = _currentTitle;
     final history =
         historyOverride ?? ChatSendController.buildHistory(_messages);
-    final worldInfoBlock = _buildWorldInfoBlock(content, history);
+    final worldInfo = _buildWorldInfoInjection(content, history);
 
     // 发送前补齐记忆：旧消息即将滑出原文窗口时，宁可多等一会儿，也不能
     // 让模型在“没有前情”的状态下回答。
@@ -1039,7 +1038,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         attachments: attachments,
         thinkingMode: _thinkingMode,
         presetSystemPrompt: presetSystemPrompt,
-        worldInfoBlock: worldInfoBlock,
+        worldInfoBlock: worldInfo.systemBlock,
+        beforePresetWorldInfoBlock: worldInfo.beforePresetBlock,
+        afterPresetWorldInfoBlock: worldInfo.afterPresetBlock,
+        atDepthWorldInfo: worldInfo.atDepth,
         memoryBlock: memoryBlock,
         memoryNoteSink: (memoryEnabled && historyEnabled)
             ? (draft) => _recordMemoryNote(

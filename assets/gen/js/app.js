@@ -698,6 +698,12 @@ ${example}
             InvalidRegex: '正则表达式无效：',
             RegexTooLong: '正则表达式超过 200 字符：',
             ContentTooLong: '条目内容超过 4000 字符：',
+            InvalidPosition: '注入位置无效：',
+            InvalidTiming: '深度、粘滞或冷却超出 0-1000：',
+            InvalidProbability: '激活概率必须在 0-100：',
+            GroupTooLong: '包含组名超过 64 字符：',
+            MinActivationsTooHigh: '最小激活条目数必须在 0-50',
+            RecursionDepthTooHigh: '递归深度必须在 0-10',
             XmlTooLarge: '角色 XML 超过 200 KB，无法导入应用'
         },
         en: {
@@ -708,6 +714,12 @@ ${example}
             InvalidRegex: 'Invalid regex: ',
             RegexTooLong: 'Regex is over 200 characters: ',
             ContentTooLong: 'Entry content is over 4000 characters: ',
+            InvalidPosition: 'Invalid injection position: ',
+            InvalidTiming: 'Depth, sticky, or cooldown is outside 0-1000: ',
+            InvalidProbability: 'Probability must be between 0 and 100: ',
+            GroupTooLong: 'Inclusion group is over 64 characters: ',
+            MinActivationsTooHigh: 'Minimum activations must be between 0 and 50',
+            RecursionDepthTooHigh: 'Recursion depth must be between 0 and 10',
             XmlTooLarge: 'Character XML is over 200 KB and cannot be imported'
         },
         ja: {
@@ -718,6 +730,12 @@ ${example}
             InvalidRegex: '正規表現が無効です：',
             RegexTooLong: '正規表現が 200 文字を超えています：',
             ContentTooLong: '項目の内容が 4000 文字を超えています：',
+            InvalidPosition: '注入位置が無効です：',
+            InvalidTiming: '深度・スティッキー・クールダウンは 0〜1000 の範囲です：',
+            InvalidProbability: '確率は 0〜100 の範囲です：',
+            GroupTooLong: '包含グループ名が 64 文字を超えています：',
+            MinActivationsTooHigh: '最小発動数は 0〜50 の範囲です',
+            RecursionDepthTooHigh: '再帰深度は 0〜10 の範囲です',
             XmlTooLarge: 'キャラクター XML が 200 KB を超えています'
         },
         ko: {
@@ -728,6 +746,12 @@ ${example}
             InvalidRegex: '정규식이 잘못되었습니다: ',
             RegexTooLong: '정규식이 200자를 넘습니다: ',
             ContentTooLong: '항목 내용이 4000자를 넘습니다: ',
+            InvalidPosition: '주입 위치가 잘못되었습니다: ',
+            InvalidTiming: '깊이, 유지, 재사용 대기는 0~1000 범위여야 합니다: ',
+            InvalidProbability: '확률은 0~100 범위여야 합니다: ',
+            GroupTooLong: '포함 그룹 이름이 64자를 넘습니다: ',
+            MinActivationsTooHigh: '최소 활성화 수는 0~50 범위여야 합니다',
+            RecursionDepthTooHigh: '재귀 깊이는 0~10 범위여야 합니다',
             XmlTooLarge: '캐릭터 XML이 200 KB를 넘어 가져올 수 없습니다'
         },
         es: {
@@ -738,6 +762,12 @@ ${example}
             InvalidRegex: 'Regex no válido: ',
             RegexTooLong: 'El regex supera 200 caracteres: ',
             ContentTooLong: 'El contenido supera 4000 caracteres: ',
+            InvalidPosition: 'Posición de inyección no válida: ',
+            InvalidTiming: 'La profundidad, permanencia o recarga deben estar entre 0 y 1000: ',
+            InvalidProbability: 'La probabilidad debe estar entre 0 y 100: ',
+            GroupTooLong: 'El grupo de inclusión supera 64 caracteres: ',
+            MinActivationsTooHigh: 'El mínimo de activaciones debe estar entre 0 y 50',
+            RecursionDepthTooHigh: 'La profundidad de recursión debe estar entre 0 y 10',
             XmlTooLarge: 'El XML del personaje supera 200 KB y no se puede importar'
         }
     };
@@ -1043,6 +1073,8 @@ ${example}
         setText('hint-WorldInfoBackground', d.WorldInfoBackgroundHint);
         setText('lbl-WorldInfoScanDepth', d.WorldInfoScanDepth);
         setText('lbl-WorldInfoBudget', d.WorldInfoBudget);
+        setText('lbl-WorldInfoMinActivations', d.WorldInfoMinActivations);
+        setText('lbl-WorldInfoRecursionDepth', d.WorldInfoRecursionDepth);
         setText('lbl-WorldInfoEntries', d.WorldInfoEntries);
         setText('lbl-MetaName', d.MetaName);
         setText('lbl-MetaAuthor', d.MetaAuthor);

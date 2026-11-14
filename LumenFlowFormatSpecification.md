@@ -169,6 +169,8 @@ The role card XML. Its root element is `<system_instruction>`. The `<worldview_b
   "background": "……世界背景全文……",
   "scan_depth": 4,
   "budget_tokens": 1000,
+  "min_activations": 0,
+  "recursion_depth": 0,
   "entries": [
     {
       "id": "fushang-bookshop",
@@ -183,7 +185,12 @@ The role card XML. Its root element is `<system_instruction>`. The `<worldview_b
       "priority": 100,
       "enabled": true,
       "position": "system",
-      "depth": 0
+      "depth": 0,
+      "group": "",
+      "probability": 100,
+      "recursive": false,
+      "sticky": 0,
+      "cooldown": 0
     }
   ]
 }
@@ -198,7 +205,13 @@ Limits and validation:
 - Regex keys up to **200** characters; invalid regexes are rejected.
 - Entry IDs must be unique.
 - Every entry must have at least one primary key.
-- Unknown categories or match modes are rejected.
+- `position` must be one of `system`, `before_preset`, `after_preset`, `at_depth`.
+- `depth`, `sticky`, and `cooldown` are integers in **0–1000**.
+- `group` is up to **64** characters.
+- `probability` is **0–100**.
+- `recursive` is a boolean.
+- `min_activations` is **0–50**; `recursion_depth` is **0–10**.
+- Unknown categories, match modes, or positions are rejected.
 
 Categories: `character`, `location`, `item`, `rule`, `event`, `lore`, `other`.  
 Match modes: `substring`, `word`, `regex`.
@@ -241,13 +254,21 @@ Match modes: `substring`, `word`, `regex`.
 
 ## 6. World info activation
 
-1. The caller supplies scan text. The app uses the current message plus the most recent `scan_depth` messages.
-2. `background` is always injected and is not counted against the entry budget.
+1. The caller supplies scan text. The app uses the current message plus the most recent `scan_depth` messages. If fewer than `min_activations` entries activate and older messages exist, the scan window is expanded until the minimum is met or the window reaches all eligible messages.
+2. `background` is always injected in the system-prompt block and is not counted against the entry budget.
 3. Entries activate when a primary key matches. If `secondary_keys` is non-empty, at least one secondary key must also match.
 4. `substring` matches substrings; `word` uses word boundaries and falls back to substring for CJK; `regex` uses a regular expression.
-5. Ordering: priority descending, then matched key length descending, then id.
-6. Entries are admitted in that order while they fit `budget_tokens`. An entry that does not fit is skipped; smaller lower-priority entries may still be admitted.
-7. Injected block:
+5. `probability` is evaluated with a stable hash of the entry ID and scan text, so the same input produces the same result. `0` never activates; `100` always activates.
+6. `sticky` keeps an entry active for N messages after its last match. `cooldown` suppresses activation for N messages after a previous match unless `sticky` keeps it active.
+7. Recursive activation: when `recursion_depth` is greater than zero, the content of an activated entry with `recursive: true` is scanned for other entries' keys, for up to that many levels.
+8. Inclusion groups: entries with the same non-empty `group` compete; only the best entry (priority, then matched key length, then ID) is admitted. Other entries are skipped with reason `group`.
+9. Ordering: priority descending, then matched key length descending, then id.
+10. Entries are admitted in that order while they fit `budget_tokens`. An entry that does not fit is skipped with reason `budget`; smaller lower-priority entries may still be admitted.
+11. Injection position:
+    - `system`: system-prompt world-info block with the background.
+    - `before_preset` / `after_preset`: inserted immediately before/after the character card.
+    - `at_depth`: inserted into the request history as a synthetic user message at `depth` messages from the end; the message is clearly marked as background, not user speech, and is not persisted.
+12. Injected block:
 
 ```text
 [世界书 · 浮生书店]
@@ -258,7 +279,7 @@ Match modes: `substring`, `word`, `regex`.
 ……
 ```
 
-8. System prompt order: base → custom → preset → note instruction → recall instruction → world info → memory.
+13. System prompt order: base → custom → before-preset world info → preset → after-preset world info → note instruction → recall instruction → system world info → memory.
 
 ## 7. Generator output
 

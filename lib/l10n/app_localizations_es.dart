@@ -336,7 +336,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get historyRoundsPlaceholder => 'Introduce el número de rondas';
 
   @override
-  String get historyRoundsDesc => 'Número de rondas que la IA recuerda, recomendado 5-20. Demasiadas pueden exceder el límite de tokens';
+  String get historyRoundsDesc => 'Número de rondas que la IA recuerda, recomendado 20-60. Demasiadas pueden exceder el límite de tokens';
 
   @override
   String get memoryCompression => 'Compresión de memoria';
@@ -1691,6 +1691,99 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get worldInfoBackground => 'Trasfondo del mundo';
+
+  @override
+  String get worldInfoInjectionNotice => 'Lo siguiente es información de trasfondo del mundo, no un mensaje del usuario. Úsala con naturalidad; no la repitas literalmente.';
+
+  @override
+  String get worldInfoEntryCategoryLabel => 'Categoría';
+
+  @override
+  String get worldInfoEntryMatchLabel => 'Coincidencia';
+
+  @override
+  String get worldInfoEntryPositionLabel => 'Posición';
+
+  @override
+  String get worldInfoEntryPriorityLabel => 'Prioridad';
+
+  @override
+  String get worldInfoEntryGroupLabel => 'Grupo';
+
+  @override
+  String get worldInfoEntryProbabilityLabel => 'Probabilidad';
+
+  @override
+  String get worldInfoEntryStickyLabel => 'Permanencia';
+
+  @override
+  String get worldInfoEntryCooldownLabel => 'Recarga';
+
+  @override
+  String get worldInfoEntryRecursionLabel => 'Recursión';
+
+  @override
+  String get worldInfoCategoryCharacter => 'Personaje';
+
+  @override
+  String get worldInfoCategoryLocation => 'Lugar';
+
+  @override
+  String get worldInfoCategoryItem => 'Objeto';
+
+  @override
+  String get worldInfoCategoryRule => 'Regla';
+
+  @override
+  String get worldInfoCategoryEvent => 'Evento';
+
+  @override
+  String get worldInfoCategoryLore => 'Lore';
+
+  @override
+  String get worldInfoCategoryOther => 'Otro';
+
+  @override
+  String get worldInfoMatchSubstring => 'Subcadena';
+
+  @override
+  String get worldInfoMatchWord => 'Palabra';
+
+  @override
+  String get worldInfoMatchRegex => 'Regex';
+
+  @override
+  String get worldInfoPositionSystem => 'Prompt del sistema';
+
+  @override
+  String get worldInfoPositionBeforePreset => 'Antes de la tarjeta';
+
+  @override
+  String get worldInfoPositionAfterPreset => 'Después de la tarjeta';
+
+  @override
+  String get worldInfoPositionAtDepth => 'A profundidad del chat';
+
+  @override
+  String get worldInfoSkipDisabled => 'Desactivada';
+
+  @override
+  String get worldInfoSkipNoPrimaryKey => 'Clave principal no encontrada';
+
+  @override
+  String get worldInfoSkipMissingSecondaryKey => 'Clave secundaria no encontrada';
+
+  @override
+  String get worldInfoSkipCooldown => 'En recarga';
+
+  @override
+  String get worldInfoSkipProbability => 'No superó la probabilidad';
+
+  @override
+  String get worldInfoSkipGroup => 'Ya hay una entrada del grupo activa';
+
+  @override
+  String get worldInfoSkipBudget => 'Se superó el presupuesto de tokens';
 
   @override
   String get worldInfoTestText => 'Texto de prueba';

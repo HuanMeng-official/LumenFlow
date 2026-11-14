@@ -1,4 +1,5 @@
 :root {
+            color-scheme: light dark;
             --bg-body: #fafafa;
             --bg-card: #ffffff;
             --text-primary: #111111;
@@ -107,18 +108,37 @@
         }
 
         select {
-            font-size: 13px;
-            padding: 8px 12px;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            box-sizing: border-box;
+            height: 36px;
+            padding: 8px 36px 8px 12px;
             border-radius: var(--radius);
-            border: 1px solid var(--border-light);
-            background: var(--bg-card);
+            border: 1px solid transparent;
+            background-color: var(--input-bg);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%2388888d' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 12px 8px;
             color: var(--text-primary);
+            font-family: inherit;
+            font-size: 13px;
+            line-height: 1.4;
             cursor: pointer;
             outline: none;
-            transition: all 0.2s;
-            height: 36px;
+            transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
         }
-        select:hover { border-color: var(--border-hover); }
+        select:hover { background-color: var(--border-light); }
+        select:focus {
+            background-color: var(--bg-card);
+            border-color: var(--border-hover);
+            box-shadow: 0 0 0 2px rgba(0,0,0,0.05);
+        }
+        select option {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
 
         .token-counter {
             height: 36px;
@@ -175,7 +195,13 @@
         textarea { min-height: 120px; resize: vertical; line-height: 1.6; overflow-y: hidden; }
         textarea.compact { min-height: 52px; }
 
-        .form-group select { width: 100%; box-sizing: border-box; }
+        .form-group select {
+            width: 100%;
+            box-sizing: border-box;
+            height: auto;
+            padding: 12px 42px 12px 14px;
+            font-size: 15px;
+        }
 
         input[type="text"]:hover, input[type="number"]:hover, textarea:hover { background-color: var(--border-light); }
         input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
@@ -379,6 +405,19 @@
 .wi-enabled {
     align-items: flex-end;
     display: flex;
+}
+
+.wi-flag-row {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+}
+
+.wi-flag-row label {
+    align-items: center;
+    display: flex;
+    gap: 8px;
 }
 
 .wi-enabled label {

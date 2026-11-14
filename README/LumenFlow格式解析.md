@@ -169,6 +169,8 @@ character.lumenflow
   "background": "……世界背景全文……",
   "scan_depth": 4,
   "budget_tokens": 1000,
+  "min_activations": 0,
+  "recursion_depth": 0,
   "entries": [
     {
       "id": "fushang-bookshop",
@@ -183,7 +185,12 @@ character.lumenflow
       "priority": 100,
       "enabled": true,
       "position": "system",
-      "depth": 0
+      "depth": 0,
+      "group": "",
+      "probability": 100,
+      "recursive": false,
+      "sticky": 0,
+      "cooldown": 0
     }
   ]
 }
@@ -198,7 +205,13 @@ character.lumenflow
 - 正则关键词最多 **200** 字符；非法正则拒绝。
 - 条目 ID 必须唯一。
 - 每条至少一个主关键词。
-- 未知 category 或 match 拒绝。
+- `position` 只能是 `system`、`before_preset`、`after_preset`、`at_depth`。
+- `depth`、`sticky`、`cooldown` 为 **0–1000** 的整数。
+- `group` 最多 **64** 字符。
+- `probability` 为 **0–100**。
+- `recursive` 为布尔值。
+- `min_activations` 为 **0–50**；`recursion_depth` 为 **0–10**。
+- 未知 category、match 或 position 拒绝。
 
 category：`character` / `location` / `item` / `rule` / `event` / `lore` / `other`。  
 match：`substring` / `word` / `regex`。
@@ -241,13 +254,21 @@ match：`substring` / `word` / `regex`。
 
 ## 6. 世界书激活
 
-1. 调用方传入扫描文本。应用使用当前消息 + 最近 `scan_depth` 条消息。
-2. `background` 永远注入，不占用条目预算。
+1. 调用方传入扫描文本。应用使用当前消息 + 最近 `scan_depth` 条消息。若命中数少于 `min_activations` 且还有更早消息，会扩大回看窗口，直到满足下限或覆盖全部可用消息。
+2. `background` 永远注入 system prompt 的世界书块，不占用条目预算。
 3. 主关键词命中时条目可激活；若 `secondary_keys` 非空，还必须至少命中一个次关键词。
 4. `substring` 做子串匹配；`word` 使用单词边界，CJK 回退子串；`regex` 使用正则。
-5. 排序：priority 降序 → 命中关键词长度降序 → id。
-6. 按该顺序放入能装进 `budget_tokens` 的条目；装不下的条目跳过，后续更小、优先级更低的条目仍可能被放入。
-7. 注入格式：
+5. `probability` 用条目 ID + 扫描文本的稳定哈希判定，同一输入结果一致；0 永不激活，100 必定激活。
+6. `sticky` 让条目在最后一次命中后继续保留 N 条消息；`cooldown` 在之前命中后的 N 条消息内抑制再次激活，`sticky` 优先。
+7. 递归激活：`recursion_depth` 大于 0 时，已激活且 `recursive: true` 的条目正文会继续扫描其他条目的关键词，最多递归该层数。
+8. 包含组：同一非空 `group` 的条目竞争，只放行排序最靠前的一条（priority → 命中关键词长度 → id）；其余标记为 `group` 跳过。
+9. 排序：priority 降序 → 命中关键词长度降序 → id。
+10. 按该顺序放入能装进 `budget_tokens` 的条目；装不下的标记为 `budget` 跳过，后续更小、优先级更低的条目仍可能被放入。
+11. 注入位置：
+    - `system`：system prompt 中的世界书块，包含背景。
+    - `before_preset` / `after_preset`：分别插入角色卡前/后。
+    - `at_depth`：按 `depth` 从对话末尾倒数插入请求历史，作为明确标注“不是用户发言”的合成 user 消息；不写入数据库。
+12. 注入格式：
 
 ```text
 [世界书 · 浮生书店]
@@ -258,7 +279,7 @@ match：`substring` / `word` / `regex`。
 ……
 ```
 
-8. system prompt 顺序：基础 → 自定义 → 角色预设 → note 指令 → recall 指令 → 世界书 → 记忆。
+13. system prompt 顺序：基础 → 自定义 → 角色卡前世界书 → 角色预设 → 角色卡后世界书 → note 指令 → recall 指令 → system 世界书 → 记忆。
 
 ## 7. 生成器输出
 

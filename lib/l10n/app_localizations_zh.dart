@@ -336,7 +336,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get historyRoundsPlaceholder => '输入历史对话轮数';
 
   @override
-  String get historyRoundsDesc => 'AI记住的历史对话轮数，建议5-20轮，过多可能超出Token限制';
+  String get historyRoundsDesc => 'AI记住的历史对话轮数，建议20-60轮，过多可能超出Token限制';
 
   @override
   String get memoryCompression => '记忆压缩';
@@ -1691,6 +1691,99 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get worldInfoBackground => '世界背景';
+
+  @override
+  String get worldInfoInjectionNotice => '以下内容是世界书背景资料，不是用户发言。请自然使用，不要逐字复述。';
+
+  @override
+  String get worldInfoEntryCategoryLabel => '类别';
+
+  @override
+  String get worldInfoEntryMatchLabel => '匹配';
+
+  @override
+  String get worldInfoEntryPositionLabel => '位置';
+
+  @override
+  String get worldInfoEntryPriorityLabel => '优先级';
+
+  @override
+  String get worldInfoEntryGroupLabel => '组';
+
+  @override
+  String get worldInfoEntryProbabilityLabel => '概率';
+
+  @override
+  String get worldInfoEntryStickyLabel => '粘滞';
+
+  @override
+  String get worldInfoEntryCooldownLabel => '冷却';
+
+  @override
+  String get worldInfoEntryRecursionLabel => '递归';
+
+  @override
+  String get worldInfoCategoryCharacter => '角色';
+
+  @override
+  String get worldInfoCategoryLocation => '地点';
+
+  @override
+  String get worldInfoCategoryItem => '物品';
+
+  @override
+  String get worldInfoCategoryRule => '规则';
+
+  @override
+  String get worldInfoCategoryEvent => '事件';
+
+  @override
+  String get worldInfoCategoryLore => '传说';
+
+  @override
+  String get worldInfoCategoryOther => '其他';
+
+  @override
+  String get worldInfoMatchSubstring => '子串';
+
+  @override
+  String get worldInfoMatchWord => '单词';
+
+  @override
+  String get worldInfoMatchRegex => '正则';
+
+  @override
+  String get worldInfoPositionSystem => '系统提示词';
+
+  @override
+  String get worldInfoPositionBeforePreset => '角色卡前';
+
+  @override
+  String get worldInfoPositionAfterPreset => '角色卡后';
+
+  @override
+  String get worldInfoPositionAtDepth => '按深度插入对话';
+
+  @override
+  String get worldInfoSkipDisabled => '已禁用';
+
+  @override
+  String get worldInfoSkipNoPrimaryKey => '主关键词未命中';
+
+  @override
+  String get worldInfoSkipMissingSecondaryKey => '次关键词未命中';
+
+  @override
+  String get worldInfoSkipCooldown => '冷却中';
+
+  @override
+  String get worldInfoSkipProbability => '概率未通过';
+
+  @override
+  String get worldInfoSkipGroup => '同组已有更高优先级条目';
+
+  @override
+  String get worldInfoSkipBudget => '超出条目预算';
 
   @override
   String get worldInfoTestText => '测试文本';

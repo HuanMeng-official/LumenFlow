@@ -9,6 +9,7 @@ import 'memory_service.dart';
 import 'settings_service.dart';
 import 'system_prompt_builder.dart';
 import 'tool_chat_service.dart';
+import 'world_info_service.dart';
 import '../ai/contracts/ai_error.dart';
 import '../ai/contracts/ai_tool_executor.dart';
 import '../ai/mcp/mcp_client.dart';
@@ -295,12 +296,15 @@ class AIService {
 
   /// 构建完整的系统提示词
   ///
-  /// 按“基础规则 → 自定义提示 → 角色预设”的顺序拼接。角色预设保留在最后，
-  /// 因此它可以覆盖角色身份与文风，但不会丢掉用户的全局自定义要求。
+  /// 按“基础规则 → 自定义提示 → 角色卡前世界书 → 角色预设 →
+  /// 角色卡后世界书”的顺序拼接。角色预设位于世界书之间，因此可以覆盖
+  /// 全局身份与文风，同时保留写作前资料与补充设定。
   Future<String> _buildSystemPrompt(
     String presetSystemPrompt,
     AppLocalizations l10n, {
     String worldInfoBlock = '',
+    String beforePresetWorldInfoBlock = '',
+    String afterPresetWorldInfoBlock = '',
     String memoryBlock = '',
     bool memoryNoteEnabled = false,
     bool memoryRecallEnabled = false,
@@ -314,7 +318,9 @@ class AIService {
     final stablePrefix = composeSystemPrompt(
       basePrompt: baseSystemPrompt,
       customPrompt: customSystemPrompt,
+      beforePresetPrompt: beforePresetWorldInfoBlock,
       presetPrompt: presetSystemPrompt,
+      afterPresetPrompt: afterPresetWorldInfoBlock,
       noteInstruction: memoryNoteEnabled ? l10n.memoryNoteInstruction : '',
       recallInstruction: memoryRecallEnabled
           ? l10n.memoryRecallInstruction
@@ -345,6 +351,8 @@ class AIService {
     String presetSystemPrompt,
     AppLocalizations l10n, {
     String worldInfoBlock = '',
+    String beforePresetWorldInfoBlock = '',
+    String afterPresetWorldInfoBlock = '',
     String memoryBlock = '',
     bool memoryNoteEnabled = false,
     bool memoryRecallEnabled = false,
@@ -353,6 +361,8 @@ class AIService {
       presetSystemPrompt,
       l10n,
       worldInfoBlock: worldInfoBlock,
+      beforePresetWorldInfoBlock: beforePresetWorldInfoBlock,
+      afterPresetWorldInfoBlock: afterPresetWorldInfoBlock,
       memoryBlock: memoryBlock,
       memoryNoteEnabled: memoryNoteEnabled,
       memoryRecallEnabled: memoryRecallEnabled,
@@ -393,6 +403,10 @@ class AIService {
     List<Attachment> attachments = const [],
     bool thinkingMode = false,
     String presetSystemPrompt = '',
+    String worldInfoBlock = '',
+    String beforePresetWorldInfoBlock = '',
+    String afterPresetWorldInfoBlock = '',
+    List<WorldInfoDepthBlock> atDepthWorldInfo = const [],
     String memoryBlock = '',
     required AppLocalizations l10n,
   }) async {
@@ -407,9 +421,17 @@ class AIService {
     final systemPrompt = await _buildSystemPrompt(
       presetSystemPrompt,
       l10n,
+      worldInfoBlock: worldInfoBlock,
+      beforePresetWorldInfoBlock: beforePresetWorldInfoBlock,
+      afterPresetWorldInfoBlock: afterPresetWorldInfoBlock,
       memoryBlock: memoryBlock,
     );
     final addTimeToPrompt = await _settingsService.getAddTimeToPrompt();
+    final effectiveHistory = injectWorldInfoAtDepth(
+      chatHistory,
+      atDepthWorldInfo,
+      notice: l10n.worldInfoInjectionNotice,
+    );
 
     // 根据设置决定是否添加当前时间信息到用户消息
     final messageToSend = addTimeToPrompt
@@ -419,7 +441,7 @@ class AIService {
     try {
       return await provider.sendMessage(
         message: messageToSend,
-        chatHistory: chatHistory,
+        chatHistory: effectiveHistory,
         attachments: attachments,
         systemPrompt: systemPrompt,
         temperature: temperature,
@@ -486,6 +508,9 @@ class AIService {
     bool thinkingMode = false,
     String presetSystemPrompt = '',
     String worldInfoBlock = '',
+    String beforePresetWorldInfoBlock = '',
+    String afterPresetWorldInfoBlock = '',
+    List<WorldInfoDepthBlock> atDepthWorldInfo = const [],
     String memoryBlock = '',
     MemoryNoteSink? memoryNoteSink,
     MemoryRecallHandler? memoryRecallHandler,
@@ -502,11 +527,18 @@ class AIService {
       presetSystemPrompt,
       l10n,
       worldInfoBlock: worldInfoBlock,
+      beforePresetWorldInfoBlock: beforePresetWorldInfoBlock,
+      afterPresetWorldInfoBlock: afterPresetWorldInfoBlock,
       memoryBlock: memoryBlock,
       memoryNoteEnabled: memoryNoteSink != null,
       memoryRecallEnabled: memoryRecallHandler != null,
     );
     final addTimeToPrompt = await _settingsService.getAddTimeToPrompt();
+    final effectiveHistory = injectWorldInfoAtDepth(
+      chatHistory,
+      atDepthWorldInfo,
+      notice: l10n.worldInfoInjectionNotice,
+    );
 
     try {
       final config = await _settingsService.getActivePlatformConfig();
@@ -571,7 +603,7 @@ class AIService {
             config: config,
             // 时间由内置工具提供，工具路径不再把时间拼进用户消息。
             message: toolMessage,
-            history: chatHistory,
+            history: effectiveHistory,
             systemPrompt: systemPrompt,
             temperature: temperature,
             maxTokens: maxTokens,
@@ -591,7 +623,7 @@ class AIService {
       final provider = await _getProvider();
       yield* provider.sendMessageStreaming(
         message: messageToSend,
-        chatHistory: chatHistory,
+        chatHistory: effectiveHistory,
         attachments: attachments,
         systemPrompt: systemPrompt,
         temperature: temperature,

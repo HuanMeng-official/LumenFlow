@@ -336,7 +336,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get historyRoundsPlaceholder => '히스토리 라운드 수 입력';
 
   @override
-  String get historyRoundsDesc => 'AI가 기억하는 대화 라운드 수, 권장 5-20라운드. 너무 많으면 토큰 제한 초과 가능';
+  String get historyRoundsDesc => 'AI가 기억하는 대화 라운드 수, 권장 20-60라운드. 너무 많으면 토큰 제한 초과 가능';
 
   @override
   String get memoryCompression => '메모리 압축';
@@ -1691,6 +1691,99 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get worldInfoBackground => '세계 배경';
+
+  @override
+  String get worldInfoInjectionNotice => '다음은 세계관 배경 자료이며 사용자 발언이 아닙니다. 자연스럽게 사용하고 그대로 반복하지 마세요.';
+
+  @override
+  String get worldInfoEntryCategoryLabel => '분류';
+
+  @override
+  String get worldInfoEntryMatchLabel => '매칭';
+
+  @override
+  String get worldInfoEntryPositionLabel => '위치';
+
+  @override
+  String get worldInfoEntryPriorityLabel => '우선순위';
+
+  @override
+  String get worldInfoEntryGroupLabel => '그룹';
+
+  @override
+  String get worldInfoEntryProbabilityLabel => '확률';
+
+  @override
+  String get worldInfoEntryStickyLabel => '유지';
+
+  @override
+  String get worldInfoEntryCooldownLabel => '재사용 대기';
+
+  @override
+  String get worldInfoEntryRecursionLabel => '재귀';
+
+  @override
+  String get worldInfoCategoryCharacter => '캐릭터';
+
+  @override
+  String get worldInfoCategoryLocation => '장소';
+
+  @override
+  String get worldInfoCategoryItem => '물품';
+
+  @override
+  String get worldInfoCategoryRule => '규칙';
+
+  @override
+  String get worldInfoCategoryEvent => '사건';
+
+  @override
+  String get worldInfoCategoryLore => '전설';
+
+  @override
+  String get worldInfoCategoryOther => '기타';
+
+  @override
+  String get worldInfoMatchSubstring => '부분 문자열';
+
+  @override
+  String get worldInfoMatchWord => '단어';
+
+  @override
+  String get worldInfoMatchRegex => '정규식';
+
+  @override
+  String get worldInfoPositionSystem => '시스템 프롬프트';
+
+  @override
+  String get worldInfoPositionBeforePreset => '캐릭터 카드 앞';
+
+  @override
+  String get worldInfoPositionAfterPreset => '캐릭터 카드 뒤';
+
+  @override
+  String get worldInfoPositionAtDepth => '대화 깊이에 삽입';
+
+  @override
+  String get worldInfoSkipDisabled => '사용 안 함';
+
+  @override
+  String get worldInfoSkipNoPrimaryKey => '주 키워드 불일치';
+
+  @override
+  String get worldInfoSkipMissingSecondaryKey => '보조 키워드 불일치';
+
+  @override
+  String get worldInfoSkipCooldown => '재사용 대기 중';
+
+  @override
+  String get worldInfoSkipProbability => '확률 판정 실패';
+
+  @override
+  String get worldInfoSkipGroup => '같은 그룹에 우선 항목 있음';
+
+  @override
+  String get worldInfoSkipBudget => '항목 토큰 예산 초과';
 
   @override
   String get worldInfoTestText => '테스트 텍스트';

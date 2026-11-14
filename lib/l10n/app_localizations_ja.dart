@@ -336,7 +336,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get historyRoundsPlaceholder => '履歴ラウンド数を入力';
 
   @override
-  String get historyRoundsDesc => 'AIが記憶する会話ラウンド数。推奨値: 5-20ラウンド。多すぎるとトークン制限を超える可能性があります';
+  String get historyRoundsDesc => 'AIが記憶する会話ラウンド数。推奨値: 20-60ラウンド。多すぎるとトークン制限を超える可能性があります';
 
   @override
   String get memoryCompression => 'メモリ圧縮';
@@ -1691,6 +1691,99 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get worldInfoBackground => '世界背景';
+
+  @override
+  String get worldInfoInjectionNotice => '以下はワールド情報の背景資料であり、ユーザーの発言ではありません。自然に使い、逐語的に繰り返さないでください。';
+
+  @override
+  String get worldInfoEntryCategoryLabel => 'カテゴリ';
+
+  @override
+  String get worldInfoEntryMatchLabel => '一致方式';
+
+  @override
+  String get worldInfoEntryPositionLabel => '位置';
+
+  @override
+  String get worldInfoEntryPriorityLabel => '優先度';
+
+  @override
+  String get worldInfoEntryGroupLabel => 'グループ';
+
+  @override
+  String get worldInfoEntryProbabilityLabel => '確率';
+
+  @override
+  String get worldInfoEntryStickyLabel => 'スティッキー';
+
+  @override
+  String get worldInfoEntryCooldownLabel => 'クールダウン';
+
+  @override
+  String get worldInfoEntryRecursionLabel => '再帰';
+
+  @override
+  String get worldInfoCategoryCharacter => 'キャラクター';
+
+  @override
+  String get worldInfoCategoryLocation => '場所';
+
+  @override
+  String get worldInfoCategoryItem => '物品';
+
+  @override
+  String get worldInfoCategoryRule => 'ルール';
+
+  @override
+  String get worldInfoCategoryEvent => '出来事';
+
+  @override
+  String get worldInfoCategoryLore => '伝承';
+
+  @override
+  String get worldInfoCategoryOther => 'その他';
+
+  @override
+  String get worldInfoMatchSubstring => '部分一致';
+
+  @override
+  String get worldInfoMatchWord => '単語';
+
+  @override
+  String get worldInfoMatchRegex => '正規表現';
+
+  @override
+  String get worldInfoPositionSystem => 'システムプロンプト';
+
+  @override
+  String get worldInfoPositionBeforePreset => 'キャラクターカード前';
+
+  @override
+  String get worldInfoPositionAfterPreset => 'キャラクターカード後';
+
+  @override
+  String get worldInfoPositionAtDepth => '会話の深さに挿入';
+
+  @override
+  String get worldInfoSkipDisabled => '無効';
+
+  @override
+  String get worldInfoSkipNoPrimaryKey => '主キー不一致';
+
+  @override
+  String get worldInfoSkipMissingSecondaryKey => '副キー不一致';
+
+  @override
+  String get worldInfoSkipCooldown => 'クールダウン中';
+
+  @override
+  String get worldInfoSkipProbability => '確率判定に失敗';
+
+  @override
+  String get worldInfoSkipGroup => '同じグループに優先項目あり';
+
+  @override
+  String get worldInfoSkipBudget => '項目トークン予算超過';
 
   @override
   String get worldInfoTestText => 'テストテキスト';

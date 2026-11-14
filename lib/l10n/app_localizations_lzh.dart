@@ -1693,6 +1693,99 @@ class AppLocalizationsLzh extends AppLocalizations {
   String get worldInfoBackground => '世界背景';
 
   @override
+  String get worldInfoInjectionNotice => '以下乃世界書之背景，非客官之言。宜自然用之，勿逐字複述。';
+
+  @override
+  String get worldInfoEntryCategoryLabel => '類別';
+
+  @override
+  String get worldInfoEntryMatchLabel => '匹配';
+
+  @override
+  String get worldInfoEntryPositionLabel => '位置';
+
+  @override
+  String get worldInfoEntryPriorityLabel => '次序';
+
+  @override
+  String get worldInfoEntryGroupLabel => '組';
+
+  @override
+  String get worldInfoEntryProbabilityLabel => '機率';
+
+  @override
+  String get worldInfoEntryStickyLabel => '留連';
+
+  @override
+  String get worldInfoEntryCooldownLabel => '冷卻';
+
+  @override
+  String get worldInfoEntryRecursionLabel => '遞發';
+
+  @override
+  String get worldInfoCategoryCharacter => '角色';
+
+  @override
+  String get worldInfoCategoryLocation => '地點';
+
+  @override
+  String get worldInfoCategoryItem => '物品';
+
+  @override
+  String get worldInfoCategoryRule => '規則';
+
+  @override
+  String get worldInfoCategoryEvent => '事變';
+
+  @override
+  String get worldInfoCategoryLore => '傳說';
+
+  @override
+  String get worldInfoCategoryOther => '其他';
+
+  @override
+  String get worldInfoMatchSubstring => '子串';
+
+  @override
+  String get worldInfoMatchWord => '單詞';
+
+  @override
+  String get worldInfoMatchRegex => '正則';
+
+  @override
+  String get worldInfoPositionSystem => '系統之示';
+
+  @override
+  String get worldInfoPositionBeforePreset => '角色卡前';
+
+  @override
+  String get worldInfoPositionAfterPreset => '角色卡後';
+
+  @override
+  String get worldInfoPositionAtDepth => '按深插入對話';
+
+  @override
+  String get worldInfoSkipDisabled => '已禁';
+
+  @override
+  String get worldInfoSkipNoPrimaryKey => '主鍵未中';
+
+  @override
+  String get worldInfoSkipMissingSecondaryKey => '次鍵未中';
+
+  @override
+  String get worldInfoSkipCooldown => '冷卻中';
+
+  @override
+  String get worldInfoSkipProbability => '機率未中';
+
+  @override
+  String get worldInfoSkipGroup => '同組已有先者';
+
+  @override
+  String get worldInfoSkipBudget => '越條目之限';
+
+  @override
   String get worldInfoTestText => '測試文本';
 
   @override

@@ -128,18 +128,38 @@ class _WorldInfoPreviewScreenState extends State<WorldInfoPreviewScreen> {
                 const SizedBox(height: 10),
                 _MatchedEntryCard(item: item, secondaryColor: secondary),
               ],
-            if (_activation.skipped.isNotEmpty) ...[
+            if (_activation.skipDetails.isNotEmpty) ...[
               const SizedBox(height: 24),
               _sectionTitle(
-                '${l10n.worldInfoUnmatched} (${_activation.skipped.length})',
+                '${l10n.worldInfoUnmatched} (${_activation.skipDetails.length})',
                 secondary,
               ),
-              for (final entry in _activation.skipped)
+              for (final detail in _activation.skipDetails)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Text(
-                    '• ${entry.title.trim().isEmpty ? entry.id : entry.title}',
-                    style: TextStyle(fontSize: 14, color: secondary),
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '• ${detail.entry.title.trim().isEmpty ? detail.entry.id : detail.entry.title}',
+                          style: TextStyle(fontSize: 14, color: secondary),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: Text(
+                          _skipReasonLabel(detail.reason, l10n),
+                          textAlign: TextAlign.end,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: CupertinoColors.systemOrange.resolveFrom(
+                              context,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
             ],
@@ -192,7 +212,27 @@ class _MatchedEntryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final entry = item.entry;
+    final l10n = AppLocalizations.of(context)!;
     final title = entry.title.trim().isEmpty ? entry.id : entry.title;
+    final meta = <String>[
+      _categoryLabel(entry.category, l10n),
+      _matchLabel(entry.match, l10n),
+      '${l10n.worldInfoEntryPositionLabel} '
+          '${_positionLabel(entry.position, l10n)}'
+          '${entry.position == 'at_depth' ? ' ${entry.depth}' : ''}',
+      '${l10n.worldInfoEntryPriorityLabel} ${entry.priority}',
+      if (entry.tags.isNotEmpty)
+        '${l10n.presetTagsLabel} ${entry.tags.join(', ')}',
+      if (entry.group.trim().isNotEmpty)
+        '${l10n.worldInfoEntryGroupLabel} ${entry.group.trim()}',
+      if (entry.probability < 100)
+        '${l10n.worldInfoEntryProbabilityLabel} ${entry.probability}%',
+      if (entry.sticky > 0) '${l10n.worldInfoEntryStickyLabel} ${entry.sticky}',
+      if (entry.cooldown > 0)
+        '${l10n.worldInfoEntryCooldownLabel} ${entry.cooldown}',
+      if (item.viaRecursion)
+        '${l10n.worldInfoEntryRecursionLabel} ${item.recursionLevel}',
+    ];
 
     return _Surface(
       child: Column(
@@ -220,6 +260,11 @@ class _MatchedEntryCard extends StatelessWidget {
             item.matchedKey,
             style: TextStyle(fontSize: 12, color: secondaryColor),
           ),
+          const SizedBox(height: 2),
+          Text(
+            meta.join(' · '),
+            style: TextStyle(fontSize: 11, color: secondaryColor),
+          ),
           const SizedBox(height: 8),
           ReadOnlyMarkdown(
             data: entry.content.trim().isEmpty ? '—' : entry.content,
@@ -228,4 +273,46 @@ class _MatchedEntryCard extends StatelessWidget {
       ),
     );
   }
+}
+
+String _categoryLabel(WorldInfoCategory category, AppLocalizations l10n) {
+  return switch (category) {
+    WorldInfoCategory.character => l10n.worldInfoCategoryCharacter,
+    WorldInfoCategory.location => l10n.worldInfoCategoryLocation,
+    WorldInfoCategory.item => l10n.worldInfoCategoryItem,
+    WorldInfoCategory.rule => l10n.worldInfoCategoryRule,
+    WorldInfoCategory.event => l10n.worldInfoCategoryEvent,
+    WorldInfoCategory.lore => l10n.worldInfoCategoryLore,
+    WorldInfoCategory.other => l10n.worldInfoCategoryOther,
+  };
+}
+
+String _matchLabel(WorldInfoMatchMode match, AppLocalizations l10n) {
+  return switch (match) {
+    WorldInfoMatchMode.substring => l10n.worldInfoMatchSubstring,
+    WorldInfoMatchMode.word => l10n.worldInfoMatchWord,
+    WorldInfoMatchMode.regex => l10n.worldInfoMatchRegex,
+  };
+}
+
+String _positionLabel(String position, AppLocalizations l10n) {
+  return switch (position) {
+    'before_preset' => l10n.worldInfoPositionBeforePreset,
+    'after_preset' => l10n.worldInfoPositionAfterPreset,
+    'at_depth' => l10n.worldInfoPositionAtDepth,
+    _ => l10n.worldInfoPositionSystem,
+  };
+}
+
+String _skipReasonLabel(WorldInfoSkipReason reason, AppLocalizations l10n) {
+  return switch (reason) {
+    WorldInfoSkipReason.disabled => l10n.worldInfoSkipDisabled,
+    WorldInfoSkipReason.noPrimaryKey => l10n.worldInfoSkipNoPrimaryKey,
+    WorldInfoSkipReason.missingSecondaryKey =>
+      l10n.worldInfoSkipMissingSecondaryKey,
+    WorldInfoSkipReason.cooldown => l10n.worldInfoSkipCooldown,
+    WorldInfoSkipReason.probability => l10n.worldInfoSkipProbability,
+    WorldInfoSkipReason.group => l10n.worldInfoSkipGroup,
+    WorldInfoSkipReason.budget => l10n.worldInfoSkipBudget,
+  };
 }

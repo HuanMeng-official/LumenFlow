@@ -2,6 +2,7 @@
 (function () {
     const CATEGORIES = ['character', 'location', 'item', 'rule', 'event', 'lore', 'other'];
     const MATCHES = ['substring', 'word', 'regex'];
+    const POSITIONS = ['system', 'before_preset', 'after_preset', 'at_depth'];
 
     const state = {
         name: '',
@@ -9,6 +10,8 @@
         background: '',
         scanDepth: 4,
         budgetTokens: 1000,
+        minActivations: 0,
+        recursionDepth: 0,
         entries: []
     };
 
@@ -53,7 +56,12 @@
             priority: 0,
             enabled: true,
             position: 'system',
-            depth: 0
+            depth: 0,
+            group: '',
+            probability: 100,
+            recursive: false,
+            sticky: 0,
+            cooldown: 0
         };
     }
 
@@ -76,6 +84,16 @@
             substring: d.MatchSubstring,
             word: d.MatchWord,
             regex: d.MatchRegex
+        }[value] || value;
+    }
+
+    function positionLabel(value) {
+        const d = dict();
+        return {
+            system: d.PositionSystem,
+            before_preset: d.PositionBeforePreset,
+            after_preset: d.PositionAfterPreset,
+            at_depth: d.PositionAtDepth
         }[value] || value;
     }
 
@@ -107,6 +125,32 @@
                     <select data-wi-field="match">${option(MATCHES, entry.match, matchLabel)}</select>
                 </div>
             </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>${escapeHtml(d.EntryPosition)}</label>
+                    <select data-wi-field="position">${option(POSITIONS, entry.position, positionLabel)}</select>
+                </div>
+                <div class="form-group">
+                    <label>${escapeHtml(d.EntryDepth)}</label>
+                    <input type="number" min="0" max="1000" data-wi-field="depth"
+                        value="${Number(entry.depth) || 0}">
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>${escapeHtml(d.EntryGroup)}</label>
+                    <input type="text" data-wi-field="group" value="${escapeHtml(entry.group)}">
+                </div>
+                <div class="form-group">
+                    <label>${escapeHtml(d.EntryProbability)}</label>
+                    <input type="number" min="0" max="100" data-wi-field="probability"
+                        value="${Number(entry.probability) || 0}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>${escapeHtml(d.EntryTags)}</label>
+                <input type="text" data-wi-field="tags" value="${escapeHtml(entry.tags.join(', '))}">
+            </div>
             <div class="form-group">
                 <label>${escapeHtml(d.EntryKeys)}</label>
                 <input type="text" data-wi-field="keys" value="${escapeHtml(entry.keys.join(', '))}">
@@ -122,12 +166,34 @@
                     <label>${escapeHtml(d.EntryPriority)}</label>
                     <input type="number" data-wi-field="priority" value="${Number(entry.priority) || 0}">
                 </div>
+                <div class="form-group">
+                    <label>${escapeHtml(d.EntrySticky)}</label>
+                    <input type="number" min="0" max="1000" data-wi-field="sticky"
+                        value="${Number(entry.sticky) || 0}">
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>${escapeHtml(d.EntryCooldown)}</label>
+                    <input type="number" min="0" max="1000" data-wi-field="cooldown"
+                        value="${Number(entry.cooldown) || 0}">
+                </div>
                 <div class="form-group wi-enabled">
                     <label>
                         <input type="checkbox" data-wi-field="enabled" ${entry.enabled ? 'checked' : ''}>
                         ${escapeHtml(d.EntryEnabled)}
                     </label>
                 </div>
+            </div>
+            <div class="form-group wi-flag-row">
+                <label>
+                    <input type="checkbox" data-wi-field="caseSensitive" ${entry.caseSensitive ? 'checked' : ''}>
+                    ${escapeHtml(d.EntryCaseSensitive)}
+                </label>
+                <label>
+                    <input type="checkbox" data-wi-field="recursive" ${entry.recursive ? 'checked' : ''}>
+                    ${escapeHtml(d.EntryRecursive)}
+                </label>
             </div>
             <div class="form-group">
                 <label>${escapeHtml(d.EntryContent)}</label>
@@ -153,12 +219,14 @@
         const index = Number(card.dataset.entryIndex);
         const entry = state.entries[index];
         if (!entry) return;
-        if (field === 'keys' || field === 'secondaryKeys') {
+        if (field === 'keys' || field === 'secondaryKeys' || field === 'tags') {
             entry[field] = splitKeys(target.value);
-        } else if (field === 'priority') {
-            entry.priority = Number(target.value) || 0;
-        } else if (field === 'enabled') {
-            entry.enabled = Boolean(target.checked);
+        } else if (
+            ['priority', 'depth', 'probability', 'sticky', 'cooldown'].includes(field)
+        ) {
+            entry[field] = Math.max(0, Math.trunc(Number(target.value) || 0));
+        } else if (['enabled', 'caseSensitive', 'recursive'].includes(field)) {
+            entry[field] = Boolean(target.checked);
         } else {
             entry[field] = target.value;
         }
@@ -171,6 +239,8 @@
         const description = document.getElementById('WorldInfoDescription');
         const scanDepth = document.getElementById('WorldInfoScanDepth');
         const budget = document.getElementById('WorldInfoBudget');
+        const minActivations = document.getElementById('WorldInfoMinActivations');
+        const recursionDepth = document.getElementById('WorldInfoRecursionDepth');
         const entries = document.getElementById('WorldInfoEntries');
         const add = document.getElementById('btn-AddEntry');
 
@@ -201,6 +271,24 @@
         if (budget) {
             budget.addEventListener('input', () => {
                 state.budgetTokens = Math.max(0, Number(budget.value) || 0);
+                onChange();
+            });
+        }
+        if (minActivations) {
+            minActivations.addEventListener('input', () => {
+                state.minActivations = Math.min(
+                    50,
+                    Math.max(0, Math.trunc(Number(minActivations.value) || 0))
+                );
+                onChange();
+            });
+        }
+        if (recursionDepth) {
+            recursionDepth.addEventListener('input', () => {
+                state.recursionDepth = Math.min(
+                    10,
+                    Math.max(0, Math.trunc(Number(recursionDepth.value) || 0))
+                );
                 onChange();
             });
         }
@@ -250,6 +338,8 @@
         set('WorldInfoBackground', state.background);
         set('WorldInfoScanDepth', state.scanDepth);
         set('WorldInfoBudget', state.budgetTokens);
+        set('WorldInfoMinActivations', state.minActivations);
+        set('WorldInfoRecursionDepth', state.recursionDepth);
         renderEntries();
     }
 
@@ -260,6 +350,12 @@
         state.background = typeof data.background === 'string' ? data.background : '';
         state.scanDepth = Number.isFinite(Number(data.scan_depth)) ? Math.max(0, Number(data.scan_depth)) : 4;
         state.budgetTokens = Number.isFinite(Number(data.budget_tokens)) ? Math.max(0, Number(data.budget_tokens)) : 1000;
+        state.minActivations = Number.isFinite(Number(data.min_activations))
+            ? Math.min(50, Math.max(0, Math.trunc(Number(data.min_activations))))
+            : 0;
+        state.recursionDepth = Number.isFinite(Number(data.recursion_depth))
+            ? Math.min(10, Math.max(0, Math.trunc(Number(data.recursion_depth))))
+            : 0;
         const entries = Array.isArray(data.entries) ? data.entries : [];
         state.entries = entries.map((raw) => {
             const entry = newEntry();
@@ -280,8 +376,21 @@
             entry.content = typeof raw.content === 'string' ? raw.content : '';
             entry.priority = Number.isFinite(Number(raw.priority)) ? Number(raw.priority) : 0;
             entry.enabled = raw.enabled !== false;
-            entry.position = typeof raw.position === 'string' ? raw.position : 'system';
-            entry.depth = Number.isFinite(Number(raw.depth)) ? Math.max(0, Number(raw.depth)) : 0;
+            entry.position = POSITIONS.includes(raw.position) ? raw.position : 'system';
+            entry.depth = Number.isFinite(Number(raw.depth))
+                ? Math.min(1000, Math.max(0, Math.trunc(Number(raw.depth))))
+                : 0;
+            entry.group = typeof raw.group === 'string' ? raw.group : '';
+            entry.probability = Number.isFinite(Number(raw.probability))
+                ? Math.min(100, Math.max(0, Math.trunc(Number(raw.probability))))
+                : 100;
+            entry.recursive = Boolean(raw.recursive);
+            entry.sticky = Number.isFinite(Number(raw.sticky))
+                ? Math.min(1000, Math.max(0, Math.trunc(Number(raw.sticky))))
+                : 0;
+            entry.cooldown = Number.isFinite(Number(raw.cooldown))
+                ? Math.min(1000, Math.max(0, Math.trunc(Number(raw.cooldown))))
+                : 0;
             return entry;
         });
         fillForm();
@@ -296,6 +405,14 @@
             background: state.background.trim(),
             scan_depth: Math.max(0, Math.trunc(Number(state.scanDepth) || 0)),
             budget_tokens: Math.max(0, Math.trunc(Number(state.budgetTokens) || 0)),
+            min_activations: Math.min(
+                50,
+                Math.max(0, Math.trunc(Number(state.minActivations) || 0))
+            ),
+            recursion_depth: Math.min(
+                10,
+                Math.max(0, Math.trunc(Number(state.recursionDepth) || 0))
+            ),
             entries: state.entries.map((entry) => ({
                 id: entry.id,
                 title: entry.title.trim(),
@@ -311,7 +428,18 @@
                 priority: Math.trunc(Number(entry.priority) || 0),
                 enabled: entry.enabled,
                 position: entry.position || 'system',
-                depth: Math.max(0, Math.trunc(Number(entry.depth) || 0))
+                depth: Math.min(1000, Math.max(0, Math.trunc(Number(entry.depth) || 0))),
+                group: (entry.group || '').trim(),
+                probability: Math.min(
+                    100,
+                    Math.max(0, Math.trunc(Number(entry.probability) || 0))
+                ),
+                recursive: Boolean(entry.recursive),
+                sticky: Math.min(1000, Math.max(0, Math.trunc(Number(entry.sticky) || 0))),
+                cooldown: Math.min(
+                    1000,
+                    Math.max(0, Math.trunc(Number(entry.cooldown) || 0))
+                )
             }))
         };
     }
@@ -324,6 +452,20 @@
         if (state.entries.length > 500) {
             return { code: 'TooManyEntries' };
         }
+        if (
+            !Number.isFinite(Number(state.minActivations)) ||
+            state.minActivations < 0 ||
+            state.minActivations > 50
+        ) {
+            return { code: 'MinActivationsTooHigh' };
+        }
+        if (
+            !Number.isFinite(Number(state.recursionDepth)) ||
+            state.recursionDepth < 0 ||
+            state.recursionDepth > 10
+        ) {
+            return { code: 'RecursionDepthTooHigh' };
+        }
         const ids = new Set();
         for (const entry of state.entries) {
             if (ids.has(entry.id)) {
@@ -335,6 +477,25 @@
             }
             if (entry.keys.length > 20 || entry.secondaryKeys.length > 20) {
                 return { code: 'TooManyKeys', title: entry.title };
+            }
+            if (!POSITIONS.includes(entry.position)) {
+                return { code: 'InvalidPosition', title: entry.title };
+            }
+            if (
+                entry.depth < 0 ||
+                entry.depth > 1000 ||
+                entry.sticky < 0 ||
+                entry.sticky > 1000 ||
+                entry.cooldown < 0 ||
+                entry.cooldown > 1000
+            ) {
+                return { code: 'InvalidTiming', title: entry.title };
+            }
+            if (entry.probability < 0 || entry.probability > 100) {
+                return { code: 'InvalidProbability', title: entry.title };
+            }
+            if ((entry.group || '').length > 64) {
+                return { code: 'GroupTooLong', title: entry.title };
             }
             if (entry.match === 'regex') {
                 for (const key of entry.keys.concat(entry.secondaryKeys)) {
@@ -367,6 +528,8 @@
         state.background = '';
         state.scanDepth = 4;
         state.budgetTokens = 1000;
+        state.minActivations = 0;
+        state.recursionDepth = 0;
         state.entries = [];
         fillForm();
     }

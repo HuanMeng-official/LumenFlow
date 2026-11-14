@@ -260,7 +260,7 @@ Role-play presets pair a small metadata record with an optional character-card b
 
 - Import XML, TXT, or `.lumenflow` character cards from **Settings → Preset Management**. XML/TXT files are limited to 200 KB and validated for UTF-8, XML structure/root, and an optional `<role_name>`.
 - Editable metadata covers name, description, author, version, icon, language, and tags. The import dialog shows a token estimate and warns above 4,000/8,000 tokens.
-- World info supports a background plus keyword-activated entries. The app shows an activation preview; editing happens in the bundled generator.
+- World info supports a background plus keyword-activated entries with per-entry positions/depth, recursion, inclusion groups, probability, sticky/cooldown windows, token budgets, and minimum activations. The app's activation preview shows matched/skipped entries with reasons and metadata; editing happens in the bundled generator.
 - PNG avatars are normalized to at most 1024 px and 2 MB. PNG illustrations are normalized to at most 2048 px and 8 MB. A missing or invalid avatar falls back to the selected preset icon; a missing or invalid illustration shows the no-illustration placeholder.
 - Duplicate detection uses a SHA-256 hash of normalized card content, combined with world info when present; importing a duplicate requires confirmation.
 - Presets can be duplicated, exported, deleted, and filtered by language or tag.
@@ -268,7 +268,7 @@ Role-play presets pair a small metadata record with an optional character-card b
 
 ### Prompt assembly
 
-- The final system prompt is composed of localized base rules (including the default reply-language rule) → custom prompt → selected preset → note/recall instructions → world info → memory.
+- The final system prompt is composed of localized base rules (including the default reply-language rule) → custom prompt → before-preset world info → selected preset → after-preset world info → note/recall instructions → system world info → memory. At-depth world info is inserted into the request history and is not persisted.
 - Replies default to the UI language and follow the user's input language. A selected card's own language and tone remain part of its prompt.
 - Prompts are not interpolated with `${userProfile.*}` values. When a card needs the user's name, gender, or birthday, it should call `builtin__get_user_profile`.
 
