@@ -12,21 +12,55 @@ class PresetAvatar extends StatelessWidget {
     required this.preset,
     this.size = 32,
     this.iconColor,
+    this.backgroundColor,
     this.showBorder = false,
   });
 
   final PromptPreset preset;
   final double size;
   final Color? iconColor;
+  final Color? backgroundColor;
   final bool showBorder;
 
   @override
   Widget build(BuildContext context) {
     final avatarPath = preset.avatarPath;
-    final hasAvatar =
+    final hasUserAvatar =
         avatarPath != null &&
         avatarPath.isNotEmpty &&
         File(avatarPath).existsSync();
+    final assetPath = !preset.isUserPreset && preset.hasAvatarFile
+        ? 'assets/prompt/${preset.avatarFile}'
+        : null;
+    final hasImage = hasUserAvatar || assetPath != null;
+    final cacheSize = (size * 3).round();
+
+    Widget avatar;
+    if (hasUserAvatar) {
+      avatar = Image.file(
+        File(avatarPath),
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        cacheWidth: cacheSize,
+        cacheHeight: cacheSize,
+        errorBuilder: (context, error, stackTrace) =>
+            _fallbackIcon(withBackground: true),
+      );
+    } else if (assetPath != null) {
+      avatar = Image.asset(
+        assetPath,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        cacheWidth: cacheSize,
+        cacheHeight: cacheSize,
+        errorBuilder: (context, error, stackTrace) =>
+            _fallbackIcon(withBackground: true),
+      );
+    } else {
+      avatar = _fallbackIcon();
+    }
 
     return Container(
       width: size,
@@ -34,6 +68,8 @@ class PresetAvatar extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
+        // Keep transparent PNGs transparent; the color is only a fallback.
+        color: hasImage ? null : backgroundColor,
         border: showBorder
             ? Border.all(
                 color: CupertinoColors.systemGrey.withAlpha(3),
@@ -41,25 +77,25 @@ class PresetAvatar extends StatelessWidget {
               )
             : null,
       ),
-      child: hasAvatar
-          ? Image.file(
-              File(avatarPath),
-              width: size,
-              height: size,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => _fallbackIcon(),
-            )
-          : _fallbackIcon(),
+      child: avatar,
     );
   }
 
-  Widget _fallbackIcon() {
-    return Center(
-      child: Icon(
-        presetIconForName(preset.icon),
-        size: size * 0.56,
-        color: iconColor ?? CupertinoColors.activeBlue,
-      ),
+  Widget _fallbackIcon({bool withBackground = false}) {
+    final icon = Icon(
+      presetIconForName(preset.icon),
+      size: size * 0.56,
+      color: iconColor ?? CupertinoColors.activeBlue,
     );
+    if (withBackground && backgroundColor != null) {
+      return Container(
+        width: size,
+        height: size,
+        color: backgroundColor,
+        alignment: Alignment.center,
+        child: icon,
+      );
+    }
+    return Center(child: icon);
   }
 }

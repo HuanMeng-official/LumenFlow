@@ -113,21 +113,29 @@ class MathMarkdownBody extends StatelessWidget {
     required this.data,
     this.builders = const {},
     this.styleSheet,
+    this.clearCodeBlockWrapper = true,
   });
 
   final String data;
   final Map<String, MarkdownElementBuilder> builders;
   final MarkdownStyleSheet? styleSheet;
 
+  /// 是否清掉 MarkdownBody 给 `pre` 自动加的背景和内边距。
+  ///
+  /// 聊天消息由自定义 `CodeBlockBuilder` 渲染代码块，需要清掉；只读预览
+  /// 直接使用样式表时则应保留，否则代码块会失去背景。
+  final bool clearCodeBlockWrapper;
+
   @override
   Widget build(BuildContext context) {
     final math = prepareMarkdownMath(data);
-    // MarkdownBody 默认会给 pre 再包一层带背景/内边距的容器；
-    // 代码块自己已经有卡片样式，这里清掉外层，避免“两层包裹”。
-    final effectiveStyleSheet = (styleSheet ?? MarkdownStyleSheet()).copyWith(
-      codeblockDecoration: const BoxDecoration(),
-      codeblockPadding: EdgeInsets.zero,
-    );
+    final baseStyleSheet = styleSheet ?? MarkdownStyleSheet();
+    final effectiveStyleSheet = clearCodeBlockWrapper
+        ? baseStyleSheet.copyWith(
+            codeblockDecoration: const BoxDecoration(),
+            codeblockPadding: EdgeInsets.zero,
+          )
+        : baseStyleSheet;
     return MarkdownBody(
       data: math.markdown,
       inlineSyntaxes: mathInlineSyntaxes(math),

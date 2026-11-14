@@ -255,7 +255,7 @@ Role-play presets pair a small metadata record with an optional character-card b
 
 - `assets/prompt/presets-<locale>.json` contains metadata; `prompt_file` points to XML cards under `assets/prompt/characters/<locale>/`, and `world_info_file` points to the matching `*.world_info.json`.
 - Locale fallback is `lzh → zh → en`; other locales fall back to `en → zh`. Missing cards are shown as unavailable instead of disappearing silently.
-- Built-in metadata is available in Chinese, English, Japanese, Korean, and Spanish.
+- Built-in metadata is available in Chinese, English, Japanese, Korean, and Spanish. LuYao and NingXi include bundled PNG avatars.
 
 ### User presets
 

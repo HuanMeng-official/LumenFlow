@@ -255,7 +255,7 @@ MCP 工具会带上服务器前缀，避免不同服务器的同名工具冲突�
 
 - `assets/prompt/presets-<locale>.json` 保存元数据；`prompt_file` 指向 `assets/prompt/characters/<locale>/` 下的 XML 角色卡，`world_info_file` 指向对应的 `*.world_info.json`。
 - 语言回退链为 `lzh → zh → en`，其他语言回退到 `en → zh`。角色卡缺失时会在管理页显示为“不可用”。
-- 内置元数据提供中文、英文、日文、韩文和西班牙文五个版本。
+- 内置元数据提供中文、英文、日文、韩文和西班牙文五个版本。陆瑶与宁汐包含内置 PNG 头像。
 
 ### 用户预设
 

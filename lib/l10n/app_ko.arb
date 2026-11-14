@@ -862,6 +862,8 @@
   "presetVersionPlaceholder": "버전",
   "presetLanguageLabel": "언어",
   "presetLanguageAny": "공통",
+  "presetTagsLabel": "태그",
+  "presetLengthLabel": "길이",
   "presetTagsPlaceholder": "태그(쉼표로 구분)",
   "presetFilterAll": "전체",
   "presetFilterNoResults": "필터 조건에 맞는 프리셋이 없습니다",
@@ -869,7 +871,7 @@
   "presetSave": "저장",
   "presetDuplicate": "내 사본으로 복제",
   "presetDuplicateSuffix": "(사본)",
-  "presetExport": "XML 내보내기",
+  "presetExport": "카드 내보내기",
   "presetExportSuccess": "내보냈습니다",
   "presetExportFailed": "내보내기 실패",
   "includePresetCard": "캐릭터 카드 본문 포함",
@@ -1020,4 +1022,32 @@
   "lumenflowWorldInfoInvalid": "세계관 정보 파일이 잘못되었거나 손상되었습니다",
   "lumenflowAvatarInvalid": "아바타 이미지가 잘못되었거나 손상되었습니다",
   "lumenflowLegacyUnsupported": "이전 LumenFlow 형식은 지원되지 않습니다"
+,
+  "presetSectionWorldviewBackground": "세계관 및 배경 이야기",
+  "presetSectionAppearance": "외모 및 특징",
+  "presetSectionPersonality": "성격·심리 구조",
+  "presetSectionAddressing": "호칭 규칙",
+  "presetSectionLinguistic": "언어 스타일",
+  "presetSectionBehavior": "행동·비인간 특성",
+  "presetSectionInteraction": "상호작용 전략",
+  "presetSectionInternalMonologue": "내면의 독백",
+  "presetSectionEmotionalDepth": "감정 임계값",
+  "presetSectionKnowledgeFilter": "지식 필터",
+  "presetSectionNegativeConstraints": "절대 금기 / 네거티브 프롬프트",
+  "presetSectionExampleDialogue": "대화 예시",
+  "presetSectionUserProfile": "사용자 프로필",
+  "presetDetailOverview": "개요",
+  "presetDetailExample": "대화 예시",
+  "presetDetailNoWorldInfo": "이 카드에는 세계관 정보가 없습니다.",
+  "presetDetailNoExample": "대화 예시가 없습니다.",
+  "presetDetailNoIllustration": "일러스트 없음",
+  "presetDetailViewIllustration": "일러스트 보기",
+  "presetDetailWorldInfoStats": "항목 {entries} · 스캔 깊이 {scanDepth} · 예산 {budget} tokens",
+  "@presetDetailWorldInfoStats": {
+    "placeholders": {
+      "entries": {"type": "int"},
+      "scanDepth": {"type": "int"},
+      "budget": {"type": "int"}
+    }
+  }
 }

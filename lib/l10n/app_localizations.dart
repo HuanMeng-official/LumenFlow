@@ -2749,6 +2749,18 @@ abstract class AppLocalizations {
   /// **'Any'**
   String get presetLanguageAny;
 
+  /// No description provided for @presetTagsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get presetTagsLabel;
+
+  /// No description provided for @presetLengthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Length'**
+  String get presetLengthLabel;
+
   /// No description provided for @presetTagsPlaceholder.
   ///
   /// In en, this message translates to:
@@ -2794,7 +2806,7 @@ abstract class AppLocalizations {
   /// No description provided for @presetExport.
   ///
   /// In en, this message translates to:
-  /// **'Export XML'**
+  /// **'Export card'**
   String get presetExport;
 
   /// No description provided for @presetExportSuccess.
@@ -3270,6 +3282,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Legacy LumenFlow format is not supported'**
   String get lumenflowLegacyUnsupported;
+
+  /// No description provided for @presetSectionWorldviewBackground.
+  ///
+  /// In en, this message translates to:
+  /// **'Worldview & Background'**
+  String get presetSectionWorldviewBackground;
+
+  /// No description provided for @presetSectionAppearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance & Traits'**
+  String get presetSectionAppearance;
+
+  /// No description provided for @presetSectionPersonality.
+  ///
+  /// In en, this message translates to:
+  /// **'Personality & Logic'**
+  String get presetSectionPersonality;
+
+  /// No description provided for @presetSectionAddressing.
+  ///
+  /// In en, this message translates to:
+  /// **'Addressing Rules'**
+  String get presetSectionAddressing;
+
+  /// No description provided for @presetSectionLinguistic.
+  ///
+  /// In en, this message translates to:
+  /// **'Linguistic Style'**
+  String get presetSectionLinguistic;
+
+  /// No description provided for @presetSectionBehavior.
+  ///
+  /// In en, this message translates to:
+  /// **'Behavior & Narrative'**
+  String get presetSectionBehavior;
+
+  /// No description provided for @presetSectionInteraction.
+  ///
+  /// In en, this message translates to:
+  /// **'Interaction Strategy'**
+  String get presetSectionInteraction;
+
+  /// No description provided for @presetSectionInternalMonologue.
+  ///
+  /// In en, this message translates to:
+  /// **'Internal Monologue'**
+  String get presetSectionInternalMonologue;
+
+  /// No description provided for @presetSectionEmotionalDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Emotional Depth'**
+  String get presetSectionEmotionalDepth;
+
+  /// No description provided for @presetSectionKnowledgeFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Knowledge Filter'**
+  String get presetSectionKnowledgeFilter;
+
+  /// No description provided for @presetSectionNegativeConstraints.
+  ///
+  /// In en, this message translates to:
+  /// **'Negative Constraints'**
+  String get presetSectionNegativeConstraints;
+
+  /// No description provided for @presetSectionExampleDialogue.
+  ///
+  /// In en, this message translates to:
+  /// **'Dialogue Examples'**
+  String get presetSectionExampleDialogue;
+
+  /// No description provided for @presetSectionUserProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'User Profile'**
+  String get presetSectionUserProfile;
+
+  /// No description provided for @presetDetailOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get presetDetailOverview;
+
+  /// No description provided for @presetDetailExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Example Dialogue'**
+  String get presetDetailExample;
+
+  /// No description provided for @presetDetailNoWorldInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'This card has no world info.'**
+  String get presetDetailNoWorldInfo;
+
+  /// No description provided for @presetDetailNoExample.
+  ///
+  /// In en, this message translates to:
+  /// **'No example dialogue.'**
+  String get presetDetailNoExample;
+
+  /// No description provided for @presetDetailNoIllustration.
+  ///
+  /// In en, this message translates to:
+  /// **'No illustration'**
+  String get presetDetailNoIllustration;
+
+  /// No description provided for @presetDetailViewIllustration.
+  ///
+  /// In en, this message translates to:
+  /// **'View illustration'**
+  String get presetDetailViewIllustration;
+
+  /// No description provided for @presetDetailWorldInfoStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Entries {entries} · Scan depth {scanDepth} · Budget {budget} tokens'**
+  String presetDetailWorldInfoStats(int entries, int scanDepth, int budget);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

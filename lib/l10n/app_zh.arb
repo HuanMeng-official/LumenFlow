@@ -862,6 +862,8 @@
   "presetVersionPlaceholder": "版本",
   "presetLanguageLabel": "语言",
   "presetLanguageAny": "通用",
+  "presetTagsLabel": "标签",
+  "presetLengthLabel": "长度",
   "presetTagsPlaceholder": "标签（逗号分隔）",
   "presetFilterAll": "全部",
   "presetFilterNoResults": "没有符合筛选条件的预设",
@@ -869,7 +871,7 @@
   "presetSave": "保存",
   "presetDuplicate": "复制为我的版本",
   "presetDuplicateSuffix": "（副本）",
-  "presetExport": "导出 XML",
+  "presetExport": "导出角色卡",
   "presetExportSuccess": "已导出",
   "presetExportFailed": "导出失败",
   "includePresetCard": "包含角色卡正文",
@@ -1020,4 +1022,32 @@
   "lumenflowWorldInfoInvalid": "世界书文件无效或损坏",
   "lumenflowAvatarInvalid": "头像文件无效或损坏",
   "lumenflowLegacyUnsupported": "旧版 LumenFlow 格式不受支持"
+,
+  "presetSectionWorldviewBackground": "世界观与背景故事",
+  "presetSectionAppearance": "外貌与特征",
+  "presetSectionPersonality": "人格与心理逻辑",
+  "presetSectionAddressing": "称呼与称谓规则",
+  "presetSectionLinguistic": "语言风格与表达习惯",
+  "presetSectionBehavior": "行为叙事与非人特征规则",
+  "presetSectionInteraction": "互动策略与关系推进方式",
+  "presetSectionInternalMonologue": "内心独白 / 思维链",
+  "presetSectionEmotionalDepth": "情感阈值 / 动态反馈",
+  "presetSectionKnowledgeFilter": "知识过滤",
+  "presetSectionNegativeConstraints": "绝对禁忌 / 反向提示词",
+  "presetSectionExampleDialogue": "示例对话 / 场景演示",
+  "presetSectionUserProfile": "用户资料",
+  "presetDetailOverview": "概览",
+  "presetDetailExample": "示例对话",
+  "presetDetailNoWorldInfo": "这本角色卡没有世界书。",
+  "presetDetailNoExample": "没有示例对话。",
+  "presetDetailNoIllustration": "无立绘",
+  "presetDetailViewIllustration": "查看立绘",
+  "presetDetailWorldInfoStats": "条目 {entries} · 扫描深度 {scanDepth} · 预算 {budget} tokens",
+  "@presetDetailWorldInfoStats": {
+    "placeholders": {
+      "entries": {"type": "int"},
+      "scanDepth": {"type": "int"},
+      "budget": {"type": "int"}
+    }
+  }
 }

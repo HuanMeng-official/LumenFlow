@@ -1444,6 +1444,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get presetLanguageAny => '通用';
 
   @override
+  String get presetTagsLabel => '标签';
+
+  @override
+  String get presetLengthLabel => '长度';
+
+  @override
   String get presetTagsPlaceholder => '标签（逗号分隔）';
 
   @override
@@ -1465,7 +1471,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get presetDuplicateSuffix => '（副本）';
 
   @override
-  String get presetExport => '导出 XML';
+  String get presetExport => '导出角色卡';
 
   @override
   String get presetExportSuccess => '已导出';
@@ -1723,4 +1729,66 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get lumenflowLegacyUnsupported => '旧版 LumenFlow 格式不受支持';
+
+  @override
+  String get presetSectionWorldviewBackground => '世界观与背景故事';
+
+  @override
+  String get presetSectionAppearance => '外貌与特征';
+
+  @override
+  String get presetSectionPersonality => '人格与心理逻辑';
+
+  @override
+  String get presetSectionAddressing => '称呼与称谓规则';
+
+  @override
+  String get presetSectionLinguistic => '语言风格与表达习惯';
+
+  @override
+  String get presetSectionBehavior => '行为叙事与非人特征规则';
+
+  @override
+  String get presetSectionInteraction => '互动策略与关系推进方式';
+
+  @override
+  String get presetSectionInternalMonologue => '内心独白 / 思维链';
+
+  @override
+  String get presetSectionEmotionalDepth => '情感阈值 / 动态反馈';
+
+  @override
+  String get presetSectionKnowledgeFilter => '知识过滤';
+
+  @override
+  String get presetSectionNegativeConstraints => '绝对禁忌 / 反向提示词';
+
+  @override
+  String get presetSectionExampleDialogue => '示例对话 / 场景演示';
+
+  @override
+  String get presetSectionUserProfile => '用户资料';
+
+  @override
+  String get presetDetailOverview => '概览';
+
+  @override
+  String get presetDetailExample => '示例对话';
+
+  @override
+  String get presetDetailNoWorldInfo => '这本角色卡没有世界书。';
+
+  @override
+  String get presetDetailNoExample => '没有示例对话。';
+
+  @override
+  String get presetDetailNoIllustration => '无立绘';
+
+  @override
+  String get presetDetailViewIllustration => '查看立绘';
+
+  @override
+  String presetDetailWorldInfoStats(int entries, int scanDepth, int budget) {
+    return '条目 $entries · 扫描深度 $scanDepth · 预算 $budget tokens';
+  }
 }

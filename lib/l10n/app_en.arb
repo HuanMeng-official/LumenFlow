@@ -882,6 +882,8 @@
   "presetVersionPlaceholder": "Version",
   "presetLanguageLabel": "Language",
   "presetLanguageAny": "Any",
+  "presetTagsLabel": "Tags",
+  "presetLengthLabel": "Length",
   "presetTagsPlaceholder": "Tags (comma separated)",
   "presetFilterAll": "All",
   "presetFilterNoResults": "No presets match this filter",
@@ -889,7 +891,7 @@
   "presetSave": "Save",
   "presetDuplicate": "Duplicate as my copy",
   "presetDuplicateSuffix": " (copy)",
-  "presetExport": "Export XML",
+  "presetExport": "Export card",
   "presetExportSuccess": "Exported",
   "presetExportFailed": "Export failed",
   "includePresetCard": "Include character card content",
@@ -1040,4 +1042,32 @@
   "lumenflowWorldInfoInvalid": "World info file is invalid or corrupt",
   "lumenflowAvatarInvalid": "Avatar image is invalid or corrupt",
   "lumenflowLegacyUnsupported": "Legacy LumenFlow format is not supported"
+,
+  "presetSectionWorldviewBackground": "Worldview & Background",
+  "presetSectionAppearance": "Appearance & Traits",
+  "presetSectionPersonality": "Personality & Logic",
+  "presetSectionAddressing": "Addressing Rules",
+  "presetSectionLinguistic": "Linguistic Style",
+  "presetSectionBehavior": "Behavior & Narrative",
+  "presetSectionInteraction": "Interaction Strategy",
+  "presetSectionInternalMonologue": "Internal Monologue",
+  "presetSectionEmotionalDepth": "Emotional Depth",
+  "presetSectionKnowledgeFilter": "Knowledge Filter",
+  "presetSectionNegativeConstraints": "Negative Constraints",
+  "presetSectionExampleDialogue": "Dialogue Examples",
+  "presetSectionUserProfile": "User Profile",
+  "presetDetailOverview": "Overview",
+  "presetDetailExample": "Example Dialogue",
+  "presetDetailNoWorldInfo": "This card has no world info.",
+  "presetDetailNoExample": "No example dialogue.",
+  "presetDetailNoIllustration": "No illustration",
+  "presetDetailViewIllustration": "View illustration",
+  "presetDetailWorldInfoStats": "Entries {entries} · Scan depth {scanDepth} · Budget {budget} tokens",
+  "@presetDetailWorldInfoStats": {
+    "placeholders": {
+      "entries": {"type": "int"},
+      "scanDepth": {"type": "int"},
+      "budget": {"type": "int"}
+    }
+  }
 }

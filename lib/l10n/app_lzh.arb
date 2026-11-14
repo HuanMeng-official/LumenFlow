@@ -862,6 +862,8 @@
   "presetVersionPlaceholder": "版本",
   "presetLanguageLabel": "語言",
   "presetLanguageAny": "通用",
+  "presetTagsLabel": "標籤",
+  "presetLengthLabel": "長短",
   "presetTagsPlaceholder": "標籤（以逗號分之）",
   "presetFilterAll": "盡",
   "presetFilterNoResults": "無合此選之錦囊",
@@ -869,7 +871,7 @@
   "presetSave": "存之",
   "presetDuplicate": "錄為己有",
   "presetDuplicateSuffix": "（副本）",
-  "presetExport": "出 XML",
+  "presetExport": "匯出角色卡",
   "presetExportSuccess": "已出",
   "presetExportFailed": "出之不成",
   "includePresetCard": "附角色之卡文",
@@ -1020,4 +1022,32 @@
   "lumenflowWorldInfoInvalid": "世界書殘缺或不可讀",
   "lumenflowAvatarInvalid": "頭像殘缺或不可讀",
   "lumenflowLegacyUnsupported": "舊版 LumenFlow 格式不復支持"
+,
+  "presetSectionWorldviewBackground": "世界觀與背景",
+  "presetSectionAppearance": "外貌與特徵",
+  "presetSectionPersonality": "人格與心理",
+  "presetSectionAddressing": "稱謂之規",
+  "presetSectionLinguistic": "言語風格",
+  "presetSectionBehavior": "行為敘事",
+  "presetSectionInteraction": "互動之策",
+  "presetSectionInternalMonologue": "內心獨白",
+  "presetSectionEmotionalDepth": "情感之閾",
+  "presetSectionKnowledgeFilter": "知識過濾",
+  "presetSectionNegativeConstraints": "絕對禁忌",
+  "presetSectionExampleDialogue": "示例對話",
+  "presetSectionUserProfile": "用戶資料",
+  "presetDetailOverview": "概覽",
+  "presetDetailExample": "示例對話",
+  "presetDetailNoWorldInfo": "此卡無世界書。",
+  "presetDetailNoExample": "無示例對話。",
+  "presetDetailNoIllustration": "無立繪",
+  "presetDetailViewIllustration": "觀立繪",
+  "presetDetailWorldInfoStats": "條目 {entries} · 掃描深度 {scanDepth} · 預算 {budget} tokens",
+  "@presetDetailWorldInfoStats": {
+    "placeholders": {
+      "entries": {"type": "int"},
+      "scanDepth": {"type": "int"},
+      "budget": {"type": "int"}
+    }
+  }
 }

@@ -51,6 +51,8 @@ flutter:
     - assets/prompt/characters/ja/
     - assets/prompt/characters/ko/
     - assets/prompt/characters/es/
+    - assets/prompt/characters/img/avatar/
+    - assets/prompt/characters/img/illustration/
     - assets/fonts/
     - assets/logo.png
     - assets/collection_code.png

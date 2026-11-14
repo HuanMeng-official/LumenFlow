@@ -1,9 +1,9 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
-import 'package:flutter/material.dart' show SelectableText;
 
 import '../l10n/app_localizations.dart';
 import '../models/world_info.dart';
 import '../services/world_info_service.dart';
+import '../widgets/read_only_markdown.dart';
 
 /// 只读的世界书激活预览。
 ///
@@ -61,11 +61,10 @@ class _WorldInfoPreviewScreenState extends State<WorldInfoPreviewScreen> {
           children: [
             _sectionTitle(l10n.worldInfoBackground, secondary),
             _Surface(
-              child: SelectableText(
-                widget.info.background.trim().isEmpty
+              child: ReadOnlyMarkdown(
+                data: widget.info.background.trim().isEmpty
                     ? '—'
                     : widget.info.background,
-                style: const TextStyle(fontSize: 14, height: 1.5),
               ),
             ),
             const SizedBox(height: 24),
@@ -165,10 +164,7 @@ class _Surface extends StatelessWidget {
 }
 
 class _MatchedEntryCard extends StatelessWidget {
-  const _MatchedEntryCard({
-    required this.item,
-    required this.secondaryColor,
-  });
+  const _MatchedEntryCard({required this.item, required this.secondaryColor});
 
   final ActivatedWorldInfoEntry item;
   final Color secondaryColor;
@@ -205,9 +201,8 @@ class _MatchedEntryCard extends StatelessWidget {
             style: TextStyle(fontSize: 12, color: secondaryColor),
           ),
           const SizedBox(height: 8),
-          SelectableText(
-            entry.content.trim().isEmpty ? '—' : entry.content,
-            style: const TextStyle(fontSize: 14, height: 1.5),
+          ReadOnlyMarkdown(
+            data: entry.content.trim().isEmpty ? '—' : entry.content,
           ),
         ],
       ),

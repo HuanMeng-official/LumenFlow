@@ -7,7 +7,8 @@
     "version": "v3",
     "prompt_file": "characters/ko/NingXi.xml",
     "icon": "person.fill",
-    "world_info_file": "characters/ko/NingXi.world_info.json"
+    "world_info_file": "characters/ko/NingXi.world_info.json",
+    "avatar_file": "characters/img/avatar/ningxi.png"
   },
   {
     "id": "luyao",
@@ -17,6 +18,7 @@
     "version": "v3",
     "prompt_file": "characters/ko/LuYao.xml",
     "icon": "person.fill",
-    "world_info_file": "characters/ko/LuYao.world_info.json"
+    "world_info_file": "characters/ko/LuYao.world_info.json",
+    "avatar_file": "characters/img/avatar/luyao.png"
   }
 ]

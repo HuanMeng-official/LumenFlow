@@ -10,6 +10,7 @@ import '../models/prompt_preset.dart';
 import '../models/roleplay_memory.dart';
 import '../services/conversation_service.dart';
 import '../utils/app_theme.dart';
+import '../widgets/preset_avatar.dart';
 
 /// 只读的会话记忆查看器。
 ///
@@ -525,6 +526,7 @@ class _MemoryViewerScreenState extends State<MemoryViewerScreen> {
     Color primary,
     List<String> fallback,
   ) {
+    final preset = widget.preset;
     final initial = name.trim().isEmpty
         ? '?'
         : String.fromCharCode(name.trim().runes.first);
@@ -533,21 +535,32 @@ class _MemoryViewerScreenState extends State<MemoryViewerScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 72,
-            height: 72,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: primary, shape: BoxShape.circle),
-            child: Text(
-              initial,
-              style: TextStyle(
-                color: CupertinoColors.white,
-                fontSize: 30,
-                fontWeight: FontWeight.w600,
-                fontFamilyFallback: fallback,
+          if (preset != null)
+            PresetAvatar(
+              preset: preset,
+              size: 72,
+              iconColor: CupertinoColors.white,
+              backgroundColor: primary,
+            )
+          else
+            Container(
+              width: 72,
+              height: 72,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: primary,
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                initial,
+                style: TextStyle(
+                  color: CupertinoColors.white,
+                  fontSize: 30,
+                  fontWeight: FontWeight.w600,
+                  fontFamilyFallback: fallback,
+                ),
               ),
             ),
-          ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(

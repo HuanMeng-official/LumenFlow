@@ -1444,6 +1444,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get presetLanguageAny => 'Any';
 
   @override
+  String get presetTagsLabel => 'Tags';
+
+  @override
+  String get presetLengthLabel => 'Length';
+
+  @override
   String get presetTagsPlaceholder => 'Tags (comma separated)';
 
   @override
@@ -1465,7 +1471,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get presetDuplicateSuffix => ' (copy)';
 
   @override
-  String get presetExport => 'Export XML';
+  String get presetExport => 'Export card';
 
   @override
   String get presetExportSuccess => 'Exported';
@@ -1723,4 +1729,66 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lumenflowLegacyUnsupported => 'Legacy LumenFlow format is not supported';
+
+  @override
+  String get presetSectionWorldviewBackground => 'Worldview & Background';
+
+  @override
+  String get presetSectionAppearance => 'Appearance & Traits';
+
+  @override
+  String get presetSectionPersonality => 'Personality & Logic';
+
+  @override
+  String get presetSectionAddressing => 'Addressing Rules';
+
+  @override
+  String get presetSectionLinguistic => 'Linguistic Style';
+
+  @override
+  String get presetSectionBehavior => 'Behavior & Narrative';
+
+  @override
+  String get presetSectionInteraction => 'Interaction Strategy';
+
+  @override
+  String get presetSectionInternalMonologue => 'Internal Monologue';
+
+  @override
+  String get presetSectionEmotionalDepth => 'Emotional Depth';
+
+  @override
+  String get presetSectionKnowledgeFilter => 'Knowledge Filter';
+
+  @override
+  String get presetSectionNegativeConstraints => 'Negative Constraints';
+
+  @override
+  String get presetSectionExampleDialogue => 'Dialogue Examples';
+
+  @override
+  String get presetSectionUserProfile => 'User Profile';
+
+  @override
+  String get presetDetailOverview => 'Overview';
+
+  @override
+  String get presetDetailExample => 'Example Dialogue';
+
+  @override
+  String get presetDetailNoWorldInfo => 'This card has no world info.';
+
+  @override
+  String get presetDetailNoExample => 'No example dialogue.';
+
+  @override
+  String get presetDetailNoIllustration => 'No illustration';
+
+  @override
+  String get presetDetailViewIllustration => 'View illustration';
+
+  @override
+  String presetDetailWorldInfoStats(int entries, int scanDepth, int budget) {
+    return 'Entries $entries · Scan depth $scanDepth · Budget $budget tokens';
+  }
 }

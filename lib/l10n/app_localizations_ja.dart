@@ -1444,6 +1444,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get presetLanguageAny => '共通';
 
   @override
+  String get presetTagsLabel => 'タグ';
+
+  @override
+  String get presetLengthLabel => '長さ';
+
+  @override
   String get presetTagsPlaceholder => 'タグ（カンマ区切り）';
 
   @override
@@ -1465,7 +1471,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get presetDuplicateSuffix => '（コピー）';
 
   @override
-  String get presetExport => 'XML を書き出す';
+  String get presetExport => 'カードを書き出す';
 
   @override
   String get presetExportSuccess => '書き出しました';
@@ -1723,4 +1729,66 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get lumenflowLegacyUnsupported => '旧形式の LumenFlow はサポートされていません';
+
+  @override
+  String get presetSectionWorldviewBackground => '世界観と背景ストーリー';
+
+  @override
+  String get presetSectionAppearance => '外見と特徴';
+
+  @override
+  String get presetSectionPersonality => '人格・心理構造';
+
+  @override
+  String get presetSectionAddressing => '呼称ルール';
+
+  @override
+  String get presetSectionLinguistic => '話し方・言語スタイル';
+
+  @override
+  String get presetSectionBehavior => '行動描写・非人特性';
+
+  @override
+  String get presetSectionInteraction => '交流戦略';
+
+  @override
+  String get presetSectionInternalMonologue => '内なる独白';
+
+  @override
+  String get presetSectionEmotionalDepth => '感情の閾値';
+
+  @override
+  String get presetSectionKnowledgeFilter => '知識フィルター';
+
+  @override
+  String get presetSectionNegativeConstraints => '絶対禁忌 / ネガティブプロンプト';
+
+  @override
+  String get presetSectionExampleDialogue => '会話例 / シーン';
+
+  @override
+  String get presetSectionUserProfile => 'ユーザープロフィール';
+
+  @override
+  String get presetDetailOverview => '概要';
+
+  @override
+  String get presetDetailExample => '会話例';
+
+  @override
+  String get presetDetailNoWorldInfo => 'このカードにはワールド情報がありません。';
+
+  @override
+  String get presetDetailNoExample => '会話例はありません。';
+
+  @override
+  String get presetDetailNoIllustration => '立ち絵なし';
+
+  @override
+  String get presetDetailViewIllustration => '立ち絵を見る';
+
+  @override
+  String presetDetailWorldInfoStats(int entries, int scanDepth, int budget) {
+    return '項目 $entries · スキャン深度 $scanDepth · 予算 $budget tokens';
+  }
 }

@@ -862,6 +862,8 @@
   "presetVersionPlaceholder": "バージョン",
   "presetLanguageLabel": "言語",
   "presetLanguageAny": "共通",
+  "presetTagsLabel": "タグ",
+  "presetLengthLabel": "長さ",
   "presetTagsPlaceholder": "タグ（カンマ区切り）",
   "presetFilterAll": "すべて",
   "presetFilterNoResults": "条件に合うプリセットがありません",
@@ -869,7 +871,7 @@
   "presetSave": "保存",
   "presetDuplicate": "自分のコピーを作成",
   "presetDuplicateSuffix": "（コピー）",
-  "presetExport": "XML を書き出す",
+  "presetExport": "カードを書き出す",
   "presetExportSuccess": "書き出しました",
   "presetExportFailed": "書き出しに失敗しました",
   "includePresetCard": "キャラクターカード本文を含める",
@@ -1021,4 +1023,32 @@
   "lumenflowWorldInfoInvalid": "ワールド情報ファイルが無効または破損しています",
   "lumenflowAvatarInvalid": "アバター画像が無効または破損しています",
   "lumenflowLegacyUnsupported": "旧形式の LumenFlow はサポートされていません"
+,
+  "presetSectionWorldviewBackground": "世界観と背景ストーリー",
+  "presetSectionAppearance": "外見と特徴",
+  "presetSectionPersonality": "人格・心理構造",
+  "presetSectionAddressing": "呼称ルール",
+  "presetSectionLinguistic": "話し方・言語スタイル",
+  "presetSectionBehavior": "行動描写・非人特性",
+  "presetSectionInteraction": "交流戦略",
+  "presetSectionInternalMonologue": "内なる独白",
+  "presetSectionEmotionalDepth": "感情の閾値",
+  "presetSectionKnowledgeFilter": "知識フィルター",
+  "presetSectionNegativeConstraints": "絶対禁忌 / ネガティブプロンプト",
+  "presetSectionExampleDialogue": "会話例 / シーン",
+  "presetSectionUserProfile": "ユーザープロフィール",
+  "presetDetailOverview": "概要",
+  "presetDetailExample": "会話例",
+  "presetDetailNoWorldInfo": "このカードにはワールド情報がありません。",
+  "presetDetailNoExample": "会話例はありません。",
+  "presetDetailNoIllustration": "立ち絵なし",
+  "presetDetailViewIllustration": "立ち絵を見る",
+  "presetDetailWorldInfoStats": "項目 {entries} · スキャン深度 {scanDepth} · 予算 {budget} tokens",
+  "@presetDetailWorldInfoStats": {
+    "placeholders": {
+      "entries": {"type": "int"},
+      "scanDepth": {"type": "int"},
+      "budget": {"type": "int"}
+    }
+  }
 }

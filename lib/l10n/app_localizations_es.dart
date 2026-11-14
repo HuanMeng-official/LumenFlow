@@ -1444,6 +1444,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get presetLanguageAny => 'General';
 
   @override
+  String get presetTagsLabel => 'Etiquetas';
+
+  @override
+  String get presetLengthLabel => 'Longitud';
+
+  @override
   String get presetTagsPlaceholder => 'Etiquetas (separadas por comas)';
 
   @override
@@ -1465,7 +1471,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get presetDuplicateSuffix => ' (copia)';
 
   @override
-  String get presetExport => 'Exportar XML';
+  String get presetExport => 'Exportar tarjeta';
 
   @override
   String get presetExportSuccess => 'Exportado';
@@ -1723,4 +1729,66 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get lumenflowLegacyUnsupported => 'El formato LumenFlow anterior no es compatible';
+
+  @override
+  String get presetSectionWorldviewBackground => 'Mundo y trasfondo';
+
+  @override
+  String get presetSectionAppearance => 'Apariencia y rasgos';
+
+  @override
+  String get presetSectionPersonality => 'Personalidad y lógica';
+
+  @override
+  String get presetSectionAddressing => 'Reglas de tratamiento';
+
+  @override
+  String get presetSectionLinguistic => 'Estilo lingüístico';
+
+  @override
+  String get presetSectionBehavior => 'Conducta y narrativa';
+
+  @override
+  String get presetSectionInteraction => 'Estrategia de interacción';
+
+  @override
+  String get presetSectionInternalMonologue => 'Monólogo interno';
+
+  @override
+  String get presetSectionEmotionalDepth => 'Profundidad emocional';
+
+  @override
+  String get presetSectionKnowledgeFilter => 'Filtro de conocimiento';
+
+  @override
+  String get presetSectionNegativeConstraints => 'Restricciones negativas';
+
+  @override
+  String get presetSectionExampleDialogue => 'Ejemplos de diálogo';
+
+  @override
+  String get presetSectionUserProfile => 'Perfil del usuario';
+
+  @override
+  String get presetDetailOverview => 'Resumen';
+
+  @override
+  String get presetDetailExample => 'Diálogo de ejemplo';
+
+  @override
+  String get presetDetailNoWorldInfo => 'Esta tarjeta no tiene información del mundo.';
+
+  @override
+  String get presetDetailNoExample => 'No hay diálogo de ejemplo.';
+
+  @override
+  String get presetDetailNoIllustration => 'Sin ilustración';
+
+  @override
+  String get presetDetailViewIllustration => 'Ver ilustración';
+
+  @override
+  String presetDetailWorldInfoStats(int entries, int scanDepth, int budget) {
+    return 'Entradas $entries · Profundidad $scanDepth · Presupuesto $budget tokens';
+  }
 }

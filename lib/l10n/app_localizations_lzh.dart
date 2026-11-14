@@ -1444,6 +1444,12 @@ class AppLocalizationsLzh extends AppLocalizations {
   String get presetLanguageAny => '通用';
 
   @override
+  String get presetTagsLabel => '標籤';
+
+  @override
+  String get presetLengthLabel => '長短';
+
+  @override
   String get presetTagsPlaceholder => '標籤（以逗號分之）';
 
   @override
@@ -1465,7 +1471,7 @@ class AppLocalizationsLzh extends AppLocalizations {
   String get presetDuplicateSuffix => '（副本）';
 
   @override
-  String get presetExport => '出 XML';
+  String get presetExport => '匯出角色卡';
 
   @override
   String get presetExportSuccess => '已出';
@@ -1723,4 +1729,66 @@ class AppLocalizationsLzh extends AppLocalizations {
 
   @override
   String get lumenflowLegacyUnsupported => '舊版 LumenFlow 格式不復支持';
+
+  @override
+  String get presetSectionWorldviewBackground => '世界觀與背景';
+
+  @override
+  String get presetSectionAppearance => '外貌與特徵';
+
+  @override
+  String get presetSectionPersonality => '人格與心理';
+
+  @override
+  String get presetSectionAddressing => '稱謂之規';
+
+  @override
+  String get presetSectionLinguistic => '言語風格';
+
+  @override
+  String get presetSectionBehavior => '行為敘事';
+
+  @override
+  String get presetSectionInteraction => '互動之策';
+
+  @override
+  String get presetSectionInternalMonologue => '內心獨白';
+
+  @override
+  String get presetSectionEmotionalDepth => '情感之閾';
+
+  @override
+  String get presetSectionKnowledgeFilter => '知識過濾';
+
+  @override
+  String get presetSectionNegativeConstraints => '絕對禁忌';
+
+  @override
+  String get presetSectionExampleDialogue => '示例對話';
+
+  @override
+  String get presetSectionUserProfile => '用戶資料';
+
+  @override
+  String get presetDetailOverview => '概覽';
+
+  @override
+  String get presetDetailExample => '示例對話';
+
+  @override
+  String get presetDetailNoWorldInfo => '此卡無世界書。';
+
+  @override
+  String get presetDetailNoExample => '無示例對話。';
+
+  @override
+  String get presetDetailNoIllustration => '無立繪';
+
+  @override
+  String get presetDetailViewIllustration => '觀立繪';
+
+  @override
+  String presetDetailWorldInfoStats(int entries, int scanDepth, int budget) {
+    return '條目 $entries · 掃描深度 $scanDepth · 預算 $budget tokens';
+  }
 }

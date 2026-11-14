@@ -4,7 +4,6 @@ import 'dart:typed_data';
 
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart' show SelectableText;
 import 'package:path/path.dart' as path;
 import 'package:url_launcher/url_launcher.dart';
 
@@ -15,7 +14,6 @@ import '../models/preset_import_result.dart';
 import '../models/preset_load_result.dart';
 import '../models/prompt_preset.dart';
 import '../l10n/app_localizations.dart';
-import '../utils/app_theme.dart';
 import '../utils/file_save_utils.dart';
 import '../utils/lumenflow_error_messages.dart';
 import '../utils/preset_filter.dart';
@@ -23,6 +21,7 @@ import '../utils/preset_tags.dart';
 import '../widgets/preset_avatar.dart';
 import '../utils/token_estimator.dart';
 import '../widgets/preset_metadata_fields.dart';
+import '../widgets/preset_preview_dialog.dart';
 import '../widgets/settings/settings_page_scaffold.dart';
 import 'world_info_preview_screen.dart';
 
@@ -206,9 +205,7 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
 
       if (extension == '.lumenflow') {
         final bytes = await sourceFile.readAsBytes();
-        final preview = await _promptService.inspectCharacterCardArchive(
-          bytes,
-        );
+        final preview = await _promptService.inspectCharacterCardArchive(bytes);
         if (!mounted) return;
         if (!preview.validation.isValid) {
           await _showValidationErrors(preview.validation);
@@ -954,225 +951,25 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
     );
   }
 
-  /// 显示预设详情：完整正文、token 估算与操作入口。
   void _showPresetDetails(PromptPreset preset) {
-    final l10n = AppLocalizations.of(context)!;
-    final cjkFallback = cjkFontFallbackForLocale(
-      Localizations.maybeLocaleOf(context),
-    );
-    final tokenCount = TokenEstimator.estimate(preset.systemPrompt);
-
-    showCupertinoModalPopup(
+    showPresetPreviewDialog(
       context: context,
-      builder: (dialogContext) {
-        final brightness = CupertinoTheme.of(dialogContext).brightness;
-        final backgroundColor = brightness == Brightness.dark
-            ? CupertinoColors.systemBackground.darkColor
-            : CupertinoColors.systemBackground.color;
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Container(
-              decoration: BoxDecoration(
-                color: backgroundColor,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            preset.name,
-                            style: const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          onPressed: () => Navigator.pop(dialogContext),
-                          child: const Icon(CupertinoIcons.xmark_circle_fill),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    height: 0.5,
-                    color: CupertinoColors.systemGrey4.resolveFrom(
-                      dialogContext,
-                    ),
-                  ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('${l10n.authorLabel} ${preset.author}'),
-                          Text('${l10n.versionLabel} ${preset.version}'),
-                          if (preset.language != null)
-                            Text(
-                              '${l10n.presetLanguageLabel} ${preset.language!.toUpperCase()}',
-                            ),
-                          if (preset.tags.isNotEmpty)
-                            Text(
-                              '${l10n.presetTagsPlaceholder}: ${preset.tags.join(', ')}',
-                            ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '${l10n.descriptionLabel} ${preset.description}',
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            l10n.presetTokenEstimate(tokenCount),
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: CupertinoColors.secondaryLabel.resolveFrom(
-                                dialogContext,
-                              ),
-                            ),
-                          ),
-                          if (tokenCount > 8000)
-                            Text(
-                              l10n.presetTokenStrongWarning,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: CupertinoColors.systemRed,
-                              ),
-                            )
-                          else if (tokenCount > 4000)
-                            Text(
-                              l10n.presetTokenWarning,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: CupertinoColors.systemOrange,
-                              ),
-                            ),
-                          if (preset.isBroken) ...[
-                            const SizedBox(height: 8),
-                            Text(
-                              l10n.presetBrokenLabel,
-                              style: const TextStyle(
-                                color: CupertinoColors.systemRed,
-                              ),
-                            ),
-                            Text(
-                              l10n.presetBrokenReason(
-                                preset.brokenReason ?? l10n.presetBrokenLabel,
-                              ),
-                            ),
-                          ],
-                          if (preset.worldInfo != null) ...[
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    l10n.worldInfo,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                                CupertinoButton(
-                                  padding: EdgeInsets.zero,
-                                  onPressed: () {
-                                    final navigator = Navigator.of(context);
-                                    Navigator.pop(dialogContext);
-                                    navigator.push(
-                                      CupertinoPageRoute(
-                                        builder: (_) => WorldInfoPreviewScreen(
-                                          info: preset.worldInfo!,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  child: Text(l10n.worldInfoPreview),
-                                ),
-                              ],
-                            ),
-                          ],
-                          const SizedBox(height: 12),
-                          Text(
-                            l10n.presetFullContent,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(height: 6),
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: CupertinoColors.systemGrey6.resolveFrom(
-                                dialogContext,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: SelectableText(
-                              preset.systemPrompt.isEmpty
-                                  ? '—'
-                                  : preset.systemPrompt,
-                              style: TextStyle(
-                                fontFamily: 'Menlo',
-                                fontFamilyFallback: [
-                                  'Courier',
-                                  'monospace',
-                                  ...cjkFallback,
-                                ],
-                                fontSize: 12,
-                                height: 1.45,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Container(
-                    height: 0.5,
-                    color: CupertinoColors.systemGrey4.resolveFrom(
-                      dialogContext,
-                    ),
-                  ),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Row(
-                      children: [
-                        if (preset.id.startsWith('user_'))
-                          CupertinoButton(
-                            child: Text(l10n.presetEditTitle),
-                            onPressed: () {
-                              Navigator.pop(dialogContext);
-                              _showEditPresetDialog(preset);
-                            },
-                          ),
-                        CupertinoButton(
-                          child: Text(l10n.presetDuplicate),
-                          onPressed: () {
-                            Navigator.pop(dialogContext);
-                            _duplicatePreset(preset);
-                          },
-                        ),
-                        CupertinoButton(
-                          child: Text(l10n.presetExport),
-                          onPressed: () {
-                            Navigator.pop(dialogContext);
-                            _exportPreset(preset);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
+      preset: preset,
+      onEdit: preset.id.startsWith('user_')
+          ? () => _showEditPresetDialog(preset)
+          : null,
+      onDuplicate: () => _duplicatePreset(preset),
+      onExport: () => _exportPreset(preset),
+      onPreviewWorldInfo: preset.worldInfo == null
+          ? null
+          : () {
+              Navigator.of(context).push(
+                CupertinoPageRoute(
+                  builder: (_) =>
+                      WorldInfoPreviewScreen(info: preset.worldInfo!),
+                ),
+              );
+            },
     );
   }
 

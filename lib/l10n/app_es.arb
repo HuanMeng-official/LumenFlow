@@ -862,6 +862,8 @@
   "presetVersionPlaceholder": "Versión",
   "presetLanguageLabel": "Idioma",
   "presetLanguageAny": "General",
+  "presetTagsLabel": "Etiquetas",
+  "presetLengthLabel": "Longitud",
   "presetTagsPlaceholder": "Etiquetas (separadas por comas)",
   "presetFilterAll": "Todos",
   "presetFilterNoResults": "Ningún ajuste coincide con el filtro",
@@ -869,7 +871,7 @@
   "presetSave": "Guardar",
   "presetDuplicate": "Duplicar como copia",
   "presetDuplicateSuffix": " (copia)",
-  "presetExport": "Exportar XML",
+  "presetExport": "Exportar tarjeta",
   "presetExportSuccess": "Exportado",
   "presetExportFailed": "Error al exportar",
   "includePresetCard": "Incluir el contenido de la tarjeta",
@@ -1020,4 +1022,32 @@
   "lumenflowWorldInfoInvalid": "El archivo de información del mundo no es válido o está dañado",
   "lumenflowAvatarInvalid": "La imagen del avatar no es válida o está dañada",
   "lumenflowLegacyUnsupported": "El formato LumenFlow anterior no es compatible"
+,
+  "presetSectionWorldviewBackground": "Mundo y trasfondo",
+  "presetSectionAppearance": "Apariencia y rasgos",
+  "presetSectionPersonality": "Personalidad y lógica",
+  "presetSectionAddressing": "Reglas de tratamiento",
+  "presetSectionLinguistic": "Estilo lingüístico",
+  "presetSectionBehavior": "Conducta y narrativa",
+  "presetSectionInteraction": "Estrategia de interacción",
+  "presetSectionInternalMonologue": "Monólogo interno",
+  "presetSectionEmotionalDepth": "Profundidad emocional",
+  "presetSectionKnowledgeFilter": "Filtro de conocimiento",
+  "presetSectionNegativeConstraints": "Restricciones negativas",
+  "presetSectionExampleDialogue": "Ejemplos de diálogo",
+  "presetSectionUserProfile": "Perfil del usuario",
+  "presetDetailOverview": "Resumen",
+  "presetDetailExample": "Diálogo de ejemplo",
+  "presetDetailNoWorldInfo": "Esta tarjeta no tiene información del mundo.",
+  "presetDetailNoExample": "No hay diálogo de ejemplo.",
+  "presetDetailNoIllustration": "Sin ilustración",
+  "presetDetailViewIllustration": "Ver ilustración",
+  "presetDetailWorldInfoStats": "Entradas {entries} · Profundidad {scanDepth} · Presupuesto {budget} tokens",
+  "@presetDetailWorldInfoStats": {
+    "placeholders": {
+      "entries": {"type": "int"},
+      "scanDepth": {"type": "int"},
+      "budget": {"type": "int"}
+    }
+  }
 }

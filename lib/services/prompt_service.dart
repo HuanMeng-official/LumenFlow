@@ -1351,6 +1351,23 @@ class PromptService {
       await File(sourceAvatarPath).copy(
         path.join(userPresetsDir.path, avatarFileName),
       );
+    } else if (source.hasAvatarFile && !source.isUserPreset) {
+      try {
+        final data = await _assetBundle.load(
+          'assets/prompt/${source.avatarFile}',
+        );
+        final bytes = data.buffer.asUint8List(
+          data.offsetInBytes,
+          data.lengthInBytes,
+        );
+        avatarFileName = await _storePresetAvatar(
+          id: id,
+          bytes: bytes,
+          userPresetsDir: userPresetsDir,
+        );
+      } catch (_) {
+        // A missing built-in avatar should not block duplication.
+      }
     }
 
     var worldInfo = source.worldInfo;

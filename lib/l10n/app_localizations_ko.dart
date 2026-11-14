@@ -1444,6 +1444,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get presetLanguageAny => '공통';
 
   @override
+  String get presetTagsLabel => '태그';
+
+  @override
+  String get presetLengthLabel => '길이';
+
+  @override
   String get presetTagsPlaceholder => '태그(쉼표로 구분)';
 
   @override
@@ -1465,7 +1471,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get presetDuplicateSuffix => '(사본)';
 
   @override
-  String get presetExport => 'XML 내보내기';
+  String get presetExport => '카드 내보내기';
 
   @override
   String get presetExportSuccess => '내보냈습니다';
@@ -1723,4 +1729,66 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get lumenflowLegacyUnsupported => '이전 LumenFlow 형식은 지원되지 않습니다';
+
+  @override
+  String get presetSectionWorldviewBackground => '세계관 및 배경 이야기';
+
+  @override
+  String get presetSectionAppearance => '외모 및 특징';
+
+  @override
+  String get presetSectionPersonality => '성격·심리 구조';
+
+  @override
+  String get presetSectionAddressing => '호칭 규칙';
+
+  @override
+  String get presetSectionLinguistic => '언어 스타일';
+
+  @override
+  String get presetSectionBehavior => '행동·비인간 특성';
+
+  @override
+  String get presetSectionInteraction => '상호작용 전략';
+
+  @override
+  String get presetSectionInternalMonologue => '내면의 독백';
+
+  @override
+  String get presetSectionEmotionalDepth => '감정 임계값';
+
+  @override
+  String get presetSectionKnowledgeFilter => '지식 필터';
+
+  @override
+  String get presetSectionNegativeConstraints => '절대 금기 / 네거티브 프롬프트';
+
+  @override
+  String get presetSectionExampleDialogue => '대화 예시';
+
+  @override
+  String get presetSectionUserProfile => '사용자 프로필';
+
+  @override
+  String get presetDetailOverview => '개요';
+
+  @override
+  String get presetDetailExample => '대화 예시';
+
+  @override
+  String get presetDetailNoWorldInfo => '이 카드에는 세계관 정보가 없습니다.';
+
+  @override
+  String get presetDetailNoExample => '대화 예시가 없습니다.';
+
+  @override
+  String get presetDetailNoIllustration => '일러스트 없음';
+
+  @override
+  String get presetDetailViewIllustration => '일러스트 보기';
+
+  @override
+  String presetDetailWorldInfoStats(int entries, int scanDepth, int budget) {
+    return '항목 $entries · 스캔 깊이 $scanDepth · 예산 $budget tokens';
+  }
 }
