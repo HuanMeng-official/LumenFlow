@@ -43,6 +43,7 @@
                     drafts.map((draft) => ({
                         id: draft.id,
                         name: draft.name || '',
+                        nameCustom: draft.nameCustom === true,
                         createdAt: draft.createdAt || 0,
                         updatedAt: draft.updatedAt || 0,
                     }))

@@ -377,6 +377,53 @@ h1 {
     font-size: 13px;
 }
 
+.draft-rename {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+}
+
+.draft-rename input[type="text"] {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid var(--tint);
+    border-radius: 8px;
+    background: var(--bg-surface);
+    color: var(--label-primary);
+    font-size: 13px;
+}
+
+.draft-rename-button {
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 8px;
+    background: var(--fill-control);
+    color: var(--label-secondary);
+    font-size: 15px;
+    line-height: 1;
+}
+
+.draft-rename-button:hover {
+    background: var(--tint-soft);
+    color: var(--tint);
+}
+
+.draft-rename #btn-DraftRenameSave {
+    background: var(--tint);
+    color: #ffffff;
+}
+
+.draft-rename #btn-DraftRenameSave:hover {
+    background: var(--tint-hover);
+    color: #ffffff;
+}
+
 .draft-updated {
     flex: 0 0 auto;
     color: var(--label-tertiary);

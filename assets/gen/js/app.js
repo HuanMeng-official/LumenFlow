@@ -9,8 +9,8 @@
         'RoleName', 'RoleNameEN', 'Identity', 'Philosophy', 'Appearance',
         'Personality', 'Addressing', 'Linguistic', 'Behavior', 'Interaction',
         'InternalMonologue', 'EmotionalDepth', 'KnowledgeFilter',
-        'NegativeConstraints', 'Example', 'FileName', 'MetaAuthor',
-        'MetaVersion', 'MetaLanguage', 'MetaTags', 'MetaIcon',
+        'NegativeConstraints', 'Example', 'FileName', 'MetaName',
+        'MetaAuthor', 'MetaVersion', 'MetaLanguage', 'MetaTags', 'MetaIcon',
     ];
 
     let currentLang = 'zh';
@@ -25,10 +25,12 @@
     let illustrationMeta = null;
     let activeTab = 'character';
     let previewMode = 'source';
+    let metaNameAutoValue = '';
     let drafts = [];
     let activeDraftId = '';
     let draftStoreAvailable = true;
     let draftSaveQueue = Promise.resolve();
+    let draftRenaming = false;
     let deleteDraftPending = false;
     let deleteDraftTimeout = null;
     let testInputTimeout = null;
@@ -181,9 +183,15 @@
             .join('');
     }
 
-    function syncMetaName() {
+    function syncMetaName(force = false) {
+        const input = document.getElementById('MetaName');
         const roleName = document.getElementById('RoleName').value.trim();
-        document.getElementById('MetaName').value = roleName;
+        const current = input.value;
+        // 默认镜像角色名；用户手动改过名称后不再覆盖。
+        if (force || current === '' || current === metaNameAutoValue) {
+            input.value = roleName;
+            metaNameAutoValue = roleName;
+        }
     }
 
     function splitTags(value) {
@@ -320,6 +328,7 @@
                 data.KnowledgeFilter || data.NegativeConstraints) {
                 document.getElementById('AdvancedOptionsPanel').open = true;
             }
+            metaNameAutoValue = '';
             syncMetaName();
             renderTagChips();
             renderIconGrid();
@@ -363,7 +372,7 @@
 
     function draftNameFromData(data) {
         const fields = (data && data.fields) || {};
-        return String(fields.RoleName || '').trim();
+        return String(fields.RoleName || fields.MetaName || '').trim();
     }
 
     function blankDraftData() {
@@ -512,6 +521,7 @@
 
         const tagInput = document.getElementById('MetaTagInput');
         if (tagInput) tagInput.value = '';
+        metaNameAutoValue = '';
         syncMetaName();
         renderTagChips();
         renderIconGrid();
@@ -549,6 +559,7 @@
                 const draft = {
                     id: createDraftId(),
                     name: draftNameFromData(data),
+                    nameCustom: false,
                     createdAt: now,
                     updatedAt: now,
                     data,
@@ -627,6 +638,58 @@
         renderDraftTimestamp();
     }
 
+    function setDraftPickerEditing(editing) {
+        draftRenaming = editing;
+        const select = document.getElementById('DraftSelect');
+        if (select) {
+            const wrapper = select.closest('.lf-select');
+            if (wrapper) wrapper.hidden = editing;
+            else select.hidden = editing;
+        }
+        const wrap = document.getElementById('DraftRenameWrap');
+        if (wrap) wrap.hidden = !editing;
+    }
+
+    function startDraftRename() {
+        if (!draftStoreAvailable || !activeDraftId || draftRenaming) return;
+        const draft = drafts.find((item) => item.id === activeDraftId);
+        const input = document.getElementById('DraftRenameInput');
+        if (!input) return;
+        setDraftPickerEditing(true);
+        input.value = draft?.name || '';
+        input.focus();
+        input.select();
+    }
+
+    function cancelDraftRename() {
+        if (!draftRenaming) return;
+        setDraftPickerEditing(false);
+    }
+
+    async function commitDraftRename() {
+        if (!draftRenaming || !activeDraftId) return;
+        const draftId = activeDraftId;
+        const input = document.getElementById('DraftRenameInput');
+        const name = (input?.value || '').trim();
+        setDraftPickerEditing(false);
+        try {
+            await flushDraftSave();
+            const existing = await window.LFDraftStore.get(draftId);
+            if (!existing) return;
+            const record = Object.assign({}, existing, {
+                name: name || draftNameFromData(existing.data),
+                nameCustom: name.length > 0,
+                updatedAt: Date.now(),
+            });
+            await window.LFDraftStore.put(record);
+            drafts = await window.LFDraftStore.list();
+            renderDraftPicker();
+        } catch (error) {
+            console.error('Failed to rename draft:', error);
+            showToast(dict().DraftSaveFailed || 'Draft save failed');
+        }
+    }
+
     function queueDraftSave() {
         if (!draftStoreAvailable) {
             saveToLocalStorage();
@@ -635,13 +698,17 @@
         if (!activeDraftId) return Promise.resolve();
         const draftId = activeDraftId;
         const data = collectDraftData();
-        const name = draftNameFromData(data);
         const task = draftSaveQueue.then(async () => {
             const existing = drafts.find((draft) => draft.id === draftId);
+            const nameCustom = existing?.nameCustom === true;
+            const name = nameCustom
+                ? existing.name || ''
+                : draftNameFromData(data);
             const now = Date.now();
             const draft = {
                 id: draftId,
                 name,
+                nameCustom,
                 createdAt: existing?.createdAt || now,
                 updatedAt: now,
                 data,
@@ -651,6 +718,7 @@
             const metadata = {
                 id: draftId,
                 name,
+                nameCustom,
                 createdAt: draft.createdAt,
                 updatedAt: now,
             };
@@ -677,6 +745,7 @@
 
     async function switchDraft(id) {
         if (!draftStoreAvailable || !id || id === activeDraftId) return;
+        cancelDraftRename();
         await flushDraftSave();
         activeDraftId = id;
         await window.LFDraftStore.setSetting('activeDraftId', id);
@@ -687,11 +756,13 @@
 
     async function createNewDraft() {
         if (!draftStoreAvailable) return;
+        cancelDraftRename();
         await flushDraftSave();
         const now = Date.now();
         const draft = {
             id: createDraftId(),
             name: '',
+            nameCustom: false,
             createdAt: now,
             updatedAt: now,
             data: blankDraftData(),
@@ -707,6 +778,7 @@
 
     async function duplicateCurrentDraft() {
         if (!draftStoreAvailable) return;
+        cancelDraftRename();
         await flushDraftSave();
         const current = await window.LFDraftStore.get(activeDraftId);
         const data = JSON.parse(
@@ -714,9 +786,11 @@
         );
         const now = Date.now();
         const suffix = dict().CopySuffix || '(copy)';
+        const name = current?.name ? `${current.name} ${suffix}` : '';
         const draft = {
             id: createDraftId(),
-            name: current?.name ? `${current.name} ${suffix}` : '',
+            name,
+            nameCustom: name.length > 0,
             createdAt: now,
             updatedAt: now,
             data,
@@ -732,6 +806,7 @@
 
     async function deleteCurrentDraft() {
         if (!draftStoreAvailable || !activeDraftId) return;
+        cancelDraftRename();
         const button = document.getElementById('btn-DeleteDraft');
         if (!deleteDraftPending) {
             deleteDraftPending = true;
@@ -757,6 +832,7 @@
             const draft = {
                 id: createDraftId(),
                 name: '',
+                nameCustom: false,
                 createdAt: now,
                 updatedAt: now,
                 data: blankDraftData(),
@@ -818,7 +894,7 @@
         window.LFWorldInfo.reset();
         clearAvatar(false);
         clearIllustration(false);
-        syncMetaName();
+        syncMetaName(true);
         updateTokenCount();
         queueDraftSave();
         showToast(dict().Cleared);
@@ -1587,7 +1663,7 @@ ${example}
             if (filename) {
                 document.getElementById('FileName').value = filename.replace(/\.xml$/i, '');
             }
-            syncMetaName();
+            syncMetaName(true);
             autoResizeAllTextareas();
             updateTokenCount();
             triggerAutoSave();
@@ -1646,7 +1722,7 @@ ${example}
                 : 'person.fill';
         renderTagChips();
         renderIconGrid();
-        syncMetaName();
+        syncMetaName(true);
     }
 
     function renderAvatar() {
@@ -2464,7 +2540,26 @@ ${example}
         setText('lbl-Draft', d.Draft);
         setText('btn-NewDraft', d.NewDraft);
         setText('btn-DuplicateDraft', d.DuplicateDraft);
+        setText('btn-RenameDraft', d.RenameDraft);
         setText('btn-DeleteDraft', d.DeleteDraft);
+        const draftRenameInput = document.getElementById('DraftRenameInput');
+        if (draftRenameInput) {
+            draftRenameInput.placeholder = d.DraftRenamePlaceholder;
+            draftRenameInput.setAttribute('aria-label', d.DraftRename);
+        }
+        const draftRenameSave = document.getElementById('btn-DraftRenameSave');
+        if (draftRenameSave) {
+            draftRenameSave.title = d.DraftRenameSave;
+            draftRenameSave.setAttribute('aria-label', d.DraftRenameSave);
+        }
+        const draftRenameCancel = document.getElementById('btn-DraftRenameCancel');
+        if (draftRenameCancel) {
+            draftRenameCancel.title = d.DraftRenameCancel;
+            draftRenameCancel.setAttribute(
+                'aria-label',
+                d.DraftRenameCancel
+            );
+        }
         setText('btn-ImportWorldInfo', d.ImportWorldInfo);
         setText('btn-MergeWorldInfo', d.MergeWorldInfo);
         setText('btn-ExportWorldInfo', d.ExportWorldInfo);
@@ -2624,6 +2719,33 @@ ${example}
         document.getElementById('btn-DuplicateDraft')?.addEventListener(
             'click',
             duplicateCurrentDraft
+        );
+        document.getElementById('btn-RenameDraft')?.addEventListener(
+            'click',
+            () => {
+                if (draftRenaming) commitDraftRename();
+                else startDraftRename();
+            }
+        );
+        document.getElementById('btn-DraftRenameSave')?.addEventListener(
+            'click',
+            commitDraftRename
+        );
+        document.getElementById('btn-DraftRenameCancel')?.addEventListener(
+            'click',
+            cancelDraftRename
+        );
+        document.getElementById('DraftRenameInput')?.addEventListener(
+            'keydown',
+            (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    commitDraftRename();
+                } else if (event.key === 'Escape') {
+                    event.preventDefault();
+                    cancelDraftRename();
+                }
+            }
         );
         document.getElementById('btn-DeleteDraft')?.addEventListener(
             'click',

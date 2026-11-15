@@ -39,13 +39,22 @@
     <div class="left-panel">
         <div class="draft-bar" id="DraftBar">
             <span class="draft-label" id="lbl-Draft">草稿</span>
-            <div class="draft-picker">
+            <div class="draft-picker" id="DraftPicker">
                 <select id="DraftSelect" aria-label="Draft"></select>
+                <div class="draft-rename" id="DraftRenameWrap" hidden>
+                    <input type="text" id="DraftRenameInput" maxlength="80"
+                        autocomplete="off" aria-label="Draft name">
+                    <button type="button" class="draft-rename-button"
+                        id="btn-DraftRenameSave">✓</button>
+                    <button type="button" class="draft-rename-button"
+                        id="btn-DraftRenameCancel">×</button>
+                </div>
             </div>
             <span class="draft-updated" id="DraftUpdated"></span>
             <div class="draft-actions">
                 <button type="button" class="secondary" id="btn-NewDraft">新建</button>
                 <button type="button" class="secondary" id="btn-DuplicateDraft">复制</button>
+                <button type="button" class="secondary" id="btn-RenameDraft">重命名</button>
                 <button type="button" class="secondary" id="btn-DeleteDraft">删除</button>
             </div>
         </div>
@@ -228,7 +237,7 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label id="lbl-MetaName">名称</label>
-                        <input type="text" id="MetaName" readonly>
+                        <input type="text" id="MetaName">
                     </div>
                     <div class="form-group">
                         <label id="lbl-MetaAuthor">作者</label>
