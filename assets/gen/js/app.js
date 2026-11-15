@@ -910,7 +910,7 @@ ${example}
                 _app_version: 'web-generator',
                 _min_reader_version: '2.0',
                 _title: meta.name,
-                _language: language || currentLang,
+                _language: meta.language || currentLang,
                 _contains_secrets: false,
                 includes_character: true,
                 files: files.map(({ path, role, size, sha256 }) => ({
