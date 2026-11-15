@@ -69,7 +69,7 @@ LumenFlow (Chinese: 流光) is a Flutter-based AI chat application for Android, 
 - **Cupertino-style UI** with light/dark/system themes.
 - **User profiles** with avatar, name, gender, and birthday.
 - **Prompt presets and role-play**: localized built-in cards plus user-imported XML, TXT, and `.lumenflow` cards; editable metadata, world info with an activation preview, avatars and full-body illustrations, language/tag filters, token estimates, duplicate detection, and conversation snapshots.
-- **Character card generator**: a local web page with character fields, a world info editor, metadata/avatar/illustration handling, and `.lumenflow` export.
+- **Character card generator**: a local web page with character fields, advanced world info editing and activation tests, entry search/bulk actions, multi-draft storage, metadata/avatar/illustration handling, a visual card preview, and `.lumenflow` export.
 - **Markdown extras**: fenced code with Night Owl syntax highlighting, copy/download actions, inline-code styling, and inline/block math rendering.
 - **Adaptive layout**: two-column desktop workspace that falls back to a single column when the window is narrow.
 - **Local notifications**; Android live-update support.
@@ -272,7 +272,7 @@ Role-play presets pair a small metadata record with an optional character-card b
 - Replies default to the UI language and follow the user's input language. A selected card's own language and tone remain part of its prompt.
 - Prompts are not interpolated with `${userProfile.*}` values. When a card needs the user's name, gender, or birthday, it should call `builtin__get_user_profile`.
 
-The character-card generator opens a local web page served by the app (`HttpServerService`, loopback ports 5050–5059). It edits character fields, world info, metadata, an avatar, and a full-body illustration, then exports a `.lumenflow` archive.
+The character-card generator is a local web page that can be served by the app (`HttpServerService`, loopback ports 5050–5059) or launched standalone with `python open_generator.py` from the project root. It edits character fields and world info, tests world-info activation against sample conversations, searches and bulk-manages entries, stores multiple drafts in IndexedDB, handles metadata, avatar, and full-body illustration, previews the rendered card, and exports a `.lumenflow` archive.
 
 ## Data Storage
 

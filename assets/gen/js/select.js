@@ -251,7 +251,16 @@
             });
         }
 
+        wrapper._lfRefresh = rebuildOptions;
         rebuildOptions();
+    }
+
+    function refreshAll() {
+        document.querySelectorAll('.lf-select').forEach((wrapper) => {
+            if (typeof wrapper._lfRefresh === 'function') {
+                wrapper._lfRefresh();
+            }
+        });
     }
 
     function enhanceAll(root) {
@@ -277,6 +286,6 @@
         if (openWrapper) closeMenu(openWrapper, false);
     });
 
-    window.LFSelect = { enhanceAll };
+    window.LFSelect = { enhanceAll, refreshAll };
     enhanceAll(document);
 })();

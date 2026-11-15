@@ -18,11 +18,14 @@
         </div>
         <div class="header-controls">
             <span class="save-indicator" id="save-indicator">已自动保存</span>
-            <div class="token-counter safe" id="token-box" title="Token 健康：结构精炼，响应迅速">
+            <div class="token-counter safe" id="token-box" role="button" tabindex="0"
+                aria-haspopup="true" aria-expanded="false" aria-controls="TokenBreakdown"
+                title="Token 健康：结构精炼，响应迅速">
                 <div class="status-dot"></div>
                 <span id="lbl-TokenCount">Tokens</span>
                 <strong id="token-val">0</strong>
             </div>
+            <div id="TokenBreakdown" class="token-popover" hidden></div>
             <select id="lang-selector" aria-label="Language">
                 <option value="zh">中文</option>
                 <option value="en">English</option>
@@ -34,6 +37,18 @@
     </header>
 
     <div class="left-panel">
+        <div class="draft-bar" id="DraftBar">
+            <span class="draft-label" id="lbl-Draft">草稿</span>
+            <div class="draft-picker">
+                <select id="DraftSelect" aria-label="Draft"></select>
+            </div>
+            <span class="draft-updated" id="DraftUpdated"></span>
+            <div class="draft-actions">
+                <button type="button" class="secondary" id="btn-NewDraft">新建</button>
+                <button type="button" class="secondary" id="btn-DuplicateDraft">复制</button>
+                <button type="button" class="secondary" id="btn-DeleteDraft">删除</button>
+            </div>
+        </div>
         <div class="tab-bar">
             <button type="button" class="tab-button active" data-tab="character" id="tab-character">角色卡</button>
             <button type="button" class="tab-button" data-tab="worldinfo" id="tab-worldinfo">世界书</button>
@@ -175,9 +190,37 @@
             </div>
             <div class="wi-header">
                 <h3 id="lbl-WorldInfoEntries">世界书条目</h3>
-                <button type="button" class="secondary" id="btn-AddEntry">添加条目</button>
+                <div class="wi-header-actions">
+                    <button type="button" class="secondary" id="btn-ImportWorldInfo">导入</button>
+                    <button type="button" class="secondary" id="btn-MergeWorldInfo">合并</button>
+                    <button type="button" class="secondary" id="btn-ExportWorldInfo">导出</button>
+                    <button type="button" class="secondary" id="btn-AddEntry">添加条目</button>
+                    <input type="file" id="WorldInfoFileInput" accept=".json,application/json" hidden>
+                </div>
+            </div>
+            <div id="WorldInfoValidation" class="validation-panel" hidden></div>
+            <div class="wi-tools" id="WorldInfoTools">
+                <input type="search" id="WorldInfoSearch" class="wi-search" autocomplete="off">
+                <span id="WorldInfoFilterCount" class="wi-filter-count"></span>
+            </div>
+            <div id="WorldInfoCategoryFilter" class="wi-filter-chips" role="group"></div>
+            <div class="wi-bulk-bar" id="WorldInfoBulkBar">
+                <div class="wi-bulk-left">
+                    <button type="button" class="wi-text-button" id="btn-SelectVisible">全选</button>
+                    <button type="button" class="wi-text-button" id="btn-ClearSelection">清除选择</button>
+                    <button type="button" class="wi-text-button" id="btn-ToggleCollapseAll">折叠全部</button>
+                    <button type="button" class="wi-text-button" id="btn-EnableAll">全部启用</button>
+                    <button type="button" class="wi-text-button" id="btn-DisableAll">全部禁用</button>
+                </div>
+                <div class="wi-bulk-right">
+                    <span id="WorldInfoSelectionCount"></span>
+                    <button type="button" class="wi-text-button" id="btn-EnableSelected">启用</button>
+                    <button type="button" class="wi-text-button" id="btn-DisableSelected">禁用</button>
+                    <button type="button" class="wi-text-button danger" id="btn-DeleteSelected">删除</button>
+                </div>
             </div>
             <div id="WorldInfoEntries" class="wi-entries"></div>
+            <div id="WorldInfoFilterEmpty" class="wi-empty wi-filter-empty" hidden></div>
         </section>
 
         <section class="tab-panel" data-panel="meta" id="panel-meta">
@@ -209,25 +252,18 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label id="lbl-MetaTags">标签（逗号分隔）</label>
-                    <input type="text" id="MetaTags">
+                    <label id="lbl-MetaTags">标签</label>
+                    <input type="hidden" id="MetaTags">
+                    <div class="tag-editor">
+                        <div class="tag-chips" id="MetaTagsChips"></div>
+                        <input type="text" id="MetaTagInput" class="tag-input" autocomplete="off">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label id="lbl-MetaIcon">备用图标</label>
-                    <select id="MetaIcon">
-                        <option value="person.fill">person.fill</option>
-                        <option value="person.crop.circle">person.crop.circle</option>
-                        <option value="sparkles">sparkles</option>
-                        <option value="wand.and.stars">wand.and.stars</option>
-                        <option value="heart.fill">heart.fill</option>
-                        <option value="flame.fill">flame.fill</option>
-                        <option value="moon.stars">moon.stars</option>
-                        <option value="sun.max">sun.max</option>
-                        <option value="star.fill">star.fill</option>
-                        <option value="bolt.fill">bolt.fill</option>
-                        <option value="globe">globe</option>
-                        <option value="pencil">pencil</option>
-                    </select>
+                    <input type="hidden" id="MetaIcon" value="person.fill">
+                    <div class="icon-grid" id="MetaIconGrid" role="radiogroup"></div>
+                    <div class="icon-value" id="MetaIconValue">person.fill</div>
                 </div>
             </div>
             <div class="form-card">
@@ -244,6 +280,7 @@
                             <input type="file" id="AvatarInput" accept="image/png" hidden>
                         </div>
                     </div>
+                    <div class="media-meta" id="AvatarMeta"></div>
                 </div>
                 <div class="form-group">
                     <label id="lbl-Illustration">角色立绘</label>
@@ -258,6 +295,7 @@
                             <input type="file" id="IllustrationInput" accept="image/png" hidden>
                         </div>
                     </div>
+                    <div class="media-meta" id="IllustrationMeta"></div>
                 </div>
             </div>
         </section>
@@ -292,9 +330,28 @@
                 <h3 id="ui-done">预览</h3>
                 <span id="preview-context" class="preview-context"></span>
             </div>
-            <button type="button" class="secondary" id="btn-Copy">复制内容</button>
+            <div class="preview-actions">
+                <div class="preview-modes" id="PreviewModes" role="tablist">
+                    <button type="button" class="preview-mode active" data-preview-mode="source">源码</button>
+                    <button type="button" class="preview-mode" data-preview-mode="card">卡片</button>
+                    <button type="button" class="preview-mode" data-preview-mode="test">测试</button>
+                </div>
+                <button type="button" class="secondary" id="btn-Copy">复制内容</button>
+            </div>
         </div>
-        <pre id="xml-output"></pre>
+        <div class="preview-body">
+            <pre id="xml-output"></pre>
+            <div id="card-preview" class="card-preview" hidden></div>
+            <div id="activation-test" class="activation-test" hidden>
+                <div class="test-intro">
+                    <h4 id="lbl-WorldInfoTest">激活测试</h4>
+                    <p class="hint" id="hint-WorldInfoTest">每行一条消息；最后一行作为当前消息。</p>
+                </div>
+                <textarea id="WorldInfoTestInput" class="test-input"></textarea>
+                <button type="button" class="secondary" id="btn-RunWorldInfoTest">运行测试</button>
+                <div id="WorldInfoTestResults" class="test-results"></div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -303,7 +360,9 @@
 <script src="js/vendor/jszip.min.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/select.js"></script>
+<script src="js/draft_store.js"></script>
 <script src="js/world_info.js"></script>
+<script src="js/world_info_engine.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
