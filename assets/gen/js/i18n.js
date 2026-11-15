@@ -227,7 +227,7 @@ const BASE_UI = {
     };
 const EXTRA_UI = {
     zh: {
-        TabCharacter: "角色卡", TabWorldInfo: "世界书", TabMeta: "元数据、头像与立绘", TabExport: "导出",
+        TabCharacter: "角色卡", TabWorldInfo: "世界书", TabMeta: "元数据与媒体", TabExport: "导出",
         WorldInfoTitle: "世界书", WorldInfoName: "世界书名称", WorldInfoDescription: "简介",
         WorldInfoBackground: "世界背景", WorldInfoBackgroundHint: "常驻注入；条目按关键词激活。",
         WorldInfoScanDepth: "扫描深度", WorldInfoBudget: "条目 Token 预算",
@@ -248,7 +248,7 @@ const EXTRA_UI = {
         MetaTitle: "元数据、头像与立绘", MetaName: "名称", MetaAuthor: "作者", MetaVersion: "版本",
         MetaLanguage: "语言", MetaTags: "标签（逗号分隔）", MetaIcon: "备用图标",
         Avatar: "角色头像", AvatarHint: "PNG；最长边自动缩到 1024，超过 2 MB 继续降到 768/512。",
-        ChooseAvatar: "选择 PNG", RemoveAvatar: "移除头像",
+        ChooseAvatar: "选择头像", RemoveAvatar: "移除头像",
         Illustration: "角色立绘", IllustrationHint: "PNG，推荐透明背景；最长边自动缩到 2048，超过 8 MB 继续压缩。",
         ChooseIllustration: "选择立绘", RemoveIllustration: "移除立绘",
         ExportLumenflow: "导出 .lumenflow", ImportLumenflow: "导入 .xml / .lumenflow",
@@ -262,7 +262,7 @@ const EXTRA_UI = {
         LegacyBackgroundImported: "已把旧版世界观迁移到世界书背景"
     },
     en: {
-        TabCharacter: "Character", TabWorldInfo: "World Info", TabMeta: "Meta, Avatar & Illustration", TabExport: "Export",
+        TabCharacter: "Character", TabWorldInfo: "World Info", TabMeta: "Metadata", TabExport: "Export",
         WorldInfoTitle: "World Info", WorldInfoName: "World Info Name", WorldInfoDescription: "Description",
         WorldInfoBackground: "World Background", WorldInfoBackgroundHint: "Always injected; entries activate by keyword.",
         WorldInfoScanDepth: "Scan Depth", WorldInfoBudget: "Entry Token Budget",
@@ -284,7 +284,7 @@ const EXTRA_UI = {
         MetaTitle: "Meta, Avatar & Illustration", MetaName: "Name", MetaAuthor: "Author", MetaVersion: "Version",
         MetaLanguage: "Language", MetaTags: "Tags (comma separated)", MetaIcon: "Fallback Icon",
         Avatar: "Avatar", AvatarHint: "PNG; longest side reduced to 1024, then 768/512 if over 2 MB.",
-        ChooseAvatar: "Choose PNG", RemoveAvatar: "Remove Avatar",
+        ChooseAvatar: "Choose Avatar", RemoveAvatar: "Remove Avatar",
         Illustration: "Character Illustration", IllustrationHint: "PNG, transparent background recommended; longest side reduced to 2048, then compressed if over 8 MB.",
         ChooseIllustration: "Choose Illustration", RemoveIllustration: "Remove Illustration",
         ExportLumenflow: "Export .lumenflow", ImportLumenflow: "Import .xml / .lumenflow",
@@ -298,7 +298,7 @@ const EXTRA_UI = {
         LegacyBackgroundImported: "Legacy worldview migrated into the world background"
     },
     ja: {
-        TabCharacter: "キャラクター", TabWorldInfo: "ワールド情報", TabMeta: "メタ・アバター・立ち絵", TabExport: "エクスポート",
+        TabCharacter: "キャラクター", TabWorldInfo: "ワールド情報", TabMeta: "メタ・素材", TabExport: "エクスポート",
         WorldInfoTitle: "ワールド情報", WorldInfoName: "ワールド情報名", WorldInfoDescription: "説明",
         WorldInfoBackground: "世界背景", WorldInfoBackgroundHint: "常時注入。項目はキーワードで有効化されます。",
         WorldInfoScanDepth: "スキャン深度", WorldInfoBudget: "項目トークン予算",
@@ -319,7 +319,7 @@ const EXTRA_UI = {
         MetaTitle: "メタ・アバター・立ち絵", MetaName: "名前", MetaAuthor: "作者", MetaVersion: "バージョン",
         MetaLanguage: "言語", MetaTags: "タグ（カンマ区切り）", MetaIcon: "代替アイコン",
         Avatar: "アバター", AvatarHint: "PNG。最長辺を 1024 に縮小し、2 MB 超なら 768/512 に下げます。",
-        ChooseAvatar: "PNG を選択", RemoveAvatar: "アバターを削除",
+        ChooseAvatar: "アバターを選択", RemoveAvatar: "アバターを削除",
         Illustration: "キャラクター立ち絵", IllustrationHint: "PNG、透明背景を推奨。最長辺を 2048 に縮小し、8 MB 超ならさらに圧縮します。",
         ChooseIllustration: "立ち絵を選択", RemoveIllustration: "立ち絵を削除",
         ExportLumenflow: ".lumenflow を書き出す", ImportLumenflow: ".xml / .lumenflow を読み込む",
@@ -332,7 +332,7 @@ const EXTRA_UI = {
         CryptoUnavailable: "Web Crypto が利用できません", LegacyBackgroundImported: "旧世界観を世界背景へ移行しました"
     },
     ko: {
-        TabCharacter: "캐릭터", TabWorldInfo: "세계관 정보", TabMeta: "메타·아바타·일러스트", TabExport: "내보내기",
+        TabCharacter: "캐릭터", TabWorldInfo: "세계관 정보", TabMeta: "메타·미디어", TabExport: "내보내기",
         WorldInfoTitle: "세계관 정보", WorldInfoName: "세계관 이름", WorldInfoDescription: "설명",
         WorldInfoBackground: "세계 배경", WorldInfoBackgroundHint: "항상 주입되며, 항목은 키워드로 활성화됩니다.",
         WorldInfoScanDepth: "스캔 깊이", WorldInfoBudget: "항목 토큰 예산",
@@ -353,7 +353,7 @@ const EXTRA_UI = {
         MetaTitle: "메타·아바타·일러스트", MetaName: "이름", MetaAuthor: "작성자", MetaVersion: "버전",
         MetaLanguage: "언어", MetaTags: "태그(쉼표 구분)", MetaIcon: "대체 아이콘",
         Avatar: "아바타", AvatarHint: "PNG. 긴 변을 1024로 줄이고 2 MB를 넘으면 768/512로 낮춥니다.",
-        ChooseAvatar: "PNG 선택", RemoveAvatar: "아바타 제거",
+        ChooseAvatar: "아바타 선택", RemoveAvatar: "아바타 제거",
         Illustration: "캐릭터 일러스트", IllustrationHint: "PNG, 투명 배경 권장. 긴 변을 2048로 줄이고 8 MB를 넘으면 추가 압축합니다.",
         ChooseIllustration: "일러스트 선택", RemoveIllustration: "일러스트 제거",
         ExportLumenflow: ".lumenflow 내보내기", ImportLumenflow: ".xml / .lumenflow 가져오기",
@@ -366,7 +366,7 @@ const EXTRA_UI = {
         CryptoUnavailable: "Web Crypto를 사용할 수 없습니다", LegacyBackgroundImported: "기존 세계관을 세계 배경으로 옮겼습니다"
     },
     es: {
-        TabCharacter: "Personaje", TabWorldInfo: "Mundo", TabMeta: "Meta, avatar e ilustración", TabExport: "Exportar",
+        TabCharacter: "Personaje", TabWorldInfo: "Mundo", TabMeta: "Metadatos", TabExport: "Exportar",
         WorldInfoTitle: "Información del mundo", WorldInfoName: "Nombre del mundo", WorldInfoDescription: "Descripción",
         WorldInfoBackground: "Trasfondo del mundo", WorldInfoBackgroundHint: "Siempre se inyecta; las entradas se activan por palabra clave.",
         WorldInfoScanDepth: "Profundidad de escaneo", WorldInfoBudget: "Presupuesto de tokens",
@@ -388,7 +388,7 @@ const EXTRA_UI = {
         MetaTitle: "Meta, avatar e ilustración", MetaName: "Nombre", MetaAuthor: "Autor", MetaVersion: "Versión",
         MetaLanguage: "Idioma", MetaTags: "Etiquetas (separadas por comas)", MetaIcon: "Icono alternativo",
         Avatar: "Avatar", AvatarHint: "PNG; el lado mayor se reduce a 1024 y a 768/512 si supera 2 MB.",
-        ChooseAvatar: "Elegir PNG", RemoveAvatar: "Quitar avatar",
+        ChooseAvatar: "Elegir avatar", RemoveAvatar: "Quitar avatar",
         Illustration: "Ilustración del personaje", IllustrationHint: "PNG, se recomienda fondo transparente; el lado mayor se reduce a 2048 y se comprime si supera 8 MB.",
         ChooseIllustration: "Elegir ilustración", RemoveIllustration: "Quitar ilustración",
         ExportLumenflow: "Exportar .lumenflow", ImportLumenflow: "Importar .xml / .lumenflow",

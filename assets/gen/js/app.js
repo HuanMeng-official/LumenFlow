@@ -108,9 +108,9 @@
         document.querySelectorAll('.tab-panel').forEach((panel) => {
             panel.classList.toggle('active', panel.dataset.panel === name);
         });
+        document.getElementById('preview-section').classList.add('active');
         if (name === 'export') {
             updateTokenCount();
-            document.getElementById('preview-section').classList.add('active');
         } else {
             updatePreview();
         }
@@ -349,15 +349,15 @@ ${example}
             const data = selected || window.LFWorldInfo.getData();
             return {
                 text: JSON.stringify(data, null, 2),
-                context: selected
-                    ? `${d.TabWorldInfo} · ${selected.title || selected.id}`
+                context: selected && selected.title
+                    ? `${d.TabWorldInfo} · ${selected.title}`
                     : d.TabWorldInfo,
             };
         }
         if (activeTab === 'meta') {
             return {
                 text: JSON.stringify(buildMetaPayload(), null, 2),
-                context: d.MetaTitle,
+                context: d.TabMeta,
             };
         }
         if (activeTab === 'export') {
@@ -1072,6 +1072,8 @@ ${example}
 
     function applyLanguageUI() {
         const d = dict();
+        document.documentElement.lang =
+            currentLang === 'zh' ? 'zh-CN' : currentLang;
         const setText = (id, value) => {
             const el = document.getElementById(id);
             if (el) el.innerText = value;
