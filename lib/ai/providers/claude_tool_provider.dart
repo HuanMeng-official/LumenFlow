@@ -653,7 +653,8 @@ class ClaudeToolProvider
       final minor = int.tryParse(match.group(2) ?? '') ?? 0;
       return major > 4 || (major == 4 && minor >= 7);
     }
-    return false;
+    return model.startsWith('claude-fable-5') ||
+        model.startsWith('claude-mythos-5');
   }
 
   Map<String, dynamic> _toolChoice(AIToolChoice choice) {

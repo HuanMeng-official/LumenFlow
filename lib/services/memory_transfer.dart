@@ -52,11 +52,10 @@ ConversationMemory remapImportedMemory(
 
   final mappedBoundary = messageIdMap[oldBoundary];
   if (mappedBoundary == null) {
-    return memory.copyWith(
-      facts: facts,
-      rejected: rejected,
-      clearCoverage: true,
-    );
+    // 分叉/导入只保留了记忆边界之前的消息。此时原摘要、情绪、账本都
+    // 描述的是边界之后（分支里不存在）的事件，不能只清空覆盖边界留着
+    // 它们，否则会在更早的分支里出现“未来记忆”。
+    return ConversationMemory.empty();
   }
 
   final eligible = importedMessages
@@ -68,11 +67,8 @@ ConversationMemory remapImportedMemory(
       .toList(growable: false);
   final index = eligible.indexWhere((message) => message.id == mappedBoundary);
   if (index == -1) {
-    return memory.copyWith(
-      facts: facts,
-      rejected: rejected,
-      clearCoverage: true,
-    );
+    // 边界消息存在但不可用于记忆（错误/空消息）时同样丢弃整份记忆。
+    return ConversationMemory.empty();
   }
 
   return memory.copyWith(

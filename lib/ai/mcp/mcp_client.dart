@@ -167,9 +167,12 @@ class McpClient implements McpConnection {
       return await action();
     } on McpException catch (error) {
       if (error.code != 404) rethrow;
-      _initialized = false;
-      _sessionId = null;
-      _protocolVersion = null;
+      // 另一个并发请求可能已经在重建会话；此时不要再次清空它。
+      if (_initializationFuture == null) {
+        _initialized = false;
+        _sessionId = null;
+        _protocolVersion = null;
+      }
       await _ensureInitialized();
       return action();
     }

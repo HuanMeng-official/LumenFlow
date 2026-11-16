@@ -17,7 +17,7 @@ class FileService {
     final counter = _attachmentCounter++;
     final fileName =
         'attachment_${stamp}_$counter${path.extension(file.path)}';
-    final savedFile = File('${attachmentsDir.path}/$fileName');
+    final savedFile = File(path.join(attachmentsDir.path, fileName));
 
     await file.copy(savedFile.path);
     return savedFile.path;

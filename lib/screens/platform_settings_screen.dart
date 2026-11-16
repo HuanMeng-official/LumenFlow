@@ -365,46 +365,49 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   onPressed: () async {
                     final addController = TextEditingController();
-                    final addResult = await showCupertinoDialog<String>(
-                      context: context,
-                      builder: (context) => CupertinoAlertDialog(
-                        title: Text(l10n.addModelTitle),
-                        content: SizedBox(
-                          width: MediaQuery.of(context).size.width * 0.8,
-                          child: CupertinoTextField(
-                            controller: addController,
-                            placeholder: l10n.modelNamePh,
-                            autofocus: true,
+                    try {
+                      final addResult = await showCupertinoDialog<String>(
+                        context: context,
+                        builder: (context) => CupertinoAlertDialog(
+                          title: Text(l10n.addModelTitle),
+                          content: SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.8,
+                            child: CupertinoTextField(
+                              controller: addController,
+                              placeholder: l10n.modelNamePh,
+                              autofocus: true,
+                            ),
                           ),
+                          actions: [
+                            CupertinoDialogAction(
+                              child: Text(l10n.cancel),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                            CupertinoDialogAction(
+                              isDefaultAction: true,
+                              child: Text(l10n.add),
+                              onPressed: () {
+                                if (addController.text.trim().isNotEmpty) {
+                                  Navigator.pop(
+                                    context,
+                                    addController.text.trim(),
+                                  );
+                                }
+                              },
+                            ),
+                          ],
                         ),
-                        actions: [
-                          CupertinoDialogAction(
-                            child: Text(l10n.cancel),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                          CupertinoDialogAction(
-                            isDefaultAction: true,
-                            child: Text(l10n.add),
-                            onPressed: () {
-                              if (addController.text.trim().isNotEmpty) {
-                                Navigator.pop(
-                                  context,
-                                  addController.text.trim(),
-                                );
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                    );
-                    if (addResult != null && mounted) {
-                      setDialogState(() {
-                        if (!models.contains(addResult)) {
-                          models.add(addResult);
-                        }
-                      });
+                      );
+                      if (addResult != null && mounted) {
+                        setDialogState(() {
+                          if (!models.contains(addResult)) {
+                            models.add(addResult);
+                          }
+                        });
+                      }
+                    } finally {
+                      addController.dispose();
                     }
-                    addController.dispose();
                   },
                   child: Row(
                     mainAxisSize: MainAxisSize.min,

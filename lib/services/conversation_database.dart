@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:path/path.dart' as p;
 import 'package:sqlite3/sqlite3.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/conversation.dart';
@@ -1348,13 +1349,23 @@ class ConversationDatabase {
   }
 
   /// 判断附件文件是否仍被任意会话引用。
+  ///
+  /// 历史记录可能混用 `/` 和 `\`，因此逐条用 path.equals 归一化比较，
+  /// 而不是依赖 SQLite 的精确字符串匹配。
   Future<bool> isAttachmentPathReferenced(String filePath) async {
     final db = await this.db;
-    final result = db.select(
-      'SELECT 1 FROM attachments WHERE file_path = ? LIMIT 1',
-      [filePath],
+    final rows = db.select(
+      'SELECT file_path FROM attachments WHERE file_path IS NOT NULL',
     );
-    return result.isNotEmpty;
+    for (final row in rows) {
+      final candidate = row['file_path'] as String?;
+      if (candidate != null &&
+          candidate.isNotEmpty &&
+          p.equals(candidate, filePath)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /// 设置当前对话ID
