@@ -168,7 +168,7 @@ class ChatSendController {
   Future<void> _handleDone() async {
     if (!_active || _finalized) return;
 
-    if (_receivedChunks == 0) {
+    if (_receivedChunks == 0 && _toolCalls.isEmpty) {
       await _finalizeError(null, empty: true);
       return;
     }

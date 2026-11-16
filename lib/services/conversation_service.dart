@@ -22,6 +22,7 @@ import 'package:path/path.dart' as path;
 
 import '../models/attachment.dart';
 import '../utils/file_save_utils.dart';
+import '../utils/path_utils.dart';
 
 import 'dart:async';
 import 'dart:convert';
@@ -322,7 +323,35 @@ class ConversationService {
 
   /// 删除对话
   Future<void> deleteConversation(String conversationId) async {
+    // 先取出附件路径；删除数据库行后再清理不再被引用的文件。
+    final conversation = await getConversationById(conversationId);
     await _db.deleteConversation(conversationId);
+
+    if (conversation != null) {
+      final paths = <String>{
+        for (final message in conversation.messages)
+          for (final attachment in message.attachments)
+            if (attachment.filePath != null &&
+                attachment.filePath!.isNotEmpty)
+              attachment.filePath!,
+      };
+      final fileService = FileService();
+      final attachmentsDir = path.normalize(
+        await PathUtils.getAttachmentsDirPath(),
+      );
+      for (final attachmentPath in paths) {
+        try {
+          final normalizedPath = path.normalize(attachmentPath);
+          // 只清理应用附件目录内的托管文件，绝不删除用户选择的原始文件。
+          if (!path.isWithin(attachmentsDir, normalizedPath)) continue;
+          if (!await _db.isAttachmentPathReferenced(attachmentPath)) {
+            await fileService.deleteAttachment(attachmentPath);
+          }
+        } catch (error) {
+          debugPrint('Could not delete conversation attachment: $error');
+        }
+      }
+    }
 
     // 更新缓存
     _cachedConversations?.removeWhere((c) => c.id == conversationId);
@@ -368,29 +397,7 @@ class ConversationService {
     // 先检查缓存
     if (_loadedConversationIds.contains(id) && _cachedConversations != null) {
       try {
-        final cachedConversation = _cachedConversations!.firstWhere(
-          (c) => c.id == id,
-        );
-        // 如果缓存中的对话消息为空，可能是不完整的缓存，需要从数据库重新加载
-        if (cachedConversation.messages.isEmpty) {
-          // 从数据库加载完整对话
-          final conversation = await _db.getConversationById(id);
-          if (conversation != null) {
-            // 更新缓存
-            if (_cachedConversations != null) {
-              final index = _cachedConversations!.indexWhere((c) => c.id == id);
-              if (index != -1) {
-                _cachedConversations![index] = conversation;
-              } else {
-                _cachedConversations!.add(conversation);
-                _sortConversations(_cachedConversations!);
-              }
-            }
-            _loadedConversationIds.add(id);
-          }
-          return conversation;
-        }
-        return cachedConversation;
+        return _cachedConversations!.firstWhere((c) => c.id == id);
       } catch (e) {
         // 缓存中找不到，继续从数据库加载
       }
@@ -625,9 +632,12 @@ class ConversationService {
     final stamp = DateTime.now().microsecondsSinceEpoch;
     final forkId = 'fork_$stamp';
     final messages = <Message>[];
+    final messageIdMap = <String, String>{};
+    final fileService = FileService();
     for (var index = 0; index <= messageIndex; index++) {
       final sourceMessage = source.messages[index];
       final messageId = '${forkId}_m$index';
+      messageIdMap[sourceMessage.id] = messageId;
       final attachments = <Attachment>[];
       for (
         var attachmentIndex = 0;
@@ -635,11 +645,23 @@ class ConversationService {
         attachmentIndex++
       ) {
         final attachment = sourceMessage.attachments[attachmentIndex];
+        // 复制附件文件，避免源会话删除后分叉会话的附件一起失效。
+        String? copiedPath = attachment.filePath;
+        if (attachment.filePath != null && attachment.filePath!.isNotEmpty) {
+          try {
+            final sourceFile = File(attachment.filePath!);
+            if (await sourceFile.exists()) {
+              copiedPath = await fileService.saveAttachment(sourceFile);
+            }
+          } catch (error) {
+            debugPrint('Could not copy fork attachment: $error');
+          }
+        }
         attachments.add(
           Attachment(
             id: '${messageId}_a$attachmentIndex',
             fileName: attachment.fileName,
-            filePath: attachment.filePath,
+            filePath: copiedPath,
             url: attachment.url,
             type: attachment.type,
             fileSize: attachment.fileSize,
@@ -679,6 +701,48 @@ class ConversationService {
     );
 
     await _db.importConversation(fork);
+
+    // 记忆与待合并便签也随分叉走，避免长对话首次发送时重新整理。
+    try {
+      final sourceMemory = await getConversationMemory(sourceConversationId);
+      if (sourceMemory != null &&
+          (!sourceMemory.isEmpty ||
+              sourceMemory.coveredUntilMessageId != null)) {
+        final remapped = remapImportedMemory(
+          sourceMemory,
+          messageIdMap: messageIdMap,
+          importedMessages: messages,
+        );
+        await _db.saveConversationMemory(forkId, remapped);
+      }
+
+      final pendingNotes = await getMemoryNotes(
+        sourceConversationId,
+        onlyPending: true,
+      );
+      var noteIndex = 0;
+      for (final note in pendingNotes) {
+        final oldSource = note.sourceMessageId;
+        if (oldSource != null && !messageIdMap.containsKey(oldSource)) {
+          continue;
+        }
+        await _db.appendMemoryNote(
+          MemoryNote(
+            id: '${forkId}_note_${noteIndex++}',
+            conversationId: forkId,
+            kind: note.kind,
+            text: note.text,
+            quote: note.quote,
+            reason: note.reason,
+            sourceMessageId: oldSource == null ? null : messageIdMap[oldSource],
+            createdAt: note.createdAt,
+            status: MemoryNoteStatus.pending,
+          ),
+        );
+      }
+    } catch (error) {
+      debugPrint('Could not copy fork memory: $error');
+    }
 
     final cached = _cachedConversations;
     if (cached != null) {
@@ -1100,9 +1164,7 @@ class ConversationService {
       final withoutIndex = archived.replaceFirst(RegExp(r'^\d+_'), '');
       if (withoutIndex == target) return name;
     }
-    for (final name in entries.keys) {
-      if (!used.contains(name)) return name;
-    }
+    // 匹配失败时宁可让附件缺失，也不要把别的附件错配给这条消息。
     return null;
   }
 
@@ -1378,6 +1440,15 @@ class ConversationService {
       throw Exception(l10n.exportConversationNotFound);
     }
 
+    // `.lumenflow` 是独立归档格式，不能走普通 ZIP 分支。
+    if (format == 'lumenflow') {
+      return exportConversationArchive(
+        conversationId,
+        l10n,
+        includeCharacter: includePresetSnapshot,
+      );
+    }
+
     // 收集所有附件文件
     final attachmentFiles = await _collectAttachmentFiles(conversation);
 
@@ -1597,7 +1668,8 @@ class ConversationService {
             try {
               final content = utf8.decode(
                 fileBytes.take(5000).toList(),
-              ); // 限制预览长度
+                allowMalformed: true,
+              ); // 限制预览长度；截断可能落在多字节字符中间
               attachmentWidgets.add(
                 pw.Container(
                   margin: const pw.EdgeInsets.only(bottom: 12),

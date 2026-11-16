@@ -148,9 +148,16 @@ class ConversationDatabase {
       // 启用外键约束，否则 ON DELETE CASCADE 不会生效
       db.execute('PRAGMA foreign_keys = ON');
 
-      // 创建表
-      _createTables(db);
-      await _migrateSchema(db);
+      // 建表与迁移放在同一个事务里，避免中途失败留下半套结构。
+      db.execute('BEGIN IMMEDIATE TRANSACTION');
+      try {
+        _createTables(db);
+        await _migrateSchema(db);
+        db.execute('COMMIT');
+      } catch (_) {
+        db.execute('ROLLBACK');
+        rethrow;
+      }
 
       // Test-only gate: pauses before prefs migration.
       await _beforeMigration?.call();
@@ -575,63 +582,45 @@ class ConversationDatabase {
       ORDER BY timestamp ASC
     ''', [id]);
 
+    // 一次查出整个会话的附件，避免按消息逐条查询（N+1）。
+    final attachmentsByMessage = <String, List<Attachment>>{};
+    final attachmentRows = db.select('''
+      SELECT a.id, a.message_id, a.file_name, a.file_path, a.url, a.type,
+             a.file_size, a.mime_type, a.created_at
+      FROM attachments a
+      INNER JOIN messages m ON m.id = a.message_id
+      WHERE m.conversation_id = ?
+    ''', [id]);
+    for (final attRow in attachmentRows) {
+      final messageId = attRow['message_id'] as String? ?? '';
+      attachmentsByMessage
+          .putIfAbsent(messageId, () => <Attachment>[])
+          .add(_attachmentFromRow(attRow));
+    }
+
     final messages = <Message>[];
 
     for (final msgRow in messagesResult) {
       final messageId = msgRow['id'] as String;
+      final attachments = attachmentsByMessage[messageId] ?? const [];
 
-      // 获取附件
-      final attachmentsResult = db.select('''
-        SELECT id, file_name, file_path, url, type, file_size, mime_type, created_at
-        FROM attachments
-        WHERE message_id = ?
-      ''', [messageId]);
-
-      final attachments = attachmentsResult.map((attRow) {
-        return Attachment(
-          id: attRow['id'] as String,
-          fileName: attRow['file_name'] as String,
-          filePath: attRow['file_path'] as String?,
-          url: attRow['url'] as String?,
-          type: AttachmentType.values[attRow['type'] as int],
-          fileSize: attRow['file_size'] as int?,
-          mimeType: attRow['mime_type'] as String?,
-          createdAt: DateTime.fromMillisecondsSinceEpoch(attRow['created_at'] as int),
-        );
-      }).toList();
-
-      final variantsJson = msgRow['variants'] as String?;
-      final variants = variantsJson == null || variantsJson.isEmpty
-          ? <MessageVariant>[]
-          : (jsonDecode(variantsJson) as List)
-                .map(
-                  (value) => MessageVariant.fromJson(
-                    (value as Map).cast<String, dynamic>(),
-                  ),
-                )
-                .toList();
+      final variants = _decodeVariants(msgRow['variants'] as String?);
       final rawVariantIndex = msgRow['active_variant_index'] as int? ?? 0;
       final activeVariantIndex = variants.isEmpty
           ? 0
           : rawVariantIndex.clamp(0, variants.length - 1);
-      final toolCallsJson = msgRow['tool_calls'] as String?;
-      final toolCalls = toolCallsJson == null || toolCallsJson.isEmpty
-          ? <MessageToolCall>[]
-          : (jsonDecode(toolCallsJson) as List)
-                .map(
-                  (value) => MessageToolCall.fromJson(
-                    (value as Map).cast<String, dynamic>(),
-                  ),
-                )
-                .toList();
+      final toolCalls = _decodeToolCalls(msgRow['tool_calls'] as String?);
 
+      final rawTimestamp = msgRow['timestamp'];
       messages.add(Message(
         id: messageId,
-        content: msgRow['content'] as String,
+        content: msgRow['content'] as String? ?? '',
         reasoningContent: msgRow['reasoning_content'] as String?,
-        isUser: (msgRow['is_user'] as int) == 1,
-        timestamp: DateTime.fromMillisecondsSinceEpoch(msgRow['timestamp'] as int),
-        status: MessageStatus.values[msgRow['status'] as int],
+        isUser: (msgRow['is_user'] as int? ?? 0) == 1,
+        timestamp: rawTimestamp is int
+            ? DateTime.fromMillisecondsSinceEpoch(rawTimestamp)
+            : DateTime.now(),
+        status: _messageStatusFromIndex(msgRow['status']),
         attachments: attachments,
         variants: variants,
         activeVariantIndex: activeVariantIndex,
@@ -650,6 +639,78 @@ class ConversationDatabase {
       promptPresetId: row['prompt_preset_id'] as String? ?? '',
       isPinned: (row['is_pinned'] as int? ?? 0) == 1,
     );
+  }
+
+  Attachment _attachmentFromRow(Row row) {
+    final rawType = row['type'];
+    final typeIndex = rawType is int ? rawType : int.tryParse('$rawType');
+    final type =
+        typeIndex != null &&
+            typeIndex >= 0 &&
+            typeIndex < AttachmentType.values.length
+        ? AttachmentType.values[typeIndex]
+        : AttachmentType.other;
+    final rawCreatedAt = row['created_at'];
+    return Attachment(
+      id: row['id'] as String? ?? '',
+      fileName: row['file_name'] as String? ?? '',
+      filePath: row['file_path'] as String?,
+      url: row['url'] as String?,
+      type: type,
+      fileSize: row['file_size'] as int?,
+      mimeType: row['mime_type'] as String?,
+      createdAt: rawCreatedAt is int
+          ? DateTime.fromMillisecondsSinceEpoch(rawCreatedAt)
+          : DateTime.now(),
+    );
+  }
+
+  MessageStatus _messageStatusFromIndex(Object? raw) {
+    final index = raw is int ? raw : int.tryParse('$raw');
+    if (index != null && index >= 0 && index < MessageStatus.values.length) {
+      return MessageStatus.values[index];
+    }
+    return MessageStatus.sent;
+  }
+
+  List<MessageVariant> _decodeVariants(String? raw) {
+    if (raw == null || raw.isEmpty) return const [];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return const [];
+      final result = <MessageVariant>[];
+      for (final value in decoded) {
+        if (value is! Map) continue;
+        try {
+          result.add(MessageVariant.fromJson(value.cast<String, dynamic>()));
+        } catch (_) {
+          // 跳过损坏的版本记录，保留其余消息。
+        }
+      }
+      return result;
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  List<MessageToolCall> _decodeToolCalls(String? raw) {
+    if (raw == null || raw.isEmpty) return const [];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return const [];
+      final result = <MessageToolCall>[];
+      for (final value in decoded) {
+        if (value is! Map) continue;
+        try {
+          result.add(MessageToolCall.fromJson(value.cast<String, dynamic>()));
+        } catch (_) {
+          // 跳过损坏的工具调用记录，保留其余消息。
+        }
+      }
+      return result;
+    } catch (_) {
+      return const [];
+    }
   }
 
   /// 创建新对话
@@ -1286,13 +1347,25 @@ class ConversationDatabase {
     });
   }
 
+  /// 判断附件文件是否仍被任意会话引用。
+  Future<bool> isAttachmentPathReferenced(String filePath) async {
+    final db = await this.db;
+    final result = db.select(
+      'SELECT 1 FROM attachments WHERE file_path = ? LIMIT 1',
+      [filePath],
+    );
+    return result.isNotEmpty;
+  }
+
   /// 设置当前对话ID
   Future<void> setCurrentConversationId(String conversationId) async {
-    final db = await this.db;
-    db.execute('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', [
-      'current_conversation_id',
-      conversationId,
-    ]);
+    await _synchronized(() async {
+      final db = await this.db;
+      db.execute('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', [
+        'current_conversation_id',
+        conversationId,
+      ]);
+    });
   }
 
   /// 获取对话数量

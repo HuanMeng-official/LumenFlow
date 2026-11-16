@@ -138,9 +138,11 @@ class _ApiSettingsScreenState extends State<ApiSettingsScreen> {
         );
       }
     } finally {
-      setState(() {
-        _isSaving = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
     }
   }
 

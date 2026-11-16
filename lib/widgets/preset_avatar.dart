@@ -72,7 +72,7 @@ class PresetAvatar extends StatelessWidget {
         color: hasImage ? null : backgroundColor,
         border: showBorder
             ? Border.all(
-                color: CupertinoColors.systemGrey.withAlpha(3),
+                color: CupertinoColors.systemGrey.withValues(alpha: 0.15),
                 width: 1,
               )
             : null,

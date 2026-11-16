@@ -139,6 +139,7 @@ class __CodeBlockWithCopyButtonState extends State<_CodeBlockWithCopyButton> {
 
     try {
       await Clipboard.setData(ClipboardData(text: widget.codeContent));
+      if (!mounted) return;
 
       setState(() {
         _isCopied = true;
@@ -1470,7 +1471,7 @@ class _MessageBubbleState extends State<MessageBubble>
                                     a: materialTheme.textTheme.bodyMedium!
                                         .copyWith(
                                           color: widget.message.isUser
-                                              ? CupertinoColors.label
+                                              ? CupertinoColors.white
                                               : CupertinoColors.systemBlue,
                                           fontSize: 16,
                                           decoration: TextDecoration.underline,
@@ -1481,7 +1482,7 @@ class _MessageBubbleState extends State<MessageBubble>
                                         .bodyMedium!
                                         .copyWith(
                                           color: widget.message.isUser
-                                              ? CupertinoColors.label
+                                              ? CupertinoColors.white
                                               : (widget.message.status ==
                                                         MessageStatus.error
                                                     ? CupertinoColors.systemRed

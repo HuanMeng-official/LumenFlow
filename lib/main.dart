@@ -109,6 +109,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   Future<void> _loadLocale() async {
     final localeCode = await _settingsService.getLocale();
+    if (!mounted) return;
     setState(() {
       _locale = Locale(localeCode);
     });

@@ -672,7 +672,7 @@ class _ChatInputState extends State<ChatInput> {
 
     return CupertinoButton(
       padding: EdgeInsets.zero,
-      onPressed: widget.enabled
+      onPressed: widget.enabled && widget.onThinkingModeChanged != null
           ? () => widget.onThinkingModeChanged!(!widget.thinkingMode)
           : null,
       child: Container(

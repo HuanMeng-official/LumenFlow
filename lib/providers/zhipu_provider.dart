@@ -141,18 +141,15 @@ class ZhiPuProvider extends HttpProviderBase {
 
       if (streamedResponse.statusCode != 200) {
         final errorBody =
-            await streamedResponse.stream.transform(utf8.decoder).join();
+            await decodeStreamWithTimeout(streamedResponse.stream, l10n).join();
         throw parseError(errorBody, streamedResponse.statusCode, l10n);
       }
 
       // 缓冲区用于累积SSE事件，处理跨chunk的事件分割
       final sseBuffer = StringBuffer();
 
-      final stopwatch = Stopwatch()..start();
-
       // 处理SSE流，正确处理跨chunk的事件边界
-      await for (final chunk in streamedResponse.stream.transform(utf8.decoder)) {
-        stopwatch.reset();
+      await for (final chunk in decodeStreamWithTimeout(streamedResponse.stream, l10n)) {
 
         if (chunk.isEmpty) continue;
 
@@ -213,10 +210,6 @@ class ZhiPuProvider extends HttpProviderBase {
           } catch (e) {
             // 忽略解析错误
           }
-        }
-
-        if (stopwatch.elapsed > streamingTimeout) {
-          throw TimeoutException(l10n.providerStreamingTimeout(streamingTimeout.inSeconds));
         }
       }
     } finally {

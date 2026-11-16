@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 /// 路径工具类，提供跨平台的应用数据目录访问
@@ -141,11 +142,12 @@ class PathUtils {
 
     final files = await source.list().toList();
     for (final file in files) {
+      final name = p.basename(file.path);
       if (file is File) {
-        final destFile = File('${destination.path}/${file.path.split('/').last}');
+        final destFile = File(p.join(destination.path, name));
         await file.copy(destFile.path);
       } else if (file is Directory) {
-        final destSubDir = Directory('${destination.path}/${file.path.split('/').last}');
+        final destSubDir = Directory(p.join(destination.path, name));
         await _copyDirectory(file, destSubDir);
       }
     }

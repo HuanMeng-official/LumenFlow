@@ -89,6 +89,7 @@ class _ToolCallBuilder {
   String? id;
   String? itemId;
   String name = '';
+  int? outputIndex;
   final StringBuffer arguments = StringBuffer();
 
   void setArguments(String value) {
@@ -121,6 +122,7 @@ class ResponsesToolProvider implements AIStreamingProvider {
 
     final client = _clientFactory();
     final builders = <Object, _ToolCallBuilder>{};
+    final indexToKey = <int, Object>{};
     final decoder = SseDecoder();
     final answer = StringBuffer();
     final reasoning = StringBuffer();
@@ -176,6 +178,7 @@ class ResponsesToolProvider implements AIStreamingProvider {
               data,
               event.event,
               builders,
+              indexToKey,
               answer,
               reasoning,
             );
@@ -203,6 +206,7 @@ class ResponsesToolProvider implements AIStreamingProvider {
             data,
             event.event,
             builders,
+            indexToKey,
             answer,
             reasoning,
           );
@@ -266,6 +270,7 @@ class ResponsesToolProvider implements AIStreamingProvider {
     String data,
     String? eventName,
     Map<Object, _ToolCallBuilder> builders,
+    Map<int, Object> indexToKey,
     StringBuffer answer,
     StringBuffer reasoning,
   ) {
@@ -313,22 +318,25 @@ class ResponsesToolProvider implements AIStreamingProvider {
       case 'response.output_item.done':
         final item = map['item'];
         if (item is Map) {
-          _handleOutputItem(map, item.cast<String, dynamic>(), builders);
+          _handleOutputItem(
+            map,
+            item.cast<String, dynamic>(),
+            builders,
+            indexToKey,
+          );
         }
         return (events: const [], terminal: false);
       case 'response.function_call_arguments.delta':
-        final key = map['output_index'] ?? map['item_id'];
-        if (key == null) return (events: const [], terminal: false);
-        final builder = builders.putIfAbsent(key, _ToolCallBuilder.new);
+        final builder = _resolveStreamingBuilder(map, builders, indexToKey);
+        if (builder == null) return (events: const [], terminal: false);
         final delta = map['delta'];
         if (delta is String) {
           builder.arguments.write(delta);
         }
         return (events: const [], terminal: false);
       case 'response.function_call_arguments.done':
-        final key = map['output_index'] ?? map['item_id'];
-        if (key == null) return (events: const [], terminal: false);
-        final builder = builders.putIfAbsent(key, _ToolCallBuilder.new);
+        final builder = _resolveStreamingBuilder(map, builders, indexToKey);
+        if (builder == null) return (events: const [], terminal: false);
         final arguments = map['arguments'];
         if (arguments is String) {
           builder.setArguments(arguments);
@@ -340,6 +348,7 @@ class ResponsesToolProvider implements AIStreamingProvider {
         final events = _collectCompletedResponse(
           map['response'] ?? map,
           builders,
+          indexToKey,
           answer,
           reasoning,
         );
@@ -355,25 +364,92 @@ class ResponsesToolProvider implements AIStreamingProvider {
     }
   }
 
+  _ToolCallBuilder? _resolveStreamingBuilder(
+    Map<String, dynamic> event,
+    Map<Object, _ToolCallBuilder> builders,
+    Map<int, Object> indexToKey,
+  ) {
+    final rawIndex = event['output_index'];
+    final outputIndex = rawIndex is num ? rawIndex.toInt() : null;
+    final rawItemId = event['item_id'];
+    final itemId = rawItemId is String && rawItemId.isNotEmpty
+        ? rawItemId
+        : null;
+
+    final Object? key = itemId ??
+        (outputIndex != null ? (indexToKey[outputIndex] ?? outputIndex) : null);
+    if (key == null) return null;
+
+    if (outputIndex != null) {
+      final existingKey = indexToKey[outputIndex];
+      // Only an int placeholder (created before the item id was known) may be
+      // migrated. A different string key means this index belongs to another
+      // item in this event stream.
+      if (existingKey is int &&
+          existingKey != key &&
+          builders.containsKey(existingKey)) {
+        builders[key] = builders.remove(existingKey)!;
+      }
+      if (existingKey == null || existingKey is int || existingKey == key) {
+        indexToKey[outputIndex] = key;
+      }
+    }
+
+    final builder = builders.putIfAbsent(key, _ToolCallBuilder.new);
+    if (outputIndex != null) {
+      builder.outputIndex ??= outputIndex;
+    }
+    return builder;
+  }
+
   void _handleOutputItem(
     Map<String, dynamic> event,
     Map<String, dynamic> item,
     Map<Object, _ToolCallBuilder> builders,
+    Map<int, Object> indexToKey,
   ) {
     if (item['type'] != 'function_call') return;
 
-    final key =
-        event['output_index'] ?? item['id'] ?? item['call_id'] ?? builders.length;
-    final builder = builders.putIfAbsent(key, _ToolCallBuilder.new);
+    final rawIndex = event['output_index'];
+    final outputIndex = rawIndex is num ? rawIndex.toInt() : null;
+    final rawItemId = item['id'];
+    final itemId = rawItemId is String && rawItemId.isNotEmpty
+        ? rawItemId
+        : null;
+    final rawCallId = item['call_id'];
+    final callId = rawCallId is String && rawCallId.isNotEmpty
+        ? rawCallId
+        : null;
 
-    final id = item['call_id'] ?? item['id'];
-    if (id is String && id.isNotEmpty) {
-      builder.id = id;
+    final Object key;
+    if (itemId != null) {
+      key = itemId;
+    } else if (callId != null) {
+      key = callId;
+    } else if (outputIndex != null) {
+      key = indexToKey[outputIndex] ?? outputIndex;
+    } else {
+      key = builders.length;
     }
-    final itemId = item['id'];
-    if (itemId is String && itemId.isNotEmpty) {
-      builder.itemId = itemId;
+
+    if (outputIndex != null) {
+      final existingKey = indexToKey[outputIndex];
+      if (existingKey is int &&
+          existingKey != key &&
+          builders.containsKey(existingKey)) {
+        builders[key] = builders.remove(existingKey)!;
+      }
+      if (existingKey == null || existingKey is int || existingKey == key) {
+        indexToKey[outputIndex] = key;
+      }
     }
+
+    final builder = builders.putIfAbsent(key, _ToolCallBuilder.new);
+    if (outputIndex != null) {
+      builder.outputIndex ??= outputIndex;
+    }
+    if (callId != null) builder.id = callId;
+    if (itemId != null) builder.itemId = itemId;
     final name = item['name'];
     if (name is String && name.isNotEmpty) {
       builder.name = name;
@@ -387,6 +463,7 @@ class ResponsesToolProvider implements AIStreamingProvider {
   List<AIStreamEvent> _collectCompletedResponse(
     dynamic rawResponse,
     Map<Object, _ToolCallBuilder> builders,
+    Map<int, Object> indexToKey,
     StringBuffer answer,
     StringBuffer reasoning,
   ) {
@@ -415,6 +492,7 @@ class ResponsesToolProvider implements AIStreamingProvider {
             {'output_index': index},
             item,
             builders,
+            indexToKey,
           );
         case 'message':
           _collectMessageParts(item, completedAnswer, completedReasoning);
@@ -573,6 +651,7 @@ class ResponsesToolProvider implements AIStreamingProvider {
     }
 
     final builders = <Object, _ToolCallBuilder>{};
+    final indexToKey = <int, Object>{};
     final answer = StringBuffer();
     final reasoning = StringBuffer();
 
@@ -583,7 +662,12 @@ class ResponsesToolProvider implements AIStreamingProvider {
 
       switch (item['type']) {
         case 'function_call':
-          _handleOutputItem({'output_index': index}, item, builders);
+          _handleOutputItem(
+            {'output_index': index},
+            item,
+            builders,
+            indexToKey,
+          );
         case 'message':
           _collectMessageParts(item, answer, reasoning);
         case 'reasoning':
@@ -613,7 +697,17 @@ class ResponsesToolProvider implements AIStreamingProvider {
     final calls = <AIToolCall>[];
     var index = 0;
 
-    for (final builder in builders.values) {
+    final ordered = builders.values.toList()
+      ..sort((a, b) {
+        final ai = a.outputIndex ?? 1 << 30;
+        final bi = b.outputIndex ?? 1 << 30;
+        if (ai != bi) return ai.compareTo(bi);
+        final aid = a.id ?? a.itemId ?? a.name;
+        final bid = b.id ?? b.itemId ?? b.name;
+        return aid.compareTo(bid);
+      });
+
+    for (final builder in ordered) {
       if (builder.name.isEmpty) continue;
 
       final argumentsJson = builder.arguments.toString();

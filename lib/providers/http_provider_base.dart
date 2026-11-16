@@ -41,6 +41,28 @@ abstract class HttpProviderBase extends AIProvider {
     return http.Client();
   }
 
+  /// 解码 SSE 字节流，并在服务端长时间不发送分块时触发超时。
+  ///
+  /// 仅在 `await for` 循环里检查 Stopwatch 无法发现“流挂起”：循环会一直
+  /// 停在 await 上。Stream.timeout 会在两个事件之间计时，才是正确的做法。
+  @protected
+  Stream<String> decodeStreamWithTimeout(
+    Stream<List<int>> stream,
+    AppLocalizations l10n,
+  ) {
+    return stream.transform(utf8.decoder).timeout(
+      streamingTimeout,
+      onTimeout: (sink) {
+        sink.addError(
+          TimeoutException(
+            l10n.providerStreamingTimeout(streamingTimeout.inSeconds),
+          ),
+        );
+        sink.close();
+      },
+    );
+  }
+
   /// 解析错误响应
   ///
   /// 对空响应体与无法解析为 JSON 的响应体（网关 502 页面、限流页面等）

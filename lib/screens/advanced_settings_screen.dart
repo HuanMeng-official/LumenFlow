@@ -48,6 +48,7 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
 
   void _handleNotificationChanged(bool value) async {
     await _settingsService.setNotificationEnabled(value);
+    if (!mounted) return;
     setState(() {
       _notificationEnabled = value;
     });
@@ -55,6 +56,7 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
 
   void _handleLiveUpdateChanged(bool value) async {
     await _settingsService.setLiveUpdateEnabled(value);
+    if (!mounted) return;
     setState(() {
       _liveUpdateEnabled = value;
     });

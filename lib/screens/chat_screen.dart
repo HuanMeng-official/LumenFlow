@@ -194,6 +194,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _scrollController.removeListener(_scrollListener!);
       _scrollListener = null;
     }
+    _scrollController.dispose();
     // 移除生命周期观察者
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -652,6 +653,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             _currentConversation!.id,
             newTitle,
           );
+          if (!mounted) return;
           setState(() {
             _currentTitle = newTitle;
             _currentConversation = _currentConversation!.copyWith(
@@ -1211,37 +1213,41 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final l10n = AppLocalizations.of(context)!;
     final textController = TextEditingController(text: message.content);
 
-    // 显示编辑对话框
-    final editedContent = await showCupertinoDialog<String>(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: Text(l10n.editMessageDialogTitle),
-        content: CupertinoTextField(
-          controller: textController,
-          placeholder: l10n.editMessageHint,
-          maxLines: 5,
-          minLines: 1,
-          autofocus: true,
+    try {
+      // 显示编辑对话框
+      final editedContent = await showCupertinoDialog<String>(
+        context: context,
+        builder: (context) => CupertinoAlertDialog(
+          title: Text(l10n.editMessageDialogTitle),
+          content: CupertinoTextField(
+            controller: textController,
+            placeholder: l10n.editMessageHint,
+            maxLines: 5,
+            minLines: 1,
+            autofocus: true,
+          ),
+          actions: [
+            CupertinoDialogAction(
+              child: Text(l10n.cancel),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            CupertinoDialogAction(
+              child: Text(l10n.confirmEdit),
+              onPressed: () {
+                Navigator.of(context).pop(textController.text.trim());
+              },
+            ),
+          ],
         ),
-        actions: [
-          CupertinoDialogAction(
-            child: Text(l10n.cancel),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          CupertinoDialogAction(
-            child: Text(l10n.confirmEdit),
-            onPressed: () {
-              Navigator.of(context).pop(textController.text.trim());
-            },
-          ),
-        ],
-      ),
-    );
+      );
 
-    if (editedContent != null &&
-        editedContent.trim().isNotEmpty &&
-        editedContent != message.content) {
-      await _resubmitMessage(message, editedContent);
+      if (editedContent != null &&
+          editedContent.trim().isNotEmpty &&
+          editedContent != message.content) {
+        await _resubmitMessage(message, editedContent);
+      }
+    } finally {
+      textController.dispose();
     }
   }
 

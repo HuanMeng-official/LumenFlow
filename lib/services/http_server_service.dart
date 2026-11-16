@@ -215,8 +215,8 @@ class HttpServerService {
     }
   }
 
-  void dispose() {
-    stop();
+  Future<void> dispose() async {
+    await stop();
     isRunningNotifier.dispose();
     serverUrlNotifier.dispose();
   }

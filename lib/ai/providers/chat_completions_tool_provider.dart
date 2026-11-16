@@ -16,6 +16,12 @@ abstract class AIStreamingProvider {
   Stream<AIStreamEvent> stream(AIRequest request);
 }
 
+/// Optional capability for providers that keep per-run tool-loop state
+/// (Claude thinking blocks, Gemini interaction ids).
+abstract class ResettableStreamingProvider implements AIStreamingProvider {
+  void resetState();
+}
+
 class _ToolCallBuilder {
   String? id;
   String name = '';

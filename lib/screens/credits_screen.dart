@@ -76,7 +76,7 @@ class _CreditsScreenState extends State<CreditsScreen> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: CupertinoColors.systemGrey.withAlpha(3),
+                color: CupertinoColors.systemGrey.withValues(alpha: 0.15),
                 width: 1,
               ),
             ),
@@ -90,7 +90,7 @@ class _CreditsScreenState extends State<CreditsScreen> {
                   return Container(
                     width: 34,
                     height: 34,
-                    color: CupertinoColors.systemGrey.withAlpha(2),
+                    color: CupertinoColors.systemGrey.withValues(alpha: 0.10),
                     child: Icon(
                       CupertinoIcons.person_fill,
                       size: 20,

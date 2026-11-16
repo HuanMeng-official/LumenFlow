@@ -235,7 +235,8 @@ class MemoryService {
     var state = memory;
     var cursor = covered;
     var chunkNumber = 0;
-    var notesMerged = false;
+    // 便签只需并入第一个成功处理的块；后续块的 state 已经包含它们。
+    var notesToMerge = pendingNotes;
 
     while (cursor < target) {
       chunkNumber++;
@@ -258,7 +259,7 @@ class MemoryService {
               userPrompt: buildMemoryUpdateUserPrompt(
                 memory: state,
                 chunk: chunk,
-                pendingNotes: pendingNotes,
+                pendingNotes: notesToMerge,
                 roleplayMode: roleplayMode,
                 characterName: characterName,
                 characterDescription: characterDescription,
@@ -294,15 +295,14 @@ class MemoryService {
         fingerprint: computeMemoryFingerprint(eligible.sublist(0, end)),
       );
       await store.save(conversationId, state);
-      notesMerged = true;
+      if (notesToMerge.isNotEmpty) {
+        await noteStore?.markNotesProcessed(
+          conversationId,
+          notesToMerge.map((note) => note.id).toList(growable: false),
+        );
+        notesToMerge = const [];
+      }
       cursor = end;
-    }
-
-    if (notesMerged && pendingNotes.isNotEmpty) {
-      await noteStore?.markNotesProcessed(
-        conversationId,
-        pendingNotes.map((note) => note.id).toList(growable: false),
-      );
     }
 
     return state;

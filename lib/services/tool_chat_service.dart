@@ -52,7 +52,9 @@ class ToolChatService {
           .toList();
 
       final maxMessages = historyContextLength * 2;
-      final recent = filtered.length > maxMessages
+      final recent = maxMessages <= 0
+          ? const <Message>[]
+          : filtered.length > maxMessages
           ? filtered.sublist(filtered.length - maxMessages)
           : filtered;
 

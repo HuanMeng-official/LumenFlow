@@ -41,12 +41,15 @@ class McpClient implements McpConnection {
   String? _sessionId;
   String? _protocolVersion;
   bool _initialized = false;
+  Future<void>? _initializationFuture;
 
   @override
   Future<List<McpTool>> initializeAndListTools() async {
     await _ensureInitialized();
 
-    final result = await _request('tools/list', const {});
+    final result = await _withSessionRetry(
+      () => _request('tools/list', const {}),
+    );
     final rawTools = result['tools'];
     if (rawTools is! List) return const [];
 
@@ -79,10 +82,12 @@ class McpClient implements McpConnection {
   ) async {
     await _ensureInitialized();
 
-    final result = await _request('tools/call', {
-      'name': name,
-      'arguments': arguments,
-    });
+    final result = await _withSessionRetry(
+      () => _request('tools/call', {
+        'name': name,
+        'arguments': arguments,
+      }),
+    );
 
     final content = result['content'];
     final buffer = StringBuffer();
@@ -113,9 +118,22 @@ class McpClient implements McpConnection {
     );
   }
 
-  Future<void> _ensureInitialized() async {
-    if (_initialized) return;
+  Future<void> _ensureInitialized() {
+    if (_initialized) return Future.value();
 
+    final pending = _initializationFuture;
+    if (pending != null) return pending;
+
+    final future = _initialize();
+    _initializationFuture = future;
+    return future.whenComplete(() {
+      if (identical(_initializationFuture, future)) {
+        _initializationFuture = null;
+      }
+    });
+  }
+
+  Future<void> _initialize() async {
     final result = await _request(
       'initialize',
       {
@@ -141,6 +159,20 @@ class McpClient implements McpConnection {
 
     await _notify('notifications/initialized');
     _initialized = true;
+  }
+
+  /// Retries once after the server reports that the session has expired.
+  Future<T> _withSessionRetry<T>(Future<T> Function() action) async {
+    try {
+      return await action();
+    } on McpException catch (error) {
+      if (error.code != 404) rethrow;
+      _initialized = false;
+      _sessionId = null;
+      _protocolVersion = null;
+      await _ensureInitialized();
+      return action();
+    }
   }
 
   Future<void> _notify(
@@ -322,6 +354,7 @@ class McpClient implements McpConnection {
   Future<void> close() async {
     _client.close();
     _initialized = false;
+    _initializationFuture = null;
     _sessionId = null;
     _protocolVersion = null;
   }

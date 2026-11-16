@@ -267,6 +267,11 @@ class WorldInfoService {
                     null) {
               continue;
             }
+            // 递归激活同样受冷却约束，避免绕过直接命中阶段的冷却检查。
+            if (_isCoolingDown(entry, _scanEntryTiming(entry, messages))) {
+              reasons[entry.id] = WorldInfoSkipReason.cooldown;
+              continue;
+            }
             if (!_passesProbability(entry, scanText)) {
               reasons[entry.id] = WorldInfoSkipReason.probability;
               continue;
@@ -560,8 +565,13 @@ class WorldInfoService {
         );
         return regex.hasMatch(scanText);
       case WorldInfoMatchMode.regex:
-        final regex = RegExp(key, caseSensitive: entry.caseSensitive);
-        return regex.hasMatch(scanText);
+        try {
+          final regex = RegExp(key, caseSensitive: entry.caseSensitive);
+          return regex.hasMatch(scanText);
+        } on FormatException {
+          // 解析阶段已校验；这里兜底手动构造的 WorldInfoEntry。
+          return false;
+        }
     }
   }
 

@@ -229,30 +229,38 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
       ),
     );
 
-    if (result == true && mounted) {
-      final typeDefaults = AIPlatform.createDefaultPlatform(selectedType);
-      final keepExistingModels =
-          platform != null && platform.type == selectedType;
-      final newPlatform = AIPlatform(
-        id: platform?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-        name: nameController.text.trim(),
-        type: selectedType,
-        endpoint: endpointController.text.trim(),
-        apiKey: apiKeyController.text.trim(),
-        availableModels:
-            keepExistingModels && platform.availableModels.isNotEmpty
-            ? platform.availableModels
-            : typeDefaults.availableModels,
-        defaultModel: keepExistingModels && platform.defaultModel.isNotEmpty
-            ? platform.defaultModel
-            : typeDefaults.defaultModel,
-        enabled: true,
-        lastModelUpdate: keepExistingModels ? platform.lastModelUpdate : null,
-        icon: selectedType,
-      );
+    try {
+      if (result == true && mounted) {
+        final typeDefaults = AIPlatform.createDefaultPlatform(selectedType);
+        final keepExistingModels =
+            platform != null && platform.type == selectedType;
+        final newPlatform = AIPlatform(
+          id: platform?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+          name: nameController.text.trim(),
+          type: selectedType,
+          endpoint: endpointController.text.trim(),
+          apiKey: apiKeyController.text.trim(),
+          availableModels:
+              keepExistingModels && platform.availableModels.isNotEmpty
+              ? platform.availableModels
+              : typeDefaults.availableModels,
+          defaultModel: keepExistingModels && platform.defaultModel.isNotEmpty
+              ? platform.defaultModel
+              : typeDefaults.defaultModel,
+          enabled: true,
+          lastModelUpdate: keepExistingModels
+              ? platform.lastModelUpdate
+              : null,
+          icon: selectedType,
+        );
 
-      await _settingsService.savePlatform(newPlatform);
-      await _loadData();
+        await _settingsService.savePlatform(newPlatform);
+        await _loadData();
+      }
+    } finally {
+      nameController.dispose();
+      endpointController.dispose();
+      apiKeyController.dispose();
     }
   }
 
@@ -396,6 +404,7 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
                         }
                       });
                     }
+                    addController.dispose();
                   },
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -821,7 +830,7 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
       if (platform.endpoint.endsWith('/v1')) {
         modelsUrl = '${platform.endpoint}/models';
       } else if (platform.endpoint.contains('/v1/')) {
-        modelsUrl = '$platform.endpoint/models';
+        modelsUrl = '${platform.endpoint}/models';
       } else {
         modelsUrl = '${platform.endpoint}/v1/models';
       }
@@ -910,6 +919,7 @@ class _PlatformSettingsScreenState extends State<PlatformSettingsScreen> {
 
     // 刷新页面显示并确保状态已更新
     final newCurrentId = await _settingsService.getCurrentPlatformId();
+    if (!mounted) return;
     setState(() {
       _currentPlatformId = newCurrentId;
       _isLoading = false;

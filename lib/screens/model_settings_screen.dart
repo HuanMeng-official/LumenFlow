@@ -133,9 +133,11 @@ class _ModelSettingsScreenState extends State<ModelSettingsScreen> {
         );
       }
     } finally {
-      setState(() {
-        _isSaving = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
     }
   }
 

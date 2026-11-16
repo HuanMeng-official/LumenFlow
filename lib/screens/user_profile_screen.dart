@@ -101,6 +101,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
     final updatedProfile = _userProfile!.copyWith(username: newUsername);
     await _userService.saveUserProfile(updatedProfile);
+    if (!mounted) return;
     setState(() {
       _userProfile = updatedProfile;
     });

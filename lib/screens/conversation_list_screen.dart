@@ -106,6 +106,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
     final conversation = await _conversationService.createNewConversation(
       title: l10n.newConversation,
     );
+    if (!mounted) return;
     setState(() {
       _conversations.insert(0, conversation);
       _currentConversationId = conversation.id;
@@ -277,43 +278,47 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
       text: conversation.title,
     );
 
-    showCupertinoDialog(
-      context: context,
-      builder: (dialogContext) => CupertinoAlertDialog(
-        title: Text(l10n.editConversationTitle),
-        content: Padding(
-          padding: const EdgeInsets.only(top: 16),
-          child: SizedBox(
-            width: MediaQuery.of(dialogContext).size.width * 0.8,
-            child: CupertinoTextField(
-              controller: controller,
-              placeholder: l10n.enterConversationTitle,
+    try {
+      await showCupertinoDialog(
+        context: context,
+        builder: (dialogContext) => CupertinoAlertDialog(
+          title: Text(l10n.editConversationTitle),
+          content: Padding(
+            padding: const EdgeInsets.only(top: 16),
+            child: SizedBox(
+              width: MediaQuery.of(dialogContext).size.width * 0.8,
+              child: CupertinoTextField(
+                controller: controller,
+                placeholder: l10n.enterConversationTitle,
+              ),
             ),
           ),
+          actions: [
+            CupertinoDialogAction(
+              child: Text(l10n.cancel),
+              onPressed: () => Navigator.pop(dialogContext),
+            ),
+            CupertinoDialogAction(
+              child: Text(l10n.save),
+              onPressed: () async {
+                if (controller.text.trim().isNotEmpty) {
+                  await _conversationService.updateConversationTitle(
+                    conversation.id,
+                    controller.text.trim(),
+                  );
+                  await _loadConversations();
+                }
+                if (dialogContext.mounted) {
+                  Navigator.pop(dialogContext);
+                }
+              },
+            ),
+          ],
         ),
-        actions: [
-          CupertinoDialogAction(
-            child: Text(l10n.cancel),
-            onPressed: () => Navigator.pop(dialogContext),
-          ),
-          CupertinoDialogAction(
-            child: Text(l10n.save),
-            onPressed: () async {
-              if (controller.text.trim().isNotEmpty) {
-                await _conversationService.updateConversationTitle(
-                  conversation.id,
-                  controller.text.trim(),
-                );
-                await _loadConversations();
-              }
-              if (dialogContext.mounted) {
-                Navigator.pop(dialogContext);
-              }
-            },
-          ),
-        ],
-      ),
-    );
+      );
+    } finally {
+      controller.dispose();
+    }
   }
 
   @override

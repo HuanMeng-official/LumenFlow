@@ -11,7 +11,8 @@ import '../contracts/ai_stream_event.dart';
 import '../contracts/ai_tool.dart';
 import '../contracts/cancellation_token.dart';
 import '../transport/sse_decoder.dart';
-import 'chat_completions_tool_provider.dart' show AIStreamingProvider;
+import 'chat_completions_tool_provider.dart'
+    show AIStreamingProvider, ResettableStreamingProvider;
 
 class _ToolCallBuilder {
   String? id;
@@ -23,7 +24,8 @@ class _ToolCallBuilder {
 ///
 /// Tool loops use server-side interaction state: after a function call we send
 /// only the matching `function_result` steps plus `previous_interaction_id`.
-class GeminiToolProvider implements AIStreamingProvider {
+class GeminiToolProvider
+    implements AIStreamingProvider, ResettableStreamingProvider {
   GeminiToolProvider({
     http.Client Function()? clientFactory,
     this.connectionTimeout = const Duration(seconds: 30),
@@ -42,6 +44,12 @@ class GeminiToolProvider implements AIStreamingProvider {
   final Set<String> _sentToolResultIds = {};
 
   @override
+  void resetState() {
+    _previousInteractionId = null;
+    _sentToolResultIds.clear();
+  }
+
+  @override
   Stream<AIStreamEvent> stream(AIRequest request) async* {
     request.cancellationToken?.throwIfCancelled();
 
@@ -55,7 +63,6 @@ class GeminiToolProvider implements AIStreamingProvider {
 
     try {
       final response = await _sendWithRetry(client, request);
-      _markToolResultsSent(request.messages);
       final contentType =
           (response.headers['content-type'] ??
                   response.headers['Content-Type'] ??
@@ -67,6 +74,7 @@ class GeminiToolProvider implements AIStreamingProvider {
           streamingTimeout,
         );
         yield* _parseNonStreamingBody(body);
+        _markToolResultsSent(request.messages);
         return;
       }
 
@@ -95,6 +103,7 @@ class GeminiToolProvider implements AIStreamingProvider {
             if (data.isEmpty) continue;
             if (data == '[DONE]') {
               yield* _emitToolCalls(builders);
+              _markToolResultsSent(request.messages);
               return;
             }
 
@@ -112,6 +121,7 @@ class GeminiToolProvider implements AIStreamingProvider {
             }
             if (parsed.terminal) {
               yield* _emitToolCalls(builders);
+              _markToolResultsSent(request.messages);
               return;
             }
           }
@@ -134,6 +144,7 @@ class GeminiToolProvider implements AIStreamingProvider {
           }
           if (parsed.terminal) {
             yield* _emitToolCalls(builders);
+            _markToolResultsSent(request.messages);
             return;
           }
         }
@@ -146,6 +157,7 @@ class GeminiToolProvider implements AIStreamingProvider {
         }
 
         yield* _emitToolCalls(builders);
+        _markToolResultsSent(request.messages);
       } finally {
         await iterator.cancel();
       }
@@ -604,8 +616,17 @@ class GeminiToolProvider implements AIStreamingProvider {
     }
 
     // Subsequent turns only need the new tool results; the interaction state
-    // carries the prior user/model/thought/function_call steps.
-    for (final message in request.messages) {
+    // carries the prior user/model/thought/function_call steps. A user message
+    // appended after the last tool result is new in this turn and must be sent
+    // as well, otherwise it is silently dropped.
+    var lastToolIndex = -1;
+    for (var index = 0; index < request.messages.length; index++) {
+      if (request.messages[index].role == AIMessageRole.tool) {
+        lastToolIndex = index;
+      }
+    }
+    for (var index = 0; index < request.messages.length; index++) {
+      final message = request.messages[index];
       if (message.role == AIMessageRole.system) {
         if (system.isNotEmpty) system.write('\n\n');
         system.write(message.content);
@@ -615,6 +636,14 @@ class GeminiToolProvider implements AIStreamingProvider {
           continue;
         }
         input.add(_functionResultStep(message));
+      } else if (message.role == AIMessageRole.user &&
+          index > lastToolIndex) {
+        input.add({
+          'type': 'user_input',
+          'content': [
+            {'type': 'text', 'text': message.content},
+          ],
+        });
       }
     }
 

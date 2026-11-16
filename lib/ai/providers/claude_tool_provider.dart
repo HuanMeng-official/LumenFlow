@@ -12,16 +12,23 @@ import '../contracts/ai_stream_event.dart';
 import '../contracts/ai_tool.dart';
 import '../contracts/cancellation_token.dart';
 import '../transport/sse_decoder.dart';
-import 'chat_completions_tool_provider.dart' show AIStreamingProvider;
+import 'chat_completions_tool_provider.dart'
+    show AIStreamingProvider, ResettableStreamingProvider;
 
 class _ToolCallBuilder {
   String? id;
   String name = '';
   final StringBuffer arguments = StringBuffer();
+
+  /// True once an `input_json_delta` has been applied. A non-empty `input` on
+  /// `content_block_start` is a complete JSON object; if deltas follow, they
+  /// replace it instead of being appended to it.
+  bool streamingArguments = false;
 }
 
 /// Streams an Anthropic Messages request with client tools.
-class ClaudeToolProvider implements AIStreamingProvider {
+class ClaudeToolProvider
+    implements AIStreamingProvider, ResettableStreamingProvider {
   ClaudeToolProvider({
     http.Client Function()? clientFactory,
     this.connectionTimeout = const Duration(seconds: 30),
@@ -41,6 +48,11 @@ class ClaudeToolProvider implements AIStreamingProvider {
   /// Raw assistant content blocks from the previous response. Thinking blocks
   /// carry signatures and must be sent back unchanged during tool use.
   List<Map<String, dynamic>>? _pendingAssistantBlocks;
+
+  @override
+  void resetState() {
+    _pendingAssistantBlocks = null;
+  }
 
   @override
   Stream<AIStreamEvent> stream(AIRequest request) async* {
@@ -283,10 +295,17 @@ class ClaudeToolProvider implements AIStreamingProvider {
           case 'input_json_delta':
             final partial = deltaMap['partial_json'];
             if (partial is String) {
-              builders
-                  .putIfAbsent(index, _ToolCallBuilder.new)
-                  .arguments
-                  .write(partial);
+              final builder = builders.putIfAbsent(
+                index,
+                _ToolCallBuilder.new,
+              );
+              if (!builder.streamingArguments) {
+                // Drop a complete `input` object from content_block_start;
+                // appending deltas to it would produce invalid JSON.
+                builder.arguments.clear();
+                builder.streamingArguments = true;
+              }
+              builder.arguments.write(partial);
             }
         }
 
@@ -499,6 +518,8 @@ class ClaudeToolProvider implements AIStreamingProvider {
     final body = <String, dynamic>{
       'model': request.model,
       'max_tokens': request.maxTokens,
+      if (!request.thinkingMode && !_usesAdaptiveThinking(request.model))
+        'temperature': request.temperature,
       'messages': messages.messages,
       'stream': true,
       if (messages.system.isNotEmpty)
@@ -625,12 +646,22 @@ class ClaudeToolProvider implements AIStreamingProvider {
         .toList();
   }
 
+  bool _usesAdaptiveThinking(String model) {
+    final match = RegExp(r'claude-[a-z]+-(\d+)-(\d+)').firstMatch(model);
+    if (match != null) {
+      final major = int.tryParse(match.group(1) ?? '') ?? 0;
+      final minor = int.tryParse(match.group(2) ?? '') ?? 0;
+      return major > 4 || (major == 4 && minor >= 7);
+    }
+    return false;
+  }
+
   Map<String, dynamic> _toolChoice(AIToolChoice choice) {
     switch (choice) {
       case AIToolChoice.auto:
         return const {'type': 'auto'};
       case AIToolChoice.none:
-        return const {'type': 'auto'};
+        return const {'type': 'none'};
       case AIToolChoice.required:
         return const {'type': 'any'};
     }
