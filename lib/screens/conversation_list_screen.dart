@@ -158,7 +158,10 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
     });
     // 只传递对话 ID，由 ChatScreen 负责加载完整对话
     widget.onConversationSelected(conversation.id);
-    if (!widget.embedded && !widget.isRootTab && mounted) {
+    if (!widget.embedded &&
+        !widget.isRootTab &&
+        mounted &&
+        Navigator.of(context).canPop()) {
       Navigator.pop(context);
     }
   }
@@ -270,7 +273,10 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
       });
       // 只传递对话 ID，由 ChatScreen 负责加载完整对话
       widget.onConversationSelected(conversation.id);
-      if (!widget.embedded && mounted) {
+      if (!widget.embedded &&
+          !widget.isRootTab &&
+          mounted &&
+          Navigator.of(context).canPop()) {
         Navigator.pop(context);
       }
     } finally {

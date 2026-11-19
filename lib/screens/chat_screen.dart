@@ -1548,7 +1548,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       context,
       CupertinoPageRoute(builder: (context) => const SettingsScreen()),
     );
-    _checkConfiguration();
+    await _checkConfiguration();
+    await _loadCurrentModel();
+    await _loadBackgroundSettings();
   }
 
   /// 打开对话列表界面

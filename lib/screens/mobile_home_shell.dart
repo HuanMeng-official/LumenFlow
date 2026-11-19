@@ -25,59 +25,74 @@ class _MobileHomeShellState extends State<MobileHomeShell> {
   final CupertinoTabController _tabController = CupertinoTabController();
   late final ConversationService _conversationService =
       widget.conversationService ?? ConversationService();
-  int _conversationRefreshToken = 0;
+  final ValueNotifier<int> _conversationRefreshNotifier = ValueNotifier<int>(0);
+  bool _isPushingChat = false;
 
   @override
   void dispose() {
+    _conversationRefreshNotifier.dispose();
     _tabController.dispose();
     super.dispose();
   }
 
   void _refreshConversations() {
     if (!mounted) return;
-    setState(() => _conversationRefreshToken++);
+    _conversationRefreshNotifier.value++;
   }
 
   Future<void> _openConversation(String? conversationId) async {
-    if (conversationId == null || !mounted) {
-      _refreshConversations();
+    if (conversationId == null || !mounted || _isPushingChat) {
+      if (conversationId == null) _refreshConversations();
       return;
     }
-    final l10n = AppLocalizations.of(context)!;
-    await Navigator.of(context, rootNavigator: true).push(
-      CupertinoPageRoute<void>(
-        builder: (_) => ChatScreen(
-          initialConversationId: conversationId,
-          previousPageTitle: l10n.conversations,
-          conversationService: _conversationService,
-          onConversationListChanged: _refreshConversations,
+    _isPushingChat = true;
+    try {
+      final l10n = AppLocalizations.of(context)!;
+      await Navigator.of(context, rootNavigator: true).push(
+        CupertinoPageRoute<void>(
+          builder: (_) => ChatScreen(
+            initialConversationId: conversationId,
+            previousPageTitle: l10n.conversations,
+            conversationService: _conversationService,
+            onConversationListChanged: _refreshConversations,
+          ),
         ),
-      ),
-    );
-    _refreshConversations();
+      );
+      _refreshConversations();
+    } finally {
+      _isPushingChat = false;
+    }
   }
 
   Future<void> _startChatWithPreset(PromptPreset preset) async {
-    final l10n = AppLocalizations.of(context)!;
-    final conversation = await _conversationService.createNewConversation(
-      title: preset.name.trim().isNotEmpty ? preset.name : l10n.newConversation,
-      promptPresetEnabled: true,
-      promptPresetId: preset.id,
-    );
-    if (!mounted) return;
-    _refreshConversations();
-    _tabController.index = 0;
-    await Navigator.of(context, rootNavigator: true).push(
-      CupertinoPageRoute<void>(
-        builder: (_) => ChatScreen(
-          initialConversationId: conversation.id,
-          previousPageTitle: l10n.conversations,
-          conversationService: _conversationService,
-          onConversationListChanged: _refreshConversations,
+    if (_isPushingChat) return;
+    _isPushingChat = true;
+    try {
+      final l10n = AppLocalizations.of(context)!;
+      final conversation = await _conversationService.createNewConversation(
+        title: preset.name.trim().isNotEmpty
+            ? preset.name
+            : l10n.newConversation,
+        promptPresetEnabled: true,
+        promptPresetId: preset.id,
+      );
+      if (!mounted) return;
+      _refreshConversations();
+      _tabController.index = 0;
+      await Navigator.of(context, rootNavigator: true).push(
+        CupertinoPageRoute<void>(
+          builder: (_) => ChatScreen(
+            initialConversationId: conversation.id,
+            previousPageTitle: l10n.conversations,
+            conversationService: _conversationService,
+            onConversationListChanged: _refreshConversations,
+          ),
         ),
-      ),
-    );
-    _refreshConversations();
+      );
+      _refreshConversations();
+    } finally {
+      _isPushingChat = false;
+    }
   }
 
   @override
@@ -118,11 +133,14 @@ class _MobileHomeShellState extends State<MobileHomeShell> {
       tabBuilder: (context, index) {
         return CupertinoTabView(
           builder: (tabContext) => switch (index) {
-            0 => ConversationListScreen(
-              isRootTab: true,
-              service: _conversationService,
-              refreshToken: _conversationRefreshToken,
-              onConversationSelected: _openConversation,
+            0 => ValueListenableBuilder<int>(
+              valueListenable: _conversationRefreshNotifier,
+              builder: (_, refreshToken, _) => ConversationListScreen(
+                isRootTab: true,
+                service: _conversationService,
+                refreshToken: refreshToken,
+                onConversationSelected: _openConversation,
+              ),
             ),
             1 => PresetManagementScreen(
               onStartChatWithPreset: _startChatWithPreset,
