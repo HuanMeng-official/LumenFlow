@@ -131,7 +131,7 @@
   "apiEndpointPlaceholder": "输入API端点URL",
   "apiEndpointDesc": "例如: https://api.openai.com/v1",
   "apiKey": "API密钥",
-  "apiKeyPlaceholder": "输入API密钥",
+  "apiKeyPlaceholder": "API密钥",
   "apiKeyDesc": "从AI服务提供商获取的认证密钥",
   "modelSettings": "模型设置",
   "model": "模型",
@@ -585,7 +585,6 @@
   "platformType": "平台类型",
   "platformNamePlaceholder": "平台名称",
   "endpointPlaceholder": "API端点URL",
-  "apiKeyPlaceholder": "API密钥",
   "configured": "已配置",
   "notConfigured": "未配置",
   "models": "个模型",
@@ -638,7 +637,6 @@
   "deleteModelBtn": "删除选中",
   "selectModelToDelete": "请先选择要删除的模型",
   "add": "添加",
-  "delete": "删除",
   "addNewModel": "添加新模型",
   "clickAddToCreate": "点击上方 + 按钮添加模型",
   "noPlatformsConfigured": "暂无平台配置",
@@ -1039,21 +1037,25 @@
   "worldInfoTokens": "背景 {background} · 条目 {entry} · 总计 {total} tokens",
   "@worldInfoTokens": {
     "placeholders": {
-      "background": {"type": "int"},
-      "entry": {"type": "int"},
-      "total": {"type": "int"}
+      "background": {
+        "type": "int"
+      },
+      "entry": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "worldInfoNoMatches": "没有命中的条目",
-  "worldInfoRun": "运行预览"
-,
+  "worldInfoRun": "运行预览",
   "lumenflowInvalidArchive": "无效的 LumenFlow 归档",
   "lumenflowMissingCharacter": "LumenFlow 归档缺少角色卡文件",
   "lumenflowWorldInfoInvalid": "世界书文件无效或损坏",
   "lumenflowAvatarInvalid": "头像文件无效或损坏",
   "lumenflowIllustrationInvalid": "立绘文件无效或损坏",
-  "lumenflowLegacyUnsupported": "旧版 LumenFlow 格式不受支持"
-,
+  "lumenflowLegacyUnsupported": "旧版 LumenFlow 格式不受支持",
   "presetSectionWorldviewBackground": "世界观与背景故事",
   "presetSectionAppearance": "外貌与特征",
   "presetSectionPersonality": "人格与心理逻辑",
@@ -1076,9 +1078,57 @@
   "presetDetailWorldInfoStats": "条目 {entries} · 扫描深度 {scanDepth} · 预算 {budget} tokens",
   "@presetDetailWorldInfoStats": {
     "placeholders": {
-      "entries": {"type": "int"},
-      "scanDepth": {"type": "int"},
-      "budget": {"type": "int"}
+      "entries": {
+        "type": "int"
+      },
+      "scanDepth": {
+        "type": "int"
+      },
+      "budget": {
+        "type": "int"
+      }
+    }
+  },
+  "providersAndModels": "供应商与模型",
+  "conversationAndMemory": "对话与记忆",
+  "appearanceAndLanguage": "外观与语言",
+  "notificationsDataAbout": "通知、数据与关于",
+  "characters": "角色预设",
+  "mcpServers": "MCP 服务器",
+  "addMcpServer": "添加 MCP 服务器",
+  "editMcpServer": "编辑 MCP 服务器",
+  "deleteMcpServer": "删除 MCP 服务器",
+  "mcpServerName": "服务器名称",
+  "mcpServerUrl": "服务器地址 (URL)",
+  "mcpTransportLabel": "传输协议",
+  "mcpTestConnection": "测试连接",
+  "mcpConnectedToolsCount": "连接成功，发现 {count} 个工具",
+  "mcpNoToolsReturned": "连接成功，未返回工具",
+  "mcpInvalidConfig": "请填写服务器名称与有效地址",
+  "mcpHeadersTitle": "请求头 (Headers)",
+  "addHeader": "添加 Header",
+  "headerKeyPlaceholder": "键 (如 Authorization)",
+  "headerValuePlaceholder": "值",
+  "mcpPlatformSupported": "当前平台支持工具调用，可配置 HTTP / SSE MCP 服务器。",
+  "mcpPlatformUnsupported": "当前平台暂不支持工具调用，请切换至支持工具的供应商。",
+  "inspectorMemoryAndLore": "记忆与世界书",
+  "worldInfoTriggerTest": "触发测试",
+  "startChat": "开始对话",
+  "editPreset": "编辑设定",
+  "enablePlatform": "设为当前启用平台",
+  "availableModels": "可用模型",
+  "defaultModelLabel": "当前默认模型",
+  "addCustomModel": "添加自定义模型",
+  "userProfileSummarySubtitle": "个人档案、性别与生日",
+  "pinnedConversations": "置顶",
+  "recentConversations": "最近",
+  "exportAction": "导出",
+  "presetOverview": "人物设定",
+  "@mcpConnectedToolsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
     }
   }
 }

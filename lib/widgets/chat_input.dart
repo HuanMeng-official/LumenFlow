@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:cupertino_ui/cupertino_ui.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:file_picker/file_picker.dart';
 
 import '../l10n/app_localizations.dart';
@@ -10,6 +9,8 @@ import '../services/ai_service.dart';
 import '../models/attachment.dart';
 import '../models/prompt_preset.dart';
 import '../utils/app_theme.dart';
+import '../utils/platform_utils.dart';
+import 'desktop/desktop_popover.dart';
 import 'preset_avatar.dart';
 import 'attachment_preview_chip.dart';
 import 'preset_unavailable_dialog.dart';
@@ -57,14 +58,23 @@ class ChatInput extends StatefulWidget {
 class _ChatInputState extends State<ChatInput> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final FocusNode _focusNode = FocusNode();
   final FileService _fileService = FileService();
   bool _canSend = false;
+  bool _isFocused = false;
   List<Attachment> _attachments = [];
 
   @override
   void initState() {
     super.initState();
     _controller.addListener(_onTextChanged);
+    _focusNode.addListener(_onFocusChanged);
+  }
+
+  void _onFocusChanged() {
+    if (mounted) {
+      setState(() => _isFocused = _focusNode.hasFocus);
+    }
   }
 
   void _onTextChanged() {
@@ -115,14 +125,73 @@ class _ChatInputState extends State<ChatInput> {
   }
 
   /// 显示预设提示词选择菜单
-  void _showPresetMenu() {
+  void _showPresetMenu({BuildContext? anchorContext}) {
     if (!widget.enabled || widget.presets.isEmpty) return;
 
     final l10n = AppLocalizations.of(context)!;
+    void handlePresetTap(PromptPreset preset) {
+      if (preset.isBroken) {
+        showCupertinoDialog<void>(
+          context: context,
+          builder: (dialogContext) => CupertinoAlertDialog(
+            title: Text(preset.name),
+            content: Text(
+              l10n.presetBrokenReason(
+                preset.brokenReason ?? l10n.presetBrokenLabel,
+              ),
+            ),
+            actions: [
+              CupertinoDialogAction(
+                child: Text(l10n.ok),
+                onPressed: () => Navigator.pop(dialogContext),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+      widget.onPresetSelected?.call(preset.id);
+      if (!widget.promptPresetEnabled) {
+        widget.onPromptPresetEnabledChanged?.call(true);
+      }
+    }
+
+    if (anchorContext != null && useWideLayout(MediaQuery.sizeOf(context))) {
+      showDesktopPopoverMenu(
+        anchorContext: anchorContext,
+        preferAbove: true,
+        width: 260,
+        items: [
+          for (final preset in widget.presets)
+            DesktopPopoverItem(
+              label: preset.isBroken
+                  ? '${preset.name} (${l10n.presetBrokenLabel})'
+                  : preset.name,
+              icon: preset.isBroken
+                  ? CupertinoIcons.exclamationmark_triangle
+                  : CupertinoIcons.person_fill,
+              selected:
+                  widget.promptPresetEnabled &&
+                  widget.currentPresetId == preset.id,
+              onTap: () => handlePresetTap(preset),
+            ),
+          if (widget.promptPresetEnabled)
+            DesktopPopoverItem(
+              label: l10n.closePresetMode,
+              icon: CupertinoIcons.xmark_circle,
+              isDestructive: true,
+              isDividerBefore: true,
+              onTap: () => widget.onPromptPresetEnabledChanged?.call(false),
+            ),
+        ],
+      );
+      return;
+    }
+
     showCupertinoModalPopup(
       context: context,
-      builder: (context) {
-        final primaryColor = CupertinoTheme.of(context).primaryColor;
+      builder: (sheetContext) {
+        final primaryColor = AppTokens.accent(sheetContext);
         return CupertinoActionSheet(
           title: Text(l10n.selectPresetRole),
           message: Text(l10n.selectPresetRoleMessage),
@@ -130,36 +199,8 @@ class _ChatInputState extends State<ChatInput> {
             for (final preset in widget.presets)
               CupertinoActionSheetAction(
                 onPressed: () {
-                  if (preset.isBroken) {
-                    Navigator.pop(context);
-                    showCupertinoDialog<void>(
-                      context: this.context,
-                      builder: (dialogContext) => CupertinoAlertDialog(
-                        title: Text(preset.name),
-                        content: Text(
-                          l10n.presetBrokenReason(
-                            preset.brokenReason ?? l10n.presetBrokenLabel,
-                          ),
-                        ),
-                        actions: [
-                          CupertinoDialogAction(
-                            child: Text(l10n.ok),
-                            onPressed: () => Navigator.pop(dialogContext),
-                          ),
-                        ],
-                      ),
-                    );
-                    return;
-                  }
-                  Navigator.pop(context);
-                  if (widget.onPresetSelected != null) {
-                    widget.onPresetSelected!(preset.id);
-                  }
-                  // 如果未启用预设模式，自动启用
-                  if (!widget.promptPresetEnabled &&
-                      widget.onPromptPresetEnabledChanged != null) {
-                    widget.onPromptPresetEnabledChanged!(true);
-                  }
+                  Navigator.pop(sheetContext);
+                  handlePresetTap(preset);
                 },
                 child: Row(
                   children: [
@@ -190,74 +231,66 @@ class _ChatInputState extends State<ChatInput> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              const SizedBox(width: 4),
-                              Flexible(
-                                child: Text(
-                                  preset.author.isNotEmpty ? preset.author : '',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: CupertinoColors.systemGrey,
+                              if (preset.author.isNotEmpty) ...[
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    preset.author,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: CupertinoColors.systemGrey,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                           const SizedBox(height: 2),
                           Text(
                             preset.description,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 13,
                               color: preset.isBroken
                                   ? CupertinoColors.systemGrey2
                                   : CupertinoColors.systemGrey,
                             ),
                           ),
-                          if (preset.isBroken) ...[
-                            const SizedBox(height: 2),
+                          if (preset.isBroken)
                             Text(
                               l10n.presetBrokenLabel,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
-                                color: CupertinoColors.systemRed,
+                                color: AppTokens.red(sheetContext),
                               ),
                             ),
-                          ],
                         ],
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      preset.version.isNotEmpty ? preset.version : 'v1.0',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: CupertinoColors.systemGrey2,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (widget.currentPresetId == preset.id)
-                      const SizedBox(width: 8),
-                    if (widget.currentPresetId == preset.id)
-                      const Icon(
+                    if (widget.promptPresetEnabled &&
+                        widget.currentPresetId == preset.id)
+                      Icon(
                         CupertinoIcons.checkmark_alt,
-                        color: CupertinoColors.systemBlue,
+                        color: primaryColor,
                       ),
                   ],
                 ),
               ),
-            CupertinoActionSheetAction(
-              isDestructiveAction: true,
-              onPressed: () {
-                Navigator.pop(context);
-                if (widget.onPromptPresetEnabledChanged != null) {
-                  widget.onPromptPresetEnabledChanged!(false);
-                }
-              },
-              child: Text(l10n.closePresetMode),
-            ),
+            if (widget.promptPresetEnabled)
+              CupertinoActionSheetAction(
+                isDestructiveAction: true,
+                onPressed: () {
+                  Navigator.pop(sheetContext);
+                  widget.onPromptPresetEnabledChanged?.call(false);
+                },
+                child: Text(l10n.closePresetMode),
+              ),
           ],
           cancelButton: CupertinoActionSheetAction(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(sheetContext),
             child: Text(l10n.cancel),
           ),
         );
@@ -459,275 +492,212 @@ class _ChatInputState extends State<ChatInput> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final brightness = CupertinoTheme.of(context).brightness;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      decoration: BoxDecoration(
-        color: brightness == Brightness.dark
-            ? CupertinoColors.systemBackground.darkColor
-            : CupertinoColors.systemBackground.color,
-        border: Border(
-          top: BorderSide(color: CupertinoColors.systemGrey4, width: 0.5),
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 附件预览区域
-          if (_attachments.isNotEmpty)
-            Container(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Wrap(
-                children: _attachments
-                    .map(
-                      (attachment) => AttachmentPreviewChip(
-                        attachment: attachment,
-                        sizeLabel: _formatFileSize(attachment.fileSize ?? 0),
-                        onRemove: () => _removeAttachment(attachment),
-                      ),
-                    )
-                    .toList(),
-              ),
+    final fontFallback =
+        cjkFontFallbackForLocale(Localizations.maybeLocaleOf(context));
+    final accent = AppTokens.accent(context);
+    final isWide = useWideLayout(MediaQuery.sizeOf(context));
+
+    return SafeArea(
+      top: false,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: AppTokens.chatMaxWidth),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              isWide ? 20 : 12,
+              6,
+              isWide ? 20 : 12,
+              isWide ? 14 : 10,
             ),
-          // 输入区域
-          Row(
-            children: [
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: widget.enabled ? _pickFile : null,
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: widget.enabled
-                        ? (brightness == Brightness.dark
-                              ? CupertinoColors.systemGrey6.darkColor
-                              : CupertinoColors.systemGrey6.color)
-                        : (brightness == Brightness.dark
-                              ? CupertinoColors.systemGrey5.darkColor
-                              : CupertinoColors.systemGrey5.color),
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: Icon(
-                    CupertinoIcons.paperclip,
-                    color: widget.enabled
-                        ? (brightness == Brightness.dark
-                              ? CupertinoColors.systemGrey.darkColor
-                              : CupertinoColors.systemGrey)
-                        : (brightness == Brightness.dark
-                              ? CupertinoColors.systemGrey4.darkColor
-                              : CupertinoColors.systemGrey4),
-                    size: 20,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: widget.enabled
-                        ? (brightness == Brightness.dark
-                              ? CupertinoColors.systemGrey6.darkColor
-                              : CupertinoColors.systemGrey6.color)
-                        : (brightness == Brightness.dark
-                              ? CupertinoColors.systemGrey5.darkColor
-                              : CupertinoColors.systemGrey5.color),
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: TextField(
-                      controller: _controller,
-                      scrollController: _scrollController,
-                      enabled: widget.enabled,
-                      minLines: 1,
-                      maxLines: 10,
-                      keyboardType: TextInputType.multiline,
-                      textInputAction: TextInputAction.newline,
-                      scrollPhysics: const AlwaysScrollableScrollPhysics(),
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                        isDense: true,
-                        hintStyle: TextStyle(
-                          color: brightness == Brightness.dark
-                              ? CupertinoColors.systemGrey.darkColor
-                              : CupertinoColors.systemGrey,
-                          fontSize: 17,
-                          height: 1.2,
-                        ),
-                        hintText: widget.enabled
-                            ? l10n.messageInputPlaceholder
-                            : l10n.configureApiSettingsFirst,
-                      ),
-                      style: TextStyle(
-                        fontSize: 17,
-                        color: brightness == Brightness.dark
-                            ? CupertinoColors.white
-                            : CupertinoColors.black,
-                        height: 1.5,
-                        textBaseline: TextBaseline.alphabetic,
-                      ),
-                      cursorColor: CupertinoColors.activeBlue,
-                      scrollPadding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (_attachments.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: _attachments
+                          .map(
+                            (attachment) => AttachmentPreviewChip(
+                              attachment: attachment,
+                              sizeLabel:
+                                  _formatFileSize(attachment.fileSize ?? 0),
+                              onRemove: () => _removeAttachment(attachment),
+                            ),
+                          )
+                          .toList(),
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: _canSend ? _sendMessage : null,
-                child: Container(
-                  width: 36,
-                  height: 36,
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 140),
                   decoration: BoxDecoration(
-                    color: _canSend
-                        ? (widget.isGenerating
-                              ? CupertinoColors
-                                    .systemRed // 生成中显示红色
-                              : CupertinoColors.systemBlue) // 正常发送显示蓝色
-                        : (brightness == Brightness.dark
-                              ? CupertinoColors.systemGrey5.darkColor
-                              : CupertinoColors.systemGrey4),
-                    borderRadius: BorderRadius.circular(18),
+                    color: AppTokens.sidebarBg(context),
+                    borderRadius: BorderRadius.circular(
+                      AppTokens.radiusComposer,
+                    ),
+                    border: Border.all(
+                      color: _isFocused
+                          ? accent.withValues(alpha: 0.72)
+                          : AppTokens.separator(context),
+                      width: _isFocused ? 1.0 : 0.5,
+                    ),
                   ),
-                  child: Icon(
-                    widget.isGenerating
-                        ? CupertinoIcons
-                              .stop // 生成中显示停止图标
-                        : CupertinoIcons.arrow_up, // 正常发送显示向上箭头
-                    color: _canSend
-                        ? CupertinoColors.white
-                        : (brightness == Brightness.dark
-                              ? CupertinoColors.systemGrey.darkColor
-                              : CupertinoColors.systemGrey),
-                    size: 20,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CupertinoTextField(
+                        controller: _controller,
+                        focusNode: _focusNode,
+                        scrollController: _scrollController,
+                        enabled: widget.enabled,
+                        minLines: 1,
+                        maxLines: 8,
+                        keyboardType: TextInputType.multiline,
+                        textInputAction: TextInputAction.newline,
+                        padding: const EdgeInsets.fromLTRB(16, 13, 16, 8),
+                        decoration: const BoxDecoration(
+                          color: CupertinoColors.transparent,
+                        ),
+                        placeholder: widget.enabled
+                            ? l10n.messageInputPlaceholder
+                            : l10n.configureApiSettingsFirst,
+                        placeholderStyle: TextStyle(
+                          fontSize: 15.5,
+                          height: 1.4,
+                          fontFamilyFallback: fontFallback,
+                          color: AppTokens.labelTertiary(context),
+                        ),
+                        style: TextStyle(
+                          fontSize: 15.5,
+                          height: 1.45,
+                          fontFamilyFallback: fontFallback,
+                          color: AppTokens.label(context),
+                        ),
+                        cursorColor: accent,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(10, 0, 10, 9),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    CupertinoButton(
+                                      padding: EdgeInsets.zero,
+                                      minimumSize: const Size(32, 32),
+                                      onPressed:
+                                          widget.enabled ? _pickFile : null,
+                                      child: Container(
+                                        width: 30,
+                                        height: 30,
+                                        decoration: BoxDecoration(
+                                          color: AppTokens.fill(context),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          CupertinoIcons.plus,
+                                          size: 16,
+                                          color: widget.enabled
+                                              ? AppTokens.labelSecondary(
+                                                  context,
+                                                )
+                                              : AppTokens.labelTertiary(
+                                                  context,
+                                                ),
+                                        ),
+                                      ),
+                                    ),
+                                    if (widget.onThinkingModeChanged != null) ...[
+                                      const SizedBox(width: 6),
+                                      _buildThinkingPill(context, l10n),
+                                    ],
+                                    if (widget.onPromptPresetEnabledChanged !=
+                                            null &&
+                                        widget.presets.isNotEmpty) ...[
+                                      const SizedBox(width: 6),
+                                      _buildPresetPill(context, l10n),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              minimumSize: const Size(32, 32),
+                              onPressed: _canSend ? _sendMessage : null,
+                              child: Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: _canSend
+                                      ? (widget.isGenerating
+                                          ? AppTokens.red(context)
+                                          : accent)
+                                      : AppTokens.fill(context),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  widget.isGenerating
+                                      ? CupertinoIcons.stop_fill
+                                      : CupertinoIcons.arrow_up,
+                                  size: widget.isGenerating ? 14 : 17,
+                                  color: _canSend
+                                      ? CupertinoColors.white
+                                      : AppTokens.labelTertiary(context),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ],
-          ),
-          // 功能开关区域
-          const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              // 显示已开启的工具按钮（可以多个同时显示）
-              if (widget.thinkingMode) ...[
-                _buildThinkingModeButton(),
-                const SizedBox(width: 8),
               ],
-              if (widget.promptPresetEnabled &&
-                  widget.currentPresetId.isNotEmpty) ...[
-                _buildPresetModeButton(),
-                const SizedBox(width: 8),
-              ],
-              // 工具菜单按钮（始终显示）
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: widget.enabled ? _showToolMenu : null,
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: widget.enabled
-                        ? (brightness == Brightness.dark
-                              ? CupertinoColors.systemGrey6.darkColor
-                              : CupertinoColors.systemGrey6.color)
-                        : (brightness == Brightness.dark
-                              ? CupertinoColors.systemGrey5.darkColor
-                              : CupertinoColors.systemGrey5.color),
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: Icon(
-                    CupertinoIcons.add,
-                    size: 20,
-                    color: widget.enabled
-                        ? (brightness == Brightness.dark
-                              ? CupertinoColors.systemGrey.darkColor
-                              : CupertinoColors.systemGrey)
-                        : (brightness == Brightness.dark
-                              ? CupertinoColors.systemGrey4.darkColor
-                              : CupertinoColors.systemGrey4),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }
 
-  /// 构建思考模式按钮
-  Widget _buildThinkingModeButton() {
-    final l10n = AppLocalizations.of(context)!;
-    final brightness = CupertinoTheme.of(context).brightness;
+  Widget _buildThinkingPill(BuildContext context, AppLocalizations l10n) {
+    final active = widget.thinkingMode;
+    final fgColor = !widget.enabled
+        ? AppTokens.labelTertiary(context)
+        : (active ? AppTokens.accent(context) : AppTokens.labelSecondary(context));
 
     return CupertinoButton(
       padding: EdgeInsets.zero,
+      minimumSize: const Size(0, 30),
       onPressed: widget.enabled && widget.onThinkingModeChanged != null
           ? () => widget.onThinkingModeChanged!(!widget.thinkingMode)
           : null,
       child: Container(
-        height: 34,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        alignment: Alignment.center,
+        height: 30,
+        padding: const EdgeInsets.symmetric(horizontal: 11),
         decoration: BoxDecoration(
-          color: widget.enabled
-              ? (widget.thinkingMode
-                    ? (brightness == Brightness.dark
-                          ? CupertinoColors.systemBlue.darkColor.withAlpha(51)
-                          : CupertinoColors.systemBlue.color.withAlpha(38))
-                    : (brightness == Brightness.dark
-                          ? CupertinoColors.systemGrey6.darkColor
-                          : CupertinoColors.systemGrey6.color))
-              : (brightness == Brightness.dark
-                    ? CupertinoColors.systemGrey5.darkColor
-                    : CupertinoColors.systemGrey5.color),
-          borderRadius: BorderRadius.circular(20),
+          color: active ? AppTokens.accentSoft(context) : AppTokens.fillSoft(context),
+          borderRadius: BorderRadius.circular(15),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              CupertinoIcons.lightbulb,
-              size: 19,
-              color: widget.enabled
-                  ? (widget.thinkingMode
-                        ? (brightness == Brightness.dark
-                              ? CupertinoColors.systemBlue.darkColor
-                              : CupertinoColors.systemBlue.color)
-                        : (brightness == Brightness.dark
-                              ? CupertinoColors.systemGrey.darkColor
-                              : CupertinoColors.systemGrey))
-                  : (brightness == Brightness.dark
-                        ? CupertinoColors.systemGrey4.darkColor
-                        : CupertinoColors.systemGrey4),
-            ),
-            const SizedBox(width: 8),
+            Icon(CupertinoIcons.lightbulb, size: 14.5, color: fgColor),
+            const SizedBox(width: 5),
             Text(
               l10n.deepThinking,
               style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: widget.enabled
-                    ? (widget.thinkingMode
-                          ? (brightness == Brightness.dark
-                                ? CupertinoColors.systemBlue.darkColor
-                                : CupertinoColors.systemBlue.color)
-                          : (brightness == Brightness.dark
-                                ? CupertinoColors.systemGrey.darkColor
-                                : CupertinoColors.systemGrey))
-                    : (brightness == Brightness.dark
-                          ? CupertinoColors.systemGrey4.darkColor
-                          : CupertinoColors.systemGrey4),
+                fontSize: 12.5,
+                fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+                color: fgColor,
               ),
             ),
           ],
@@ -736,197 +706,73 @@ class _ChatInputState extends State<ChatInput> {
     );
   }
 
-  /// 构建角色扮演按钮
-  Widget _buildPresetModeButton() {
-    final l10n = AppLocalizations.of(context)!;
-    final brightness = CupertinoTheme.of(context).brightness;
+  Widget _buildPresetPill(BuildContext context, AppLocalizations l10n) {
+    final active =
+        widget.promptPresetEnabled && widget.currentPresetId.isNotEmpty;
+    final unavailable = active && widget.currentPresetUnavailable;
+    final fgColor = !widget.enabled
+        ? AppTokens.labelTertiary(context)
+        : unavailable
+        ? AppTokens.red(context)
+        : (active
+              ? AppTokens.accent(context)
+              : AppTokens.labelSecondary(context));
+    final bgColor = unavailable
+        ? AppTokens.red(context).withValues(alpha: 0.14)
+        : (active
+              ? AppTokens.accentSoft(context)
+              : AppTokens.fillSoft(context));
+    final label = active
+        ? (unavailable
+              ? l10n.presetUnavailableBadge
+              : _getPresetName(widget.currentPresetId))
+        : l10n.rolePlay;
 
-    return CupertinoButton(
-      padding: EdgeInsets.zero,
-      onPressed: widget.enabled ? _showPresetMenu : null,
-      child: Container(
-        height: 34,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: widget.enabled
-              ? (widget.currentPresetUnavailable
-                    ? CupertinoColors.systemRed
-                          .resolveFrom(context)
-                          .withAlpha(38)
-                    : widget.promptPresetEnabled
-                    ? (brightness == Brightness.dark
-                          ? CupertinoColors.systemBlue.darkColor.withAlpha(51)
-                          : CupertinoColors.systemBlue.color.withAlpha(38))
-                    : (brightness == Brightness.dark
-                          ? CupertinoColors.systemGrey6.darkColor
-                          : CupertinoColors.systemGrey6.color))
-              : (brightness == Brightness.dark
-                    ? CupertinoColors.systemGrey5.darkColor
-                    : CupertinoColors.systemGrey5.color),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              CupertinoIcons.person_fill,
-              size: 19,
-              color: !widget.enabled
-                  ? (brightness == Brightness.dark
-                        ? CupertinoColors.systemGrey4.darkColor
-                        : CupertinoColors.systemGrey4)
-                  : widget.currentPresetUnavailable
-                  ? CupertinoColors.systemRed.resolveFrom(context)
-                  : (widget.promptPresetEnabled
-                        ? (brightness == Brightness.dark
-                              ? CupertinoColors.systemBlue.darkColor
-                              : CupertinoColors.systemBlue.color)
-                        : (brightness == Brightness.dark
-                              ? CupertinoColors.systemGrey.darkColor
-                              : CupertinoColors.systemGrey)),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              widget.promptPresetEnabled && widget.currentPresetId.isNotEmpty
-                  ? (widget.currentPresetUnavailable
-                        ? l10n.presetUnavailableBadge
-                        : _getPresetName(widget.currentPresetId))
-                  : l10n.rolePlay,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: widget.enabled
-                    ? (widget.currentPresetUnavailable
-                          ? CupertinoColors.systemRed.resolveFrom(context)
-                          : widget.promptPresetEnabled
-                          ? (brightness == Brightness.dark
-                                ? CupertinoColors.systemBlue.darkColor
-                                : CupertinoColors.systemBlue.color)
-                          : (brightness == Brightness.dark
-                                ? CupertinoColors.systemGrey.darkColor
-                                : CupertinoColors.systemGrey))
-                    : (brightness == Brightness.dark
-                          ? CupertinoColors.systemGrey4.darkColor
-                          : CupertinoColors.systemGrey4),
+    return Builder(
+      builder: (pillContext) => CupertinoButton(
+        padding: EdgeInsets.zero,
+        minimumSize: const Size(0, 30),
+        onPressed: widget.enabled
+            ? () => _showPresetMenu(anchorContext: pillContext)
+            : null,
+        child: Container(
+          height: 30,
+          constraints: const BoxConstraints(maxWidth: 168),
+          padding: const EdgeInsets.symmetric(horizontal: 11),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(CupertinoIcons.person_fill, size: 14, color: fgColor),
+              const SizedBox(width: 5),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+                    color: fgColor,
+                  ),
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// 显示工具选择菜单
-  void _showToolMenu() {
-    final l10n = AppLocalizations.of(context)!;
-
-    showCupertinoModalPopup(
-      context: context,
-      builder: (context) => CupertinoActionSheet(
-        actions: [
-          // 深度思考选项
-          if (widget.onThinkingModeChanged != null)
-            CupertinoActionSheetAction(
-              onPressed: () {
-                Navigator.pop(context);
-                widget.onThinkingModeChanged!(!widget.thinkingMode);
-              },
-              child: _buildActionSheetItem(
-                icon: CupertinoIcons.lightbulb,
-                title: l10n.deepThinking,
-                isActive: widget.thinkingMode,
-              ),
-            ),
-
-          // 角色扮演选项
-          if (widget.onPromptPresetEnabledChanged != null)
-            CupertinoActionSheetAction(
-              onPressed: () {
-                Navigator.pop(context);
-                // 不立即启用角色扮演模式，等用户选择预设后再启用
-                Future.microtask(() => _showPresetMenu());
-              },
-              child: _buildActionSheetItem(
-                icon: CupertinoIcons.person_fill,
-                title:
-                    widget.promptPresetEnabled &&
-                        widget.currentPresetId.isNotEmpty
-                    ? _getPresetName(widget.currentPresetId)
-                    : l10n.rolePlay,
-                isActive:
-                    widget.promptPresetEnabled &&
-                    widget.currentPresetId.isNotEmpty,
-              ),
-            ),
-
-          // 模型选择选项
-          if (widget.onShowModelSelector != null)
-            CupertinoActionSheetAction(
-              onPressed: () {
-                Navigator.pop(context);
-                Future.microtask(() => widget.onShowModelSelector!());
-              },
-              child: _buildActionSheetItem(
-                icon: CupertinoIcons.cube_box,
-                title: widget.currentModelName.isEmpty
-                    ? l10n.model
-                    : widget.currentModelName,
-                isActive: widget.currentModelName.isNotEmpty,
-              ),
-            ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          child: Text(l10n.cancel),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-    );
-  }
-
-  /// 构建ActionSheet菜单项
-  Widget _buildActionSheetItem({
-    required IconData icon,
-    required String title,
-    required bool isActive,
-  }) {
-    final brightness = CupertinoTheme.of(context).brightness;
-    final locale = Localizations.maybeLocaleOf(context);
-    final fontFamily = appFontFamilyForLocale(locale);
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(
-          icon,
-          size: 20,
-          color: isActive
-              ? (brightness == Brightness.dark
-                    ? CupertinoColors.systemBlue.darkColor
-                    : CupertinoColors.systemBlue.color)
-              : (brightness == Brightness.dark
-                    ? CupertinoColors.systemGrey.darkColor
-                    : CupertinoColors.systemGrey),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-            fontFamily: fontFamily,
-            fontFamilyFallback: cjkFontFallbackForLocale(locale),
-            color: brightness == Brightness.dark
-                ? CupertinoColors.white
-                : CupertinoColors.black,
+              const SizedBox(width: 3),
+              Icon(CupertinoIcons.chevron_down, size: 11, color: fgColor),
+            ],
           ),
         ),
-      ],
+      ),
     );
   }
 
   @override
   void dispose() {
+    _focusNode.removeListener(_onFocusChanged);
+    _focusNode.dispose();
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();

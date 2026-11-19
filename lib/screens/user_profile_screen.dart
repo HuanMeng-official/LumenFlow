@@ -1,22 +1,27 @@
 import 'dart:io';
+
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+
 import '../l10n/app_localizations.dart';
 import '../models/user_profile.dart';
 import '../services/user_service.dart';
+import '../utils/app_theme.dart';
 import '../widgets/avatar_widget.dart';
+import '../widgets/settings/settings_input_tile.dart';
 import '../widgets/settings/settings_page_scaffold.dart';
+import '../widgets/settings/settings_section.dart';
 
-/// 用户信息设置页面
-///
-/// 设置更改实时保存，无需手动点击保存按钮
+/// 个人档案设置页，支持头像、用户名、性别与生日配置。
 class UserProfileScreen extends StatefulWidget {
   final bool embedded;
+  final String? previousPageTitle;
 
   const UserProfileScreen({
     super.key,
     this.embedded = false,
+    this.previousPageTitle,
   });
 
   @override
@@ -32,41 +37,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   String? _gender;
   DateTime? _birthday;
   bool _isLoading = true;
-
-  final List<String> _emojiAvatars = [
-    '😊',
-    '😎',
-    '🤗',
-    '😇',
-    '🥰',
-    '😋',
-    '🤓',
-    '😴',
-    '🤔',
-    '😏',
-    '😌',
-    '😴',
-    '🙂',
-    '😉',
-    '😁',
-    '😄',
-    '🥳',
-    '🤩',
-    '😍',
-    '🤨',
-    '🧐',
-    '🤗',
-    '🤭',
-    '😶',
-    '🦸‍♂️',
-    '🦸‍♀️',
-    '🧙‍♂️',
-    '🧙‍♀️',
-    '👨‍💻',
-    '👩‍💻',
-    '👨‍🎨',
-    '👩‍🎨',
-  ];
 
   @override
   void initState() {
@@ -92,601 +62,214 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     });
   }
 
-  /// 实时保存用户名变更（防抖）
   Future<void> _onUsernameChanged() async {
     if (_userProfile == null || _usernameController.text.trim().isEmpty) return;
-
     final newUsername = _usernameController.text.trim();
     if (newUsername == _userProfile!.username) return;
 
-    final updatedProfile = _userProfile!.copyWith(username: newUsername);
-    await _userService.saveUserProfile(updatedProfile);
+    final updated = _userProfile!.copyWith(username: newUsername);
+    await _userService.saveUserProfile(updated);
     if (!mounted) return;
-    setState(() {
-      _userProfile = updatedProfile;
-    });
+    setState(() => _userProfile = updated);
   }
 
-  /// 实时保存性别变更
   Future<void> _onGenderChanged(String? newValue) async {
     if (newValue == null || newValue == _gender) return;
+    setState(() => _gender = newValue);
+    if (_userProfile == null) return;
 
-    setState(() {
-      _gender = newValue;
-    });
-
-    if (_userProfile != null) {
-      final updatedProfile = _userProfile!.copyWith(gender: newValue);
-      await _userService.saveUserProfile(updatedProfile);
-      setState(() {
-        _userProfile = updatedProfile;
-      });
-    }
+    final updated = _userProfile!.copyWith(gender: newValue);
+    await _userService.saveUserProfile(updated);
+    if (!mounted) return;
+    setState(() => _userProfile = updated);
   }
 
-  /// 实时保存生日变更
   Future<void> _onBirthdayChanged(DateTime? newDate) async {
     if (newDate == _birthday) return;
+    setState(() => _birthday = newDate);
+    if (_userProfile == null) return;
 
-    setState(() {
-      _birthday = newDate;
-    });
-
-    if (_userProfile != null) {
-      final updatedProfile = _userProfile!.copyWith(birthday: newDate);
-      await _userService.saveUserProfile(updatedProfile);
-      setState(() {
-        _userProfile = updatedProfile;
-      });
-    }
+    final updated = _userProfile!.copyWith(birthday: newDate);
+    await _userService.saveUserProfile(updated);
+    if (!mounted) return;
+    setState(() => _userProfile = updated);
   }
 
-  /// 显示日期选择器
   Future<void> _showBirthdayPicker() async {
-    final DateTime initialDate = _birthday ?? DateTime.now().subtract(const Duration(days: 18 * 365));
-    final DateTime firstDate = DateTime(1900);
-    final DateTime lastDate = DateTime.now();
+    final l10n = AppLocalizations.of(context)!;
+    final initialDate =
+        _birthday ?? DateTime.now().subtract(const Duration(days: 18 * 365));
 
     await showCupertinoModalPopup<void>(
       context: context,
-      builder: (BuildContext context) {
-        final brightness = CupertinoTheme.of(context).brightness;
-        return Container(
-          height: 300,
-          color: brightness == Brightness.dark
-              ? CupertinoColors.systemBackground.darkColor
-              : CupertinoColors.systemBackground.color,
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: brightness == Brightness.dark
-                          ? CupertinoColors.systemGrey4.darkColor
-                          : CupertinoColors.systemGrey4.color,
-                      width: 0.5,
-                    ),
+      builder: (popupContext) => Container(
+        height: 300,
+        color: AppTokens.elevatedSurface(popupContext),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: AppTokens.separator(popupContext),
+                    width: 0.5,
                   ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CupertinoButton(
-                      child: Text(AppLocalizations.of(context)!.cancel),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    Text(
-                      AppLocalizations.of(context)!.selectBirthday,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    CupertinoButton(
-                      child: Text(AppLocalizations.of(context)!.confirm),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: CupertinoDatePicker(
-                  mode: CupertinoDatePickerMode.date,
-                  initialDateTime: initialDate,
-                  minimumDate: firstDate,
-                  maximumDate: lastDate,
-                  onDateTimeChanged: (DateTime newDate) {
-                    _onBirthdayChanged(newDate);
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  /// 实时保存并更新头像
-  Future<void> _updateAvatarWithImage(String newAvatarPath) async {
-    if (_userProfile == null) return;
-
-    await _userService.deleteAvatarImage(_userProfile?.avatarPath);
-    final savedPath = await _userService.saveAvatarImage(File(newAvatarPath));
-
-    setState(() {
-      _userProfile = _userProfile!.copyWith(avatarPath: savedPath, avatarEmoji: null);
-    });
-    await _userService.saveUserProfile(_userProfile!);
-  }
-
-  /// 实时保存并更新表情头像
-  Future<void> _updateAvatarWithEmoji(String emoji) async {
-    if (_userProfile == null) return;
-
-    await _userService.deleteAvatarImage(_userProfile?.avatarPath);
-
-    setState(() {
-      _userProfile = _userProfile!.copyWith(avatarEmoji: emoji, avatarPath: null);
-    });
-    await _userService.saveUserProfile(_userProfile!);
-  }
-
-  Widget _buildDropdownTile(
-    String title, {
-    required String? value,
-    required Map<String, String> options,
-    String? subtitle,
-    ValueChanged<String?>? onChanged,
-  }) {
-    final currentLabel = value != null ? (options[value] ?? value) : '';
-    final brightness = CupertinoTheme.of(context).brightness;
-    final isEnabled = onChanged != null;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          if (subtitle != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: TextStyle(
-                fontSize: 13,
-                color: brightness == Brightness.dark
-                    ? CupertinoColors.systemGrey.darkColor
-                    : CupertinoColors.systemGrey,
-              ),
-            ),
-          ],
-          const SizedBox(height: 12),
-          CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: onChanged != null
-                ? () {
-                    showCupertinoModalPopup<void>(
-                      context: context,
-                      builder: (BuildContext context) {
-                        final popupBrightness = CupertinoTheme.of(context).brightness;
-                        return CupertinoActionSheet(
-                          title: Text(title),
-                          message: subtitle != null ? Text(subtitle) : null,
-                          actions: [
-                            for (final entry in options.entries)
-                              CupertinoActionSheetAction(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  onChanged(entry.key);
-                                },
-                                child: Text(
-                                  entry.value,
-                                  style: TextStyle(
-                                    color: value == entry.key
-                                        ? (popupBrightness == Brightness.dark
-                                            ? CupertinoColors.activeBlue.darkColor
-                                            : CupertinoColors.activeBlue.color)
-                                        : (popupBrightness == Brightness.dark
-                                            ? CupertinoColors.label.darkColor
-                                            : CupertinoColors.label.color),
-                                  ),
-                                ),
-                              ),
-                          ],
-                          cancelButton: CupertinoActionSheetAction(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: Text(
-                              AppLocalizations.of(context)!.cancel,
-                              style: TextStyle(
-                                color: popupBrightness == Brightness.dark
-                                    ? CupertinoColors.systemRed.darkColor
-                                    : CupertinoColors.systemRed.color,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  }
-                : null,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: isEnabled
-                    ? (CupertinoTheme.of(context).brightness == Brightness.dark
-                        ? CupertinoColors.systemGrey6.darkColor
-                        : CupertinoColors.systemGrey6.color)
-                    : (CupertinoTheme.of(context).brightness == Brightness.dark
-                        ? CupertinoColors.tertiarySystemFill.darkColor
-                        : CupertinoColors.tertiarySystemFill.color),
-                borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  CupertinoButton(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    onPressed: () => Navigator.pop(popupContext),
+                    child: Text(l10n.cancel),
+                  ),
                   Text(
-                    currentLabel.isNotEmpty ? currentLabel : AppLocalizations.of(context)!.selectGender,
-                    style: TextStyle(
+                    l10n.selectBirthday,
+                    style: const TextStyle(
                       fontSize: 16,
-                      color: isEnabled
-                          ? (brightness == Brightness.dark
-                              ? CupertinoColors.label.darkColor
-                              : CupertinoColors.label.color)
-                          : (brightness == Brightness.dark
-                              ? CupertinoColors.tertiaryLabel.darkColor
-                              : CupertinoColors.tertiaryLabel.color),
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  Icon(
-                    CupertinoIcons.chevron_down,
-                    size: 18,
-                    color: isEnabled
-                        ? (brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey.darkColor
-                            : CupertinoColors.systemGrey)
-                        : (brightness == Brightness.dark
-                            ? CupertinoColors.tertiaryLabel.darkColor
-                            : CupertinoColors.tertiaryLabel.color),
+                  CupertinoButton(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    onPressed: () => Navigator.pop(popupContext),
+                    child: Text(l10n.confirm),
                   ),
                 ],
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBirthdayTile(
-    String title, {
-    required DateTime? value,
-    String? subtitle,
-    VoidCallback? onPressed,
-  }) {
-    final brightness = CupertinoTheme.of(context).brightness;
-    final isEnabled = onPressed != null;
-    final formattedDate = value != null ? DateFormat.yMMMd().format(value) : '';
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          if (subtitle != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: TextStyle(
-                fontSize: 13,
-                color: brightness == Brightness.dark
-                    ? CupertinoColors.systemGrey.darkColor
-                    : CupertinoColors.systemGrey,
+            Expanded(
+              child: CupertinoDatePicker(
+                mode: CupertinoDatePickerMode.date,
+                initialDateTime: initialDate,
+                minimumDate: DateTime(1900),
+                maximumDate: DateTime.now(),
+                onDateTimeChanged: _onBirthdayChanged,
               ),
             ),
           ],
-          const SizedBox(height: 12),
-          CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: onPressed,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: isEnabled
-                    ? (CupertinoTheme.of(context).brightness == Brightness.dark
-                        ? CupertinoColors.systemGrey6.darkColor
-                        : CupertinoColors.systemGrey6.color)
-                    : (CupertinoTheme.of(context).brightness == Brightness.dark
-                        ? CupertinoColors.tertiarySystemFill.darkColor
-                        : CupertinoColors.tertiarySystemFill.color),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    formattedDate.isNotEmpty ? formattedDate : AppLocalizations.of(context)!.selectBirthday,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: isEnabled
-                          ? (brightness == Brightness.dark
-                              ? CupertinoColors.label.darkColor
-                              : CupertinoColors.label.color)
-                          : (brightness == Brightness.dark
-                              ? CupertinoColors.tertiaryLabel.darkColor
-                              : CupertinoColors.tertiaryLabel.color),
-                    ),
-                  ),
-                  Icon(
-                    CupertinoIcons.calendar,
-                    size: 18,
-                    color: isEnabled
-                        ? (brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey.darkColor
-                            : CupertinoColors.systemGrey)
-                        : (brightness == Brightness.dark
-                            ? CupertinoColors.tertiaryLabel.darkColor
-                            : CupertinoColors.tertiaryLabel.color),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Future<void> _pickImageFromGallery() async {
-    try {
-      final XFile? image = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 300,
-        maxHeight: 300,
-        imageQuality: 80,
-      );
-
-      if (image != null && mounted) {
-        await _updateAvatarWithImage(image.path);
-      }
-    } catch (e) {
-      if (mounted) {
-        final l10n = AppLocalizations.of(context)!;
-        _showErrorDialog(l10n.pickAvatarFailed, e.toString());
-      }
-    }
+  Future<void> _updateAvatarWithImage(String path) async {
+    if (_userProfile == null) return;
+    await _userService.deleteAvatarImage(_userProfile?.avatarPath);
+    final savedPath = await _userService.saveAvatarImage(File(path));
+    final updated = UserProfile(
+      id: _userProfile!.id,
+      username: _userProfile!.username,
+      avatarPath: savedPath,
+      avatarEmoji: null,
+      gender: _userProfile!.gender,
+      birthday: _userProfile!.birthday,
+      createdAt: _userProfile!.createdAt,
+      updatedAt: DateTime.now(),
+    );
+    await _userService.saveUserProfile(updated);
+    if (!mounted) return;
+    setState(() => _userProfile = updated);
   }
 
-  Future<void> _pickImageFromCamera() async {
-    try {
-      final XFile? image = await _imagePicker.pickImage(
-        source: ImageSource.camera,
-        maxWidth: 300,
-        maxHeight: 300,
-        imageQuality: 80,
-      );
-
-      if (image != null && mounted) {
-        await _updateAvatarWithImage(image.path);
-      }
-    } catch (e) {
-      if (mounted) {
-        final l10n = AppLocalizations.of(context)!;
-        _showErrorDialog(l10n.takePhotoFailed, e.toString());
-      }
-    }
+  Future<void> _resetAvatar() async {
+    if (_userProfile == null) return;
+    await _userService.deleteAvatarImage(_userProfile?.avatarPath);
+    final updated = UserProfile(
+      id: _userProfile!.id,
+      username: _userProfile!.username,
+      avatarPath: null,
+      avatarEmoji: null,
+      gender: _userProfile!.gender,
+      birthday: _userProfile!.birthday,
+      createdAt: _userProfile!.createdAt,
+      updatedAt: DateTime.now(),
+    );
+    await _userService.saveUserProfile(updated);
+    if (!mounted) return;
+    setState(() => _userProfile = updated);
   }
 
-  void _selectEmojiAvatar() {
+  Future<void> _pickImage(ImageSource source) async {
     final l10n = AppLocalizations.of(context)!;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final popupHeight = (screenHeight * 0.4).clamp(250.0, 400.0).toDouble();
-
-    showCupertinoModalPopup(
-      context: context,
-      builder: (context) {
-        final brightness = CupertinoTheme.of(context).brightness;
-        return Container(
-          height: popupHeight,
-          color: brightness == Brightness.dark
-              ? CupertinoColors.systemBackground.darkColor
-              : CupertinoColors.systemBackground.color,
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: brightness == Brightness.dark
-                          ? CupertinoColors.systemGrey4.darkColor
-                          : CupertinoColors.systemGrey4.color,
-                      width: 0.5,
-                    ),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CupertinoButton(
-                      child: Text(l10n.cancel),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    Text(
-                      l10n.selectEmojiAvatar,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(width: 60),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Builder(
-                  builder: (context) {
-                    final screenWidth = MediaQuery.of(context).size.width;
-                    final crossAxisCount = (screenWidth / 50).floor().clamp(5, 10);
-                    return GridView.builder(
-                      padding: const EdgeInsets.all(16),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: crossAxisCount,
-                        mainAxisSpacing: 12,
-                        crossAxisSpacing: 12,
-                      ),
-                      itemCount: _emojiAvatars.length,
-                      itemBuilder: (context, index) {
-                        final emoji = _emojiAvatars[index];
-                        return CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: _userProfile?.avatarEmoji == emoji
-                                  ? CupertinoColors.systemBlue.withValues(alpha: 0.2)
-                                  : (brightness == Brightness.dark
-                                      ? CupertinoColors.systemGrey6.darkColor
-                                      : CupertinoColors.systemGrey6.color),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Center(
-                              child: Text(
-                                emoji,
-                                style: const TextStyle(fontSize: 24),
-                              ),
-                            ),
-                          ),
-                          onPressed: () async {
-                            final navigator = Navigator.of(context);
-                            await _updateAvatarWithEmoji(emoji);
-                            if (mounted) {
-                              navigator.pop();
-                            }
-                          },
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+    try {
+      final image = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 320,
+        maxHeight: 320,
+        imageQuality: 85,
+      );
+      if (image != null && mounted) {
+        await _updateAvatarWithImage(image.path);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showErrorDialog(
+        source == ImageSource.camera ? l10n.takePhotoFailed : l10n.pickAvatarFailed,
+        e.toString(),
+      );
+    }
   }
 
   void _showAvatarOptions() {
     final l10n = AppLocalizations.of(context)!;
-    // 模拟器没有摄像头硬件；macOS 的 image_picker 也不支持相机。
-    final bool isIosSimulator = Platform.isIOS &&
+    final isIosSimulator = Platform.isIOS &&
         Platform.environment.containsKey('SIMULATOR_DEVICE_NAME');
-    final bool cameraAvailable = !isIosSimulator &&
-        _imagePicker.supportsImageSource(ImageSource.camera);
-    showCupertinoModalPopup(
+    final cameraAvailable =
+        !isIosSimulator && _imagePicker.supportsImageSource(ImageSource.camera);
+
+    showCupertinoModalPopup<void>(
       context: context,
-      builder: (context) {
-        final primaryColor = CupertinoTheme.of(context).primaryColor;
-        return CupertinoActionSheet(
-          title: Text(l10n.selectAvatar),
-          actions: [
-            CupertinoActionSheetAction(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    CupertinoIcons.photo_on_rectangle,
-                    size: 20,
-                    color: primaryColor,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(l10n.selectFromGallery),
-                ],
-              ),
-              onPressed: () {
-                Navigator.pop(context);
-                _pickImageFromGallery();
-              },
-            ),
-            if (cameraAvailable)
-              CupertinoActionSheetAction(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      CupertinoIcons.camera,
-                      size: 20,
-                      color: primaryColor,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(l10n.takePhoto),
-                  ],
-                ),
-                onPressed: () {
-                  Navigator.pop(context);
-                  _pickImageFromCamera();
-                },
-              ),
-            CupertinoActionSheetAction(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    CupertinoIcons.smiley,
-                    size: 20,
-                    color: primaryColor,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(l10n.selectEmoji),
-                ],
-              ),
-              onPressed: () {
-                Navigator.pop(context);
-                _selectEmojiAvatar();
-              },
-            ),
-          ],
-          cancelButton: CupertinoActionSheetAction(
-            child: Text(l10n.cancel),
-            onPressed: () => Navigator.pop(context),
+      builder: (sheetContext) => CupertinoActionSheet(
+        title: Text(l10n.selectAvatar),
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(sheetContext);
+              _pickImage(ImageSource.gallery);
+            },
+            child: Text(l10n.selectFromGallery),
           ),
-        );
-      },
+          if (cameraAvailable)
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(sheetContext);
+                _pickImage(ImageSource.camera);
+              },
+              child: Text(l10n.takePhoto),
+            ),
+          if ((_userProfile?.avatarPath?.isNotEmpty ?? false) ||
+              (_userProfile?.avatarEmoji?.isNotEmpty ?? false))
+            CupertinoActionSheetAction(
+              isDestructiveAction: true,
+              onPressed: () {
+                Navigator.pop(sheetContext);
+                _resetAvatar();
+              },
+              child: Text(l10n.clear),
+            ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(sheetContext),
+          child: Text(l10n.cancel),
+        ),
+      ),
     );
   }
 
   void _showErrorDialog(String title, String message) {
     final l10n = AppLocalizations.of(context)!;
-    showCupertinoDialog(
+    showCupertinoDialog<void>(
       context: context,
-      builder: (context) => CupertinoAlertDialog(
+      builder: (dialogContext) => CupertinoAlertDialog(
         title: Text(title),
         content: Text(message),
         actions: [
           CupertinoDialogAction(
             child: Text(l10n.ok),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
           ),
         ],
       ),
@@ -696,220 +279,175 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final brightness = CupertinoTheme.of(context).brightness;
 
-    if (_isLoading) {
+    if (_isLoading || _userProfile == null) {
       return SettingsPageScaffold(
-        title: l10n.userInfo,
-        embeddedTitle: l10n.userProfile,
+        title: l10n.userProfile,
+        previousPageTitle: widget.previousPageTitle,
         embedded: widget.embedded,
         child: const Center(child: CupertinoActivityIndicator()),
       );
     }
-    if (_userProfile == null) {
-      return SettingsPageScaffold(
-        title: l10n.userInfo,
-        embeddedTitle: l10n.userProfile,
-        embedded: widget.embedded,
-        child: Center(child: Text(l10n.loading)),
-      );
-    }
+
+    final formattedBirthday = _birthday != null
+        ? DateFormat.yMMMd().format(_birthday!)
+        : l10n.selectBirthday;
 
     return SettingsPageScaffold(
-      title: l10n.userInfo,
-      embeddedTitle: l10n.userProfile,
+      title: l10n.userProfile,
+      previousPageTitle: widget.previousPageTitle,
       embedded: widget.embedded,
       child: ListView(
+        padding: const EdgeInsets.only(bottom: 32),
         children: [
-            const SizedBox(height: 32),
-            Center(
-              child: Column(
-                children: [
-                  CupertinoButton(
-                    onPressed: _showAvatarOptions,
-                    child: Stack(
-                      children: [
-                        AvatarWidget(
-                          userProfile: _userProfile!,
-                          size: 100,
-                        ),
-                        Positioned(
-                          right: 0,
-                          bottom: 0,
-                          child: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: CupertinoColors.systemBlue,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: brightness == Brightness.dark
-                                    ? CupertinoColors.systemBackground.darkColor
-                                    : CupertinoColors.systemBackground.color,
-                                width: 2,
-                              ),
-                            ),
-                            child: const Icon(
-                              CupertinoIcons.camera,
-                              color: CupertinoColors.white,
-                              size: 16,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
+          const SizedBox(height: 24),
+          Center(
+            child: Column(
+              children: [
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: _showAvatarOptions,
+                  child: AvatarWidget(userProfile: _userProfile!, size: 88),
+                ),
+                const SizedBox(height: 6),
+                CupertinoButton(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  onPressed: _showAvatarOptions,
+                  child: Text(
                     l10n.tapToChangeAvatar,
                     style: TextStyle(
-                      fontSize: 14,
-                      color: brightness == Brightness.dark
-                          ? CupertinoColors.systemGrey.darkColor
-                          : CupertinoColors.systemGrey.color,
+                      fontSize: 13.5,
+                      color: AppTokens.accent(context),
                     ),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: brightness == Brightness.dark
-                    ? CupertinoColors.systemBackground.darkColor
-                    : CupertinoColors.systemBackground.color,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: brightness == Brightness.dark
-                      ? CupertinoColors.systemGrey4.darkColor
-                      : CupertinoColors.systemGrey4.color,
-                  width: 0.5,
                 ),
+              ],
+            ),
+          ),
+          SettingsSection(
+            title: l10n.userInfo,
+            footer: l10n.aboutUserProfileContent,
+            children: [
+              SettingsInputTile(
+                title: l10n.username,
+                controller: _usernameController,
+                placeholder: l10n.enterYourUsername,
+                subtitle: l10n.usernameHint,
+                onChanged: (_) => _onUsernameChanged(),
               ),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                child: Row(
                   children: [
-                    Text(
-                      l10n.username,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.gender,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: AppTokens.label(context),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            l10n.genderHint,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppTokens.labelSecondary(context),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      l10n.usernameHint,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey.darkColor
-                            : CupertinoColors.systemGrey.color,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    CupertinoTextField(
-                      controller: _usernameController,
-                      placeholder: l10n.enterYourUsername,
-                      decoration: BoxDecoration(
-                        color: brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey6.darkColor
-                            : CupertinoColors.systemGrey6.color,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12,
-                      ),
-                      onChanged: (_) => _onUsernameChanged(),
+                    const SizedBox(width: 12),
+                    CupertinoSlidingSegmentedControl<String>(
+                      groupValue: (_gender == 'male' || _gender == 'female')
+                          ? _gender
+                          : null,
+                      children: {
+                        'male': Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: Text(
+                            l10n.male,
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        ),
+                        'female': Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: Text(
+                            l10n.female,
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        ),
+                      },
+                      onValueChanged: _onGenderChanged,
                     ),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: brightness == Brightness.dark
-                    ? CupertinoColors.systemBackground.darkColor
-                    : CupertinoColors.systemBackground.color,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: brightness == Brightness.dark
-                      ? CupertinoColors.systemGrey4.darkColor
-                      : CupertinoColors.systemGrey4.color,
-                  width: 0.5,
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _showBirthdayPicker,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l10n.birthday,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: AppTokens.label(context),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              l10n.birthdayHint,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppTokens.labelSecondary(context),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        formattedBirthday,
+                        style: TextStyle(
+                          fontSize: 14.5,
+                          color: _birthday != null
+                              ? AppTokens.label(context)
+                              : AppTokens.labelSecondary(context),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        CupertinoIcons.chevron_right,
+                        size: 16,
+                        color: AppTokens.labelTertiary(context),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              child: _buildDropdownTile(
-                l10n.gender,
-                value: _gender,
-                options: {
-                  'male': l10n.male,
-                  'female': l10n.female,
-                },
-                subtitle: l10n.genderHint,
-                onChanged: _onGenderChanged,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: brightness == Brightness.dark
-                    ? CupertinoColors.systemBackground.darkColor
-                    : CupertinoColors.systemBackground.color,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: brightness == Brightness.dark
-                      ? CupertinoColors.systemGrey4.darkColor
-                      : CupertinoColors.systemGrey4.color,
-                  width: 0.5,
-                ),
-              ),
-              child: _buildBirthdayTile(
-                l10n.birthday,
-                value: _birthday,
-                subtitle: l10n.birthdayHint,
-                onPressed: _showBirthdayPicker,
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: brightness == Brightness.dark
-                    ? CupertinoColors.systemGrey6.darkColor
-                    : CupertinoColors.systemGrey6.color,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.aboutUserProfile,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    l10n.aboutUserProfileContent,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: brightness == Brightness.dark
-                          ? CupertinoColors.systemGrey.darkColor
-                          : CupertinoColors.systemGrey.color,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

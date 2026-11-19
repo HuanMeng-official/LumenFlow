@@ -1,249 +1,265 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../utils/app_theme.dart';
 import '../advanced_settings_screen.dart';
-import '../api_settings_screen.dart';
 import '../appearance_settings_screen.dart';
 import '../conversation_settings_screen.dart';
-import '../model_settings_screen.dart';
-import '../platform_settings_screen.dart';
-import '../preset_management_screen.dart';
+import '../providers_models_screen.dart';
 import '../tool_management_screen.dart';
 import '../user_profile_screen.dart';
 
-enum _SettingsCategory {
-  profile,
-  platform,
-  api,
-  model,
+/// 桌面端统一设置分组枚举
+enum DesktopSettingsCategory {
+  providers,
   conversation,
   appearance,
-  preset,
-  tool,
+  profile,
+  tools,
   advanced,
 }
 
-/// 桌面端两栏设置页
-///
-/// 左侧是分类导航，右侧通过嵌套 Navigator 复用现有设置子页。
-/// 切换分类时右侧回到该分类的根页面，二级页面留在右栏内。
+class _SettingsNavItem {
+  final DesktopSettingsCategory category;
+  final IconData icon;
+  final Color badgeColor;
+  final String label;
+
+  const _SettingsNavItem({
+    required this.category,
+    required this.icon,
+    required this.badgeColor,
+    required this.label,
+  });
+}
+
+/// 桌面端两栏系统设置（macOS 系统设置风格：224px 侧栏 + 6 个原生分组）。
 class DesktopSettingsScreen extends StatefulWidget {
-  const DesktopSettingsScreen({super.key});
+  final DesktopSettingsCategory initialCategory;
+
+  const DesktopSettingsScreen({
+    super.key,
+    this.initialCategory = DesktopSettingsCategory.providers,
+  });
 
   @override
   State<DesktopSettingsScreen> createState() => _DesktopSettingsScreenState();
 }
 
 class _DesktopSettingsScreenState extends State<DesktopSettingsScreen> {
-  _SettingsCategory _category = _SettingsCategory.profile;
-  GlobalKey<NavigatorState> _categoryNavigatorKey = GlobalKey<NavigatorState>();
+  late DesktopSettingsCategory _selected;
 
-  void _selectCategory(_SettingsCategory category) {
-    if (category == _category) return;
-    setState(() {
-      _category = category;
-      _categoryNavigatorKey = GlobalKey<NavigatorState>();
-    });
+  @override
+  void initState() {
+    super.initState();
+    _selected = widget.initialCategory;
   }
 
-  String _categoryTitle(_SettingsCategory category, AppLocalizations l10n) {
-    return switch (category) {
-      _SettingsCategory.profile => l10n.userProfile,
-      _SettingsCategory.platform => l10n.platformAndModel,
-      _SettingsCategory.api => l10n.apiType,
-      _SettingsCategory.model => l10n.modelSettings,
-      _SettingsCategory.conversation => l10n.historyConversation,
-      _SettingsCategory.appearance => l10n.appearance,
-      _SettingsCategory.preset => l10n.presetManagement,
-      _SettingsCategory.tool => l10n.toolManagement,
-      _SettingsCategory.advanced => l10n.advancedSettings,
-    };
-  }
+  List<_SettingsNavItem> _buildNavItems(AppLocalizations l10n) => [
+        _SettingsNavItem(
+          category: DesktopSettingsCategory.providers,
+          icon: CupertinoIcons.cube_box,
+          badgeColor: const Color(0xFF007AFF),
+          label: l10n.providersAndModels,
+        ),
+        _SettingsNavItem(
+          category: DesktopSettingsCategory.conversation,
+          icon: CupertinoIcons.chat_bubble_2,
+          badgeColor: const Color(0xFF34C759),
+          label: l10n.conversationAndMemory,
+        ),
+        _SettingsNavItem(
+          category: DesktopSettingsCategory.appearance,
+          icon: CupertinoIcons.paintbrush,
+          badgeColor: const Color(0xFF5856D6),
+          label: l10n.appearanceAndLanguage,
+        ),
+        _SettingsNavItem(
+          category: DesktopSettingsCategory.profile,
+          icon: CupertinoIcons.person_fill,
+          badgeColor: const Color(0xFF5AC8FA),
+          label: l10n.userProfile,
+        ),
+        _SettingsNavItem(
+          category: DesktopSettingsCategory.tools,
+          icon: CupertinoIcons.wrench,
+          badgeColor: const Color(0xFFFF9500),
+          label: l10n.toolManagement,
+        ),
+        _SettingsNavItem(
+          category: DesktopSettingsCategory.advanced,
+          icon: CupertinoIcons.info_circle,
+          badgeColor: const Color(0xFF8E8E93),
+          label: l10n.notificationsDataAbout,
+        ),
+      ];
 
-  IconData _categoryIcon(_SettingsCategory category) {
-    return switch (category) {
-      _SettingsCategory.profile => CupertinoIcons.person_crop_circle,
-      _SettingsCategory.platform => CupertinoIcons.cube_box,
-      _SettingsCategory.api => CupertinoIcons.cloud,
-      _SettingsCategory.model => CupertinoIcons.speedometer,
-      _SettingsCategory.conversation => CupertinoIcons.chat_bubble_2,
-      _SettingsCategory.appearance => CupertinoIcons.paintbrush,
-      _SettingsCategory.preset => CupertinoIcons.doc_text,
-      _SettingsCategory.tool => CupertinoIcons.wrench,
-      _SettingsCategory.advanced => CupertinoIcons.settings,
-    };
-  }
-
-  Widget _buildPage(_SettingsCategory category) {
-    return switch (category) {
-      _SettingsCategory.profile => const UserProfileScreen(embedded: true),
-      _SettingsCategory.platform =>
-        const PlatformSettingsScreen(embedded: true),
-      _SettingsCategory.api => const ApiSettingsScreen(embedded: true),
-      _SettingsCategory.model => const ModelSettingsScreen(embedded: true),
-      _SettingsCategory.conversation =>
-        const ConversationSettingsScreen(embedded: true),
-      _SettingsCategory.appearance =>
-        const AppearanceSettingsScreen(embedded: true),
-      _SettingsCategory.preset =>
-        const PresetManagementScreen(embedded: true),
-      _SettingsCategory.tool => const ToolManagementScreen(embedded: true),
-      _SettingsCategory.advanced =>
-        const AdvancedSettingsScreen(embedded: true),
-    };
+  Widget _buildDetailScreen() {
+    switch (_selected) {
+      case DesktopSettingsCategory.providers:
+        return const ProvidersModelsScreen(
+          key: ValueKey('providers'),
+          embedded: true,
+        );
+      case DesktopSettingsCategory.conversation:
+        return const ConversationSettingsScreen(
+          key: ValueKey('conversation'),
+          embedded: true,
+        );
+      case DesktopSettingsCategory.appearance:
+        return const AppearanceSettingsScreen(
+          key: ValueKey('appearance'),
+          embedded: true,
+        );
+      case DesktopSettingsCategory.profile:
+        return const UserProfileScreen(
+          key: ValueKey('profile'),
+          embedded: true,
+        );
+      case DesktopSettingsCategory.tools:
+        return const ToolManagementScreen(
+          key: ValueKey('tools'),
+          embedded: true,
+        );
+      case DesktopSettingsCategory.advanced:
+        return const AdvancedSettingsScreen(
+          key: ValueKey('advanced'),
+          embedded: true,
+        );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final brightness = CupertinoTheme.of(context).brightness;
-    final sidebarColor = brightness == Brightness.dark
-        ? CupertinoColors.systemGrey6.darkColor
-        : CupertinoColors.systemGrey6.color;
-    final dividerColor = CupertinoColors.systemGrey4.resolveFrom(context);
-    final contentColor = brightness == Brightness.dark
-        ? CupertinoColors.systemBackground.darkColor
-        : CupertinoColors.systemBackground.color;
-    final groupLabelColor = CupertinoColors.systemGrey.resolveFrom(context);
+    final items = _buildNavItems(l10n);
 
-    return ColoredBox(
-      color: sidebarColor,
-      child: SafeArea(
-        bottom: false,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(
-              width: 236,
+    return CupertinoPageScaffold(
+      backgroundColor: AppTokens.groupedBg(context),
+      child: Row(
+        children: [
+          Container(
+            width: 224,
+            color: AppTokens.sidebarBg(context),
+            child: SafeArea(
+              right: false,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildHeader(l10n, dividerColor),
-                  Expanded(
-                    child: SafeArea(
-                      top: false,
-                      child: ListView(
-                        padding: const EdgeInsets.fromLTRB(10, 6, 10, 12),
-                        children: [
-                          _buildGroupLabel(l10n.userInfo, groupLabelColor),
-                          _buildItem(_SettingsCategory.profile, l10n),
-                          _buildItem(_SettingsCategory.platform, l10n),
-                          _buildGroupLabel(l10n.basicSettings, groupLabelColor),
-                          _buildItem(_SettingsCategory.api, l10n),
-                          _buildItem(_SettingsCategory.model, l10n),
-                          _buildItem(_SettingsCategory.conversation, l10n),
-                          _buildItem(_SettingsCategory.appearance, l10n),
-                          _buildItem(_SettingsCategory.preset, l10n),
-                          _buildItem(_SettingsCategory.tool, l10n),
-                          _buildGroupLabel(l10n.others, groupLabelColor),
-                          _buildItem(_SettingsCategory.advanced, l10n),
-                        ],
+                  Container(
+                    height: 52,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: AppTokens.separator(context),
+                          width: 0.5,
+                        ),
                       ),
+                    ),
+                    child: Row(
+                      children: [
+                        CupertinoButton(
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          minimumSize: const Size(32, 32),
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Icon(
+                            CupertinoIcons.back,
+                            size: 20,
+                            color: AppTokens.accent(context),
+                          ),
+                        ),
+                        const SizedBox(width: 2),
+                        Expanded(
+                          child: Text(
+                            l10n.settings,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppTokens.label(context),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(10, 10, 10, 16),
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        final item = items[index];
+                        final selected = item.category == _selected;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 2),
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () =>
+                                setState(() => _selected = item.category),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: selected
+                                    ? AppTokens.accent(context)
+                                    : CupertinoColors.transparent,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 24,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      color: selected
+                                          ? CupertinoColors.white
+                                              .withValues(alpha: 0.22)
+                                          : item.badgeColor,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Icon(
+                                      item.icon,
+                                      size: 14,
+                                      color: CupertinoColors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      item.label,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 13.5,
+                                        fontWeight: selected
+                                            ? FontWeight.w600
+                                            : FontWeight.w500,
+                                        color: selected
+                                            ? CupertinoColors.white
+                                            : AppTokens.label(context),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],
               ),
             ),
-            Container(width: 0.5, color: dividerColor),
-            Expanded(
-              child: ColoredBox(
-                color: contentColor,
-                child: NavigatorPopHandler<Object?>(
-                  onPopWithResult: (result) {
-                    _categoryNavigatorKey.currentState?.pop(result);
-                  },
-                  child: Navigator(
-                    key: _categoryNavigatorKey,
-                    onGenerateRoute: (settings) => CupertinoPageRoute<void>(
-                      settings: settings,
-                      builder: (context) => _buildPage(_category),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(AppLocalizations l10n, Color dividerColor) {
-    return Container(
-      height: 52,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: dividerColor, width: 0.5),
-        ),
-      ),
-      child: Row(
-        children: [
-          CupertinoButton(
-            padding: EdgeInsets.zero,
-            minimumSize: const Size(28, 28),
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Icon(CupertinoIcons.chevron_back, size: 18),
           ),
-          const SizedBox(width: 4),
-          Text(
-            l10n.settings,
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+          Container(
+            width: 0.5,
+            color: AppTokens.separator(context),
           ),
+          Expanded(child: _buildDetailScreen()),
         ],
-      ),
-    );
-  }
-
-  Widget _buildGroupLabel(String title, Color color) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 14, 8, 4),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w500,
-          color: color,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildItem(_SettingsCategory category, AppLocalizations l10n) {
-    final primary = CupertinoTheme.of(context).primaryColor;
-    final selected = category == _category;
-    final textColor = selected
-        ? primary
-        : CupertinoColors.label.resolveFrom(context);
-
-    return GestureDetector(
-      key: ValueKey('settings-category-${category.name}'),
-      behavior: HitTestBehavior.opaque,
-      onTap: () => _selectCategory(category),
-      child: Container(
-        height: 32,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        decoration: BoxDecoration(
-          color: selected ? primary.withValues(alpha: 0.14) : null,
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Row(
-          children: [
-            Icon(_categoryIcon(category), size: 16, color: primary),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                _categoryTitle(category, l10n),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                  color: textColor,
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

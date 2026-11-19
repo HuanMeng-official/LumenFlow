@@ -1884,4 +1884,111 @@ class AppLocalizationsEn extends AppLocalizations {
   String presetDetailWorldInfoStats(int entries, int scanDepth, int budget) {
     return 'Entries $entries · Scan depth $scanDepth · Budget $budget tokens';
   }
+
+  @override
+  String get providersAndModels => 'Providers & Models';
+
+  @override
+  String get conversationAndMemory => 'Chat & Memory';
+
+  @override
+  String get appearanceAndLanguage => 'Appearance & Language';
+
+  @override
+  String get notificationsDataAbout => 'Notifications, Data & About';
+
+  @override
+  String get characters => 'Characters';
+
+  @override
+  String get mcpServers => 'MCP Servers';
+
+  @override
+  String get addMcpServer => 'Add MCP Server';
+
+  @override
+  String get editMcpServer => 'Edit MCP Server';
+
+  @override
+  String get deleteMcpServer => 'Delete MCP Server';
+
+  @override
+  String get mcpServerName => 'Server Name';
+
+  @override
+  String get mcpServerUrl => 'Server URL';
+
+  @override
+  String get mcpTransportLabel => 'Transport';
+
+  @override
+  String get mcpTestConnection => 'Test Connection';
+
+  @override
+  String mcpConnectedToolsCount(int count) {
+    return 'Connected, $count tools found';
+  }
+
+  @override
+  String get mcpNoToolsReturned => 'Connected, no tools returned';
+
+  @override
+  String get mcpInvalidConfig => 'Please enter a name and valid URL';
+
+  @override
+  String get mcpHeadersTitle => 'Request Headers';
+
+  @override
+  String get addHeader => 'Add Header';
+
+  @override
+  String get headerKeyPlaceholder => 'Key (e.g. Authorization)';
+
+  @override
+  String get headerValuePlaceholder => 'Value';
+
+  @override
+  String get mcpPlatformSupported => 'The active platform supports tool calling via HTTP / SSE MCP servers.';
+
+  @override
+  String get mcpPlatformUnsupported => 'The active platform does not support tool calling.';
+
+  @override
+  String get inspectorMemoryAndLore => 'Memory & Lore';
+
+  @override
+  String get worldInfoTriggerTest => 'Trigger Test';
+
+  @override
+  String get startChat => 'Start Chat';
+
+  @override
+  String get editPreset => 'Edit Preset';
+
+  @override
+  String get enablePlatform => 'Set as Active Provider';
+
+  @override
+  String get availableModels => 'Available Models';
+
+  @override
+  String get defaultModelLabel => 'Default Model';
+
+  @override
+  String get addCustomModel => 'Add Custom Model';
+
+  @override
+  String get userProfileSummarySubtitle => 'Profile, gender & birthday';
+
+  @override
+  String get pinnedConversations => 'Pinned';
+
+  @override
+  String get recentConversations => 'Recent';
+
+  @override
+  String get exportAction => 'Export';
+
+  @override
+  String get presetOverview => 'Character';
 }

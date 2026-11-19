@@ -26,9 +26,15 @@ import '../services/preset_repository.dart';
 import '../services/user_service.dart';
 import '../services/world_info_service.dart';
 import '../utils/app_theme.dart';
+import '../utils/platform_utils.dart';
+import '../utils/preset_sections.dart';
+import '../widgets/desktop/desktop_popover.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/chat_input.dart';
+import '../widgets/preset_sections_view.dart';
 import '../widgets/preset_unavailable_dialog.dart';
+import '../widgets/world_info_activation_panel.dart';
+import 'appearance_settings_screen.dart';
 import 'settings_screen.dart';
 import 'conversation_list_screen.dart';
 import 'memory_viewer_screen.dart';
@@ -54,6 +60,9 @@ class ChatScreen extends StatefulWidget {
     this.onConversationChanged,
     this.onConversationListChanged,
     this.onOpenSettings,
+    this.onOpenBackgroundAppearance,
+    this.initialConversationId,
+    this.previousPageTitle,
     this.conversationService,
   });
 
@@ -63,6 +72,9 @@ class ChatScreen extends StatefulWidget {
   final ValueChanged<String?>? onConversationChanged;
   final VoidCallback? onConversationListChanged;
   final VoidCallback? onOpenSettings;
+  final VoidCallback? onOpenBackgroundAppearance;
+  final String? initialConversationId;
+  final String? previousPageTitle;
 
   /// 测试注入；生产环境使用默认单例。
   final ConversationService? conversationService;
@@ -127,6 +139,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   // 对话加载控制
   bool _isLoadingConversation = false; // 防止重复加载对话
+  bool _inspectorOpen = false; // 桌面右侧检查器抽屉开关
+  int _inspectorTab = 0; // 0: 记忆档案, 1: 世界书
 
   @override
   void initState() {
@@ -150,7 +164,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     /// 初始化状态
     /// 1. 检查API配置是否完成
-    /// 2. 加载最近使用的对话或创建新对话
+    /// 2. 加载指定会话、最近使用的对话或进入空状态
     _initializeApp();
   }
 
@@ -158,10 +172,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Future<void> _initializeApp() async {
     await _checkConfiguration();
 
-    // 恢复上次会话；没有历史时才等用户发送第一条消息再创建，
-    // 避免启动或打开列表时凭空多出一条「新对话」。
-    final conversationId = await _conversationService
-        .resolveConversationForStartup();
+    final conversationId =
+        widget.initialConversationId ??
+        await _conversationService.resolveConversationForStartup();
     if (conversationId != null) {
       await _setCurrentConversation(conversationId);
     }
@@ -528,6 +541,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _promptPresetEnabled = enabled;
       if (!enabled) {
         _currentPresetId = '';
+        _inspectorTab = 0;
       }
     });
     _saveConversationPreferences();
@@ -538,6 +552,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     setState(() {
       _currentPresetId = presetId;
       _promptPresetEnabled = true;
+      if (_findPresetById(presetId)?.worldInfo == null) {
+        _inspectorTab = 0;
+      }
     });
     _saveConversationPreferences();
   }
@@ -1594,6 +1611,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final cjkFallback = cjkFontFallbackForLocale(
       Localizations.maybeLocaleOf(context),
     );
+    final isWide = useWideLayout(MediaQuery.sizeOf(context));
+    final activePreset = _promptPresetEnabled && _currentPresetId.isNotEmpty
+        ? _findPresetById(_currentPresetId)
+        : null;
 
     /// 构建聊天界面布局
     /// 包含：导航栏、消息列表、输入框、配置提示等组件
@@ -1608,29 +1629,56 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             ),
           ),
 
-        // 原有界面层
+        // 对话正文层
         SafeArea(
           child: Column(
             children: [
               if (!_isConfigured)
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  color: CupertinoColors.systemYellow.withValues(alpha: 0.2),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        CupertinoIcons.exclamationmark_triangle,
-                        color: CupertinoColors.systemOrange,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  color: CupertinoColors.systemYellow.withValues(alpha: 0.16),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxWidth: AppTokens.chatMaxWidth,
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text(l10n.pleaseConfigureAPI)),
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: _openSettings,
-                        child: Text(l10n.settingsButton),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            CupertinoIcons.exclamationmark_triangle,
+                            size: 17,
+                            color: CupertinoColors.systemOrange,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              l10n.pleaseConfigureAPI,
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                fontFamilyFallback: cjkFallback,
+                                color: AppTokens.label(context),
+                              ),
+                            ),
+                          ),
+                          CupertinoButton(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 28),
+                            onPressed: _openSettings,
+                            child: Text(
+                              l10n.settingsButton,
+                              style: const TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               Expanded(
@@ -1638,15 +1686,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     ? _buildEmptyState()
                     : ListView.builder(
                         controller: _scrollController,
-                        padding: const EdgeInsets.all(16),
+                        padding: EdgeInsets.fromLTRB(
+                          isWide ? 24 : 16,
+                          16,
+                          isWide ? 24 : 16,
+                          16,
+                        ),
                         itemCount: _messages.length + (_isLoading ? 1 : 0),
                         physics: const AlwaysScrollableScrollPhysics(),
-                        // 性能优化配置
-                        addAutomaticKeepAlives: true, // 启用自动保持活动状态
-                        addRepaintBoundaries: true, // 隔离重绘，避免整个列表重绘
-                        scrollCacheExtent: ScrollCacheExtent.pixels(
-                          500,
-                        ), // 预渲染屏幕外 500 像素的消息
+                        addAutomaticKeepAlives: true,
+                        addRepaintBoundaries: true,
+                        scrollCacheExtent: ScrollCacheExtent.pixels(500),
                         itemBuilder: (context, index) {
                           if (index == _messages.length && _isLoading) {
                             return const TypingIndicator();
@@ -1659,6 +1709,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             ),
                             message: message,
                             userProfile: _userProfile,
+                            activePreset: activePreset,
+                            assistantName: _currentModel,
                             onEdit: _editUserMessage,
                             onRegenerate: _regenerateAiResponse,
                             onResubmit: (msg) =>
@@ -1681,25 +1733,41 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
-                    vertical: 8,
+                    vertical: 7,
                   ),
-                  color: CupertinoColors.systemGrey6.resolveFrom(context),
-                  child: Row(
-                    children: [
-                      const CupertinoActivityIndicator(radius: 7),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _memoryStatus!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontFamilyFallback: cjkFallback,
-                          ),
-                        ),
+                  decoration: BoxDecoration(
+                    color: AppTokens.sidebarBg(context),
+                    border: Border(
+                      top: BorderSide(
+                        color: AppTokens.separator(context),
+                        width: 0.5,
                       ),
-                    ],
+                    ),
+                  ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxWidth: AppTokens.chatMaxWidth,
+                      ),
+                      child: Row(
+                        children: [
+                          const CupertinoActivityIndicator(radius: 7),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _memoryStatus!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                color: AppTokens.labelSecondary(context),
+                                fontFamilyFallback: cjkFallback,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ChatInput(
@@ -1730,7 +1798,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       return SafeArea(
         bottom: false,
         child: ColoredBox(
-          color: CupertinoColors.systemBackground.resolveFrom(context),
+          color: AppTokens.bg(context),
           child: Column(
             children: [
               _buildDesktopTopBar(context),
@@ -1738,7 +1806,26 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 child: MediaQuery.removePadding(
                   context: context,
                   removeTop: true,
-                  child: chatBody,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(child: chatBody),
+                      if (_inspectorOpen) ...[
+                        Container(
+                          width: 0.5,
+                          color: AppTokens.separator(context),
+                        ),
+                        SizedBox(
+                          width: 300,
+                          child: _buildInspectorDrawer(
+                            context,
+                            l10n,
+                            activePreset,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -1748,6 +1835,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
 
     return CupertinoPageScaffold(
+      backgroundColor: AppTokens.bg(context),
       navigationBar: _buildMobileNavigationBar(context),
       child: chatBody,
     );
@@ -1755,49 +1843,108 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   CupertinoNavigationBar _buildMobileNavigationBar(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final canPop = Navigator.of(context).canPop();
+    final fontFallback =
+        cjkFontFallbackForLocale(Localizations.maybeLocaleOf(context));
+
     return CupertinoNavigationBar(
-      leading: CupertinoButton(
-        padding: EdgeInsets.zero,
-        onPressed: _openConversationList,
-        child: const Icon(CupertinoIcons.chat_bubble_2),
+      backgroundColor: AppTokens.bg(context),
+      previousPageTitle: canPop
+          ? (widget.previousPageTitle ?? l10n.conversations)
+          : null,
+      leading: canPop
+          ? null
+          : CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: _openConversationList,
+              child: const Icon(CupertinoIcons.chat_bubble_2),
+            ),
+      middle: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _showModelSelector(),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _currentTitle.isEmpty ? l10n.aiAssistant : _currentTitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                fontFamilyFallback: fontFallback,
+              ),
+            ),
+            if (_currentModel.isNotEmpty)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      _currentModel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w400,
+                        color: AppTokens.labelSecondary(context),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  Icon(
+                    CupertinoIcons.chevron_down,
+                    size: 10,
+                    color: AppTokens.labelTertiary(context),
+                  ),
+                ],
+              ),
+          ],
+        ),
       ),
-      middle: Text(_currentTitle.isEmpty ? l10n.aiAssistant : _currentTitle),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           CupertinoButton(
             padding: EdgeInsets.zero,
             onPressed: _messages.isEmpty ? null : _openMessageSearch,
-            child: const Icon(CupertinoIcons.search),
+            child: const Icon(CupertinoIcons.search, size: 20),
           ),
+          if (_currentConversation != null)
+            CupertinoButton(
+              padding: const EdgeInsets.only(left: 10),
+              onPressed: _openMemoryViewer,
+              child: const Icon(CupertinoIcons.square_stack_3d_up, size: 20),
+            ),
           CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: _createNewConversation,
-            child: const Icon(CupertinoIcons.add),
-          ),
-          CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: _showMoreOptions,
-            child: const Icon(CupertinoIcons.ellipsis),
+            padding: const EdgeInsets.only(left: 10),
+            onPressed: () => _showMoreOptions(),
+            child: const Icon(CupertinoIcons.ellipsis, size: 20),
           ),
         ],
+      ),
+      border: Border(
+        bottom: BorderSide(
+          color: AppTokens.separator(context),
+          width: 0.5,
+        ),
       ),
     );
   }
 
   Widget _buildDesktopTopBar(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final iconColor = CupertinoTheme.of(context).primaryColor;
-    final searchColor = _messages.isEmpty
-        ? CupertinoColors.systemGrey.resolveFrom(context)
-        : iconColor;
+    final fontFallback =
+        cjkFontFallbackForLocale(Localizations.maybeLocaleOf(context));
+
     return Container(
       height: 52,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 18),
       decoration: BoxDecoration(
+        color: AppTokens.bg(context),
         border: Border(
           bottom: BorderSide(
-            color: CupertinoColors.systemGrey4.resolveFrom(context),
+            color: AppTokens.separator(context),
             width: 0.5,
           ),
         ),
@@ -1805,23 +1952,266 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       child: Row(
         children: [
           Expanded(
-            child: Text(
-              _currentTitle.isEmpty ? l10n.aiAssistant : _currentTitle,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Builder(
+                builder: (anchorContext) => CupertinoButton(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  minimumSize: const Size(0, 32),
+                  onPressed: () =>
+                      _showModelSelector(anchorContext: anchorContext),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          _currentTitle.isEmpty
+                              ? l10n.aiAssistant
+                              : _currentTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w600,
+                            fontFamilyFallback: fontFallback,
+                            color: AppTokens.label(context),
+                          ),
+                        ),
+                      ),
+                      if (_currentModel.isNotEmpty) ...[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 7),
+                          child: Text(
+                            '·',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppTokens.labelTertiary(context),
+                            ),
+                          ),
+                        ),
+                        Flexible(
+                          child: Text(
+                            _currentModel,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: AppTokens.labelSecondary(context),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          CupertinoIcons.chevron_down,
+                          size: 11,
+                          color: AppTokens.labelTertiary(context),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
           CupertinoButton(
-            padding: EdgeInsets.zero,
+            padding: const EdgeInsets.all(6),
+            minimumSize: const Size(30, 30),
             onPressed: _messages.isEmpty ? null : _openMessageSearch,
-            child: Icon(CupertinoIcons.search, color: searchColor),
+            child: Icon(
+              CupertinoIcons.search,
+              size: 17,
+              color: _messages.isEmpty
+                  ? AppTokens.labelTertiary(context)
+                  : AppTokens.labelSecondary(context),
+            ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
           CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: _showMoreOptions,
-            child: Icon(CupertinoIcons.ellipsis, color: iconColor),
+            padding: const EdgeInsets.all(6),
+            minimumSize: const Size(30, 30),
+            onPressed: () => setState(() => _inspectorOpen = !_inspectorOpen),
+            child: Icon(
+              CupertinoIcons.sidebar_right,
+              size: 17,
+              color: _inspectorOpen
+                  ? AppTokens.accent(context)
+                  : AppTokens.labelSecondary(context),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Builder(
+            builder: (anchorContext) => CupertinoButton(
+              padding: const EdgeInsets.all(6),
+              minimumSize: const Size(30, 30),
+              onPressed: () => _showMoreOptions(anchorContext: anchorContext),
+              child: Icon(
+                CupertinoIcons.ellipsis,
+                size: 18,
+                color: AppTokens.labelSecondary(context),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInspectorDrawer(
+    BuildContext context,
+    AppLocalizations l10n,
+    PromptPreset? activePreset,
+  ) {
+    final roleplayActive =
+        _promptPresetEnabled && _currentPresetId.isNotEmpty;
+    final worldInfo = roleplayActive ? activePreset?.worldInfo : null;
+    final hasWorldInfo = worldInfo != null;
+    final effectiveTab = hasWorldInfo ? _inspectorTab : 0;
+
+    return ColoredBox(
+      color: AppTokens.sidebarBg(context),
+      child: Column(
+        children: [
+          Container(
+            height: 46,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: AppTokens.separator(context),
+                  width: 0.5,
+                ),
+              ),
+            ),
+            child: Row(
+              children: [
+                if (hasWorldInfo)
+                  Expanded(
+                    child: CupertinoSlidingSegmentedControl<int>(
+                      groupValue: effectiveTab,
+                      children: {
+                        0: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Text(
+                            l10n.memoryViewerTitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ),
+                        1: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Text(
+                            l10n.worldInfo,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ),
+                      },
+                      onValueChanged: (value) {
+                        if (value != null) setState(() => _inspectorTab = value);
+                      },
+                    ),
+                  )
+                else
+                  Expanded(
+                    child: Text(
+                      roleplayActive
+                          ? l10n.memoryViewerRoleplayTitle
+                          : l10n.memoryViewerTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppTokens.label(context),
+                      ),
+                    ),
+                  ),
+                const SizedBox(width: 6),
+                CupertinoButton(
+                  padding: const EdgeInsets.all(4),
+                  minimumSize: const Size(26, 26),
+                  onPressed: () => setState(() => _inspectorOpen = false),
+                  child: Icon(
+                    CupertinoIcons.xmark,
+                    size: 14,
+                    color: AppTokens.labelSecondary(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: (effectiveTab == 0 || worldInfo == null)
+                ? (_currentConversation == null
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Text(
+                            l10n.memoryViewerEmptyTitle,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppTokens.labelSecondary(context),
+                            ),
+                          ),
+                        ),
+                      )
+                    : MemoryViewerScreen(
+                        key: ValueKey(_currentConversation!.id),
+                        conversationId: _currentConversation!.id,
+                        conversationService: _conversationService,
+                        roleplayMode: roleplayActive,
+                        preset: activePreset,
+                        embedded: true,
+                      ))
+                : ListView(
+                    padding: const EdgeInsets.all(14),
+                    children: [
+                      if (worldInfo.background.trim().isNotEmpty) ...[
+                        Text(
+                          l10n.worldInfoBackground,
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: AppTokens.labelSecondary(context),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        PresetSectionsView(
+                          sections: [
+                            PresetSection(text: worldInfo.background),
+                          ],
+                          showLabels: false,
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                      Text(
+                        l10n.presetDetailWorldInfoStats(
+                          worldInfo.entries.length,
+                          worldInfo.scanDepth,
+                          worldInfo.budgetTokens,
+                        ),
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: AppTokens.labelTertiary(context),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      for (final entry in worldInfo.entries) ...[
+                        WorldInfoEntryPreviewCard(
+                          entry: entry,
+                          compact: true,
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                    ],
+                  ),
           ),
         ],
       ),
@@ -1836,27 +2226,68 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final cjkFallback = cjkFontFallbackForLocale(
       Localizations.maybeLocaleOf(context),
     );
+    final activePreset = _promptPresetEnabled && _currentPresetId.isNotEmpty
+        ? _findPresetById(_currentPresetId)
+        : null;
+
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            CupertinoIcons.chat_bubble_2,
-            size: 64,
-            color: CupertinoColors.systemGrey,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            l10n.startChatting,
-            style: TextStyle(
-              fontSize: 18,
-              fontFamilyFallback: cjkFallback,
-              color: CupertinoColors.systemGrey,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              activePreset != null
+                  ? CupertinoIcons.person_crop_circle
+                  : CupertinoIcons.chat_bubble_2,
+              size: 46,
+              color: AppTokens.labelTertiary(context),
             ),
-          ),
-        ],
+            const SizedBox(height: 14),
+            Text(
+              activePreset != null ? activePreset.name : l10n.startChatting,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w500,
+                fontFamilyFallback: cjkFallback,
+                color: AppTokens.labelSecondary(context),
+              ),
+            ),
+            if (activePreset != null &&
+                activePreset.description.trim().isNotEmpty) ...[
+              const SizedBox(height: 6),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Text(
+                  activePreset.description,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontFamilyFallback: cjkFallback,
+                    color: AppTokens.labelTertiary(context),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
+  }
+
+  Future<void> _openBackgroundAppearance() async {
+    final callback = widget.onOpenBackgroundAppearance;
+    if (callback != null) {
+      callback();
+      return;
+    }
+    await Navigator.of(context, rootNavigator: true).push(
+      CupertinoPageRoute(
+        builder: (_) => const AppearanceSettingsScreen(),
+      ),
+    );
+    await _loadBackgroundSettings();
   }
 
   /// 加载当前模型
@@ -1892,8 +2323,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   /// 显示模型选择器
   ///
-  /// 显示底部菜单让用户选择模型
-  Future<void> _showModelSelector() async {
+  /// 显示模型选择器（宽屏使用顶部就地 Popover，移动端使用底部 ActionSheet）
+  Future<void> _showModelSelector({BuildContext? anchorContext}) async {
     final currentPlatform = await _settingsService.getCurrentPlatform();
 
     if (!mounted) return;
@@ -1901,50 +2332,65 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final l10n = AppLocalizations.of(context)!;
 
     if (currentPlatform == null) {
-      if (mounted) {
-        showCupertinoDialog(
-          context: context,
-          builder: (context) => CupertinoAlertDialog(
-            title: const Text('未配置平台'),
-            content: const Text('请先在设置中配置AI平台'),
-            actions: [
-              CupertinoDialogAction(
-                child: Text(l10n.ok),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-        );
-      }
+      await showCupertinoDialog<void>(
+        context: context,
+        builder: (dialogContext) => CupertinoAlertDialog(
+          title: Text(l10n.needConfiguration),
+          content: Text(l10n.configureAPIPrompt),
+          actions: [
+            CupertinoDialogAction(
+              child: Text(l10n.ok),
+              onPressed: () => Navigator.pop(dialogContext),
+            ),
+          ],
+        ),
+      );
       return;
     }
 
     final availableModels = currentPlatform.availableModels;
 
     if (availableModels.isEmpty) {
-      if (mounted) {
-        showCupertinoDialog(
-          context: context,
-          builder: (context) => CupertinoAlertDialog(
-            title: const Text('暂无可用模型'),
-            content: const Text('当前平台没有可用的模型列表，请在设置中刷新模型列表'),
-            actions: [
-              CupertinoDialogAction(
-                child: Text(l10n.ok),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-        );
-      }
+      await showCupertinoDialog<void>(
+        context: context,
+        builder: (dialogContext) => CupertinoAlertDialog(
+          title: Text(l10n.noModelsAvailable),
+          content: Text(l10n.configureAPIPrompt),
+          actions: [
+            CupertinoDialogAction(
+              child: Text(l10n.ok),
+              onPressed: () => Navigator.pop(dialogContext),
+            ),
+          ],
+        ),
+      );
       return;
     }
 
     if (!mounted) return;
 
+    if (anchorContext != null &&
+        anchorContext.mounted &&
+        useWideLayout(MediaQuery.sizeOf(context))) {
+      await showDesktopPopoverMenu(
+        anchorContext: anchorContext,
+        width: 260,
+        items: [
+          for (final model in availableModels)
+            DesktopPopoverItem(
+              label: model,
+              icon: _getModelIcon(currentPlatform.type),
+              selected: model == currentPlatform.defaultModel,
+              onTap: () => _selectModel(model),
+            ),
+        ],
+      );
+      return;
+    }
+
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => CupertinoActionSheet(
+      builder: (sheetContext) => CupertinoActionSheet(
         title: Text(l10n.currentModel),
         message: Text(currentPlatform.name),
         actions: availableModels.map((model) {
@@ -1952,28 +2398,34 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(_getModelIcon(currentPlatform.type), size: 20),
+                Icon(_getModelIcon(currentPlatform.type), size: 19),
                 const SizedBox(width: 8),
-                Text(model),
+                Flexible(
+                  child: Text(
+                    model,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
                 if (model == currentPlatform.defaultModel) ...[
                   const SizedBox(width: 8),
                   Icon(
                     CupertinoIcons.checkmark_alt,
-                    color: CupertinoColors.systemBlue,
-                    size: 20,
+                    color: AppTokens.accent(sheetContext),
+                    size: 19,
                   ),
                 ],
               ],
             ),
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pop(sheetContext);
               _selectModel(model);
             },
           );
         }).toList(),
         cancelButton: CupertinoActionSheetAction(
           child: Text(l10n.cancel),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pop(sheetContext),
         ),
       ),
     );
@@ -2009,16 +2461,60 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     await _loadCurrentModel();
   }
 
-  /// 显示更多选项菜单
-  ///
-  /// 显示底部操作菜单，包含设置和清除对话等选项
-  void _showMoreOptions() {
+  /// 显示更多选项菜单（宽屏使用右上就地 Popover，移动端使用 ActionSheet）
+  void _showMoreOptions({BuildContext? anchorContext}) {
     final l10n = AppLocalizations.of(context)!;
+
+    if (anchorContext != null &&
+        anchorContext.mounted &&
+        useWideLayout(MediaQuery.sizeOf(context))) {
+      final hasWorldInfo =
+          _promptPresetEnabled &&
+          _currentPresetId.isNotEmpty &&
+          _findPresetById(_currentPresetId)?.worldInfo != null;
+      showDesktopPopoverMenu(
+        anchorContext: anchorContext,
+        alignRight: true,
+        width: 240,
+        items: [
+          DesktopPopoverItem(
+            label: hasWorldInfo ? l10n.inspectorMemoryAndLore : l10n.viewMemory,
+            icon: CupertinoIcons.sidebar_right,
+            selected: _inspectorOpen,
+            onTap: () => setState(() => _inspectorOpen = !_inspectorOpen),
+          ),
+          DesktopPopoverItem(
+            label: l10n.chatBackground,
+            icon: CupertinoIcons.photo,
+            onTap: _openBackgroundAppearance,
+          ),
+          DesktopPopoverItem(
+            label: l10n.exportConversation,
+            icon: CupertinoIcons.arrow_down_doc,
+            onTap: _showExportFormatDialog,
+          ),
+          DesktopPopoverItem(
+            label: l10n.settings,
+            icon: CupertinoIcons.settings,
+            onTap: _openSettings,
+          ),
+          DesktopPopoverItem(
+            label: l10n.clearConversation,
+            icon: CupertinoIcons.clear,
+            isDestructive: true,
+            isDividerBefore: true,
+            onTap: _clearCurrentConversation,
+          ),
+        ],
+      );
+      return;
+    }
+
     showCupertinoModalPopup(
       context: context,
-      builder: (context) {
-        final primaryColor = CupertinoTheme.of(context).primaryColor;
-        final destructiveColor = CupertinoColors.systemRed.resolveFrom(context);
+      builder: (sheetContext) {
+        final primaryColor = AppTokens.accent(sheetContext);
+        final destructiveColor = AppTokens.red(sheetContext);
         return CupertinoActionSheet(
           actions: [
             CupertinoActionSheetAction(
@@ -2031,7 +2527,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 ],
               ),
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.pop(sheetContext);
                 _openSettings();
               },
             ),
@@ -2050,10 +2546,24 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   ],
                 ),
                 onPressed: () {
-                  Navigator.pop(context);
+                  Navigator.pop(sheetContext);
                   _openMemoryViewer();
                 },
               ),
+            CupertinoActionSheetAction(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(CupertinoIcons.photo, size: 20, color: primaryColor),
+                  const SizedBox(width: 8),
+                  Text(l10n.chatBackground),
+                ],
+              ),
+              onPressed: () {
+                Navigator.pop(sheetContext);
+                _openBackgroundAppearance();
+              },
+            ),
             CupertinoActionSheetAction(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -2068,7 +2578,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 ],
               ),
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.pop(sheetContext);
                 _showExportFormatDialog();
               },
             ),
@@ -2083,14 +2593,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 ],
               ),
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.pop(sheetContext);
                 _clearCurrentConversation();
               },
             ),
           ],
           cancelButton: CupertinoActionSheetAction(
             child: Text(l10n.cancel),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(sheetContext),
           ),
         );
       },
@@ -2303,21 +2813,27 @@ class TypingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    /// 构建打字指示器UI
-    /// 包含一个灰色圆角矩形背景和Cupertino活动指示器
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: CupertinoColors.systemGrey5,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const CupertinoActivityIndicator(),
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: AppTokens.chatMaxWidth),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTokens.fill(context),
+                  borderRadius: BorderRadius.circular(AppTokens.radiusBubble),
+                ),
+                child: const CupertinoActivityIndicator(radius: 8),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

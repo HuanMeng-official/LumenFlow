@@ -1884,4 +1884,111 @@ class AppLocalizationsZh extends AppLocalizations {
   String presetDetailWorldInfoStats(int entries, int scanDepth, int budget) {
     return '条目 $entries · 扫描深度 $scanDepth · 预算 $budget tokens';
   }
+
+  @override
+  String get providersAndModels => '供应商与模型';
+
+  @override
+  String get conversationAndMemory => '对话与记忆';
+
+  @override
+  String get appearanceAndLanguage => '外观与语言';
+
+  @override
+  String get notificationsDataAbout => '通知、数据与关于';
+
+  @override
+  String get characters => '角色预设';
+
+  @override
+  String get mcpServers => 'MCP 服务器';
+
+  @override
+  String get addMcpServer => '添加 MCP 服务器';
+
+  @override
+  String get editMcpServer => '编辑 MCP 服务器';
+
+  @override
+  String get deleteMcpServer => '删除 MCP 服务器';
+
+  @override
+  String get mcpServerName => '服务器名称';
+
+  @override
+  String get mcpServerUrl => '服务器地址 (URL)';
+
+  @override
+  String get mcpTransportLabel => '传输协议';
+
+  @override
+  String get mcpTestConnection => '测试连接';
+
+  @override
+  String mcpConnectedToolsCount(int count) {
+    return '连接成功，发现 $count 个工具';
+  }
+
+  @override
+  String get mcpNoToolsReturned => '连接成功，未返回工具';
+
+  @override
+  String get mcpInvalidConfig => '请填写服务器名称与有效地址';
+
+  @override
+  String get mcpHeadersTitle => '请求头 (Headers)';
+
+  @override
+  String get addHeader => '添加 Header';
+
+  @override
+  String get headerKeyPlaceholder => '键 (如 Authorization)';
+
+  @override
+  String get headerValuePlaceholder => '值';
+
+  @override
+  String get mcpPlatformSupported => '当前平台支持工具调用，可配置 HTTP / SSE MCP 服务器。';
+
+  @override
+  String get mcpPlatformUnsupported => '当前平台暂不支持工具调用，请切换至支持工具的供应商。';
+
+  @override
+  String get inspectorMemoryAndLore => '记忆与世界书';
+
+  @override
+  String get worldInfoTriggerTest => '触发测试';
+
+  @override
+  String get startChat => '开始对话';
+
+  @override
+  String get editPreset => '编辑设定';
+
+  @override
+  String get enablePlatform => '设为当前启用平台';
+
+  @override
+  String get availableModels => '可用模型';
+
+  @override
+  String get defaultModelLabel => '当前默认模型';
+
+  @override
+  String get addCustomModel => '添加自定义模型';
+
+  @override
+  String get userProfileSummarySubtitle => '个人档案、性别与生日';
+
+  @override
+  String get pinnedConversations => '置顶';
+
+  @override
+  String get recentConversations => '最近';
+
+  @override
+  String get exportAction => '导出';
+
+  @override
+  String get presetOverview => '人物设定';
 }

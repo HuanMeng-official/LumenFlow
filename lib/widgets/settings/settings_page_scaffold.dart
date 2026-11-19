@@ -1,12 +1,14 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 
+import '../../utils/app_theme.dart';
+
 /// 设置子页面的统一外壳。
 ///
-/// 移动端保留 `CupertinoPageScaffold` 和导航栏；桌面嵌入模式去掉导航栏，
-/// 只渲染大标题和原有导航栏操作，供两栏设置页的右侧内容区复用。
+/// 移动端保留 `CupertinoPageScaffold` 和分组底色；桌面嵌入模式渲染 52px 细分隔顶栏。
 class SettingsPageScaffold extends StatelessWidget {
   final String title;
   final String? embeddedTitle;
+  final String? previousPageTitle;
   final Widget? trailing;
   final bool embedded;
   final Widget child;
@@ -15,6 +17,7 @@ class SettingsPageScaffold extends StatelessWidget {
     super.key,
     required this.title,
     this.embeddedTitle,
+    this.previousPageTitle,
     this.trailing,
     this.embedded = false,
     required this.child,
@@ -22,28 +25,40 @@ class SettingsPageScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final groupedBg = AppTokens.groupedBg(context);
+
     if (!embedded) {
       return CupertinoPageScaffold(
+        backgroundColor: groupedBg,
         navigationBar: CupertinoNavigationBar(
+          backgroundColor: AppTokens.bg(context),
+          previousPageTitle: previousPageTitle,
           middle: Text(title),
           trailing: trailing,
+          border: Border(
+            bottom: BorderSide(
+              color: AppTokens.separator(context),
+              width: 0.5,
+            ),
+          ),
         ),
         child: SafeArea(child: child),
       );
     }
 
     return ColoredBox(
-      color: CupertinoColors.systemBackground.resolveFrom(context),
+      color: groupedBg,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
             height: 52,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             decoration: BoxDecoration(
+              color: AppTokens.bg(context),
               border: Border(
                 bottom: BorderSide(
-                  color: CupertinoColors.systemGrey4.resolveFrom(context),
+                  color: AppTokens.separator(context),
                   width: 0.5,
                 ),
               ),
@@ -53,9 +68,10 @@ class SettingsPageScaffold extends StatelessWidget {
                 Expanded(
                   child: Text(
                     embeddedTitle ?? title,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      color: AppTokens.label(context),
                     ),
                   ),
                 ),
@@ -63,7 +79,17 @@ class SettingsPageScaffold extends StatelessWidget {
               ],
             ),
           ),
-          Expanded(child: SafeArea(top: false, child: child)),
+          Expanded(
+            child: SafeArea(
+              top: false,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 720),
+                  child: child,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );

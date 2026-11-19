@@ -168,13 +168,19 @@ class ConversationService {
   }
 
   /// 创建新对话
-  Future<Conversation> createNewConversation({String? title}) async {
+  Future<Conversation> createNewConversation({
+    String? title,
+    bool promptPresetEnabled = false,
+    String promptPresetId = '',
+  }) async {
     final conversation = Conversation(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: title ?? '新对话',
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
       messages: [],
+      promptPresetEnabled: promptPresetEnabled,
+      promptPresetId: promptPresetId,
     );
 
     await _db.createConversation(

@@ -23,7 +23,7 @@
   "cancel": "罷休",
   "confirm": "允定",
   "save": "存錄",
-  "delete": "芟除",
+  "delete": "裁撤",
   "edit": "修訂",
   "ok": "善",
   "goToSettings": "往赴規度",
@@ -131,7 +131,7 @@
   "apiEndpointPlaceholder": "賜下樞機渡口之址",
   "apiEndpointDesc": "如: https://api.openai.com/v1",
   "apiKey": "樞機符節",
-  "apiKeyPlaceholder": "賜下樞機符節",
+  "apiKeyPlaceholder": "樞機符節",
   "apiKeyDesc": "自靈犀門戶求得之勘合符節",
   "modelSettings": "法象規度",
   "model": "法象",
@@ -585,7 +585,6 @@
   "platformType": "門戶之屬",
   "platformNamePlaceholder": "門戶之名",
   "endpointPlaceholder": "樞機渡口之址",
-  "apiKeyPlaceholder": "樞機符節",
   "configured": "已設",
   "notConfigured": "未設",
   "models": "尊法象",
@@ -638,7 +637,6 @@
   "deleteModelBtn": "裁撤所選",
   "selectModelToDelete": "祈先擇定欲裁之法象",
   "add": "添置",
-  "delete": "裁撤",
   "addNewModel": "新置法象",
   "clickAddToCreate": "點擊上方「+」以添法象",
   "noPlatformsConfigured": "尚未定立門戶之規度",
@@ -1039,21 +1037,25 @@
   "worldInfoTokens": "背景 {background} · 條目 {entry} · 總計 {total} tokens",
   "@worldInfoTokens": {
     "placeholders": {
-      "background": {"type": "int"},
-      "entry": {"type": "int"},
-      "total": {"type": "int"}
+      "background": {
+        "type": "int"
+      },
+      "entry": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "worldInfoNoMatches": "沒有命中條目",
-  "worldInfoRun": "執行預覽"
-,
+  "worldInfoRun": "執行預覽",
   "lumenflowInvalidArchive": "無效之 LumenFlow 歸檔",
   "lumenflowMissingCharacter": "LumenFlow 歸檔缺角色卡",
   "lumenflowWorldInfoInvalid": "世界書殘缺或不可讀",
   "lumenflowAvatarInvalid": "頭像殘缺或不可讀",
   "lumenflowIllustrationInvalid": "立繪殘損或不可讀",
-  "lumenflowLegacyUnsupported": "舊版 LumenFlow 格式不復支持"
-,
+  "lumenflowLegacyUnsupported": "舊版 LumenFlow 格式不復支持",
   "presetSectionWorldviewBackground": "世界觀與背景",
   "presetSectionAppearance": "外貌與特徵",
   "presetSectionPersonality": "人格與心理",
@@ -1076,9 +1078,57 @@
   "presetDetailWorldInfoStats": "條目 {entries} · 掃描深度 {scanDepth} · 預算 {budget} tokens",
   "@presetDetailWorldInfoStats": {
     "placeholders": {
-      "entries": {"type": "int"},
-      "scanDepth": {"type": "int"},
-      "budget": {"type": "int"}
+      "entries": {
+        "type": "int"
+      },
+      "scanDepth": {
+        "type": "int"
+      },
+      "budget": {
+        "type": "int"
+      }
+    }
+  },
+  "providersAndModels": "諸司與模型",
+  "conversationAndMemory": "清談與記憶",
+  "appearanceAndLanguage": "外觀與言語",
+  "notificationsDataAbout": "通告、數據與關於",
+  "characters": "角色預設",
+  "mcpServers": "MCP 伺服器",
+  "addMcpServer": "增置 MCP 伺服器",
+  "editMcpServer": "修訂 MCP 伺服器",
+  "deleteMcpServer": "移除 MCP 伺服器",
+  "mcpServerName": "伺服器之名",
+  "mcpServerUrl": "伺服器網址 (URL)",
+  "mcpTransportLabel": "傳輸之制",
+  "mcpTestConnection": "試通",
+  "mcpConnectedToolsCount": "通連無礙，得具 {count} 種",
+  "mcpNoToolsReturned": "通連已成，然無具可施",
+  "mcpInvalidConfig": "請書名稱及正址",
+  "mcpHeadersTitle": "請求首標 (Headers)",
+  "addHeader": "增首標",
+  "headerKeyPlaceholder": "鍵 (若 Authorization)",
+  "headerValuePlaceholder": "值",
+  "mcpPlatformSupported": "今所用之台，可施諸具，亦通 HTTP / SSE MCP。",
+  "mcpPlatformUnsupported": "今所用之台尚未通此具。",
+  "inspectorMemoryAndLore": "記憶與世典",
+  "worldInfoTriggerTest": "觸發測試",
+  "startChat": "啟談",
+  "editPreset": "修訂設定",
+  "enablePlatform": "啟用此司",
+  "availableModels": "可用模型",
+  "defaultModelLabel": "默認模型",
+  "addCustomModel": "增自定模型",
+  "userProfileSummarySubtitle": "身世、男女與生辰",
+  "pinnedConversations": "置頂",
+  "recentConversations": "近談",
+  "exportAction": "導出",
+  "presetOverview": "人物設定",
+  "@mcpConnectedToolsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
     }
   }
 }

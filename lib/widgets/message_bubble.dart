@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
@@ -12,6 +13,7 @@ import 'package:markdown/markdown.dart' as md;
 import '../l10n/app_localizations.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
+import '../models/prompt_preset.dart';
 import '../models/user_profile.dart';
 import '../screens/image_preview_screen.dart';
 import '../utils/app_theme.dart';
@@ -20,6 +22,7 @@ import '../utils/code_highlight_theme.dart';
 import '../utils/file_save_utils.dart';
 import '../utils/markdown_math.dart';
 import 'avatar_widget.dart';
+import 'preset_avatar.dart';
 
 /// 自定义代码块构建器，用于在代码块右上角添加复制按钮
 class CodeBlockBuilder extends MarkdownElementBuilder {
@@ -357,6 +360,8 @@ class __CodeBlockWithCopyButtonState extends State<_CodeBlockWithCopyButton> {
 class MessageBubble extends StatefulWidget {
   final Message message;
   final UserProfile? userProfile; // 外部传入的用户信息，避免重复加载
+  final PromptPreset? activePreset;
+  final String? assistantName;
   final Function(Message message)? onEdit;
   final Function(Message message)? onRegenerate;
   final Function(Message message)? onResubmit;
@@ -369,6 +374,8 @@ class MessageBubble extends StatefulWidget {
     super.key,
     required this.message,
     this.userProfile,
+    this.activePreset,
+    this.assistantName,
     this.onEdit,
     this.onRegenerate,
     this.onResubmit,
@@ -891,192 +898,213 @@ class _MessageBubbleState extends State<MessageBubble>
 
     return GestureDetector(
       onLongPress: _showMessageMenu,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              mainAxisAlignment: widget.message.isUser
-                  ? MainAxisAlignment.end
-                  : MainAxisAlignment.start,
-              crossAxisAlignment: widget.message.isUser
-                  ? CrossAxisAlignment.end
-                  : CrossAxisAlignment.start,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: AppTokens.chatMaxWidth),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (!widget.message.isUser) ...[
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: widget.message.status == MessageStatus.error
-                          ? CupertinoColors.systemRed
-                          : CupertinoColors.systemBlue,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Icon(
-                      widget.message.status == MessageStatus.error
-                          ? CupertinoIcons.exclamationmark
-                          : CupertinoIcons.sparkles,
-                      color: CupertinoColors.white,
-                      size: 16,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                ],
-                Flexible(
-                  child: Theme(
-                    data: materialTheme.copyWith(
-                      textTheme: materialTheme.textTheme.apply(
-                        fontFamilyFallback: cjkFallback,
-                      ),
-                      textSelectionTheme: TextSelectionThemeData(
-                        selectionColor: selectionColor,
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          constraints: widget.message.isUser
-                              ? BoxConstraints(
-                                  maxWidth:
-                                      MediaQuery.of(context).size.width * 0.75,
-                                )
-                              : null,
-                          padding: widget.message.isUser
-                              ? const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                )
-                              : EdgeInsets.zero,
-                          decoration: widget.message.isUser
-                              ? BoxDecoration(
-                                  color: CupertinoColors.systemBlue.withValues(
-                                    alpha: 0.85,
-                                  ),
-                                  borderRadius: BorderRadius.circular(20),
-                                )
-                              : null,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (!widget.message.isUser &&
-                                  (hasReasoning || hasToolCalls))
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          _isReasoningExpanded =
-                                              !_isReasoningExpanded;
-                                        });
-                                      },
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 6,
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              hasReasoning
-                                                  ? CupertinoIcons.lightbulb
-                                                  : CupertinoIcons.wrench,
-                                              size: 16,
-                                              color: CupertinoColors.systemBlue
-                                                  .resolveFrom(context),
-                                            ),
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              hasReasoning
-                                                  ? l10n.reasoningDone
-                                                  : l10n.toolCallsLabel,
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w500,
-                                                color: CupertinoColors
-                                                    .systemGrey
-                                                    .resolveFrom(context),
-                                              ),
-                                            ),
-                                            if (toolCalls.any(
-                                              (call) => call.running,
-                                            )) ...[
-                                              const SizedBox(width: 6),
-                                              const CupertinoActivityIndicator(
-                                                radius: 6,
-                                              ),
-                                            ],
-                                            const SizedBox(width: 4),
-                                            Icon(
-                                              _isReasoningExpanded
-                                                  ? CupertinoIcons.chevron_down
-                                                  : CupertinoIcons
-                                                        .chevron_right,
-                                              size: 14,
-                                              color: CupertinoColors.systemGrey
-                                                  .resolveFrom(context),
-                                            ),
-                                          ],
-                                        ),
+                Row(
+                  mainAxisAlignment: widget.message.isUser
+                      ? MainAxisAlignment.end
+                      : MainAxisAlignment.start,
+                  crossAxisAlignment: widget.message.isUser
+                      ? CrossAxisAlignment.end
+                      : CrossAxisAlignment.start,
+                  children: [
+                    Flexible(
+                      child: Theme(
+                        data: materialTheme.copyWith(
+                          textTheme: materialTheme.textTheme.apply(
+                            fontFamilyFallback: cjkFallback,
+                          ),
+                          textSelectionTheme: TextSelectionThemeData(
+                            selectionColor: selectionColor,
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (!widget.message.isUser)
+                              _buildAssistantByline(context, l10n),
+                            Container(
+                              constraints: widget.message.isUser
+                                  ? BoxConstraints(
+                                      maxWidth: math.min(
+                                        MediaQuery.of(context).size.width *
+                                            0.75,
+                                        560,
                                       ),
-                                    ),
-                                    if (hasToolCalls)
-                                      AnimatedCrossFade(
-                                        duration: const Duration(
-                                          milliseconds: 200,
-                                        ),
-                                        crossFadeState: _isReasoningExpanded
-                                            ? CrossFadeState.showSecond
-                                            : CrossFadeState.showFirst,
-                                        firstChild: const SizedBox.shrink(),
-                                        secondChild: Padding(
-                                          padding: const EdgeInsets.only(
-                                            top: 4,
-                                            bottom: 4,
-                                            left: 22,
-                                            right: 4,
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              for (final call in toolCalls)
-                                                _ToolCallView(
-                                                  call: call,
-                                                  l10n: l10n,
-                                                  fallback: cjkFallback,
+                                    )
+                                  : null,
+                              padding: widget.message.isUser
+                                  ? const EdgeInsets.symmetric(
+                                      horizontal: 15,
+                                      vertical: 11,
+                                    )
+                                  : EdgeInsets.zero,
+                              decoration: widget.message.isUser
+                                  ? BoxDecoration(
+                                      color: AppTokens.accent(context),
+                                      borderRadius: BorderRadius.circular(
+                                        AppTokens.radiusBubble,
+                                      ),
+                                    )
+                                  : null,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (!widget.message.isUser &&
+                                      (hasReasoning || hasToolCalls))
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        GestureDetector(
+                                          behavior: HitTestBehavior.opaque,
+                                          onTap: () {
+                                            setState(() {
+                                              _isReasoningExpanded =
+                                                  !_isReasoningExpanded;
+                                            });
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 5,
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  hasReasoning
+                                                      ? CupertinoIcons.lightbulb
+                                                      : CupertinoIcons.wrench,
+                                                  size: 14.5,
+                                                  color: AppTokens.accent(
+                                                    context,
+                                                  ),
                                                 ),
-                                            ],
+                                                const SizedBox(width: 6),
+                                                Text(
+                                                  hasReasoning
+                                                      ? l10n.reasoningDone
+                                                      : l10n.toolCallsLabel,
+                                                  style: TextStyle(
+                                                    fontSize: 13.5,
+                                                    fontWeight: FontWeight.w500,
+                                                    color:
+                                                        AppTokens.labelSecondary(
+                                                          context,
+                                                        ),
+                                                  ),
+                                                ),
+                                                if (toolCalls.any(
+                                                  (call) => call.running,
+                                                )) ...[
+                                                  const SizedBox(width: 6),
+                                                  const CupertinoActivityIndicator(
+                                                    radius: 6,
+                                                  ),
+                                                ],
+                                                const SizedBox(width: 4),
+                                                Icon(
+                                                  _isReasoningExpanded
+                                                      ? CupertinoIcons
+                                                            .chevron_down
+                                                      : CupertinoIcons
+                                                            .chevron_right,
+                                                  size: 12.5,
+                                                  color:
+                                                      AppTokens.labelTertiary(
+                                                        context,
+                                                      ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    if (hasReasoning)
-                                      AnimatedCrossFade(
-                                        duration: const Duration(
-                                          milliseconds: 200,
-                                        ),
-                                        crossFadeState: _isReasoningExpanded
-                                            ? CrossFadeState.showSecond
-                                            : CrossFadeState.showFirst,
-                                        firstChild: const SizedBox.shrink(),
-                                        secondChild: Padding(
-                                          padding: const EdgeInsets.only(
-                                            top: 6,
-                                            bottom: 8,
-                                            left: 22,
-                                            right: 4,
+                                        if (hasToolCalls)
+                                          AnimatedCrossFade(
+                                            duration: const Duration(
+                                              milliseconds: 200,
+                                            ),
+                                            crossFadeState: _isReasoningExpanded
+                                                ? CrossFadeState.showSecond
+                                                : CrossFadeState.showFirst,
+                                            firstChild: const SizedBox.shrink(),
+                                            secondChild: Container(
+                                              margin: const EdgeInsets.only(
+                                                left: 6,
+                                                top: 4,
+                                                bottom: 4,
+                                              ),
+                                              padding: const EdgeInsets.only(
+                                                left: 12,
+                                                right: 4,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                border: Border(
+                                                  left: BorderSide(
+                                                    color: AppTokens.separator(
+                                                      context,
+                                                    ),
+                                                    width: 1.5,
+                                                  ),
+                                                ),
+                                              ),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  for (final call in toolCalls)
+                                                    _ToolCallView(
+                                                      call: call,
+                                                      l10n: l10n,
+                                                      fallback: cjkFallback,
+                                                    ),
+                                                ],
+                                              ),
+                                            ),
                                           ),
-                                          child: SelectableRegion(
-                                            selectionControls:
-                                                cupertinoTextSelectionControls,
-                                            child: MathMarkdownBody(
-                                              data: widget
-                                                  .message
-                                                  .reasoningContent!,
+                                        if (hasReasoning)
+                                          AnimatedCrossFade(
+                                            duration: const Duration(
+                                              milliseconds: 200,
+                                            ),
+                                            crossFadeState: _isReasoningExpanded
+                                                ? CrossFadeState.showSecond
+                                                : CrossFadeState.showFirst,
+                                            firstChild: const SizedBox.shrink(),
+                                            secondChild: Container(
+                                              margin: const EdgeInsets.only(
+                                                left: 6,
+                                                top: 4,
+                                                bottom: 8,
+                                              ),
+                                              padding: const EdgeInsets.only(
+                                                left: 12,
+                                                right: 4,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                border: Border(
+                                                  left: BorderSide(
+                                                    color: AppTokens.separator(
+                                                      context,
+                                                    ),
+                                                    width: 1.5,
+                                                  ),
+                                                ),
+                                              ),
+                                              child: SelectableRegion(
+                                                selectionControls:
+                                                    cupertinoTextSelectionControls,
+                                                child: MathMarkdownBody(
+                                                  data: widget
+                                                      .message
+                                                      .reasoningContent!,
                                               builders: {
                                                 'pre': CodeBlockBuilder(
                                                   context,
@@ -1637,18 +1665,18 @@ class _MessageBubbleState extends State<MessageBubble>
                 if (widget.message.isUser) ...[
                   const SizedBox(width: 8),
                   _userProfile != null
-                      ? AvatarWidget(userProfile: _userProfile!, size: 32)
+                      ? AvatarWidget(userProfile: _userProfile!, size: 28)
                       : Container(
-                          width: 32,
-                          height: 32,
+                          width: 28,
+                          height: 28,
                           decoration: BoxDecoration(
-                            color: CupertinoColors.systemGrey4,
-                            borderRadius: BorderRadius.circular(16),
+                            color: AppTokens.fill(context),
+                            shape: BoxShape.circle,
                           ),
-                          child: const Icon(
+                          child: Icon(
                             CupertinoIcons.person_fill,
-                            color: CupertinoColors.label,
-                            size: 16,
+                            color: AppTokens.labelSecondary(context),
+                            size: 14,
                           ),
                         ),
                 ],
@@ -1656,6 +1684,68 @@ class _MessageBubbleState extends State<MessageBubble>
             ),
           ],
         ),
+      ),
+    ),
+  ),
+);
+  }
+
+  Widget _buildAssistantByline(BuildContext context, AppLocalizations l10n) {
+    final fontFallback =
+        cjkFontFallbackForLocale(Localizations.maybeLocaleOf(context));
+    final isError = widget.message.status == MessageStatus.error;
+    final preset = widget.activePreset;
+    final modelTitle = widget.assistantName?.trim() ?? '';
+
+    if (preset == null && !isError && modelTitle.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isError) ...[
+            Icon(
+              CupertinoIcons.exclamationmark_circle_fill,
+              size: 14,
+              color: AppTokens.red(context),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              l10n.error,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                fontFamilyFallback: fontFallback,
+                color: AppTokens.red(context),
+              ),
+            ),
+          ] else if (preset != null) ...[
+            PresetAvatar(preset: preset, size: 22),
+            const SizedBox(width: 7),
+            Text(
+              preset.name,
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                fontFamilyFallback: fontFallback,
+                color: AppTokens.labelSecondary(context),
+              ),
+            ),
+          ] else ...[
+            Text(
+              modelTitle,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                fontFamilyFallback: fontFallback,
+                color: AppTokens.labelTertiary(context),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

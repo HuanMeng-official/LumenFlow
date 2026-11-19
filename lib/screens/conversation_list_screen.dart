@@ -1,6 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:intl/intl.dart';
-import 'package:material_ui/material_ui.dart' as material;
 
 import 'dart:async';
 import 'dart:convert';
@@ -10,25 +9,59 @@ import '../l10n/app_localizations.dart';
 import '../models/conversation.dart';
 import '../services/conversation_service.dart';
 import '../services/preset_repository.dart';
+import '../utils/app_theme.dart';
 import '../utils/import_file_picker.dart';
 import '../utils/lumenflow_error_messages.dart';
+import '../utils/platform_utils.dart';
+import '../widgets/desktop/desktop_popover.dart';
+
+/// 桌面侧栏统一顶栏向会话列表分派操作（导入、刷新）的控制器。
+class ConversationListController {
+  Future<void> Function()? _importConversation;
+  Future<void> Function()? _createNewConversation;
+
+  void attach({
+    required Future<void> Function() importConversation,
+    required Future<void> Function() createNewConversation,
+  }) {
+    _importConversation = importConversation;
+    _createNewConversation = createNewConversation;
+  }
+
+  void detach() {
+    _importConversation = null;
+    _createNewConversation = null;
+  }
+
+  Future<void> importConversation() =>
+      _importConversation?.call() ?? Future.value();
+
+  Future<void> createNewConversation() =>
+      _createNewConversation?.call() ?? Future.value();
+}
 
 class ConversationListScreen extends StatefulWidget {
   final Function(String? conversationId) onConversationSelected;
   final bool embedded;
   final bool compact;
+  final bool isRootTab;
+  final bool showEmbeddedHeader;
   final int refreshToken;
   final String? selectedConversationId;
   final ConversationService? service;
+  final ConversationListController? controller;
 
   const ConversationListScreen({
     super.key,
     required this.onConversationSelected,
     this.embedded = false,
     this.compact = false,
+    this.isRootTab = false,
+    this.showEmbeddedHeader = true,
     this.refreshToken = 0,
     this.selectedConversationId,
     this.service,
+    this.controller,
   });
 
   @override
@@ -50,12 +83,23 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
   void initState() {
     super.initState();
     _conversationService = widget.service ?? ConversationService();
+    widget.controller?.attach(
+      importConversation: _importConversation,
+      createNewConversation: _createNewConversation,
+    );
     _loadConversations();
   }
 
   @override
   void didUpdateWidget(covariant ConversationListScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller?.detach();
+      widget.controller?.attach(
+        importConversation: _importConversation,
+        createNewConversation: _createNewConversation,
+      );
+    }
     if (oldWidget.refreshToken != widget.refreshToken) {
       _loadConversations();
     }
@@ -63,6 +107,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
 
   @override
   void dispose() {
+    widget.controller?.detach();
     _searchTimer?.cancel();
     _searchController.dispose();
     super.dispose();
@@ -113,7 +158,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
     });
     // 只传递对话 ID，由 ChatScreen 负责加载完整对话
     widget.onConversationSelected(conversation.id);
-    if (!widget.embedded && mounted) {
+    if (!widget.embedded && !widget.isRootTab && mounted) {
       Navigator.pop(context);
     }
   }
@@ -323,19 +368,16 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final brightness = CupertinoTheme.of(context).brightness;
     final listBody = _buildListBody(context);
 
     if (widget.embedded) {
       return ColoredBox(
-        color: brightness == Brightness.dark
-            ? CupertinoColors.systemGrey6.darkColor
-            : CupertinoColors.systemGrey6.color,
+        color: AppTokens.sidebarBg(context),
         child: SafeArea(
           bottom: false,
           child: Column(
             children: [
-              _buildEmbeddedHeader(context),
+              if (widget.showEmbeddedHeader) _buildEmbeddedHeader(context),
               Expanded(child: SafeArea(top: false, child: listBody)),
             ],
           ),
@@ -345,7 +387,9 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
 
     final l10n = AppLocalizations.of(context)!;
     return CupertinoPageScaffold(
+      backgroundColor: AppTokens.groupedBg(context),
       navigationBar: CupertinoNavigationBar(
+        backgroundColor: AppTokens.bg(context),
         middle: Text(l10n.conversations),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -353,14 +397,20 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
             CupertinoButton(
               padding: EdgeInsets.zero,
               onPressed: _importConversation,
-              child: const Icon(CupertinoIcons.folder_open),
+              child: const Icon(CupertinoIcons.folder_open, size: 21),
             ),
             CupertinoButton(
-              padding: EdgeInsets.zero,
+              padding: const EdgeInsets.only(left: 10),
               onPressed: _createNewConversation,
-              child: const Icon(CupertinoIcons.add),
+              child: const Icon(CupertinoIcons.square_pencil, size: 21),
             ),
           ],
+        ),
+        border: Border(
+          bottom: BorderSide(
+            color: AppTokens.separator(context),
+            width: 0.5,
+          ),
         ),
       ),
       child: SafeArea(child: listBody),
@@ -368,152 +418,84 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
   }
 
   Widget _buildEmbeddedHeader(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          height: 52,
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: CupertinoColors.systemGrey4.resolveFrom(context),
-                width: 0.5,
-              ),
-            ),
-          ),
-          child: Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'LumenFlow',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-                ),
-              ),
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                minimumSize: const Size(28, 28),
-                onPressed: _importConversation,
-                child: const Icon(CupertinoIcons.folder_open, size: 18),
-              ),
-            ],
+    return Container(
+      height: 52,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: AppTokens.separator(context),
+            width: 0.5,
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(12, 20, 12, 6),
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: _createNewConversation,
-            child: Container(
-              height: 30,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: CupertinoTheme.of(context).primaryColor,
-                borderRadius: BorderRadius.circular(7),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    CupertinoIcons.add,
-                    size: 13,
-                    color: CupertinoColors.white,
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    l10n.newConversation,
-                    style: const TextStyle(
-                      color: CupertinoColors.white,
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
+      ),
+      child: Row(
+        children: [
+          const Expanded(
+            child: Text(
+              'LumenFlow',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
             ),
           ),
-        ),
-      ],
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            minimumSize: const Size(28, 28),
+            onPressed: _importConversation,
+            child: Icon(
+              CupertinoIcons.folder_open,
+              size: 17,
+              color: AppTokens.labelSecondary(context),
+            ),
+          ),
+          const SizedBox(width: 4),
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            minimumSize: const Size(28, 28),
+            onPressed: _createNewConversation,
+            child: Icon(
+              CupertinoIcons.square_pencil,
+              size: 18,
+              color: AppTokens.accent(context),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildListBody(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final brightness = CupertinoTheme.of(context).brightness;
-    final searchBackground = widget.embedded
-        ? (brightness == Brightness.dark
-              ? CupertinoColors.systemGrey5.darkColor
-              : CupertinoColors.systemGrey5.color)
-        : (brightness == Brightness.dark
-              ? CupertinoColors.systemGrey6.darkColor
-              : CupertinoColors.systemGrey6.color);
-    final searchIconColor = brightness == Brightness.dark
-        ? CupertinoColors.systemGrey.darkColor
-        : CupertinoColors.systemGrey;
     final highlightId = widget.embedded
         ? (widget.selectedConversationId ?? _currentConversationId)
-        : _currentConversationId;
+        : (widget.isRootTab ? null : _currentConversationId);
+
+    final pinned = _conversations
+        .where((c) => c.isPinned)
+        .toList(growable: false);
+    final recent = _conversations
+        .where((c) => !c.isPinned)
+        .toList(growable: false);
 
     return Column(
       children: [
         if (!_isLoading)
           Padding(
             padding: widget.embedded
-                ? const EdgeInsets.fromLTRB(12, 4, 12, 20)
-                : const EdgeInsets.fromLTRB(16, 8, 16, 4),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              decoration: BoxDecoration(
-                color: searchBackground,
-                borderRadius: BorderRadius.circular(10),
+                ? const EdgeInsets.fromLTRB(10, 10, 10, 6)
+                : const EdgeInsets.fromLTRB(16, 12, 16, 6),
+            child: CupertinoSearchTextField(
+              controller: _searchController,
+              onChanged: _onSearchChanged,
+              placeholder: l10n.searchConversations,
+              backgroundColor: AppTokens.fill(context),
+              borderRadius: BorderRadius.circular(10),
+              style: TextStyle(
+                fontSize: widget.compact ? 13 : 15,
+                color: AppTokens.label(context),
               ),
-              child: material.Material(
-                color: material.Colors.transparent,
-                child: Row(
-                  children: [
-                    Icon(
-                      CupertinoIcons.search,
-                      size: 18,
-                      color: searchIconColor,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: material.TextField(
-                        controller: _searchController,
-                        onChanged: _onSearchChanged,
-                        style: const TextStyle(fontSize: 16),
-                        cursorColor: CupertinoTheme.of(context).primaryColor,
-                        decoration: material.InputDecoration(
-                          border: material.InputBorder.none,
-                          focusedBorder: material.InputBorder.none,
-                          enabledBorder: material.InputBorder.none,
-                          hintText: l10n.searchConversations,
-                          hintStyle: TextStyle(color: searchIconColor),
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 10,
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (_searchQuery.isNotEmpty)
-                      GestureDetector(
-                        onTap: () {
-                          _searchController.clear();
-                          _onSearchChanged('');
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(4),
-                          child: Icon(
-                            CupertinoIcons.xmark_circle_fill,
-                            size: 16,
-                            color: searchIconColor,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+              placeholderStyle: TextStyle(
+                fontSize: widget.compact ? 13 : 15,
+                color: AppTokens.labelTertiary(context),
               ),
             ),
           ),
@@ -522,145 +504,413 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
               ? const Center(child: CupertinoActivityIndicator())
               : _conversations.isEmpty
               ? _buildEmptyState()
-              : ListView.builder(
-                  itemCount: _conversations.length,
-                  itemBuilder: (context, index) {
-                    final conversation = _conversations[index];
-                    final isCurrentConversation =
-                        conversation.id == highlightId;
-                    final primaryColor = CupertinoTheme.of(context)
-                        .primaryColor;
-
-                    return Container(
-                      color: isCurrentConversation
-                          ? CupertinoColors.systemBlue.withValues(alpha: 0.1)
-                          : null,
-                      child: CupertinoListTile(
-                        title: Text(
-                          conversation.title,
-                          style: TextStyle(
-                            fontSize: widget.compact ? 13 : null,
-                            fontWeight: isCurrentConversation
-                                ? FontWeight.w600
-                                : FontWeight.normal,
-                          ),
-                        ),
-                        subtitle: Text(
-                          _formatDate(conversation.updatedAt),
-                          style: TextStyle(
-                            fontSize: widget.compact ? 10.5 : 13,
-                            color: CupertinoColors.systemGrey,
-                          ),
-                        ),
-                        leading: widget.compact
-                            ? null
-                            : Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: isCurrentConversation
-                                      ? CupertinoColors.systemBlue
-                                      : CupertinoColors.systemGrey5,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Icon(
-                                  CupertinoIcons.chat_bubble_2,
-                                  color: isCurrentConversation
-                                      ? CupertinoColors.white
-                                      : CupertinoColors.systemGrey,
-                                  size: 20,
-                                ),
-                              ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (conversation.isPinned)
-                              Padding(
-                                padding: const EdgeInsets.only(right: 6),
-                                child: Icon(
-                                  CupertinoIcons.pin_fill,
-                                  size: 14,
-                                  color: primaryColor,
-                                ),
-                              ),
-                            if (!widget.compact &&
-                                conversation.messages.isNotEmpty)
-                              Text(
-                                '${conversation.messages.length}',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: CupertinoColors.systemGrey,
-                                ),
-                              ),
-                            const SizedBox(width: 8),
-                            CupertinoButton(
-                              padding: EdgeInsets.zero,
-                              child: const Icon(
-                                CupertinoIcons.ellipsis,
-                                size: 20,
-                                color: CupertinoColors.systemGrey,
-                              ),
-                              onPressed: () =>
-                                  _showConversationOptions(conversation),
-                            ),
-                          ],
-                        ),
-                        onTap: () => _selectConversation(conversation),
-                      ),
-                    );
-                  },
+              : widget.compact
+              ? _buildCompactSidebarList(
+                  context,
+                  l10n,
+                  pinned: pinned,
+                  recent: recent,
+                  highlightId: highlightId,
+                )
+              : _buildMobileGroupedList(
+                  context,
+                  l10n,
+                  pinned: pinned,
+                  recent: recent,
+                  highlightId: highlightId,
                 ),
         ),
       ],
     );
   }
 
-  Widget _buildEmptyState() {
-    final l10n = AppLocalizations.of(context)!;
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            CupertinoIcons.chat_bubble_2,
-            size: 64,
-            color: CupertinoColors.systemGrey3,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            _searchQuery.isEmpty ? l10n.noConversations : l10n.searchNoResults,
-            style: const TextStyle(
-              fontSize: 18,
-              color: CupertinoColors.systemGrey,
-            ),
-          ),
-          if (_searchQuery.isEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              l10n.createNewConversation,
-              style: const TextStyle(
-                fontSize: 14,
-                color: CupertinoColors.systemGrey2,
-              ),
-            ),
-            const SizedBox(height: 24),
-            CupertinoButton.filled(
-              onPressed: _createNewConversation,
-              child: Text(l10n.newConversation),
-            ),
-          ],
-        ],
+  Widget _buildSectionTitle(BuildContext context, String title, bool compact) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        compact ? 12 : 24,
+        compact ? 10 : 14,
+        12,
+        compact ? 4 : 6,
+      ),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: compact ? 11.5 : 12.5,
+          fontWeight: FontWeight.w600,
+          color: AppTokens.labelTertiary(context),
+        ),
       ),
     );
   }
 
-  void _showConversationOptions(Conversation conversation) {
+  Widget _buildCompactSidebarList(
+    BuildContext context,
+    AppLocalizations l10n, {
+    required List<Conversation> pinned,
+    required List<Conversation> recent,
+    required String? highlightId,
+  }) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(8, 2, 8, 12),
+      children: [
+        if (pinned.isNotEmpty) ...[
+          _buildSectionTitle(context, l10n.pinnedConversations, true),
+          for (final c in pinned)
+            _buildCompactRow(context, c, c.id == highlightId),
+        ],
+        if (recent.isNotEmpty) ...[
+          if (pinned.isNotEmpty)
+            _buildSectionTitle(context, l10n.recentConversations, true),
+          for (final c in recent)
+            _buildCompactRow(context, c, c.id == highlightId),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildCompactRow(
+    BuildContext context,
+    Conversation conversation,
+    bool isSelected,
+  ) {
+    final fontFallback =
+        cjkFontFallbackForLocale(Localizations.maybeLocaleOf(context));
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => _selectConversation(conversation),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 120),
+        margin: const EdgeInsets.symmetric(vertical: 1.5),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppTokens.rowActive(context)
+              : CupertinoColors.transparent,
+          borderRadius: BorderRadius.circular(AppTokens.radiusSm),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    conversation.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w500,
+                      fontFamilyFallback: fontFallback,
+                      color: AppTokens.label(context),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    conversation.messages.isNotEmpty
+                        ? '${_formatDate(conversation.updatedAt)} · ${conversation.messages.length}'
+                        : _formatDate(conversation.updatedAt),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: AppTokens.labelTertiary(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (conversation.isPinned)
+              Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: Icon(
+                  CupertinoIcons.pin_fill,
+                  size: 12,
+                  color: AppTokens.accent(context),
+                ),
+              ),
+            Builder(
+              builder: (buttonContext) => CupertinoButton(
+                padding: const EdgeInsets.all(4),
+                minimumSize: const Size(24, 24),
+                onPressed: () => _showConversationOptions(
+                  conversation,
+                  anchorContext: buttonContext,
+                ),
+                child: Icon(
+                  CupertinoIcons.ellipsis,
+                  size: 15,
+                  color: AppTokens.labelSecondary(context),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileGroupedList(
+    BuildContext context,
+    AppLocalizations l10n, {
+    required List<Conversation> pinned,
+    required List<Conversation> recent,
+    required String? highlightId,
+  }) {
+    Widget groupCard(List<Conversation> items) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: AppTokens.elevatedSurface(context),
+          borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+        ),
+        child: Column(
+          children: [
+            for (var i = 0; i < items.length; i++) ...[
+              _buildMobileRow(context, items[i], items[i].id == highlightId),
+              if (i < items.length - 1)
+                Container(
+                  height: 0.5,
+                  margin: const EdgeInsets.only(left: 70),
+                  color: AppTokens.separator(context),
+                ),
+            ],
+          ],
+        ),
+      );
+    }
+
+    return ListView(
+      padding: const EdgeInsets.only(bottom: 24),
+      children: [
+        if (pinned.isNotEmpty) ...[
+          _buildSectionTitle(context, l10n.pinnedConversations, false),
+          groupCard(pinned),
+        ],
+        if (recent.isNotEmpty) ...[
+          _buildSectionTitle(context, l10n.recentConversations, false),
+          groupCard(recent),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildMobileRow(
+    BuildContext context,
+    Conversation conversation,
+    bool isSelected,
+  ) {
+    final fontFallback =
+        cjkFontFallbackForLocale(Localizations.maybeLocaleOf(context));
+    final hasPreset =
+        conversation.promptPresetEnabled &&
+        conversation.promptPresetId.isNotEmpty;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => _selectConversation(conversation),
+      onLongPress: () => _showConversationOptions(conversation),
+      child: Container(
+        color: isSelected ? AppTokens.rowActive(context) : null,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: hasPreset
+                    ? AppTokens.accentSoft(context)
+                    : AppTokens.fill(context),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                hasPreset
+                    ? CupertinoIcons.person_fill
+                    : CupertinoIcons.chat_bubble_2_fill,
+                size: 19,
+                color: hasPreset
+                    ? AppTokens.accent(context)
+                    : AppTokens.labelSecondary(context),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          conversation.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w600,
+                            fontFamilyFallback: fontFallback,
+                            color: AppTokens.label(context),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _formatDate(conversation.updatedAt),
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: AppTokens.labelTertiary(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          conversation.messages.isNotEmpty
+                              ? '${conversation.messages.length} msgs'
+                              : _formatDate(conversation.updatedAt),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppTokens.labelSecondary(context),
+                          ),
+                        ),
+                      ),
+                      if (conversation.isPinned)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: Icon(
+                            CupertinoIcons.pin_fill,
+                            size: 13,
+                            color: AppTokens.accent(context),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            CupertinoButton(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+              minimumSize: const Size(28, 28),
+              onPressed: () => _showConversationOptions(conversation),
+              child: Icon(
+                CupertinoIcons.ellipsis,
+                size: 17,
+                color: AppTokens.labelSecondary(context),
+              ),
+            ),
+            if (widget.isRootTab)
+              Icon(
+                CupertinoIcons.chevron_right,
+                size: 15,
+                color: AppTokens.labelTertiary(context),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
     final l10n = AppLocalizations.of(context)!;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              CupertinoIcons.chat_bubble_2,
+              size: 52,
+              color: AppTokens.labelTertiary(context),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              _searchQuery.isEmpty ? l10n.noConversations : l10n.searchNoResults,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: AppTokens.labelSecondary(context),
+              ),
+            ),
+            if (_searchQuery.isEmpty) ...[
+              const SizedBox(height: 6),
+              Text(
+                l10n.createNewConversation,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppTokens.labelTertiary(context),
+                ),
+              ),
+              const SizedBox(height: 20),
+              CupertinoButton.filled(
+                borderRadius: BorderRadius.circular(20),
+                onPressed: _createNewConversation,
+                child: Text(l10n.newConversation),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showConversationOptions(
+    Conversation conversation, {
+    BuildContext? anchorContext,
+  }) {
+    final l10n = AppLocalizations.of(context)!;
+    if (anchorContext != null && useWideLayout(MediaQuery.sizeOf(context))) {
+      showDesktopPopoverMenu(
+        anchorContext: anchorContext,
+        items: [
+          DesktopPopoverItem(
+            label: l10n.editTitle,
+            icon: CupertinoIcons.pencil,
+            onTap: () => _editConversationTitle(conversation),
+          ),
+          DesktopPopoverItem(
+            label: conversation.isPinned
+                ? l10n.unpinConversation
+                : l10n.pinConversation,
+            icon: conversation.isPinned
+                ? CupertinoIcons.pin_slash
+                : CupertinoIcons.pin,
+            onTap: () => _togglePinned(conversation),
+          ),
+          DesktopPopoverItem(
+            label: l10n.exportConversation,
+            icon: CupertinoIcons.arrow_down_doc,
+            onTap: () => _showExportFormatDialog(conversation),
+          ),
+          DesktopPopoverItem(
+            label: l10n.deleteConversation2,
+            icon: CupertinoIcons.delete,
+            isDestructive: true,
+            isDividerBefore: true,
+            onTap: () => _deleteConversation(conversation),
+          ),
+        ],
+      );
+      return;
+    }
+
     showCupertinoModalPopup(
       context: context,
       builder: (context) {
-        final primaryColor = CupertinoTheme.of(context).primaryColor;
-        final destructiveColor = CupertinoColors.systemRed.resolveFrom(context);
+        final primaryColor = AppTokens.accent(context);
+        final destructiveColor = AppTokens.red(context);
         return CupertinoActionSheet(
           title: Text(conversation.title),
           actions: [

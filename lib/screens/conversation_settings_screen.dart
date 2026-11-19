@@ -17,8 +17,13 @@ import '../widgets/settings/settings_switch_tile.dart';
 /// 设置更改实时保存，无需手动点击保存按钮
 class ConversationSettingsScreen extends StatefulWidget {
   final bool embedded;
+  final String? previousPageTitle;
 
-  const ConversationSettingsScreen({super.key, this.embedded = false});
+  const ConversationSettingsScreen({
+    super.key,
+    this.embedded = false,
+    this.previousPageTitle,
+  });
 
   @override
   State<ConversationSettingsScreen> createState() =>
@@ -115,16 +120,18 @@ class _ConversationSettingsScreenState
 
     if (_isLoading) {
       return SettingsPageScaffold(
-        title: l10n.historyConversation,
-        embeddedTitle: l10n.historyConversation,
+        title: l10n.conversationAndMemory,
+        previousPageTitle: widget.previousPageTitle,
+        embeddedTitle: l10n.conversationAndMemory,
         embedded: widget.embedded,
         child: const Center(child: CupertinoActivityIndicator()),
       );
     }
 
     return SettingsPageScaffold(
-      title: l10n.historyConversation,
-      embeddedTitle: l10n.historyConversation,
+      title: l10n.conversationAndMemory,
+      previousPageTitle: widget.previousPageTitle,
+      embeddedTitle: l10n.conversationAndMemory,
       embedded: widget.embedded,
       child: ListView(
         children: [

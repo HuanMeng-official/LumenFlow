@@ -3588,6 +3588,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Entries {entries} · Scan depth {scanDepth} · Budget {budget} tokens'**
   String presetDetailWorldInfoStats(int entries, int scanDepth, int budget);
+
+  /// No description provided for @providersAndModels.
+  ///
+  /// In en, this message translates to:
+  /// **'Providers & Models'**
+  String get providersAndModels;
+
+  /// No description provided for @conversationAndMemory.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat & Memory'**
+  String get conversationAndMemory;
+
+  /// No description provided for @appearanceAndLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance & Language'**
+  String get appearanceAndLanguage;
+
+  /// No description provided for @notificationsDataAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications, Data & About'**
+  String get notificationsDataAbout;
+
+  /// No description provided for @characters.
+  ///
+  /// In en, this message translates to:
+  /// **'Characters'**
+  String get characters;
+
+  /// No description provided for @mcpServers.
+  ///
+  /// In en, this message translates to:
+  /// **'MCP Servers'**
+  String get mcpServers;
+
+  /// No description provided for @addMcpServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add MCP Server'**
+  String get addMcpServer;
+
+  /// No description provided for @editMcpServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit MCP Server'**
+  String get editMcpServer;
+
+  /// No description provided for @deleteMcpServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete MCP Server'**
+  String get deleteMcpServer;
+
+  /// No description provided for @mcpServerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Server Name'**
+  String get mcpServerName;
+
+  /// No description provided for @mcpServerUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Server URL'**
+  String get mcpServerUrl;
+
+  /// No description provided for @mcpTransportLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Transport'**
+  String get mcpTransportLabel;
+
+  /// No description provided for @mcpTestConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Test Connection'**
+  String get mcpTestConnection;
+
+  /// No description provided for @mcpConnectedToolsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected, {count} tools found'**
+  String mcpConnectedToolsCount(int count);
+
+  /// No description provided for @mcpNoToolsReturned.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected, no tools returned'**
+  String get mcpNoToolsReturned;
+
+  /// No description provided for @mcpInvalidConfig.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a name and valid URL'**
+  String get mcpInvalidConfig;
+
+  /// No description provided for @mcpHeadersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Headers'**
+  String get mcpHeadersTitle;
+
+  /// No description provided for @addHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Header'**
+  String get addHeader;
+
+  /// No description provided for @headerKeyPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Key (e.g. Authorization)'**
+  String get headerKeyPlaceholder;
+
+  /// No description provided for @headerValuePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get headerValuePlaceholder;
+
+  /// No description provided for @mcpPlatformSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'The active platform supports tool calling via HTTP / SSE MCP servers.'**
+  String get mcpPlatformSupported;
+
+  /// No description provided for @mcpPlatformUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'The active platform does not support tool calling.'**
+  String get mcpPlatformUnsupported;
+
+  /// No description provided for @inspectorMemoryAndLore.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory & Lore'**
+  String get inspectorMemoryAndLore;
+
+  /// No description provided for @worldInfoTriggerTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Trigger Test'**
+  String get worldInfoTriggerTest;
+
+  /// No description provided for @startChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Chat'**
+  String get startChat;
+
+  /// No description provided for @editPreset.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Preset'**
+  String get editPreset;
+
+  /// No description provided for @enablePlatform.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as Active Provider'**
+  String get enablePlatform;
+
+  /// No description provided for @availableModels.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Models'**
+  String get availableModels;
+
+  /// No description provided for @defaultModelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Default Model'**
+  String get defaultModelLabel;
+
+  /// No description provided for @addCustomModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Custom Model'**
+  String get addCustomModel;
+
+  /// No description provided for @userProfileSummarySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile, gender & birthday'**
+  String get userProfileSummarySubtitle;
+
+  /// No description provided for @pinnedConversations.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned'**
+  String get pinnedConversations;
+
+  /// No description provided for @recentConversations.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get recentConversations;
+
+  /// No description provided for @exportAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get exportAction;
+
+  /// No description provided for @presetOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Character'**
+  String get presetOverview;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

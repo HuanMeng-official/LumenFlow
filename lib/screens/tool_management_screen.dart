@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:cupertino_ui/cupertino_ui.dart';
 
 import '../ai/mcp/mcp_client.dart';
@@ -8,23 +6,20 @@ import '../ai/providers/chat_completions_profile.dart';
 import '../ai/providers/responses_tool_provider.dart';
 import '../l10n/app_localizations.dart';
 import '../services/settings_service.dart';
+import '../utils/app_theme.dart';
 import '../widgets/settings/settings_page_scaffold.dart';
 import '../widgets/settings/settings_section.dart';
 import '../widgets/settings/settings_switch_tile.dart';
 
-/// 工具管理页面
-///
-/// 管理应用程序的各种工具和功能开关：
-/// - 内置工具
-/// - MCP 服务器与工具
-///
-/// 设置更改实时保存，无需手动点击保存按钮
+/// 工具与 MCP 管理页面（含自动记忆工具、7 项内置工具与结构化 MCP 服务器表单）。
 class ToolManagementScreen extends StatefulWidget {
   final bool embedded;
+  final String? previousPageTitle;
 
   const ToolManagementScreen({
     super.key,
     this.embedded = false,
+    this.previousPageTitle,
   });
 
   @override
@@ -38,19 +33,40 @@ class _ToolManagementScreenState extends State<ToolManagementScreen> {
   bool _builtinCalculator = SettingsService.defaultBuiltinCalculatorEnabled;
   bool _builtinTextTools = SettingsService.defaultBuiltinTextToolsEnabled;
   bool _builtinDateMath = SettingsService.defaultBuiltinDateMathEnabled;
-  bool _builtinUnitConvert =
-      SettingsService.defaultBuiltinUnitConvertEnabled;
+  bool _builtinUnitConvert = SettingsService.defaultBuiltinUnitConvertEnabled;
   bool _builtinLunarCalendar =
       SettingsService.defaultBuiltinLunarCalendarEnabled;
-  bool _builtinUserProfile =
-      SettingsService.defaultBuiltinUserProfileEnabled;
+  bool _builtinUserProfile = SettingsService.defaultBuiltinUserProfileEnabled;
+
   List<McpServerConfig> _servers = const [];
   String _activePlatformType = '';
+  String? _editingServerId;
+  bool _isCreatingNew = false;
+
+  final TextEditingController _mcpNameController = TextEditingController();
+  final TextEditingController _mcpUrlController = TextEditingController();
+  final List<_HeaderDraft> _headerDrafts = [];
+  String? _mcpStatusMessage;
 
   @override
   void initState() {
     super.initState();
     _loadSettings();
+  }
+
+  @override
+  void dispose() {
+    _mcpNameController.dispose();
+    _mcpUrlController.dispose();
+    _disposeHeaderDrafts();
+    super.dispose();
+  }
+
+  void _disposeHeaderDrafts() {
+    for (final draft in _headerDrafts) {
+      draft.dispose();
+    }
+    _headerDrafts.clear();
   }
 
   Future<void> _loadSettings() async {
@@ -59,8 +75,7 @@ class _ToolManagementScreenState extends State<ToolManagementScreen> {
         await _settingsService.getBuiltinCalculatorEnabled();
     final builtinTextTools =
         await _settingsService.getBuiltinTextToolsEnabled();
-    final builtinDateMath =
-        await _settingsService.getBuiltinDateMathEnabled();
+    final builtinDateMath = await _settingsService.getBuiltinDateMathEnabled();
     final builtinUnitConvert =
         await _settingsService.getBuiltinUnitConvertEnabled();
     final builtinLunarCalendar =
@@ -85,364 +100,370 @@ class _ToolManagementScreenState extends State<ToolManagementScreen> {
     });
   }
 
-  /// 实时保存时间附加开关状态
-  Future<void> _onAddTimeToPromptChanged(bool value) async {
-    setState(() {
-      _addTimeToPrompt = value;
-    });
-    await _settingsService.setAddTimeToPrompt(value);
-  }
-
-  Future<void> _onBuiltinCalculatorChanged(bool value) async {
-    setState(() {
-      _builtinCalculator = value;
-    });
-    await _settingsService.setBuiltinCalculatorEnabled(value);
-  }
-
-  Future<void> _onBuiltinTextToolsChanged(bool value) async {
-    setState(() {
-      _builtinTextTools = value;
-    });
-    await _settingsService.setBuiltinTextToolsEnabled(value);
-  }
-
-  Future<void> _onBuiltinDateMathChanged(bool value) async {
-    setState(() {
-      _builtinDateMath = value;
-    });
-    await _settingsService.setBuiltinDateMathEnabled(value);
-  }
-
-  Future<void> _onBuiltinUnitConvertChanged(bool value) async {
-    setState(() {
-      _builtinUnitConvert = value;
-    });
-    await _settingsService.setBuiltinUnitConvertEnabled(value);
-  }
-
-  Future<void> _onBuiltinLunarCalendarChanged(bool value) async {
-    setState(() {
-      _builtinLunarCalendar = value;
-    });
-    await _settingsService.setBuiltinLunarCalendarEnabled(value);
-  }
-
-  Future<void> _onBuiltinUserProfileChanged(bool value) async {
-    setState(() {
-      _builtinUserProfile = value;
-    });
-    await _settingsService.setBuiltinUserProfileEnabled(value);
-  }
-
-  Future<void> _saveServers(List<McpServerConfig> servers) async {
-    await _settingsService.saveMcpServers(servers);
-    if (!mounted) return;
-    setState(() {
-      _servers = servers;
-    });
-  }
-
-  Future<void> _toggleServer(McpServerConfig server, bool enabled) async {
-    final updated = _servers
-        .map(
-          (item) => item.id == server.id
-              ? McpServerConfig(
-                  id: item.id,
-                  name: item.name,
-                  url: item.url,
-                  headers: item.headers,
-                  enabled: enabled,
-                )
-              : item,
-        )
-        .toList();
-    await _saveServers(updated);
-  }
-
-  Future<void> _showServerActions(McpServerConfig server) async {
-    await showCupertinoModalPopup<void>(
-      context: context,
-      builder: (context) => CupertinoActionSheet(
-        title: Text(server.name),
-        message: Text(server.url),
-        actions: [
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(context);
-              _showServerDialog(server: server);
-            },
-            child: const Text('编辑'),
-          ),
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(context);
-              _testConnection(this.context, server);
-            },
-            child: const Text('测试连接'),
-          ),
-          CupertinoActionSheetAction(
-            isDestructiveAction: true,
-            onPressed: () {
-              Navigator.pop(context);
-              _confirmDelete(server);
-            },
-            child: const Text('删除'),
-          ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('取消'),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _confirmDelete(McpServerConfig server) async {
-    final confirmed = await showCupertinoDialog<bool>(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text('删除 MCP 服务器'),
-        content: Text('确定删除“${server.name}”吗？'),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
-          ),
-          CupertinoDialogAction(
-            isDestructiveAction: true,
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('删除'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return;
-    await _saveServers(
-      _servers.where((item) => item.id != server.id).toList(),
-    );
-  }
-
-  Future<void> _showServerDialog({McpServerConfig? server}) async {
-    final nameController = TextEditingController(text: server?.name ?? '');
-    final urlController = TextEditingController(text: server?.url ?? '');
-    final headersController = TextEditingController(
-      text: server == null || server.headers.isEmpty
-          ? ''
-          : jsonEncode(server.headers),
-    );
-    final enabled = server?.enabled ?? true;
-
-    final result = await showCupertinoDialog<McpServerConfig>(
-      context: context,
-      builder: (dialogContext) {
-        McpServerConfig? buildConfig() {
-          return _buildConfig(
-            id: server?.id,
-            name: nameController.text,
-            url: urlController.text,
-            headersJson: headersController.text,
-            enabled: enabled,
-          );
-        }
-
-        return CupertinoAlertDialog(
-          title: Text(server == null ? '添加 MCP 服务器' : '编辑 MCP 服务器'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CupertinoTextField(
-                  controller: nameController,
-                  placeholder: '名称',
-                  padding: const EdgeInsets.all(10),
-                ),
-                const SizedBox(height: 8),
-                CupertinoTextField(
-                  controller: urlController,
-                  placeholder: 'URL（http/https）',
-                  keyboardType: TextInputType.url,
-                  padding: const EdgeInsets.all(10),
-                ),
-                const SizedBox(height: 8),
-                CupertinoTextField(
-                  controller: headersController,
-                  placeholder:
-                      '可选：Headers JSON，例如 {"Authorization":"Bearer ..."}',
-                  maxLines: 3,
-                  minLines: 2,
-                  padding: const EdgeInsets.all(10),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            CupertinoDialogAction(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('取消'),
-            ),
-            CupertinoDialogAction(
-              onPressed: () {
-                final config = buildConfig();
-                if (config == null) {
-                  _showValidationError(dialogContext);
-                  return;
-                }
-                _testConnection(dialogContext, config);
-              },
-              child: const Text('测试'),
-            ),
-            CupertinoDialogAction(
-              onPressed: () {
-                final config = buildConfig();
-                if (config == null) {
-                  _showValidationError(dialogContext);
-                  return;
-                }
-                Navigator.pop(dialogContext, config);
-              },
-              child: const Text('保存'),
-            ),
-          ],
-        );
-      },
-    );
-
-    nameController.dispose();
-    urlController.dispose();
-    headersController.dispose();
-
-    if (result == null) return;
-
-    final index = _servers.indexWhere((item) => item.id == result.id);
-    final updated = List<McpServerConfig>.from(_servers);
-    if (index >= 0) {
-      updated[index] = result;
+  void _beginEditServer(McpServerConfig? server) {
+    _disposeHeaderDrafts();
+    if (server == null) {
+      _isCreatingNew = true;
+      _editingServerId = null;
+      _mcpNameController.clear();
+      _mcpUrlController.clear();
     } else {
-      updated.add(result);
+      _isCreatingNew = false;
+      _editingServerId = server.id;
+      _mcpNameController.text = server.name;
+      _mcpUrlController.text = server.url;
+      for (final entry in server.headers.entries) {
+        _headerDrafts.add(_HeaderDraft(entry.key, entry.value));
+      }
     }
-    await _saveServers(updated);
+    setState(() {});
   }
 
-  McpServerConfig? _buildConfig({
-    required String? id,
-    required String name,
-    required String url,
-    required String headersJson,
-    required bool enabled,
-  }) {
-    final trimmedName = name.trim();
-    final trimmedUrl = url.trim();
-    if (trimmedName.isEmpty || trimmedUrl.isEmpty) return null;
+  void _cancelEditServer() {
+    _disposeHeaderDrafts();
+    setState(() {
+      _isCreatingNew = false;
+      _editingServerId = null;
+    });
+  }
 
-    final uri = Uri.tryParse(trimmedUrl);
+  McpServerConfig? _buildConfigFromDraft({String? existingId, bool enabled = true}) {
+    final name = _mcpNameController.text.trim();
+    final url = _mcpUrlController.text.trim();
+    if (name.isEmpty || url.isEmpty) return null;
+    final uri = Uri.tryParse(url);
     if (uri == null || (uri.scheme != 'http' && uri.scheme != 'https')) {
       return null;
     }
 
-    Map<String, String> headers;
-    try {
-      if (headersJson.trim().isEmpty) {
-        headers = const {};
-      } else {
-        final decoded = jsonDecode(headersJson);
-        if (decoded is! Map) return null;
-        headers = decoded.map(
-          (key, value) => MapEntry(key.toString(), value.toString()),
-        );
+    final headers = <String, String>{};
+    for (final draft in _headerDrafts) {
+      final k = draft.keyController.text.trim();
+      final v = draft.valueController.text.trim();
+      if (k.isNotEmpty) {
+        headers[k] = v;
       }
-    } catch (_) {
-      return null;
     }
 
     return McpServerConfig(
-      id: id ?? 'mcp_${DateTime.now().millisecondsSinceEpoch}',
-      name: trimmedName,
-      url: trimmedUrl,
+      id: existingId ?? 'mcp_${DateTime.now().millisecondsSinceEpoch}',
+      name: name,
+      url: url,
       headers: headers,
       enabled: enabled,
     );
   }
 
-  Future<void> _testConnection(
-    BuildContext context,
-    McpServerConfig config,
-  ) async {
+  Future<void> _saveDraftServer({McpServerConfig? original}) async {
+    final l10n = AppLocalizations.of(context)!;
+    final built = _buildConfigFromDraft(
+      existingId: original?.id,
+      enabled: original?.enabled ?? true,
+    );
+    if (built == null) {
+      _showNotice(l10n.error, l10n.mcpInvalidConfig);
+      return;
+    }
+
+    final updated = List<McpServerConfig>.from(_servers);
+    final idx = updated.indexWhere((s) => s.id == built.id);
+    if (idx >= 0) {
+      updated[idx] = built;
+    } else {
+      updated.add(built);
+    }
+    await _settingsService.saveMcpServers(updated);
+    if (!mounted) return;
+    _disposeHeaderDrafts();
+    setState(() {
+      _servers = updated;
+      _isCreatingNew = false;
+      _editingServerId = null;
+    });
+  }
+
+  Future<void> _deleteServer(McpServerConfig server) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (dialogContext) => CupertinoAlertDialog(
+        title: Text(l10n.deleteMcpServer),
+        content: Text(server.name),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(l10n.cancel),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final updated = _servers.where((item) => item.id != server.id).toList();
+    await _settingsService.saveMcpServers(updated);
+    if (!mounted) return;
+    setState(() {
+      _servers = updated;
+      if (_editingServerId == server.id) _editingServerId = null;
+    });
+  }
+
+  Future<void> _testConnection(McpServerConfig config) async {
+    final l10n = AppLocalizations.of(context)!;
     final client = McpClient(
       config: config,
       timeout: const Duration(seconds: 10),
     );
-
     String message;
     try {
       final tools = await client.initializeAndListTools();
       if (tools.isEmpty) {
-        message = '连接成功，但没有发现工具。';
+        message = l10n.mcpNoToolsReturned;
       } else {
-        final names = tools.take(10).map((tool) => tool.name).join(', ');
-        message = '连接成功，发现 ${tools.length} 个工具：\n$names';
+        final names = tools.take(8).map((t) => t.name).join(', ');
+        message = '${l10n.mcpConnectedToolsCount(tools.length)}: $names';
       }
     } catch (error) {
-      message = '连接失败：$error';
+      message = error.toString();
     } finally {
       await client.close();
     }
+    if (!mounted) return;
+    setState(() => _mcpStatusMessage = '${config.name}: $message');
+  }
 
-    if (!context.mounted) return;
-    await showCupertinoDialog<void>(
+  void _showNotice(String title, String message) {
+    final l10n = AppLocalizations.of(context)!;
+    showCupertinoDialog<void>(
       context: context,
       builder: (dialogContext) => CupertinoAlertDialog(
-        title: const Text('测试连接'),
+        title: Text(title),
         content: Text(message),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('好'),
+            child: Text(l10n.ok),
           ),
         ],
       ),
     );
   }
 
-  void _showValidationError(BuildContext context) {
-    showCupertinoDialog<void>(
-      context: context,
-      builder: (dialogContext) => CupertinoAlertDialog(
-        title: const Text('配置无效'),
-        content: const Text('请填写名称和有效的 http/https URL，并确保 Headers 是 JSON 对象。'),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('好'),
-          ),
-        ],
-      ),
-    );
-  }
+  bool get _platformSupportsTools =>
+      ChatCompletionsProfiles.forType(_activePlatformType) != null ||
+      ResponsesToolProfiles.supports(_activePlatformType) ||
+      _activePlatformType == 'claude' ||
+      _activePlatformType == 'gemini';
 
   Widget _memoryToolTile(
     BuildContext context, {
-    required IconData icon,
     required String title,
     required String subtitle,
   }) {
     final l10n = AppLocalizations.of(context)!;
-    final primaryColor = CupertinoTheme.of(context).primaryColor;
-    return CupertinoListTile(
-      leading: Icon(icon, color: primaryColor),
-      title: Text(title),
-      subtitle: Text(subtitle),
-      trailing: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        decoration: BoxDecoration(
-          color: CupertinoColors.systemGrey6.resolveFrom(context),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          l10n.memoryToolsAuto,
-          style: const TextStyle(fontSize: 12),
-        ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.w500,
+                    color: AppTokens.label(context),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: AppTokens.labelSecondary(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            l10n.memoryToolsAuto,
+            style: TextStyle(
+              fontSize: 13,
+              color: AppTokens.labelSecondary(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMcpEditor(BuildContext context, {McpServerConfig? original}) {
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(12, 6, 12, 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTokens.fillSoft(context),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          CupertinoTextField(
+            controller: _mcpNameController,
+            placeholder: l10n.mcpServerName,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+            decoration: BoxDecoration(
+              color: AppTokens.elevatedSurface(context),
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          const SizedBox(height: 8),
+          CupertinoTextField(
+            controller: _mcpUrlController,
+            placeholder: l10n.mcpServerUrl,
+            keyboardType: TextInputType.url,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+            decoration: BoxDecoration(
+              color: AppTokens.elevatedSurface(context),
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                l10n.mcpHeadersTitle,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w500,
+                  color: AppTokens.labelSecondary(context),
+                ),
+              ),
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(24, 24),
+                onPressed: () {
+                  setState(() => _headerDrafts.add(_HeaderDraft('', '')));
+                },
+                child: Text(
+                  '+ ${l10n.addHeader}',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: AppTokens.accent(context),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          for (int i = 0; i < _headerDrafts.length; i++) ...[
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Expanded(
+                  child: CupertinoTextField(
+                    controller: _headerDrafts[i].keyController,
+                    placeholder: l10n.headerKeyPlaceholder,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 7,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTokens.elevatedSurface(context),
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: CupertinoTextField(
+                    controller: _headerDrafts[i].valueController,
+                    placeholder: l10n.headerValuePlaceholder,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 7,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTokens.elevatedSurface(context),
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                  ),
+                ),
+                CupertinoButton(
+                  padding: const EdgeInsets.only(left: 4),
+                  minimumSize: const Size(28, 28),
+                  onPressed: () {
+                    setState(() {
+                      final removed = _headerDrafts.removeAt(i);
+                      removed.dispose();
+                    });
+                  },
+                  child: Icon(
+                    CupertinoIcons.minus_circle,
+                    size: 17,
+                    color: AppTokens.red(context),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              if (original != null)
+                CupertinoButton(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  onPressed: () => _deleteServer(original),
+                  child: Text(
+                    l10n.delete,
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      color: AppTokens.red(context),
+                    ),
+                  ),
+                ),
+              const Spacer(),
+              CupertinoButton(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                onPressed: _cancelEditServer,
+                child: Text(
+                  l10n.cancel,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    color: AppTokens.labelSecondary(context),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              CupertinoButton(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 7,
+                ),
+                color: AppTokens.accent(context),
+                borderRadius: BorderRadius.circular(8),
+                onPressed: () => _saveDraftServer(original: original),
+                child: Text(
+                  l10n.save,
+                  style: const TextStyle(
+                    fontSize: 13.5,
+                    color: CupertinoColors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -454,6 +475,7 @@ class _ToolManagementScreenState extends State<ToolManagementScreen> {
     if (_isLoading) {
       return SettingsPageScaffold(
         title: l10n.toolManagement,
+        previousPageTitle: widget.previousPageTitle,
         embedded: widget.embedded,
         child: const Center(child: CupertinoActivityIndicator()),
       );
@@ -461,122 +483,220 @@ class _ToolManagementScreenState extends State<ToolManagementScreen> {
 
     return SettingsPageScaffold(
       title: l10n.toolManagement,
+      previousPageTitle: widget.previousPageTitle,
       embedded: widget.embedded,
       child: ListView(
+        padding: const EdgeInsets.only(bottom: 32),
         children: [
-            SettingsSection(
-              title: l10n.memoryTools,
-              children: [
-                _memoryToolTile(
-                  context,
-                  icon: CupertinoIcons.bookmark,
-                  title: l10n.memoryNoteToolName,
-                  subtitle: l10n.memoryNoteToolDesc,
+          SettingsSection(
+            title: l10n.memoryTools,
+            children: [
+              _memoryToolTile(
+                context,
+                title: l10n.memoryNoteToolName,
+                subtitle: l10n.memoryNoteToolDesc,
+              ),
+              _memoryToolTile(
+                context,
+                title: l10n.memoryRecallToolName,
+                subtitle: l10n.memoryRecallToolDesc,
+              ),
+            ],
+          ),
+          SettingsSection(
+            title: l10n.promptTools,
+            children: [
+              SettingsSwitchTile(
+                title: l10n.addTimeToPrompt,
+                value: _addTimeToPrompt,
+                subtitle: l10n.addTimeToPromptDesc,
+                onChanged: (v) async {
+                  setState(() => _addTimeToPrompt = v);
+                  await _settingsService.setAddTimeToPrompt(v);
+                },
+              ),
+              SettingsSwitchTile(
+                title: l10n.builtinDateMath,
+                value: _builtinDateMath,
+                subtitle: l10n.builtinDateMathDesc,
+                onChanged: (v) async {
+                  setState(() => _builtinDateMath = v);
+                  await _settingsService.setBuiltinDateMathEnabled(v);
+                },
+              ),
+              SettingsSwitchTile(
+                title: l10n.builtinLunarCalendar,
+                value: _builtinLunarCalendar,
+                subtitle: l10n.builtinLunarCalendarDesc,
+                onChanged: (v) async {
+                  setState(() => _builtinLunarCalendar = v);
+                  await _settingsService.setBuiltinLunarCalendarEnabled(v);
+                },
+              ),
+              SettingsSwitchTile(
+                title: l10n.builtinCalculator,
+                value: _builtinCalculator,
+                subtitle: l10n.builtinCalculatorDesc,
+                onChanged: (v) async {
+                  setState(() => _builtinCalculator = v);
+                  await _settingsService.setBuiltinCalculatorEnabled(v);
+                },
+              ),
+              SettingsSwitchTile(
+                title: l10n.builtinTextTools,
+                value: _builtinTextTools,
+                subtitle: l10n.builtinTextToolsDesc,
+                onChanged: (v) async {
+                  setState(() => _builtinTextTools = v);
+                  await _settingsService.setBuiltinTextToolsEnabled(v);
+                },
+              ),
+              SettingsSwitchTile(
+                title: l10n.builtinUnitConvert,
+                value: _builtinUnitConvert,
+                subtitle: l10n.builtinUnitConvertDesc,
+                onChanged: (v) async {
+                  setState(() => _builtinUnitConvert = v);
+                  await _settingsService.setBuiltinUnitConvertEnabled(v);
+                },
+              ),
+              SettingsSwitchTile(
+                title: l10n.builtinUserProfile,
+                value: _builtinUserProfile,
+                subtitle: l10n.builtinUserProfileDesc,
+                onChanged: (v) async {
+                  setState(() => _builtinUserProfile = v);
+                  await _settingsService.setBuiltinUserProfileEnabled(v);
+                },
+              ),
+            ],
+          ),
+          SettingsSection(
+            title: l10n.mcpServers,
+            footer: _mcpStatusMessage ??
+                (_platformSupportsTools
+                    ? l10n.mcpPlatformSupported
+                    : l10n.mcpPlatformUnsupported),
+            children: [
+              for (final server in _servers) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 11,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => _editingServerId == server.id
+                                  ? _cancelEditServer()
+                                  : _beginEditServer(server),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    server.name,
+                                    style: TextStyle(
+                                      fontSize: 15.5,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppTokens.label(context),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    server.url,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 12.5,
+                                      color: AppTokens.labelSecondary(context),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          CupertinoButton(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            onPressed: () => _testConnection(server),
+                            child: Text(
+                              l10n.mcpTestConnection,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppTokens.accent(context),
+                              ),
+                            ),
+                          ),
+                          CupertinoSwitch(
+                            value: server.enabled,
+                            onChanged: (value) async {
+                              final updated = _servers
+                                  .map(
+                                    (item) => item.id == server.id
+                                        ? McpServerConfig(
+                                            id: item.id,
+                                            name: item.name,
+                                            url: item.url,
+                                            headers: item.headers,
+                                            enabled: value,
+                                          )
+                                        : item,
+                                  )
+                                  .toList();
+                              await _settingsService.saveMcpServers(updated);
+                              if (!mounted) return;
+                              setState(() => _servers = updated);
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                _memoryToolTile(
-                  context,
-                  icon: CupertinoIcons.search,
-                  title: l10n.memoryRecallToolName,
-                  subtitle: l10n.memoryRecallToolDesc,
-                ),
+                if (_editingServerId == server.id)
+                  _buildMcpEditor(context, original: server),
               ],
-            ),
-            SettingsSection(
-              title: l10n.promptTools,
-              children: [
-                SettingsSwitchTile(
-                  title: l10n.addTimeToPrompt,
-                  value: _addTimeToPrompt,
-                  subtitle: l10n.addTimeToPromptDesc,
-                  onChanged: _onAddTimeToPromptChanged,
+              if (_isCreatingNew) _buildMcpEditor(context),
+              CupertinoButton(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 13,
                 ),
-                SettingsSwitchTile(
-                  title: l10n.builtinDateMath,
-                  value: _builtinDateMath,
-                  subtitle: l10n.builtinDateMathDesc,
-                  onChanged: _onBuiltinDateMathChanged,
-                ),
-                SettingsSwitchTile(
-                  title: l10n.builtinLunarCalendar,
-                  value: _builtinLunarCalendar,
-                  subtitle: l10n.builtinLunarCalendarDesc,
-                  onChanged: _onBuiltinLunarCalendarChanged,
-                ),
-                SettingsSwitchTile(
-                  title: l10n.builtinCalculator,
-                  value: _builtinCalculator,
-                  subtitle: l10n.builtinCalculatorDesc,
-                  onChanged: _onBuiltinCalculatorChanged,
-                ),
-                SettingsSwitchTile(
-                  title: l10n.builtinTextTools,
-                  value: _builtinTextTools,
-                  subtitle: l10n.builtinTextToolsDesc,
-                  onChanged: _onBuiltinTextToolsChanged,
-                ),
-                SettingsSwitchTile(
-                  title: l10n.builtinUnitConvert,
-                  value: _builtinUnitConvert,
-                  subtitle: l10n.builtinUnitConvertDesc,
-                  onChanged: _onBuiltinUnitConvertChanged,
-                ),
-                SettingsSwitchTile(
-                  title: l10n.builtinUserProfile,
-                  value: _builtinUserProfile,
-                  subtitle: l10n.builtinUserProfileDesc,
-                  onChanged: _onBuiltinUserProfileChanged,
-                ),
-              ],
-            ),
-            SettingsSection(
-              title: 'MCP 服务器',
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                onPressed: () => _beginEditServer(null),
+                child: Align(
+                  alignment: Alignment.centerLeft,
                   child: Text(
-                    ChatCompletionsProfiles.forType(_activePlatformType) !=
-                                null ||
-                            ResponsesToolProfiles.supports(
-                              _activePlatformType,
-                            ) ||
-                            _activePlatformType == 'claude' ||
-                            _activePlatformType == 'gemini'
-                        ? '当前平台（$_activePlatformType）支持工具调用。'
-                        : '当前平台（$_activePlatformType）暂不支持工具调用。支持的平台：DeepSeek、Kimi、MiniMax、智谱、SiliconFlow、Other、Xiaomi MiMo、OpenAI、Grok、OpenRouter、LM Studio、Claude、Gemini。',
-                    style: const TextStyle(fontSize: 13),
+                    '+ ${l10n.addMcpServer}',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: AppTokens.accent(context),
+                    ),
                   ),
                 ),
-                if (_servers.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(16, 12, 16, 12),
-                    child: Text(
-                      '尚未配置 MCP 服务器。添加后，支持的平台可以在对话中调用这些工具。',
-                      style: TextStyle(fontSize: 13),
-                    ),
-                  ),
-                for (final server in _servers)
-                  CupertinoListTile(
-                    title: Text(server.name),
-                    subtitle: Text(
-                      server.url,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    trailing: CupertinoSwitch(
-                      value: server.enabled,
-                      onChanged: (value) => _toggleServer(server, value),
-                    ),
-                    onTap: () => _showServerActions(server),
-                  ),
-                CupertinoListTile(
-                  leading: const Icon(CupertinoIcons.add),
-                  title: const Text('添加 MCP 服务器'),
-                  onTap: () => _showServerDialog(),
-                ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
+  }
+}
+
+class _HeaderDraft {
+  final TextEditingController keyController;
+  final TextEditingController valueController;
+
+  _HeaderDraft(String key, String value)
+      : keyController = TextEditingController(text: key),
+        valueController = TextEditingController(text: value);
+
+  void dispose() {
+    keyController.dispose();
+    valueController.dispose();
   }
 }

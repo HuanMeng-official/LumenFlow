@@ -1884,4 +1884,111 @@ class AppLocalizationsJa extends AppLocalizations {
   String presetDetailWorldInfoStats(int entries, int scanDepth, int budget) {
     return '項目 $entries · スキャン深度 $scanDepth · 予算 $budget tokens';
   }
+
+  @override
+  String get providersAndModels => 'プロバイダーとモデル';
+
+  @override
+  String get conversationAndMemory => '会話とメモリ';
+
+  @override
+  String get appearanceAndLanguage => '外観と言語';
+
+  @override
+  String get notificationsDataAbout => '通知・データ・情報';
+
+  @override
+  String get characters => 'キャラクター';
+
+  @override
+  String get mcpServers => 'MCP サーバー';
+
+  @override
+  String get addMcpServer => 'MCP サーバーを追加';
+
+  @override
+  String get editMcpServer => 'MCP サーバーを編集';
+
+  @override
+  String get deleteMcpServer => 'MCP サーバーを削除';
+
+  @override
+  String get mcpServerName => 'サーバー名';
+
+  @override
+  String get mcpServerUrl => 'サーバー URL';
+
+  @override
+  String get mcpTransportLabel => 'トランスポート';
+
+  @override
+  String get mcpTestConnection => '接続テスト';
+
+  @override
+  String mcpConnectedToolsCount(int count) {
+    return '接続成功、$count 個のツールを検出';
+  }
+
+  @override
+  String get mcpNoToolsReturned => '接続成功、ツールなし';
+
+  @override
+  String get mcpInvalidConfig => '名前と有効な URL を入力してください';
+
+  @override
+  String get mcpHeadersTitle => 'リクエストヘッダー';
+
+  @override
+  String get addHeader => 'ヘッダーを追加';
+
+  @override
+  String get headerKeyPlaceholder => 'キー (例: Authorization)';
+
+  @override
+  String get headerValuePlaceholder => '値';
+
+  @override
+  String get mcpPlatformSupported => '現在のプラットフォームは HTTP / SSE MCP ツールの呼び出しに対応しています。';
+
+  @override
+  String get mcpPlatformUnsupported => '現在のプラットフォームはツール呼び出しに対応していません。';
+
+  @override
+  String get inspectorMemoryAndLore => 'メモリとワールド情報';
+
+  @override
+  String get worldInfoTriggerTest => 'トリガーテスト';
+
+  @override
+  String get startChat => '会話を始める';
+
+  @override
+  String get editPreset => 'プリセット編集';
+
+  @override
+  String get enablePlatform => 'このプロバイダーを有効化';
+
+  @override
+  String get availableModels => '利用可能なモデル';
+
+  @override
+  String get defaultModelLabel => 'デフォルトモデル';
+
+  @override
+  String get addCustomModel => 'カスタムモデルを追加';
+
+  @override
+  String get userProfileSummarySubtitle => 'プロフィール・性別・誕生日';
+
+  @override
+  String get pinnedConversations => 'ピン留め';
+
+  @override
+  String get recentConversations => '最近';
+
+  @override
+  String get exportAction => 'エクスポート';
+
+  @override
+  String get presetOverview => 'キャラクター設定';
 }

@@ -23,12 +23,14 @@ class MemoryViewerScreen extends StatefulWidget {
     this.conversationService,
     this.roleplayMode = false,
     this.preset,
+    this.embedded = false,
   });
 
   final String conversationId;
   final ConversationService? conversationService;
   final bool roleplayMode;
   final PromptPreset? preset;
+  final bool embedded;
 
   @override
   State<MemoryViewerScreen> createState() => _MemoryViewerScreenState();
@@ -46,6 +48,16 @@ class _MemoryViewerScreenState extends State<MemoryViewerScreen> {
     super.initState();
     _conversationService = widget.conversationService ?? ConversationService();
     _load();
+  }
+
+  @override
+  void didUpdateWidget(covariant MemoryViewerScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.conversationId != widget.conversationId ||
+        oldWidget.roleplayMode != widget.roleplayMode ||
+        oldWidget.preset?.id != widget.preset?.id) {
+      _reload();
+    }
   }
 
   Future<void> _load() async {
@@ -87,6 +99,27 @@ class _MemoryViewerScreenState extends State<MemoryViewerScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final memory = _memory;
+    final body = _isLoading
+        ? const Center(child: CupertinoActivityIndicator())
+        : widget.roleplayMode
+        ? _buildRoleplay(
+            context,
+            l10n,
+            memory ?? ConversationMemory.empty(),
+            _pendingNotes,
+          )
+        : ((memory == null || memory.isEmpty) && _pendingNotes.isEmpty)
+        ? _buildEmpty(context, l10n)
+        : _buildContent(
+            context,
+            l10n,
+            memory ?? ConversationMemory.empty(),
+            _pendingNotes,
+          );
+
+    if (widget.embedded) {
+      return body;
+    }
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
@@ -101,25 +134,7 @@ class _MemoryViewerScreenState extends State<MemoryViewerScreen> {
           child: const Icon(CupertinoIcons.refresh),
         ),
       ),
-      child: SafeArea(
-        child: _isLoading
-            ? const Center(child: CupertinoActivityIndicator())
-            : widget.roleplayMode
-            ? _buildRoleplay(
-                context,
-                l10n,
-                memory ?? ConversationMemory.empty(),
-                _pendingNotes,
-              )
-            : ((memory == null || memory.isEmpty) && _pendingNotes.isEmpty)
-            ? _buildEmpty(context, l10n)
-            : _buildContent(
-                context,
-                l10n,
-                memory ?? ConversationMemory.empty(),
-                _pendingNotes,
-              ),
-      ),
+      child: SafeArea(child: body),
     );
   }
 

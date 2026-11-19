@@ -1884,4 +1884,111 @@ class AppLocalizationsLzh extends AppLocalizations {
   String presetDetailWorldInfoStats(int entries, int scanDepth, int budget) {
     return '條目 $entries · 掃描深度 $scanDepth · 預算 $budget tokens';
   }
+
+  @override
+  String get providersAndModels => '諸司與模型';
+
+  @override
+  String get conversationAndMemory => '清談與記憶';
+
+  @override
+  String get appearanceAndLanguage => '外觀與言語';
+
+  @override
+  String get notificationsDataAbout => '通告、數據與關於';
+
+  @override
+  String get characters => '角色預設';
+
+  @override
+  String get mcpServers => 'MCP 伺服器';
+
+  @override
+  String get addMcpServer => '增置 MCP 伺服器';
+
+  @override
+  String get editMcpServer => '修訂 MCP 伺服器';
+
+  @override
+  String get deleteMcpServer => '移除 MCP 伺服器';
+
+  @override
+  String get mcpServerName => '伺服器之名';
+
+  @override
+  String get mcpServerUrl => '伺服器網址 (URL)';
+
+  @override
+  String get mcpTransportLabel => '傳輸之制';
+
+  @override
+  String get mcpTestConnection => '試通';
+
+  @override
+  String mcpConnectedToolsCount(int count) {
+    return '通連無礙，得具 $count 種';
+  }
+
+  @override
+  String get mcpNoToolsReturned => '通連已成，然無具可施';
+
+  @override
+  String get mcpInvalidConfig => '請書名稱及正址';
+
+  @override
+  String get mcpHeadersTitle => '請求首標 (Headers)';
+
+  @override
+  String get addHeader => '增首標';
+
+  @override
+  String get headerKeyPlaceholder => '鍵 (若 Authorization)';
+
+  @override
+  String get headerValuePlaceholder => '值';
+
+  @override
+  String get mcpPlatformSupported => '今所用之台，可施諸具，亦通 HTTP / SSE MCP。';
+
+  @override
+  String get mcpPlatformUnsupported => '今所用之台尚未通此具。';
+
+  @override
+  String get inspectorMemoryAndLore => '記憶與世典';
+
+  @override
+  String get worldInfoTriggerTest => '觸發測試';
+
+  @override
+  String get startChat => '啟談';
+
+  @override
+  String get editPreset => '修訂設定';
+
+  @override
+  String get enablePlatform => '啟用此司';
+
+  @override
+  String get availableModels => '可用模型';
+
+  @override
+  String get defaultModelLabel => '默認模型';
+
+  @override
+  String get addCustomModel => '增自定模型';
+
+  @override
+  String get userProfileSummarySubtitle => '身世、男女與生辰';
+
+  @override
+  String get pinnedConversations => '置頂';
+
+  @override
+  String get recentConversations => '近談';
+
+  @override
+  String get exportAction => '導出';
+
+  @override
+  String get presetOverview => '人物設定';
 }

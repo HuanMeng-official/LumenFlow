@@ -134,7 +134,7 @@
   "apiEndpointPlaceholder": "Enter API endpoint URL",
   "apiEndpointDesc": "e.g.: https://api.openai.com/v1",
   "apiKey": "API Key",
-  "apiKeyPlaceholder": "Enter API key",
+  "apiKeyPlaceholder": "API key",
   "apiKeyDesc": "Authentication key obtained from AI service provider",
   "modelSettings": "Model Settings",
   "model": "Model",
@@ -160,8 +160,12 @@
   "memoryCompressingProgress": "Organizing memory {current}/{total}…",
   "@memoryCompressingProgress": {
     "placeholders": {
-      "current": {"type": "int"},
-      "total": {"type": "int"}
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "memoryCompressionFailed": "Memory update failed. Using the existing memory this time",
@@ -179,7 +183,9 @@
   "memoryViewerUpdatedAt": "Updated {time}",
   "@memoryViewerUpdatedAt": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "memoryViewerLocalOnly": "Memory is stored only on this device and updates automatically with the conversation.",
@@ -201,8 +207,12 @@
   "memoryViewerRoleplayStats": "{messages} messages · about {minutes} min",
   "@memoryViewerRoleplayStats": {
     "placeholders": {
-      "messages": {"type": "int"},
-      "minutes": {"type": "int"}
+      "messages": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
     }
   },
   "memoryViewerRoleplayEmptyHint": "Keep chatting and this page will fill in mood, relationship, scene, character state, and unresolved threads.",
@@ -605,7 +615,6 @@
   "platformType": "Platform Type",
   "platformNamePlaceholder": "Platform name",
   "endpointPlaceholder": "API endpoint URL",
-  "apiKeyPlaceholder": "API key",
   "configured": "Configured",
   "notConfigured": "Not Configured",
   "models": "models",
@@ -658,7 +667,6 @@
   "deleteModelBtn": "Delete Selected",
   "selectModelToDelete": "Please select a model to delete first",
   "add": "Add",
-  "delete": "Delete",
   "addNewModel": "Add new model",
   "clickAddToCreate": "Tap the + button above to add a model",
   "noPlatformsConfigured": "No platforms configured",
@@ -1059,21 +1067,25 @@
   "worldInfoTokens": "Background {background} · Entries {entry} · Total {total} tokens",
   "@worldInfoTokens": {
     "placeholders": {
-      "background": {"type": "int"},
-      "entry": {"type": "int"},
-      "total": {"type": "int"}
+      "background": {
+        "type": "int"
+      },
+      "entry": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "worldInfoNoMatches": "No entries matched",
-  "worldInfoRun": "Run preview"
-,
+  "worldInfoRun": "Run preview",
   "lumenflowInvalidArchive": "Invalid LumenFlow archive",
   "lumenflowMissingCharacter": "LumenFlow archive is missing the character card file",
   "lumenflowWorldInfoInvalid": "World info file is invalid or corrupt",
   "lumenflowAvatarInvalid": "Avatar image is invalid or corrupt",
   "lumenflowIllustrationInvalid": "Illustration image is invalid or corrupt",
-  "lumenflowLegacyUnsupported": "Legacy LumenFlow format is not supported"
-,
+  "lumenflowLegacyUnsupported": "Legacy LumenFlow format is not supported",
   "presetSectionWorldviewBackground": "Worldview & Background",
   "presetSectionAppearance": "Appearance & Traits",
   "presetSectionPersonality": "Personality & Logic",
@@ -1096,9 +1108,57 @@
   "presetDetailWorldInfoStats": "Entries {entries} · Scan depth {scanDepth} · Budget {budget} tokens",
   "@presetDetailWorldInfoStats": {
     "placeholders": {
-      "entries": {"type": "int"},
-      "scanDepth": {"type": "int"},
-      "budget": {"type": "int"}
+      "entries": {
+        "type": "int"
+      },
+      "scanDepth": {
+        "type": "int"
+      },
+      "budget": {
+        "type": "int"
+      }
+    }
+  },
+  "providersAndModels": "Providers & Models",
+  "conversationAndMemory": "Chat & Memory",
+  "appearanceAndLanguage": "Appearance & Language",
+  "notificationsDataAbout": "Notifications, Data & About",
+  "characters": "Characters",
+  "mcpServers": "MCP Servers",
+  "addMcpServer": "Add MCP Server",
+  "editMcpServer": "Edit MCP Server",
+  "deleteMcpServer": "Delete MCP Server",
+  "mcpServerName": "Server Name",
+  "mcpServerUrl": "Server URL",
+  "mcpTransportLabel": "Transport",
+  "mcpTestConnection": "Test Connection",
+  "mcpConnectedToolsCount": "Connected, {count} tools found",
+  "mcpNoToolsReturned": "Connected, no tools returned",
+  "mcpInvalidConfig": "Please enter a name and valid URL",
+  "mcpHeadersTitle": "Request Headers",
+  "addHeader": "Add Header",
+  "headerKeyPlaceholder": "Key (e.g. Authorization)",
+  "headerValuePlaceholder": "Value",
+  "mcpPlatformSupported": "The active platform supports tool calling via HTTP / SSE MCP servers.",
+  "mcpPlatformUnsupported": "The active platform does not support tool calling.",
+  "inspectorMemoryAndLore": "Memory & Lore",
+  "worldInfoTriggerTest": "Trigger Test",
+  "startChat": "Start Chat",
+  "editPreset": "Edit Preset",
+  "enablePlatform": "Set as Active Provider",
+  "availableModels": "Available Models",
+  "defaultModelLabel": "Default Model",
+  "addCustomModel": "Add Custom Model",
+  "userProfileSummarySubtitle": "Profile, gender & birthday",
+  "pinnedConversations": "Pinned",
+  "recentConversations": "Recent",
+  "exportAction": "Export",
+  "presetOverview": "Character",
+  "@mcpConnectedToolsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
     }
   }
 }

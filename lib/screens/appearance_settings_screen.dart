@@ -5,6 +5,8 @@ import '../l10n/app_localizations.dart';
 import '../services/settings_service.dart';
 import '../utils/app_theme.dart';
 import '../utils/path_utils.dart';
+import '../utils/platform_utils.dart';
+import '../widgets/desktop/desktop_popover.dart';
 import '../widgets/settings/settings_section.dart';
 import '../widgets/settings/settings_page_scaffold.dart';
 import '../widgets/settings/settings_switch_tile.dart';
@@ -15,17 +17,17 @@ import '../widgets/settings/settings_slider_tile.dart';
 ///
 /// 管理外观相关配置：
 /// - 跟随系统主题
-/// - 应用主题颜色
+/// - 应用主题颜色（浅色 / 深色分段控件）
 /// - 界面语言
-///
-/// 设置更改实时保存，无需手动点击保存按钮
-/// 注意：更改语言后需要重启应用才能生效
+/// - 聊天背景图片与透明度
 class AppearanceSettingsScreen extends StatefulWidget {
   final bool embedded;
+  final String? previousPageTitle;
 
   const AppearanceSettingsScreen({
     super.key,
     this.embedded = false,
+    this.previousPageTitle,
   });
 
   @override
@@ -282,251 +284,153 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen>
 
     if (_isLoading) {
       return SettingsPageScaffold(
-        title: l10n.appearance,
+        title: l10n.appearanceAndLanguage,
+        previousPageTitle: widget.previousPageTitle,
         embedded: widget.embedded,
         child: const Center(child: CupertinoActivityIndicator()),
       );
     }
 
+    final currentMode = _followSystemTheme
+        ? (MediaQuery.of(context).platformBrightness == Brightness.dark
+            ? 'dark'
+            : 'light')
+        : _appTheme;
+
     return SettingsPageScaffold(
-      title: l10n.appearance,
+      title: l10n.appearanceAndLanguage,
+      previousPageTitle: widget.previousPageTitle,
       embedded: widget.embedded,
       child: ListView(
+        padding: const EdgeInsets.only(bottom: 32),
         children: [
-            SettingsSection(
-              title: l10n.appearance,
-              children: [
-                SettingsSwitchTile(
-                  title: l10n.followSystem,
-                  value: _followSystemTheme,
-                  subtitle: l10n.followSystemDesc,
-                  onChanged: _onFollowSystemThemeChanged,
-                ),
-                _ThemeDropdownTile(
-                  title: l10n.appColor,
-                  value: _followSystemTheme
-                      ? (MediaQuery.of(context).platformBrightness ==
-                              Brightness.dark
-                          ? 'dark'
-                          : 'light')
-                      : _appTheme,
-                  followSystemTheme: _followSystemTheme,
-                  systemBrightness: MediaQuery.of(context).platformBrightness,
-                  subtitle: _followSystemTheme
-                      ? l10n.followSystemSetting(
-                          MediaQuery.of(context).platformBrightness ==
-                                  Brightness.dark
-                              ? l10n.darkMode
-                              : l10n.lightMode)
-                      : l10n.selectColorMode,
-                  onChanged: _followSystemTheme
-                      ? null
-                      : _onAppThemeChanged,
-                ),
-              ],
-            ),
-            SettingsSection(
-              title: l10n.language,
-              children: [
-                _LanguageDropdownTile(
-                  title: l10n.interfaceLanguage,
-                  value: _locale,
-                  subtitle: l10n.selectInterfaceLanguage,
-                  onChanged: _onLocaleChanged,
-                ),
-              ],
-            ),
-            SettingsSection(
-              title: l10n.chatBackground,
-              children: [
-                SettingsActionTile(
-                  title: _backgroundImagePath.isEmpty
-                      ? l10n.selectBackgroundImage
-                      : l10n.changeBackgroundImage,
-                  subtitle: _backgroundImagePath.isEmpty
-                      ? l10n.selectBackgroundImageDesc
-                      : l10n.currentBackgroundImage,
-                  icon: CupertinoIcons.photo,
-                  onTap: _handleSelectBackgroundImage,
-                  trailing: _backgroundImagePath.isNotEmpty
-                      ? CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          onPressed: _handleClearBackgroundImage,
-                          child: Text(l10n.clear),
-                        )
-                      : null,
-                ),
-                SettingsSliderTile(
-                  title: l10n.backgroundOpacity,
-                  value: _backgroundImageOpacity,
-                  min: 0.0,
-                  max: 1.0,
-                  divisions: 20,
-                  decimalPlaces: 2,
-                  subtitle: l10n.backgroundOpacityDesc,
-                  showValueInRow: true,
-                  onChanged: _handleBackgroundOpacityChanged,
-                ),
-              ],
-            ),
-          ],
-        ),
-    );
-  }
-}
-
-/// 主题下拉选择组件（内部）
-class _ThemeDropdownTile extends StatelessWidget {
-  final String title;
-  final String value;
-  final bool followSystemTheme;
-  final Brightness systemBrightness;
-  final String? subtitle;
-  final ValueChanged<String?>? onChanged;
-
-  const _ThemeDropdownTile({
-    required this.title,
-    required this.value,
-    required this.followSystemTheme,
-    required this.systemBrightness,
-    this.subtitle,
-    this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final brightness = CupertinoTheme.of(context).brightness;
-    final isEnabled = onChanged != null;
-    final l10n = AppLocalizations.of(context)!;
-
-    final options = {
-      'light': l10n.lightMode,
-      'dark': l10n.darkMode,
-    };
-
-    final currentLabel = options[value] ?? value;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          if (subtitle != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              subtitle!,
-              style: TextStyle(
-                fontSize: 13,
-                color: brightness == Brightness.dark
-                    ? CupertinoColors.systemGrey.darkColor
-                    : CupertinoColors.systemGrey,
+          SettingsSection(
+            title: l10n.appearance,
+            children: [
+              SettingsSwitchTile(
+                title: l10n.followSystem,
+                value: _followSystemTheme,
+                subtitle: l10n.followSystemDesc,
+                onChanged: _onFollowSystemThemeChanged,
               ),
-            ),
-          ],
-          const SizedBox(height: 12),
-          CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: onChanged != null
-                ? () {
-                    showCupertinoModalPopup<void>(
-                      context: context,
-                      builder: (BuildContext context) {
-                        final popupBrightness =
-                            CupertinoTheme.of(context).brightness;
-                        return CupertinoActionSheet(
-                          title: Text(title),
-                          message: subtitle != null ? Text(subtitle!) : null,
-                          actions: [
-                            for (final entry in options.entries)
-                              CupertinoActionSheetAction(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  if (onChanged != null) {
-                                    onChanged!(entry.key);
-                                  }
-                                },
-                                child: Text(
-                                  entry.value,
-                                  style: TextStyle(
-                                    color: value == entry.key
-                                        ? (popupBrightness == Brightness.dark
-                                            ? CupertinoColors.activeBlue.darkColor
-                                            : CupertinoColors.activeBlue.color)
-                                        : (popupBrightness == Brightness.dark
-                                            ? CupertinoColors.label.darkColor
-                                            : CupertinoColors.label.color),
-                                  ),
+              Opacity(
+                opacity: _followSystemTheme ? 0.48 : 1.0,
+                child: AbsorbPointer(
+                  absorbing: _followSystemTheme,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                l10n.appColor,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppTokens.label(context),
                                 ),
                               ),
-                          ],
-                          cancelButton: CupertinoActionSheetAction(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: Text(
-                              l10n.cancel,
-                              style: TextStyle(
-                                color: popupBrightness == Brightness.dark
-                                    ? CupertinoColors.systemRed.darkColor
-                                    : CupertinoColors.systemRed.color,
+                              const SizedBox(height: 2),
+                              Text(
+                                _followSystemTheme
+                                    ? l10n.followSystemSetting(
+                                        currentMode == 'dark'
+                                            ? l10n.darkMode
+                                            : l10n.lightMode,
+                                      )
+                                    : l10n.selectColorMode,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: AppTokens.labelSecondary(context),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        CupertinoSlidingSegmentedControl<String>(
+                          groupValue: currentMode,
+                          children: {
+                            'light': Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              child: Text(
+                                l10n.lightMode,
+                                style: const TextStyle(fontSize: 13),
                               ),
                             ),
-                          ),
-                        );
-                      },
-                    );
-                  }
-                : null,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: isEnabled
-                    ? (CupertinoTheme.of(context).brightness == Brightness.dark
-                        ? CupertinoColors.systemGrey6.darkColor
-                        : CupertinoColors.systemGrey6.color)
-                    : (CupertinoTheme.of(context).brightness == Brightness.dark
-                        ? CupertinoColors.tertiarySystemFill.darkColor
-                        : CupertinoColors.tertiarySystemFill.color),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    currentLabel,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: isEnabled
-                          ? (brightness == Brightness.dark
-                              ? CupertinoColors.label.darkColor
-                              : CupertinoColors.label.color)
-                          : (brightness == Brightness.dark
-                              ? CupertinoColors.tertiaryLabel.darkColor
-                              : CupertinoColors.tertiaryLabel.color),
+                            'dark': Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              child: Text(
+                                l10n.darkMode,
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ),
+                          },
+                          onValueChanged: (value) {
+                            if (value != null && !_followSystemTheme) {
+                              _onAppThemeChanged(value);
+                            }
+                          },
+                        ),
+                      ],
                     ),
                   ),
-                  Icon(
-                    CupertinoIcons.chevron_down,
-                    size: 18,
-                    color: isEnabled
-                        ? (brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey.darkColor
-                            : CupertinoColors.systemGrey)
-                        : (brightness == Brightness.dark
-                            ? CupertinoColors.tertiaryLabel.darkColor
-                            : CupertinoColors.tertiaryLabel.color),
-                  ),
-                ],
+                ),
               ),
-            ),
+            ],
+          ),
+          SettingsSection(
+            title: l10n.language,
+            children: [
+              _LanguageDropdownTile(
+                title: l10n.interfaceLanguage,
+                value: _locale,
+                subtitle: l10n.selectInterfaceLanguage,
+                onChanged: _onLocaleChanged,
+              ),
+            ],
+          ),
+          SettingsSection(
+            title: l10n.chatBackground,
+            children: [
+              SettingsActionTile(
+                title: _backgroundImagePath.isEmpty
+                    ? l10n.selectBackgroundImage
+                    : l10n.changeBackgroundImage,
+                subtitle: _backgroundImagePath.isEmpty
+                    ? l10n.selectBackgroundImageDesc
+                    : l10n.currentBackgroundImage,
+                icon: CupertinoIcons.photo,
+                onTap: _handleSelectBackgroundImage,
+                trailing: _backgroundImagePath.isNotEmpty
+                    ? CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: _handleClearBackgroundImage,
+                        child: Text(
+                          l10n.clear,
+                          style: TextStyle(color: AppTokens.red(context)),
+                        ),
+                      )
+                    : null,
+              ),
+              SettingsSliderTile(
+                title: l10n.backgroundOpacity,
+                value: _backgroundImageOpacity,
+                min: 0.0,
+                max: 1.0,
+                divisions: 20,
+                decimalPlaces: 2,
+                subtitle: l10n.backgroundOpacityDesc,
+                showValueInRow: true,
+                onChanged: _handleBackgroundOpacityChanged,
+              ),
+            ],
           ),
         ],
       ),
@@ -534,8 +438,7 @@ class _ThemeDropdownTile extends StatelessWidget {
   }
 }
 
-/// 语言下拉选择组件（内部）
-class _LanguageDropdownTile extends StatelessWidget {
+class _LanguageDropdownTile extends StatefulWidget {
   final String title;
   final String value;
   final String? subtitle;
@@ -549,145 +452,128 @@ class _LanguageDropdownTile extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final brightness = CupertinoTheme.of(context).brightness;
-    final isEnabled = onChanged != null;
+  State<_LanguageDropdownTile> createState() => _LanguageDropdownTileState();
+}
+
+class _LanguageDropdownTileState extends State<_LanguageDropdownTile> {
+  final GlobalKey _anchorKey = GlobalKey();
+
+  static const Map<String, String> _options = {
+    'zh': '简体中文',
+    'lzh': '文言',
+    'en': 'English',
+    'es': 'Español',
+    'ja': '日本語',
+    'ko': '한국어',
+  };
+
+  Future<void> _pickLanguage() async {
     final l10n = AppLocalizations.of(context)!;
+    final useWide = useWideLayout(MediaQuery.sizeOf(context));
 
-    final options = {
-      'zh': '简体中文',
-      'lzh': '文言',
-      'en': 'English',
-      'es': 'Español',
-      'ja': '日本語',
-      'ko': '한국어',
-    };
-
-    final currentLabel = options[value] ?? value;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
+    if (useWide && _anchorKey.currentContext != null) {
+      await showDesktopPopoverMenu(
+        anchorContext: _anchorKey.currentContext!,
+        width: 210,
+        alignRight: true,
+        items: [
+          for (final entry in _options.entries)
+            DesktopPopoverItem(
+              label: entry.value,
+              selected: widget.value == entry.key,
+              onTap: () => widget.onChanged?.call(entry.key),
             ),
+        ],
+      );
+      return;
+    }
+
+    await showCupertinoModalPopup<void>(
+      context: context,
+      builder: (sheetContext) => CupertinoActionSheet(
+        title: Text(widget.title),
+        message: widget.subtitle != null ? Text(widget.subtitle!) : null,
+        actions: [
+          for (final entry in _options.entries)
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(sheetContext);
+                widget.onChanged?.call(entry.key);
+              },
+              child: Text(
+                entry.value,
+                style: TextStyle(
+                  color: widget.value == entry.key
+                      ? AppTokens.accent(sheetContext)
+                      : AppTokens.label(sheetContext),
+                ),
+              ),
+            ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(sheetContext),
+          child: Text(
+            l10n.cancel,
+            style: TextStyle(color: AppTokens.red(sheetContext)),
           ),
-          if (subtitle != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              subtitle!,
-              style: TextStyle(
-                fontSize: 13,
-                color: brightness == Brightness.dark
-                    ? CupertinoColors.systemGrey.darkColor
-                    : CupertinoColors.systemGrey,
-              ),
-            ),
-          ],
-          const SizedBox(height: 12),
-          CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: onChanged != null
-                ? () {
-                    showCupertinoModalPopup<void>(
-                      context: context,
-                      builder: (BuildContext context) {
-                        final popupBrightness =
-                            CupertinoTheme.of(context).brightness;
-                        return CupertinoActionSheet(
-                          title: Text(title),
-                          message: subtitle != null ? Text(subtitle!) : null,
-                          actions: [
-                            for (final entry in options.entries)
-                              CupertinoActionSheetAction(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  if (onChanged != null) {
-                                    onChanged!(entry.key);
-                                  }
-                                },
-                                child: Text(
-                                  entry.value,
-                                  style: TextStyle(
-                                    color: value == entry.key
-                                        ? (popupBrightness == Brightness.dark
-                                            ? CupertinoColors.activeBlue.darkColor
-                                            : CupertinoColors.activeBlue.color)
-                                        : (popupBrightness == Brightness.dark
-                                            ? CupertinoColors.label.darkColor
-                                            : CupertinoColors.label.color),
-                                  ),
-                                ),
-                              ),
-                          ],
-                          cancelButton: CupertinoActionSheetAction(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: Text(
-                              l10n.cancel,
-                              style: TextStyle(
-                                color: popupBrightness == Brightness.dark
-                                    ? CupertinoColors.systemRed.darkColor
-                                    : CupertinoColors.systemRed.color,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  }
-                : null,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: isEnabled
-                    ? (CupertinoTheme.of(context).brightness == Brightness.dark
-                        ? CupertinoColors.systemGrey6.darkColor
-                        : CupertinoColors.systemGrey6.color)
-                    : (CupertinoTheme.of(context).brightness == Brightness.dark
-                        ? CupertinoColors.tertiarySystemFill.darkColor
-                        : CupertinoColors.tertiarySystemFill.color),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentLabel = _options[widget.value] ?? widget.value;
+
+    return GestureDetector(
+      key: _anchorKey,
+      behavior: HitTestBehavior.opaque,
+      onTap: widget.onChanged != null ? _pickLanguage : null,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    currentLabel,
+                    widget.title,
                     style: TextStyle(
                       fontSize: 16,
-                      color: isEnabled
-                          ? (brightness == Brightness.dark
-                              ? CupertinoColors.label.darkColor
-                              : CupertinoColors.label.color)
-                          : (brightness == Brightness.dark
-                              ? CupertinoColors.tertiaryLabel.darkColor
-                              : CupertinoColors.tertiaryLabel.color),
+                      fontWeight: FontWeight.w500,
+                      color: AppTokens.label(context),
                     ),
                   ),
-                  Icon(
-                    CupertinoIcons.chevron_down,
-                    size: 18,
-                    color: isEnabled
-                        ? (brightness == Brightness.dark
-                            ? CupertinoColors.systemGrey.darkColor
-                            : CupertinoColors.systemGrey)
-                        : (brightness == Brightness.dark
-                            ? CupertinoColors.tertiaryLabel.darkColor
-                            : CupertinoColors.tertiaryLabel.color),
-                  ),
+                  if (widget.subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      widget.subtitle!,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppTokens.labelSecondary(context),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Text(
+              currentLabel,
+              style: TextStyle(
+                fontSize: 14.5,
+                color: AppTokens.accent(context),
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(
+              CupertinoIcons.chevron_up_chevron_down,
+              size: 14,
+              color: AppTokens.labelSecondary(context),
+            ),
+          ],
+        ),
       ),
     );
   }

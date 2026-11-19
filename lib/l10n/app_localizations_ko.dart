@@ -1884,4 +1884,111 @@ class AppLocalizationsKo extends AppLocalizations {
   String presetDetailWorldInfoStats(int entries, int scanDepth, int budget) {
     return '항목 $entries · 스캔 깊이 $scanDepth · 예산 $budget tokens';
   }
+
+  @override
+  String get providersAndModels => '제공자 및 모델';
+
+  @override
+  String get conversationAndMemory => '대화 및 메모리';
+
+  @override
+  String get appearanceAndLanguage => '외관 및 언어';
+
+  @override
+  String get notificationsDataAbout => '알림, 데이터 및 정보';
+
+  @override
+  String get characters => '캐릭터';
+
+  @override
+  String get mcpServers => 'MCP 서버';
+
+  @override
+  String get addMcpServer => 'MCP 서버 추가';
+
+  @override
+  String get editMcpServer => 'MCP 서버 편집';
+
+  @override
+  String get deleteMcpServer => 'MCP 서버 삭제';
+
+  @override
+  String get mcpServerName => '서버 이름';
+
+  @override
+  String get mcpServerUrl => '서버 URL';
+
+  @override
+  String get mcpTransportLabel => '전송 방식';
+
+  @override
+  String get mcpTestConnection => '연결 테스트';
+
+  @override
+  String mcpConnectedToolsCount(int count) {
+    return '연결 성공, $count개 도구 발견';
+  }
+
+  @override
+  String get mcpNoToolsReturned => '연결됨, 반환된 도구 없음';
+
+  @override
+  String get mcpInvalidConfig => '이름과 유효한 URL을 입력하세요';
+
+  @override
+  String get mcpHeadersTitle => '요청 헤더';
+
+  @override
+  String get addHeader => '헤더 추가';
+
+  @override
+  String get headerKeyPlaceholder => '키 (예: Authorization)';
+
+  @override
+  String get headerValuePlaceholder => '값';
+
+  @override
+  String get mcpPlatformSupported => '현재 플랫폼은 HTTP / SSE MCP 도구 호출을 지원합니다.';
+
+  @override
+  String get mcpPlatformUnsupported => '현재 플랫폼은 도구 호출을 지원하지 않습니다.';
+
+  @override
+  String get inspectorMemoryAndLore => '메모리 및 세계관';
+
+  @override
+  String get worldInfoTriggerTest => '트리거 테스트';
+
+  @override
+  String get startChat => '대화 시작';
+
+  @override
+  String get editPreset => '프리셋 편집';
+
+  @override
+  String get enablePlatform => '이 제공자 활성화';
+
+  @override
+  String get availableModels => '사용 가능한 모델';
+
+  @override
+  String get defaultModelLabel => '기본 모델';
+
+  @override
+  String get addCustomModel => '사용자 정의 모델 추가';
+
+  @override
+  String get userProfileSummarySubtitle => '프로필, 성별 및 생일';
+
+  @override
+  String get pinnedConversations => '고정됨';
+
+  @override
+  String get recentConversations => '최근';
+
+  @override
+  String get exportAction => '내보내기';
+
+  @override
+  String get presetOverview => '캐릭터 설정';
 }

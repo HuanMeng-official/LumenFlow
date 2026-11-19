@@ -1,20 +1,22 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
-import '../l10n/app_localizations.dart';
-import 'user_profile_screen.dart';
-import 'advanced_settings_screen.dart';
-import 'platform_settings_screen.dart';
-import 'api_settings_screen.dart';
-import 'model_settings_screen.dart';
-import 'conversation_settings_screen.dart';
-import 'appearance_settings_screen.dart';
-import 'preset_management_screen.dart';
-import 'tool_management_screen.dart';
-import '../widgets/settings/settings_section.dart';
-import '../widgets/settings/settings_navigation_tile.dart';
 
-/// 应用主设置界面
+import '../l10n/app_localizations.dart';
+import '../models/user_profile.dart';
+import '../services/user_service.dart';
+import '../utils/app_theme.dart';
+import '../widgets/avatar_widget.dart';
+import '../widgets/settings/settings_navigation_tile.dart';
+import '../widgets/settings/settings_section.dart';
+import 'advanced_settings_screen.dart';
+import 'appearance_settings_screen.dart';
+import 'conversation_settings_screen.dart';
+import 'providers_models_screen.dart';
+import 'tool_management_screen.dart';
+import 'user_profile_screen.dart';
+
+/// 移动端设置主页（原生 Apple iOS 设置风格）
 ///
-/// 各类设置的汇总页面，提供导航到具体设置页面：
+/// 顶部展示个人档案卡片，下方收拢为 5 组带彩色徽标的入口，不展示多余右侧摘要文字。
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -22,166 +24,164 @@ class SettingsScreen extends StatefulWidget {
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-/// SettingsScreen的状态类，管理主设置页面的导航和操作
 class _SettingsScreenState extends State<SettingsScreen> {
-  void _openUserProfile() {
-    Navigator.push(
-      context,
-      CupertinoPageRoute(
-        builder: (context) => const UserProfileScreen(),
-      ),
-    );
+  final UserService _userService = UserService();
+  UserProfile? _userProfile;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
   }
 
-  void _openAdvancedSettings() {
-    Navigator.push(
-      context,
-      CupertinoPageRoute(
-        builder: (context) => const AdvancedSettingsScreen(),
-      ),
-    );
+  Future<void> _loadProfile() async {
+    final profile = await _userService.getUserProfile();
+    if (!mounted) return;
+    setState(() => _userProfile = profile);
   }
 
-  void _openPlatformSettings() async {
-    await Navigator.push(
-      context,
-      CupertinoPageRoute(
-        builder: (context) => const PlatformSettingsScreen(),
-      ),
+  Future<void> _pushScreen(Widget screen) async {
+    await Navigator.of(context).push(
+      CupertinoPageRoute(builder: (_) => screen),
     );
-  }
-
-  void _openApiSettings() {
-    Navigator.push(
-      context,
-      CupertinoPageRoute(
-        builder: (context) => const ApiSettingsScreen(),
-      ),
-    );
-  }
-
-  void _openModelSettings() {
-    Navigator.push(
-      context,
-      CupertinoPageRoute(
-        builder: (context) => const ModelSettingsScreen(),
-      ),
-    );
-  }
-
-  void _openConversationSettings() {
-    Navigator.push(
-      context,
-      CupertinoPageRoute(
-        builder: (context) => const ConversationSettingsScreen(),
-      ),
-    );
-  }
-
-  void _openAppearanceSettings() async {
-    await Navigator.push(
-      context,
-      CupertinoPageRoute(
-        builder: (context) => const AppearanceSettingsScreen(),
-      ),
-    );
-  }
-
-  void _openPresetManagement() async {
-    await Navigator.push(
-      context,
-      CupertinoPageRoute(
-        builder: (context) => const PresetManagementScreen(),
-      ),
-    );
-  }
-
-  void _openToolManagement() async {
-    await Navigator.push(
-      context,
-      CupertinoPageRoute(
-        builder: (context) => const ToolManagementScreen(),
-      ),
-    );
+    _loadProfile();
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final profile = _userProfile;
 
     return CupertinoPageScaffold(
+      backgroundColor: AppTokens.groupedBg(context),
       navigationBar: CupertinoNavigationBar(
+        backgroundColor: AppTokens.bg(context),
         middle: Text(l10n.settings),
+        border: Border(
+          bottom: BorderSide(
+            color: AppTokens.separator(context),
+            width: 0.5,
+          ),
+        ),
       ),
       child: SafeArea(
         child: ListView(
+          padding: const EdgeInsets.only(bottom: 32),
           children: [
             SettingsSection(
-              title: l10n.userInfo,
+              title: '',
               children: [
-                SettingsNavigationTile(
-                  title: l10n.userProfile,
-                  subtitle: l10n.userProfileSubtitle,
-                  icon: CupertinoIcons.person_crop_circle,
-                  onTap: _openUserProfile,
-                ),
-                SettingsNavigationTile(
-                  title: l10n.platformAndModel,
-                  subtitle: l10n.platformAndModelSubtitle,
-                  icon: CupertinoIcons.cube_box,
-                  onTap: _openPlatformSettings,
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _pushScreen(
+                    UserProfileScreen(previousPageTitle: l10n.settings),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    child: Row(
+                      children: [
+                        if (profile != null)
+                          AvatarWidget(userProfile: profile, size: 52)
+                        else
+                          Container(
+                            width: 52,
+                            height: 52,
+                            decoration: BoxDecoration(
+                              color: AppTokens.fill(context),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              CupertinoIcons.person_fill,
+                              size: 26,
+                              color: AppTokens.labelSecondary(context),
+                            ),
+                          ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                (profile?.username.isNotEmpty ?? false)
+                                    ? profile!.username
+                                    : l10n.userProfile,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTokens.label(context),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                l10n.userProfileSummarySubtitle,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  color: AppTokens.labelSecondary(context),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          CupertinoIcons.chevron_right,
+                          size: 16,
+                          color: AppTokens.labelTertiary(context),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
             SettingsSection(
-              title: l10n.basicSettings,
+              title: '',
               children: [
                 SettingsNavigationTile(
-                  title: l10n.apiType,
-                  subtitle: l10n.apiTypeSubtitle,
-                  icon: CupertinoIcons.cloud,
-                  onTap: _openApiSettings,
+                  title: l10n.providersAndModels,
+                  icon: CupertinoIcons.cube_box,
+                  badgeColor: const Color(0xFF007AFF),
+                  onTap: () => _pushScreen(
+                    ProvidersModelsScreen(previousPageTitle: l10n.settings),
+                  ),
                 ),
                 SettingsNavigationTile(
-                  title: l10n.modelSettings,
-                  subtitle: l10n.modelSettingsSubtitle,
-                  icon: CupertinoIcons.speedometer,
-                  onTap: _openModelSettings,
-                ),
-                SettingsNavigationTile(
-                  title: l10n.historyConversation,
-                  subtitle: l10n.historyConversationSubtitle,
+                  title: l10n.conversationAndMemory,
                   icon: CupertinoIcons.chat_bubble_2,
-                  onTap: _openConversationSettings,
+                  badgeColor: const Color(0xFF34C759),
+                  onTap: () => _pushScreen(
+                    ConversationSettingsScreen(previousPageTitle: l10n.settings),
+                  ),
                 ),
                 SettingsNavigationTile(
-                  title: l10n.appearance,
-                  subtitle: l10n.appearanceSubtitle,
+                  title: l10n.appearanceAndLanguage,
                   icon: CupertinoIcons.paintbrush,
-                  onTap: _openAppearanceSettings,
-                ),
-                SettingsNavigationTile(
-                  title: l10n.presetManagement,
-                  subtitle: l10n.presetManagementSubtitle,
-                  icon: CupertinoIcons.doc_text,
-                  onTap: _openPresetManagement,
+                  badgeColor: const Color(0xFF5856D6),
+                  onTap: () => _pushScreen(
+                    AppearanceSettingsScreen(previousPageTitle: l10n.settings),
+                  ),
                 ),
                 SettingsNavigationTile(
                   title: l10n.toolManagement,
-                  subtitle: l10n.toolsSettingsSubtitle,
                   icon: CupertinoIcons.wrench,
-                  onTap: _openToolManagement,
+                  badgeColor: const Color(0xFFFF9500),
+                  onTap: () => _pushScreen(
+                    ToolManagementScreen(previousPageTitle: l10n.settings),
+                  ),
                 ),
-              ],
-            ),
-            SettingsSection(
-              title: l10n.others,
-              children: [
                 SettingsNavigationTile(
-                  title: l10n.advancedSettings,
-                  subtitle: l10n.advancedSettingsSubtitle,
-                  icon: CupertinoIcons.settings,
-                  onTap: _openAdvancedSettings,
+                  title: l10n.notificationsDataAbout,
+                  icon: CupertinoIcons.info_circle,
+                  badgeColor: const Color(0xFF8E8E93),
+                  onTap: () => _pushScreen(
+                    AdvancedSettingsScreen(previousPageTitle: l10n.settings),
+                  ),
                 ),
               ],
             ),
@@ -191,4 +191,3 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 }
-

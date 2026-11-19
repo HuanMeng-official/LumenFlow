@@ -131,7 +131,7 @@
   "apiEndpointPlaceholder": "API 엔드포인트 URL 입력",
   "apiEndpointDesc": "예: https://api.openai.com/v1",
   "apiKey": "API 키",
-  "apiKeyPlaceholder": "API 키 입력",
+  "apiKeyPlaceholder": "API 키",
   "apiKeyDesc": "AI 서비스 제공업체에서 발급받은 인증 키",
   "modelSettings": "모델 설정",
   "model": "모델",
@@ -585,7 +585,6 @@
   "platformType": "플랫폼 유형",
   "platformNamePlaceholder": "플랫폼 이름",
   "endpointPlaceholder": "API 엔드포인트 URL",
-  "apiKeyPlaceholder": "API 키",
   "configured": "구성됨",
   "notConfigured": "구성되지 않음",
   "models": "모델",
@@ -638,7 +637,6 @@
   "deleteModelBtn": "선택 항목 삭제",
   "selectModelToDelete": "먼저 삭제할 모델을 선택하세요",
   "add": "추가",
-  "delete": "삭제",
   "addNewModel": "새 모델 추가",
   "clickAddToCreate": "위의 + 버튼을 눌러 모델을 추가하세요",
   "noPlatformsConfigured": "구성된 플랫폼 없음",
@@ -1039,21 +1037,25 @@
   "worldInfoTokens": "배경 {background} · 항목 {entry} · 합계 {total} tokens",
   "@worldInfoTokens": {
     "placeholders": {
-      "background": {"type": "int"},
-      "entry": {"type": "int"},
-      "total": {"type": "int"}
+      "background": {
+        "type": "int"
+      },
+      "entry": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "worldInfoNoMatches": "일치하는 항목이 없습니다",
-  "worldInfoRun": "미리보기 실행"
-,
+  "worldInfoRun": "미리보기 실행",
   "lumenflowInvalidArchive": "유효하지 않은 LumenFlow 아카이브입니다",
   "lumenflowMissingCharacter": "LumenFlow 아카이브에 캐릭터 카드 파일이 없습니다",
   "lumenflowWorldInfoInvalid": "세계관 정보 파일이 잘못되었거나 손상되었습니다",
   "lumenflowAvatarInvalid": "아바타 이미지가 잘못되었거나 손상되었습니다",
   "lumenflowIllustrationInvalid": "일러스트 이미지가 잘못되었거나 손상되었습니다",
-  "lumenflowLegacyUnsupported": "이전 LumenFlow 형식은 지원되지 않습니다"
-,
+  "lumenflowLegacyUnsupported": "이전 LumenFlow 형식은 지원되지 않습니다",
   "presetSectionWorldviewBackground": "세계관 및 배경 이야기",
   "presetSectionAppearance": "외모 및 특징",
   "presetSectionPersonality": "성격·심리 구조",
@@ -1076,9 +1078,57 @@
   "presetDetailWorldInfoStats": "항목 {entries} · 스캔 깊이 {scanDepth} · 예산 {budget} tokens",
   "@presetDetailWorldInfoStats": {
     "placeholders": {
-      "entries": {"type": "int"},
-      "scanDepth": {"type": "int"},
-      "budget": {"type": "int"}
+      "entries": {
+        "type": "int"
+      },
+      "scanDepth": {
+        "type": "int"
+      },
+      "budget": {
+        "type": "int"
+      }
+    }
+  },
+  "providersAndModels": "제공자 및 모델",
+  "conversationAndMemory": "대화 및 메모리",
+  "appearanceAndLanguage": "외관 및 언어",
+  "notificationsDataAbout": "알림, 데이터 및 정보",
+  "characters": "캐릭터",
+  "mcpServers": "MCP 서버",
+  "addMcpServer": "MCP 서버 추가",
+  "editMcpServer": "MCP 서버 편집",
+  "deleteMcpServer": "MCP 서버 삭제",
+  "mcpServerName": "서버 이름",
+  "mcpServerUrl": "서버 URL",
+  "mcpTransportLabel": "전송 방식",
+  "mcpTestConnection": "연결 테스트",
+  "mcpConnectedToolsCount": "연결 성공, {count}개 도구 발견",
+  "mcpNoToolsReturned": "연결됨, 반환된 도구 없음",
+  "mcpInvalidConfig": "이름과 유효한 URL을 입력하세요",
+  "mcpHeadersTitle": "요청 헤더",
+  "addHeader": "헤더 추가",
+  "headerKeyPlaceholder": "키 (예: Authorization)",
+  "headerValuePlaceholder": "값",
+  "mcpPlatformSupported": "현재 플랫폼은 HTTP / SSE MCP 도구 호출을 지원합니다.",
+  "mcpPlatformUnsupported": "현재 플랫폼은 도구 호출을 지원하지 않습니다.",
+  "inspectorMemoryAndLore": "메모리 및 세계관",
+  "worldInfoTriggerTest": "트리거 테스트",
+  "startChat": "대화 시작",
+  "editPreset": "프리셋 편집",
+  "enablePlatform": "이 제공자 활성화",
+  "availableModels": "사용 가능한 모델",
+  "defaultModelLabel": "기본 모델",
+  "addCustomModel": "사용자 정의 모델 추가",
+  "userProfileSummarySubtitle": "프로필, 성별 및 생일",
+  "pinnedConversations": "고정됨",
+  "recentConversations": "최근",
+  "exportAction": "내보내기",
+  "presetOverview": "캐릭터 설정",
+  "@mcpConnectedToolsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
     }
   }
 }

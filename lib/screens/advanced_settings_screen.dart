@@ -14,10 +14,12 @@ import '../widgets/settings/settings_switch_tile.dart';
 
 class AdvancedSettingsScreen extends StatefulWidget {
   final bool embedded;
+  final String? previousPageTitle;
 
   const AdvancedSettingsScreen({
     super.key,
     this.embedded = false,
+    this.previousPageTitle,
   });
 
   @override
@@ -63,19 +65,25 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
   }
 
   void _openAbout() {
+    final l10n = AppLocalizations.of(context)!;
     Navigator.push(
       context,
       CupertinoPageRoute(
-        builder: (context) => const AboutScreen(),
+        builder: (context) => AboutScreen(
+          previousPageTitle: l10n.notificationsDataAbout,
+        ),
       ),
     );
   }
 
   void _openCredits() {
+    final l10n = AppLocalizations.of(context)!;
     Navigator.push(
       context,
       CupertinoPageRoute(
-        builder: (context) => const CreditsScreen(),
+        builder: (context) => CreditsScreen(
+          previousPageTitle: l10n.notificationsDataAbout,
+        ),
       ),
     );
   }
@@ -225,65 +233,62 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     return SettingsPageScaffold(
-      title: l10n.advancedSettings,
+      title: l10n.notificationsDataAbout,
+      previousPageTitle: widget.previousPageTitle,
       embedded: widget.embedded,
       child: ListView(
+        padding: const EdgeInsets.only(bottom: 32),
         children: [
-            SettingsSection(
-              title: l10n.notificationSettings,
-              children: [
+          SettingsSection(
+            title: l10n.notificationSettings,
+            children: [
+              SettingsSwitchTile(
+                title: l10n.enableNotification,
+                subtitle: l10n.enableNotificationDesc,
+                value: _notificationEnabled,
+                onChanged: _handleNotificationChanged,
+              ),
+              if (Platform.isAndroid)
                 SettingsSwitchTile(
-                  title: l10n.enableNotification,
-                  subtitle: l10n.enableNotificationDesc,
-                  value: _notificationEnabled,
-                  onChanged: _handleNotificationChanged,
+                  title: l10n.enableLiveUpdate,
+                  subtitle: l10n.enableLiveUpdateDesc,
+                  value: _liveUpdateEnabled,
+                  onChanged: _handleLiveUpdateChanged,
                 ),
-                if (Platform.isAndroid)
-                  SettingsSwitchTile(
-                    title: l10n.enableLiveUpdate,
-                    subtitle: l10n.enableLiveUpdateDesc,
-                    value: _liveUpdateEnabled,
-                    onChanged: _handleLiveUpdateChanged,
-                  ),
-              ],
-            ),
-            SettingsSection(
-              title: l10n.dataManagement,
-              children: [
-                SettingsActionTile(
-                  icon: CupertinoIcons.arrow_down_doc,
-                  title: l10n.exportSettings,
-                  onTap: _exportSettings,
-                ),
-                SettingsActionTile(
-                  icon: CupertinoIcons.arrow_up_doc,
-                  title: l10n.importSettings,
-                  onTap: _importSettings,
-                ),
-              ],
-            ),
-            SettingsSection(
-              title: l10n.credits,
-              children: [
-                SettingsActionTile(
-                  title: l10n.credits,
-                  icon: CupertinoIcons.heart,
-                  onTap: _openCredits,
-                )
-              ]
-            ),
-            SettingsSection(
-              title: l10n.about,
-              children: [
-                SettingsActionTile(
-                  icon: CupertinoIcons.info_circle,
-                  title: l10n.about,
-                  onTap: _openAbout,
-                ),
-              ],
-            ),
-          ],
-        ),
+            ],
+          ),
+          SettingsSection(
+            title: l10n.dataManagement,
+            children: [
+              SettingsActionTile(
+                icon: CupertinoIcons.arrow_down_doc,
+                title: l10n.exportSettings,
+                onTap: _exportSettings,
+              ),
+              SettingsActionTile(
+                icon: CupertinoIcons.arrow_up_doc,
+                title: l10n.importSettings,
+                onTap: _importSettings,
+              ),
+            ],
+          ),
+          SettingsSection(
+            title: l10n.about,
+            children: [
+              SettingsActionTile(
+                title: l10n.credits,
+                icon: CupertinoIcons.heart,
+                onTap: _openCredits,
+              ),
+              SettingsActionTile(
+                icon: CupertinoIcons.info_circle,
+                title: l10n.about,
+                onTap: _openAbout,
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1884,4 +1884,111 @@ class AppLocalizationsEs extends AppLocalizations {
   String presetDetailWorldInfoStats(int entries, int scanDepth, int budget) {
     return 'Entradas $entries · Profundidad $scanDepth · Presupuesto $budget tokens';
   }
+
+  @override
+  String get providersAndModels => 'Proveedores y modelos';
+
+  @override
+  String get conversationAndMemory => 'Chat y memoria';
+
+  @override
+  String get appearanceAndLanguage => 'Apariencia e idioma';
+
+  @override
+  String get notificationsDataAbout => 'Notificaciones, datos y acerca de';
+
+  @override
+  String get characters => 'Personajes';
+
+  @override
+  String get mcpServers => 'Servidores MCP';
+
+  @override
+  String get addMcpServer => 'Añadir servidor MCP';
+
+  @override
+  String get editMcpServer => 'Editar servidor MCP';
+
+  @override
+  String get deleteMcpServer => 'Eliminar servidor MCP';
+
+  @override
+  String get mcpServerName => 'Nombre del servidor';
+
+  @override
+  String get mcpServerUrl => 'URL del servidor';
+
+  @override
+  String get mcpTransportLabel => 'Transporte';
+
+  @override
+  String get mcpTestConnection => 'Probar conexión';
+
+  @override
+  String mcpConnectedToolsCount(int count) {
+    return 'Conectado, $count herramientas encontradas';
+  }
+
+  @override
+  String get mcpNoToolsReturned => 'Conectado, sin herramientas';
+
+  @override
+  String get mcpInvalidConfig => 'Ingresa un nombre y una URL válida';
+
+  @override
+  String get mcpHeadersTitle => 'Cabeceras';
+
+  @override
+  String get addHeader => 'Añadir cabecera';
+
+  @override
+  String get headerKeyPlaceholder => 'Clave (ej. Authorization)';
+
+  @override
+  String get headerValuePlaceholder => 'Valor';
+
+  @override
+  String get mcpPlatformSupported => 'La plataforma actual admite llamadas a herramientas MCP HTTP / SSE.';
+
+  @override
+  String get mcpPlatformUnsupported => 'La plataforma actual no admite llamadas a herramientas.';
+
+  @override
+  String get inspectorMemoryAndLore => 'Memoria y mundo';
+
+  @override
+  String get worldInfoTriggerTest => 'Prueba de activación';
+
+  @override
+  String get startChat => 'Iniciar chat';
+
+  @override
+  String get editPreset => 'Editar ajuste';
+
+  @override
+  String get enablePlatform => 'Usar este proveedor';
+
+  @override
+  String get availableModels => 'Modelos disponibles';
+
+  @override
+  String get defaultModelLabel => 'Modelo predeterminado';
+
+  @override
+  String get addCustomModel => 'Añadir modelo';
+
+  @override
+  String get userProfileSummarySubtitle => 'Perfil, género y cumpleaños';
+
+  @override
+  String get pinnedConversations => 'Fijados';
+
+  @override
+  String get recentConversations => 'Recientes';
+
+  @override
+  String get exportAction => 'Exportar';
+
+  @override
+  String get presetOverview => 'Personaje';
 }
