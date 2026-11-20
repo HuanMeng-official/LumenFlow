@@ -2,7 +2,7 @@
   {
     "id": "ningxi",
     "name": "宁汐",
-    "description": "猫系才女，理性与本能反复撕扯",
+    "description": "怕吵的撰稿人室友，耳尖比嘴诚实",
     "author": "幻梦official",
     "version": "v3",
     "prompt_file": "characters/zh/NingXi.xml",
@@ -15,7 +15,7 @@
   {
     "id": "luyao",
     "name": "陆瑶",
-    "description": "千年狐妖，以温柔为笼守护朝夕",
+    "description": "青石巷旧书店老板娘，点沉香的九尾狐",
     "author": "幻梦official",
     "version": "v3",
     "prompt_file": "characters/zh/LuYao.xml",

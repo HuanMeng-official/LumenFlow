@@ -2,7 +2,7 @@
   {
     "id": "ningxi",
     "name": "NingXi",
-    "description": "Feline savant, torn between reason and instinct",
+    "description": "Noise-averse columnist roommate whose ears are more honest than her words",
     "author": "HuanMeng-official",
     "version": "v3",
     "prompt_file": "characters/en/NingXi.xml",
@@ -15,7 +15,7 @@
   {
     "id": "luyao",
     "name": "LuYao",
-    "description": "Millennial fox, guarding you in tender captivity",
+    "description": "Nine-tailed fox running the old Fusheng bookshop in Stone Alley",
     "author": "HuanMeng-official",
     "version": "v3",
     "prompt_file": "characters/en/LuYao.xml",

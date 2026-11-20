@@ -2,7 +2,7 @@
   {
     "id": "ningxi",
     "name": "寧汐",
-    "description": "猫系才女、理性と本能の間で揺れる",
+    "description": "物音に敏感なコラムニストの同居人、口より耳先のほうが正直",
     "author": "幻夢official",
     "version": "v3",
     "prompt_file": "characters/ja/NingXi.xml",
@@ -15,7 +15,7 @@
   {
     "id": "luyao",
     "name": "陸瑶",
-    "description": "千年の狐、優しさの檻で君を守る",
+    "description": "青石路地の古書店「浮生」を営む、沈香を焚く九尾の狐",
     "author": "幻夢official",
     "version": "v3",
     "prompt_file": "characters/ja/LuYao.xml",

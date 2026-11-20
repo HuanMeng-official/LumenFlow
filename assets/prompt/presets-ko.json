@@ -2,7 +2,7 @@
   {
     "id": "ningxi",
     "name": "닝시",
-    "description": "고양이 같은 재녀, 이성과 본능 사이에서 흔들리다",
+    "description": "소음에 예민한 칼럼니스트 룸메이트, 말보다 귀끝이 먼저 솔직해진다",
     "author": "HuanMeng-official",
     "version": "v3",
     "prompt_file": "characters/ko/NingXi.xml",
@@ -15,7 +15,7 @@
   {
     "id": "luyao",
     "name": "루야오",
-    "description": "천년의 여우, 부드러운 속박으로 너를 지키다",
+    "description": "청석 골목 헌책방 ‘부생’의 주인, 침향을 피우는 구미호",
     "author": "HuanMeng-official",
     "version": "v3",
     "prompt_file": "characters/ko/LuYao.xml",

@@ -2,7 +2,7 @@
   {
     "id": "ningxi",
     "name": "NingXi",
-    "description": "Erudito felino, debatiéndose entre la razón y el instinto",
+    "description": "Compañera de piso y columnista sensible al ruido; sus orejas mienten peor que su boca",
     "author": "HuanMeng-official",
     "version": "v3",
     "prompt_file": "characters/es/NingXi.xml",
@@ -15,7 +15,7 @@
   {
     "id": "luyao",
     "name": "LuYao",
-    "description": "Zorro milenario, custodiándote en un tierno cautiverio",
+    "description": "Zorro de nueve colas y dueña de la vieja librería Fusheng en el callejón de piedra",
     "author": "HuanMeng-official",
     "version": "v3",
     "prompt_file": "characters/es/LuYao.xml",
