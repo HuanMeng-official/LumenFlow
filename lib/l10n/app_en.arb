@@ -1154,6 +1154,95 @@
   "recentConversations": "Recent",
   "exportAction": "Export",
   "presetOverview": "Character",
+  "worldInfoSkipStageLocked": "Stage locked",
+  "worldInfoSkipMetricLocked": "Metric condition not met",
+  "presetIssueGrowthInvalid": "Growth config for \"{name}\" is invalid or corrupt; loaded as a standard card",
+  "lumenflowGrowthInvalid": "Growth config file is invalid or corrupt and will be skipped",
+  "lumenflowStageImagesInvalid": "Some stage images are invalid or corrupt and will be skipped",
+  "growthBadgeLabel": "Growth",
+  "growthStageSummary": "Growth · {count} stages",
+  "growthStageSummaryBranching": "Growth · {count} stages · Branching",
+  "growthCurrentStage": "Current Stage",
+  "growthEndingBadge": "Ending",
+  "growthCustomNickname": "Special Nickname",
+  "growthMetricsSection": "Growth Metrics",
+  "growthMilestonesSection": "Growth Milestones",
+  "growthMilestonesEmpty": "No stage transitions yet. Keep chatting to progress.",
+  "growthControlsSection": "Growth Controls",
+  "growthSwitchStage": "Switch Stage",
+  "growthSwitchStageTitle": "Select Stage",
+  "growthLockAuto": "Lock Auto Growth",
+  "growthLockAutoDesc": "Stay in the current stage and pause automatic transitions",
+  "growthResetAction": "Reset Growth in This Chat",
+  "growthResetTitle": "Reset Growth Progress",
+  "growthResetConfirm": "Reset stages, growth metrics, and milestones in this conversation to initial values? Messages will not be deleted.",
+  "growthMemoryCompressionOffHint": "Automatic growth requires Memory Compression to be enabled. You can still switch stages manually.",
+  "growthStageChangedBanner": "Stage Transition · Entered \"{stage}\"",
+  "growthStageChangedBannerWithTitle": "{title} · Entered \"{stage}\"",
+  "growthSpoilerToggle": "Show Full Growth & Hidden Lore",
+  "growthStagesOverview": "Growth Stages",
+  "growthHiddenLoreCount": "{count} hidden entries waiting to be unlocked in this chat",
+  "growthLockedEntryTitle": "Locked Lore",
+  "growthUnlockedProgress": "Unlocked {unlocked} / {total}",
+  "growthSimulatorStage": "Simulate Stage",
+  "growthPlaythroughNote": "Growth progress is saved only in this conversation. New chats always start fresh.",
+  "growthManualSwitchReason": "Manual stage switch",
+  "growthLockedBadge": "Locked",
+  "@presetIssueGrowthInvalid": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@growthStageSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@growthStageSummaryBranching": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@growthStageChangedBanner": {
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      }
+    }
+  },
+  "@growthStageChangedBannerWithTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "stage": {
+        "type": "String"
+      }
+    }
+  },
+  "@growthHiddenLoreCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@growthUnlockedProgress": {
+    "placeholders": {
+      "unlocked": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "@mcpConnectedToolsCount": {
     "placeholders": {
       "count": {

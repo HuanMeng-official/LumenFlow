@@ -1,6 +1,7 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 
 import '../l10n/app_localizations.dart';
+import '../models/character_growth.dart';
 import '../models/prompt_preset.dart';
 import '../services/preset_repository.dart';
 import '../utils/app_theme.dart';
@@ -40,16 +41,23 @@ class PresetDetailView extends StatefulWidget {
 
 class _PresetDetailViewState extends State<PresetDetailView> {
   int _tabIndex = 0;
+  bool _revealSpoilers = false;
+  String? _previewStageId;
 
   PromptPreset get _preset => widget.preset;
+
+  String? get _effectivePreviewStageId =>
+      _previewStageId ?? _preset.growthConfig?.initialStage.id;
 
   @override
   void didUpdateWidget(covariant PresetDetailView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.preset.id != widget.preset.id &&
-        _tabIndex > 0 &&
-        widget.preset.worldInfo == null) {
-      _tabIndex = 0;
+    if (oldWidget.preset.id != widget.preset.id) {
+      _revealSpoilers = false;
+      _previewStageId = null;
+      if (_tabIndex > 0 && widget.preset.worldInfo == null) {
+        _tabIndex = 0;
+      }
     }
   }
 
@@ -117,7 +125,11 @@ class _PresetDetailViewState extends State<PresetDetailView> {
       ),
       child: Row(
         children: [
-          PresetAvatar(preset: _preset, size: 26),
+          PresetAvatar(
+            preset: _preset,
+            stageId: _effectivePreviewStageId,
+            size: 26,
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -221,7 +233,10 @@ class _PresetDetailViewState extends State<PresetDetailView> {
     AppLocalizations l10n, {
     required bool wide,
   }) {
-    final provider = presetIllustrationProvider(_preset);
+    final provider = presetIllustrationProvider(
+      _preset,
+      stageId: _effectivePreviewStageId,
+    );
     final panel = ClipRRect(
       borderRadius: BorderRadius.circular(14),
       child: Container(
@@ -288,7 +303,12 @@ class _PresetDetailViewState extends State<PresetDetailView> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            PresetAvatar(preset: _preset, size: 68, showBorder: true),
+            PresetAvatar(
+              preset: _preset,
+              stageId: _effectivePreviewStageId,
+              size: 68,
+              showBorder: true,
+            ),
             const SizedBox(height: 12),
             Text(
               _preset.name,
@@ -382,6 +402,14 @@ class _PresetDetailViewState extends State<PresetDetailView> {
           const SizedBox(height: 16),
         ],
         _metaCard(context, l10n, fallback, tokenCount),
+        if (_preset.hasGrowth ||
+            (_preset.worldInfo?.entries.any(
+                  (e) => e.unlock?.hiddenUntilUnlocked == true,
+                ) ??
+                false)) ...[
+          const SizedBox(height: 10),
+          _spoilerToggleCard(context, l10n, fallback),
+        ],
         if (tokenCount > 4000) ...[
           const SizedBox(height: 10),
           _warningBanner(
@@ -444,7 +472,7 @@ class _PresetDetailViewState extends State<PresetDetailView> {
         switch (_tabIndex) {
           1 => _worldInfoTab(context, l10n),
           2 => _triggerTestTab(context, l10n),
-          _ => PresetSectionsView(sections: sections),
+          _ => _overviewTab(context, l10n, sections, fallback),
         },
       ],
     );
@@ -486,6 +514,16 @@ class _PresetDetailViewState extends State<PresetDetailView> {
         l10n.presetTokenEstimate(tokenCount),
         tokenCount > 4000 ? CupertinoColors.systemOrange : null,
       ),
+      if (_preset.growthConfig != null)
+        (
+          l10n.growthBadgeLabel,
+          _preset.growthConfig!.hasBranching
+              ? l10n.growthStageSummaryBranching(
+                  _preset.growthConfig!.stages.length,
+                )
+              : l10n.growthStageSummary(_preset.growthConfig!.stages.length),
+          AppTokens.accent(context),
+        ),
     ];
 
     return Container(
@@ -536,6 +574,227 @@ class _PresetDetailViewState extends State<PresetDetailView> {
     );
   }
 
+  Widget _spoilerToggleCard(
+    BuildContext context,
+    AppLocalizations l10n,
+    List<String> fallback,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppTokens.elevatedSurface(context),
+        borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+        border: Border.all(
+          color: AppTokens.separator(context),
+          width: 0.5,
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              l10n.growthSpoilerToggle,
+              style: TextStyle(
+                fontSize: 13.5,
+                color: AppTokens.label(context),
+                fontFamilyFallback: fallback,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          CupertinoSwitch(
+            value: _revealSpoilers,
+            onChanged: (value) => setState(() {
+              _revealSpoilers = value;
+              if (!value) {
+                _previewStageId = null;
+              }
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _overviewTab(
+    BuildContext context,
+    AppLocalizations l10n,
+    List<PresetSection> sections,
+    List<String> fallback,
+  ) {
+    final growth = _preset.growthConfig;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        PresetSectionsView(sections: sections),
+        if (growth != null) ...[
+          const SizedBox(height: 16),
+          _growthOverviewCard(context, l10n, growth, fallback),
+        ],
+      ],
+    );
+  }
+
+  Widget _growthOverviewCard(
+    BuildContext context,
+    AppLocalizations l10n,
+    CharacterGrowthConfig growth,
+    List<String> fallback,
+  ) {
+    final secondary = AppTokens.labelSecondary(context);
+    final accent = AppTokens.accent(context);
+    final visibleStages = _revealSpoilers
+        ? growth.stages
+        : <GrowthStage>[growth.initialStage];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTokens.elevatedSurface(context),
+        borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+        border: Border.all(
+          color: AppTokens.separator(context),
+          width: 0.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.growthStagesOverview,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppTokens.label(context),
+                    fontFamilyFallback: fallback,
+                  ),
+                ),
+              ),
+              Text(
+                growth.hasBranching
+                    ? l10n.growthStageSummaryBranching(growth.stages.length)
+                    : l10n.growthStageSummary(growth.stages.length),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: accent,
+                  fontWeight: FontWeight.w600,
+                  fontFamilyFallback: fallback,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          for (var i = 0; i < visibleStages.length; i++) ...[
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _revealSpoilers
+                  ? () => setState(() => _previewStageId = visibleStages[i].id)
+                  : null,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 5),
+                    child: Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        color: visibleStages[i].id == _effectivePreviewStageId
+                            ? accent
+                            : visibleStages[i].isEnding
+                            ? CupertinoColors.systemPurple.resolveFrom(context)
+                            : secondary.withValues(alpha: 0.6),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 9),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Wrap(
+                          spacing: 6,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Text(
+                              visibleStages[i].name,
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w600,
+                                color:
+                                    _revealSpoilers &&
+                                        visibleStages[i].id ==
+                                            _effectivePreviewStageId
+                                    ? accent
+                                    : AppTokens.label(context),
+                                fontFamilyFallback: fallback,
+                              ),
+                            ),
+                            if (visibleStages[i].isEnding)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 1,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: CupertinoColors.systemPurple
+                                      .resolveFrom(context)
+                                      .withValues(alpha: 0.14),
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                child: Text(
+                                  l10n.growthEndingBadge,
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: CupertinoColors.systemPurple
+                                        .resolveFrom(context),
+                                    fontFamilyFallback: fallback,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        if (visibleStages[i].summary.trim().isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            visibleStages[i].summary.trim(),
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              height: 1.35,
+                              color: secondary,
+                              fontFamilyFallback: fallback,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (i < visibleStages.length - 1) const SizedBox(height: 10),
+          ],
+          const SizedBox(height: 10),
+          Text(
+            l10n.growthPlaythroughNote,
+            style: TextStyle(
+              fontSize: 12,
+              height: 1.35,
+              color: AppTokens.labelTertiary(context),
+              fontFamilyFallback: fallback,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _worldInfoTab(BuildContext context, AppLocalizations l10n) {
     final info = _preset.worldInfo;
     if (info == null) {
@@ -552,6 +811,14 @@ class _PresetDetailViewState extends State<PresetDetailView> {
         ),
       );
     }
+
+    final visibleEntries = info.entries
+        .where(
+          (entry) =>
+              _revealSpoilers || entry.unlock?.hiddenUntilUnlocked != true,
+        )
+        .toList(growable: false);
+    final hiddenCount = info.entries.length - visibleEntries.length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -605,11 +872,40 @@ class _PresetDetailViewState extends State<PresetDetailView> {
             color: AppTokens.labelSecondary(context),
           ),
         ),
-        if (info.entries.isNotEmpty) const SizedBox(height: 12),
-        for (final entry in info.entries) ...[
+        if (visibleEntries.isNotEmpty || hiddenCount > 0)
+          const SizedBox(height: 12),
+        for (final entry in visibleEntries) ...[
           WorldInfoEntryPreviewCard(entry: entry),
           const SizedBox(height: 8),
         ],
+        if (hiddenCount > 0)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppTokens.fillSoft(context),
+              borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  CupertinoIcons.lock_fill,
+                  size: 13,
+                  color: AppTokens.labelTertiary(context),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l10n.growthHiddenLoreCount(hiddenCount),
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      color: AppTokens.labelSecondary(context),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
@@ -630,7 +926,10 @@ class _PresetDetailViewState extends State<PresetDetailView> {
         ),
       );
     }
-    return WorldInfoTriggerTester(info: info);
+    return WorldInfoTriggerTester(
+      info: info,
+      growthConfig: _preset.growthConfig,
+    );
   }
 
   Widget _warningBanner(BuildContext context, String text, Color color) {

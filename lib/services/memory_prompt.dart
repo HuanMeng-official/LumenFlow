@@ -1,8 +1,10 @@
 import 'dart:convert';
 
+import '../models/character_growth.dart';
 import '../models/conversation_memory.dart';
 import '../models/memory_note.dart';
 import '../models/message.dart';
+import 'character_growth_engine.dart';
 import 'memory_policy.dart';
 
 /// 生成注入到 system prompt 末尾的 `<memory>` 块。
@@ -13,6 +15,7 @@ String formatMemoryBlock(
   int maxFacts = MemoryPolicy.maxFacts,
   int maxRejected = MemoryPolicy.maxRejected,
   int maxCompactChars = 800,
+  CharacterGrowthConfig? growthConfig,
 }) {
   final sections = <String>[];
 
@@ -33,6 +36,8 @@ String formatMemoryBlock(
     if (mood.isNotEmpty) lines.add('心情：$mood');
     final relationship = _escapeMemoryTags(roleplay.relationshipStage.trim());
     if (relationship.isNotEmpty) lines.add('关系阶段：$relationship');
+    final nickname = _escapeMemoryTags(roleplay.customNickname.trim());
+    if (nickname.isNotEmpty) lines.add('对用户的称呼：$nickname');
     final scene = _escapeMemoryTags(roleplay.scene.trim());
     if (scene.isNotEmpty) lines.add('当前场景：$scene');
     final storyTime = _escapeMemoryTags(roleplay.storyTime.trim());
@@ -41,15 +46,41 @@ String formatMemoryBlock(
     if (characterState.isNotEmpty) {
       lines.add('角色自身状态：$characterState');
     }
+    final intimacyTitle =
+        (growthConfig != null && growthConfig.intimacyLabel.trim().isNotEmpty)
+        ? _escapeMemoryTags(growthConfig.intimacyLabel.trim())
+        : '亲密度';
     if (roleplay.intimacy != null) {
       lines.add(
         roleplay.previousIntimacy == null
-            ? '亲密度：${roleplay.intimacy}'
-            : '亲密度：${roleplay.previousIntimacy} → ${roleplay.intimacy}',
+            ? '$intimacyTitle：${roleplay.intimacy}'
+            : '$intimacyTitle：${roleplay.previousIntimacy} → ${roleplay.intimacy}',
       );
     }
     final intimacyNote = _escapeMemoryTags(roleplay.intimacyNote.trim());
-    if (intimacyNote.isNotEmpty) lines.add('亲密度说明：$intimacyNote');
+    if (intimacyNote.isNotEmpty) lines.add('$intimacyTitle说明：$intimacyNote');
+    if (growthConfig != null && growthConfig.metrics.isNotEmpty) {
+      final metricParts = <String>[];
+      for (final def in growthConfig.metrics) {
+        final currentVal = roleplay.customMetrics[def.id] ?? def.initial;
+        metricParts.add('${_escapeMemoryTags(def.name)}=$currentVal/${def.max}');
+      }
+      if (metricParts.isNotEmpty) {
+        lines.add('成长指标：${metricParts.join('，')}');
+      }
+    }
+    if (roleplay.milestones.isNotEmpty) {
+      final recent = roleplay.milestones.length > 3
+          ? roleplay.milestones.sublist(roleplay.milestones.length - 3)
+          : roleplay.milestones;
+      final titles = recent
+          .map((m) => _escapeMemoryTags(m.title.trim()))
+          .where((t) => t.isNotEmpty)
+          .join(' → ');
+      if (titles.isNotEmpty) {
+        lines.add('近期关系转折：$titles');
+      }
+    }
     final unresolved = _escapeMemoryTags(roleplay.unresolved.trim());
     if (unresolved.isNotEmpty) lines.add('未完成：$unresolved');
     if (lines.isNotEmpty) {
@@ -152,6 +183,7 @@ String buildMemoryUpdateSystemPrompt() {
 10. 所有自然语言字段使用 <conversation> 对话本身的语言，不要翻译成其他语言。
 11. <pending_notes> 是对话模型在事件发生时主动留下的便签，优先级更高；除非对话明确推翻，否则必须合并进记忆，不要忽略。
 12. 如果用户消息里有 <roleplay>，还要更新 roleplay_state：心情、关系阶段、当前场景、故事时间、角色自身状态、亲密度（0-100 的整数，无法判断时省略）、亲密度说明、未完成的事。character_state 只写角色身体/伤势/疲态、衣着与外貌变化、姿势与正在做的事、当前目的等可观察状态，不写内心想法或用户状态。没有变化的字段写 "unchanged"。
+13. 如果 <roleplay> 内包含 <growth> 成长规则，请严格遵循其中的数值定义与变动幅度约束，在 roleplay_state 中补充 custom_metrics（仅返回有定义的属性 ID 对应整数）、custom_nickname（若角色开始对用户使用新的专属称呼，否则写 "unchanged"）、triggered_transitions（仅当对话中真实且明确发生了对应候旋转折事件时，填入其精确 id；不可臆测，未触发返回空数组 []）以及 transition_reason（触发转折时的简短事实说明）。
 
 输出 schema：
 {
@@ -174,7 +206,11 @@ String buildMemoryUpdateSystemPrompt() {
     "character_state": "角色自身状态或 unchanged",
     "intimacy": 68,
     "intimacy_note": "亲密度变化的简短说明",
-    "unresolved": "尚未解决/未回答的事或 unchanged"
+    "unresolved": "尚未解决/未回答的事或 unchanged",
+    "custom_metrics": {"metric_id": 40},
+    "custom_nickname": "新专属称呼或 unchanged",
+    "triggered_transitions": ["transition_id"],
+    "transition_reason": "触发该转折的关键事件（未触发可省略）"
   }
 }
 ''';
@@ -188,6 +224,7 @@ String buildMemoryUpdateUserPrompt({
   bool roleplayMode = false,
   String characterName = '',
   String characterDescription = '',
+  CharacterGrowthConfig? growthConfig,
 }) {
   final memoryJson = _escapePromptTags(
     const JsonEncoder.withIndent('  ').convert(_memoryForUpdate(memory)),
@@ -211,6 +248,9 @@ String buildMemoryUpdateUserPrompt({
 
   final safeName = _escapePromptTags(characterName.trim());
   final safeDescription = _escapePromptTags(characterDescription.trim());
+  final growthSection = roleplayMode && growthConfig != null
+      ? '\n${_buildGrowthPromptSection(growthConfig, memory)}'
+      : '';
   final roleplaySection = roleplayMode
       ? '<roleplay>\n'
             '这是一个角色扮演对话。角色：'
@@ -219,7 +259,8 @@ String buildMemoryUpdateUserPrompt({
             '请更新 roleplay_state：心情、关系阶段、当前场景、故事时间、'
             '角色自身状态、亲密度（0-100 的整数，无法判断时省略）、'
             '亲密度说明、未完成的事。'
-            '没有变化的字段返回 "unchanged"；使用对话语言。\n'
+            '没有变化的字段返回 "unchanged"；使用对话语言。'
+            '$growthSection\n'
             '</roleplay>\n\n'
       : '';
 
@@ -229,6 +270,70 @@ String buildMemoryUpdateUserPrompt({
       '<conversation>\n$conversation\n</conversation>\n\n'
       '请输出更新后的记忆 JSON。新增条目必须填写 source_message_id，'
       '并在 quote 中保留能精确复述的原话。';
+}
+
+String _buildGrowthPromptSection(
+  CharacterGrowthConfig config,
+  ConversationMemory memory,
+) {
+  final roleplay = memory.roleplay;
+  final stage = CharacterGrowthEngine.currentStage(config, roleplay);
+  final currentIntimacy = (roleplay?.intimacy ?? config.initialIntimacy).clamp(
+    0,
+    100,
+  );
+  final intimacyName = config.intimacyLabel.trim().isNotEmpty
+      ? _escapePromptTags(config.intimacyLabel.trim())
+      : '亲密度';
+  final lines = <String>[
+    '<growth>',
+    '当前成长阶段：${_escapePromptTags(stage.name)} (id=${stage.id})',
+    if (stage.summary.trim().isNotEmpty)
+      '阶段说明：${_escapePromptTags(stage.summary.trim())}',
+    if (roleplay?.growthLocked == true)
+      '注意：用户已锁定自动成长，请保持 intimacy、custom_metrics 不变，且 triggered_transitions 返回空数组 []。',
+    '内置轴 intimacy（展示名：$intimacyName）：当前=$currentIntimacy，范围=0..100，本次建议增幅不超过 +${config.maxIntimacyGain}、降幅不超过 -${config.maxIntimacyLoss}。'
+        '${config.intimacyDescription.trim().isEmpty ? '' : '语义：${_escapePromptTags(config.intimacyDescription.trim())}'}',
+  ];
+
+  if (config.metrics.isNotEmpty) {
+    lines.add('自定义属性（请在 roleplay_state.custom_metrics 中按精确 id 输出更新后的整数）：');
+    for (final metric in config.metrics) {
+      final cur = (roleplay?.customMetrics[metric.id] ?? metric.initial).clamp(
+        metric.min,
+        metric.max,
+      );
+      final desc = metric.description.trim().isEmpty
+          ? ''
+          : '，说明：${_escapePromptTags(metric.description.trim())}';
+      lines.add(
+        '- id="${metric.id}" (${_escapePromptTags(metric.name)}): '
+        '当前=$cur，范围=${metric.min}..${metric.max}，'
+        '单次幅度 +${metric.maxGain}/-${metric.maxLoss}$desc',
+      );
+    }
+  }
+
+  final narrativeTransitions = stage.transitions
+      .where((t) => t.hasNarrativeTrigger)
+      .toList(growable: false);
+  if (narrativeTransitions.isNotEmpty) {
+    lines.add(
+      '当前阶段的叙事转折候选（仅当对话中真实明确发生了下列事件时，才将对应 id 加入 triggered_transitions 并写 transition_reason）：',
+    );
+    for (final t in narrativeTransitions) {
+      final targetName = config.stageById(t.toStageId)?.name ?? t.toStageId;
+      lines.add(
+        '- id="${t.id}" (通往「${_escapePromptTags(targetName)}」): '
+        '${_escapePromptTags(t.narrativeTrigger)}',
+      );
+    }
+  } else {
+    lines.add('当前阶段无叙事事件候选，triggered_transitions 请返回 []。');
+  }
+
+  lines.add('</growth>');
+  return lines.join('\n');
 }
 
 String _noteLine(MemoryNote note) {

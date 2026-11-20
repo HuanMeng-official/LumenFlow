@@ -1,7 +1,9 @@
 import 'dart:convert';
 
+import '../models/character_growth.dart';
 import '../models/conversation_memory.dart';
 import '../models/roleplay_memory.dart';
+import 'character_growth_engine.dart';
 import 'memory_policy.dart';
 
 enum FactOpType { add, supersede, update }
@@ -56,6 +58,10 @@ class MemoryUpdate {
     this.intimacy,
     this.intimacyNote,
     this.unresolved,
+    this.customMetrics = const {},
+    this.customNickname,
+    this.triggeredTransitions = const [],
+    this.transitionReason,
     this.factOps = const [],
     this.rejectedOps = const [],
   });
@@ -70,6 +76,10 @@ class MemoryUpdate {
   final int? intimacy;
   final String? intimacyNote;
   final String? unresolved;
+  final Map<String, int> customMetrics;
+  final String? customNickname;
+  final List<String> triggeredTransitions;
+  final String? transitionReason;
   final List<FactOperation> factOps;
   final List<RejectedOperation> rejectedOps;
 }
@@ -115,6 +125,19 @@ class MemoryUpdateParser {
           roleplayMap['intimacy_note'] ?? roleplayMap['intimacyNote'],
         ),
         unresolved: _stringOrNull(roleplayMap['unresolved']),
+        customMetrics: _parseCustomMetrics(
+          roleplayMap['custom_metrics'] ?? roleplayMap['customMetrics'],
+        ),
+        customNickname: _stringOrNull(
+          roleplayMap['custom_nickname'] ?? roleplayMap['customNickname'],
+        ),
+        triggeredTransitions: _parseStringList(
+          roleplayMap['triggered_transitions'] ??
+              roleplayMap['triggeredTransitions'],
+        ),
+        transitionReason: _stringOrNull(
+          roleplayMap['transition_reason'] ?? roleplayMap['transitionReason'],
+        ),
         factOps: _parseFactOps(map['fact_ops'] ?? map['factOps']),
         rejectedOps: _parseRejectedOps(
           map['rejected_ops'] ?? map['rejectedOps'],
@@ -144,6 +167,35 @@ class MemoryUpdateParser {
       if (parsed != null) return parsed.clamp(0, 100);
     }
     return null;
+  }
+
+  static Map<String, int> _parseCustomMetrics(Object? raw) {
+    if (raw is! Map) return const {};
+    final result = <String, int>{};
+    for (final entry in raw.entries) {
+      final key = entry.key.toString().trim();
+      if (key.isEmpty) continue;
+      final value = entry.value;
+      if (value is num) {
+        result[key] = value.round();
+      } else if (value is String) {
+        final parsed = int.tryParse(value.trim());
+        if (parsed != null) result[key] = parsed;
+      }
+    }
+    return result;
+  }
+
+  static List<String> _parseStringList(Object? raw) {
+    if (raw is! List) return const [];
+    final items = <String>[];
+    for (final item in raw) {
+      if (item is String) {
+        final trimmed = item.trim();
+        if (trimmed.isNotEmpty) items.add(trimmed);
+      }
+    }
+    return items;
   }
 
   static List<FactOperation> _parseFactOps(Object? raw) {
@@ -243,6 +295,10 @@ class MemoryUpdateApplier {
     MemoryUpdate update, {
     required String Function() nextFactId,
     required String Function() nextRejectedId,
+    String Function()? nextMilestoneId,
+    CharacterGrowthConfig? growthConfig,
+    String? sourceMessageId,
+    void Function(GrowthEvaluationResult result)? onGrowthEvaluated,
     DateTime? now,
   }) {
     final timestamp = now ?? DateTime.now();
@@ -332,7 +388,16 @@ class MemoryUpdateApplier {
       }
     }
 
-    final roleplay = _applyRoleplay(current.roleplay, update, addedFactIds);
+    final roleplay = _applyRoleplay(
+      current.roleplay,
+      update,
+      addedFactIds,
+      growthConfig: growthConfig,
+      nextMilestoneId: nextMilestoneId,
+      sourceMessageId: sourceMessageId,
+      onGrowthEvaluated: onGrowthEvaluated,
+      now: timestamp,
+    );
 
     return current.copyWith(
       summary: _clamp(
@@ -354,8 +419,13 @@ class MemoryUpdateApplier {
   static RoleplayMemory? _applyRoleplay(
     RoleplayMemory? current,
     MemoryUpdate update,
-    List<String> addedFactIds,
-  ) {
+    List<String> addedFactIds, {
+    CharacterGrowthConfig? growthConfig,
+    String Function()? nextMilestoneId,
+    String? sourceMessageId,
+    void Function(GrowthEvaluationResult result)? onGrowthEvaluated,
+    required DateTime now,
+  }) {
     final hasUpdate =
         update.mood != null ||
         update.relationshipStage != null ||
@@ -364,11 +434,14 @@ class MemoryUpdateApplier {
         update.characterState != null ||
         update.intimacy != null ||
         update.intimacyNote != null ||
-        update.unresolved != null;
-    if (current == null && !hasUpdate) return null;
+        update.unresolved != null ||
+        update.customMetrics.isNotEmpty ||
+        update.customNickname != null ||
+        update.triggeredTransitions.isNotEmpty;
+    if (current == null && !hasUpdate && growthConfig == null) return null;
 
     final base = current ?? const RoleplayMemory();
-    final roleplay = RoleplayMemory(
+    final merged = base.copyWith(
       mood: _resolveNarrative(update.mood, base.mood),
       relationshipStage: _resolveNarrative(
         update.relationshipStage,
@@ -380,19 +453,43 @@ class MemoryUpdateApplier {
         update.characterState,
         base.characterState,
       ),
-      intimacy: update.intimacy ?? base.intimacy,
-      previousIntimacy: update.intimacy != null
-          ? base.intimacy
+      intimacy: growthConfig == null
+          ? (update.intimacy ?? base.intimacy)
+          : base.intimacy,
+      previousIntimacy: growthConfig == null
+          ? (update.intimacy != null ? base.intimacy : base.previousIntimacy)
           : base.previousIntimacy,
       intimacyNote: _resolveNarrative(update.intimacyNote, base.intimacyNote),
       unresolved: _resolveNarrative(update.unresolved, base.unresolved),
+      customNickname: growthConfig == null
+          ? _resolveNarrative(update.customNickname, base.customNickname)
+          : base.customNickname,
       newFactIds: <String>{
         ...base.newFactIds,
         ...addedFactIds,
       }.toList(growable: false),
     );
 
-    return roleplay.isEmpty ? null : roleplay;
+    if (growthConfig != null) {
+      final result = CharacterGrowthEngine.evaluate(
+        config: growthConfig,
+        current: merged,
+        proposedIntimacy: update.intimacy,
+        proposedCustomMetrics: update.customMetrics,
+        proposedCustomNickname: update.customNickname,
+        triggeredTransitions: update.triggeredTransitions,
+        transitionReason: update.transitionReason,
+        storyTime: merged.storyTime,
+        sourceMessageId: sourceMessageId,
+        nextMilestoneId:
+            nextMilestoneId ?? () => 'ms_${now.microsecondsSinceEpoch}',
+        now: now,
+      );
+      onGrowthEvaluated?.call(result);
+      return result.memory.isEmpty ? null : result.memory;
+    }
+
+    return merged.isEmpty ? null : merged;
   }
 
   static String _clamp(String value, int maxChars) {

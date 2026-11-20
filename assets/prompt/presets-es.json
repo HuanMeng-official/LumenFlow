@@ -9,7 +9,8 @@
     "icon": "person.fill",
     "world_info_file": "characters/es/NingXi.world_info.json",
     "avatar_file": "characters/img/avatar/ningxi.png",
-    "illustration_file": "characters/img/illustration/ningxi.png"
+    "illustration_file": "characters/img/illustration/ningxi.png",
+    "growth_file": "characters/es/NingXi.growth.json"
   },
   {
     "id": "luyao",
@@ -21,6 +22,7 @@
     "icon": "person.fill",
     "world_info_file": "characters/es/LuYao.world_info.json",
     "avatar_file": "characters/img/avatar/luyao.png",
-    "illustration_file": "characters/img/illustration/luyao.png"
+    "illustration_file": "characters/img/illustration/luyao.png",
+    "growth_file": "characters/es/LuYao.growth.json"
   }
 ]

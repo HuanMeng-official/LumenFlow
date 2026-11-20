@@ -8,13 +8,18 @@ import '../ai/tools/builtin_memory_recall_tool.dart';
 import '../controllers/chat_send_controller.dart';
 import '../controllers/chat_screen_controller.dart';
 import '../l10n/app_localizations.dart';
+import '../models/character_growth.dart';
+import '../models/conversation_memory.dart';
 import '../models/message.dart';
 import '../models/attachment.dart';
 import '../models/conversation.dart';
 import '../models/memory_note.dart';
 import '../models/prompt_preset.dart';
+import '../models/roleplay_memory.dart';
 import '../models/user_profile.dart';
+import '../models/world_info.dart';
 import '../services/ai_service.dart';
+import '../services/character_growth_engine.dart';
 import '../services/conversation_memory_store.dart';
 import '../services/conversation_service.dart';
 import '../services/memory_recall.dart';
@@ -141,6 +146,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   bool _isLoadingConversation = false; // 防止重复加载对话
   bool _inspectorOpen = false; // 桌面右侧检查器抽屉开关
   int _inspectorTab = 0; // 0: 记忆档案, 1: 世界书
+  ConversationMemory? _currentMemory; // 当前对话的记忆缓存（用于成长阶段与世界书门控）
+  int _memoryRevision = 0; // 记忆版本号，驱动检查器内实时刷新
+  String? _stageTransitionBanner; // 阶段跃迁轻量提示横幅
+  bool _memoryCompressionEnabled = true; // 缓存记忆压缩开关状态
 
   @override
   void initState() {
@@ -250,6 +259,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Future<void> _checkConfiguration() async {
     final configured = await _settingsService.isConfigured();
     final liveUpdateEnabled = await _settingsService.getLiveUpdateEnabled();
+    final memoryCompressionEnabled = await _settingsService
+        .getMemoryCompressionEnabled();
     await _presetRepository.ensureLoaded();
     // 预加载用户头像，避免每个消息气泡重复加载
     final userProfile = await _userService.getUserProfile();
@@ -261,6 +272,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     setState(() {
       _isConfigured = configured;
       _liveUpdateEnabled = liveUpdateEnabled;
+      _memoryCompressionEnabled = memoryCompressionEnabled;
       _userProfile = userProfile;
       _backgroundImagePath = backgroundImagePath;
       _backgroundImageOpacity = backgroundImageOpacity;
@@ -340,7 +352,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         _promptPresetEnabled = fullConversation.promptPresetEnabled;
         _currentPresetId = fullConversation.promptPresetId;
         _autoTitleGenerated = false; // 重置标题生成标志
+        _currentMemory = null;
+        _stageTransitionBanner = null;
       });
+      unawaited(_refreshCurrentMemory(fullConversation.id));
 
       // 保存处理后的对话，确保状态更新持久化
       if (processedMessages.length != fullConversation.messages.length) {
@@ -376,6 +391,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _promptPresetEnabled = conversation.promptPresetEnabled;
       _currentPresetId = conversation.promptPresetId;
       _autoTitleGenerated = false; // 重置标题生成标志
+      _currentMemory = null;
+      _stageTransitionBanner = null;
+      _memoryRevision++;
     });
     widget.onConversationChanged?.call(conversation.id);
   }
@@ -539,6 +557,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void _handlePromptPresetEnabledChanged(bool enabled) {
     setState(() {
       _promptPresetEnabled = enabled;
+      _stageTransitionBanner = null;
       if (!enabled) {
         _currentPresetId = '';
         _inspectorTab = 0;
@@ -552,6 +571,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     setState(() {
       _currentPresetId = presetId;
       _promptPresetEnabled = true;
+      _stageTransitionBanner = null;
       if (_findPresetById(presetId)?.worldInfo == null) {
         _inspectorTab = 0;
       }
@@ -566,17 +586,105 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     return null;
   }
 
+  Future<void> _refreshCurrentMemory(String conversationId) async {
+    try {
+      final memory = await _conversationService.getConversationMemory(
+        conversationId,
+      );
+      if (!mounted || _currentConversation?.id != conversationId) return;
+      setState(() {
+        _currentMemory = memory;
+        _memoryRevision++;
+      });
+    } catch (_) {
+      // 读取记忆缓存失败不应阻塞聊天。
+    }
+  }
+
+  String? _activeStageIdForPreset(PromptPreset? preset) {
+    final config = preset?.growthConfig;
+    if (config == null) return null;
+    return CharacterGrowthEngine.currentStage(
+      config,
+      _currentMemory?.roleplay,
+    ).id;
+  }
+
+  void _handleStageTransition(
+    String conversationId,
+    AppLocalizations l10n,
+    GrowthEvaluationResult result,
+  ) {
+    if (!mounted ||
+        _currentConversation?.id != conversationId ||
+        !result.didTransition) {
+      return;
+    }
+    final targetStage = result.transitionedTo!;
+    final milestoneTitle = result.milestone?.title.trim() ?? '';
+    final banner =
+        milestoneTitle.isNotEmpty && !milestoneTitle.contains('→')
+        ? l10n.growthStageChangedBannerWithTitle(
+            milestoneTitle,
+            targetStage.name,
+          )
+        : l10n.growthStageChangedBanner(targetStage.name);
+    setState(() {
+      _stageTransitionBanner = banner;
+    });
+    unawaited(_refreshCurrentMemory(conversationId));
+  }
+
+  Future<void> _consumePendingTransitionTurn(String conversationId) async {
+    try {
+      final memory = await _conversationService.getConversationMemory(
+        conversationId,
+      );
+      final roleplay = memory?.roleplay;
+      if (memory == null ||
+          roleplay == null ||
+          roleplay.pendingTransition == null) {
+        return;
+      }
+      final nextRoleplay = CharacterGrowthEngine.consumeTransitionTurn(
+        roleplay,
+      );
+      final nextMemory = memory.copyWith(roleplay: nextRoleplay);
+      await _conversationService.saveConversationMemory(
+        conversationId,
+        nextMemory,
+      );
+      if (!mounted || _currentConversation?.id != conversationId) return;
+      setState(() {
+        _currentMemory = nextMemory;
+        _memoryRevision++;
+      });
+    } catch (_) {
+      // 消耗过渡轮次失败不影响对话。
+    }
+  }
+
   /// 激活当前角色卡世界书，并按 position 拆分注入块。
   WorldInfoInjection _buildWorldInfoInjection(
     String currentContent,
-    List<Message> history,
-  ) {
+    List<Message> history, {
+    RoleplayMemory? roleplayMemory,
+  }) {
     if (!_promptPresetEnabled || _currentPresetId.isEmpty) {
       return const WorldInfoInjection();
     }
 
-    final worldInfo = _findPresetById(_currentPresetId)?.worldInfo;
+    final preset = _findPresetById(_currentPresetId);
+    final worldInfo = preset?.worldInfo;
     if (worldInfo == null) return const WorldInfoInjection();
+
+    final growthConfig = preset?.growthConfig;
+    final growthContext = growthConfig == null
+        ? null
+        : CharacterGrowthEngine.buildWorldInfoContext(
+            growthConfig,
+            roleplayMemory ?? _currentMemory?.roleplay,
+          );
 
     final eligible = history
         .where(
@@ -598,6 +706,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       eligible.map((message) => message.content).toList(growable: false),
       currentContent: currentContent,
       currentAlreadyInHistory: currentAlreadyInHistory,
+      growthContext: growthContext,
     );
     return WorldInfoService.buildInjection(activation);
   }
@@ -695,6 +804,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     bool roleplayMode = false,
     String characterName = '',
     String characterDescription = '',
+    CharacterGrowthConfig? growthConfig,
   }) async {
     final store = ConversationMemoryStore(_conversationService);
     final service = MemoryService(
@@ -710,8 +820,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         roleplayMode: roleplayMode,
         characterName: characterName,
         characterDescription: characterDescription,
+        growthConfig: growthConfig,
         onStatus: (stage, {current, total}) {
           _setMemoryStatus(conversationId, l10n, stage, current, total);
+        },
+        onStageTransition: (result) {
+          _handleStageTransition(conversationId, l10n, result);
         },
       );
     } catch (_) {
@@ -721,6 +835,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         setState(() {
           _memoryStatus = null;
         });
+        unawaited(_refreshCurrentMemory(conversationId));
       }
     }
   }
@@ -733,6 +848,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     bool roleplayMode = false,
     String characterName = '',
     String characterDescription = '',
+    CharacterGrowthConfig? growthConfig,
   }) async {
     final memoryEnabled = await _settingsService.getMemoryCompressionEnabled();
     final historyEnabled = await _settingsService.getEnableHistory();
@@ -753,8 +869,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         roleplayMode: roleplayMode,
         characterName: characterName,
         characterDescription: characterDescription,
+        growthConfig: growthConfig,
         onStatus: (stage, {current, total}) {
           _setMemoryStatus(conversationId, l10n, stage, current, total);
+        },
+        onStageTransition: (result) {
+          _handleStageTransition(conversationId, l10n, result);
         },
       );
     } catch (_) {
@@ -764,6 +884,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         setState(() {
           _memoryStatus = null;
         });
+        unawaited(_refreshCurrentMemory(conversationId));
       }
     }
   }
@@ -983,7 +1104,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final titleAtSend = _currentTitle;
     final history =
         historyOverride ?? ChatSendController.buildHistory(_messages);
-    final worldInfo = _buildWorldInfoInjection(content, history);
 
     // 发送前补齐记忆：旧消息即将滑出原文窗口时，宁可多等一会儿，也不能
     // 让模型在“没有前情”的状态下回答。
@@ -994,6 +1114,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final roleplayPreset = roleplayMode
         ? _findPresetById(_currentPresetId)
         : null;
+    final growthConfig = roleplayPreset?.growthConfig;
     final characterName = roleplayPreset?.name ?? _currentTitle;
     final characterDescription = roleplayPreset?.description ?? '';
     var historyRounds = 0;
@@ -1007,8 +1128,34 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         roleplayMode: roleplayMode,
         characterName: characterName,
         characterDescription: characterDescription,
+        growthConfig: growthConfig,
       );
     }
+
+    ConversationMemory? latestMemory = _currentMemory;
+    if (growthConfig != null) {
+      try {
+        latestMemory = await _conversationService.getConversationMemory(
+          conversationId,
+        );
+        if (mounted && _currentConversation?.id == conversationId) {
+          _currentMemory = latestMemory;
+        }
+      } catch (_) {
+        // 使用已有内存缓存兜底。
+      }
+    }
+
+    final worldInfo = _buildWorldInfoInjection(
+      content,
+      history,
+      roleplayMemory: latestMemory?.roleplay,
+    );
+    final effectivePresetPrompt = (growthConfig != null &&
+            presetSystemPrompt.trim().isNotEmpty)
+        ? '$presetSystemPrompt\n\n'
+              '${CharacterGrowthEngine.buildStagePromptBlock(growthConfig, latestMemory?.roleplay)}'
+        : presetSystemPrompt;
 
     final noteSourceMessageId = _lastUserMessageId();
     final eligibleHistory = history
@@ -1056,7 +1203,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         history,
         attachments: attachments,
         thinkingMode: _thinkingMode,
-        presetSystemPrompt: presetSystemPrompt,
+        presetSystemPrompt: effectivePresetPrompt,
         worldInfoBlock: worldInfo.systemBlock,
         beforePresetWorldInfoBlock: worldInfo.beforePresetBlock,
         afterPresetWorldInfoBlock: worldInfo.afterPresetBlock,
@@ -1113,6 +1260,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           );
         }
         if (_currentConversation?.id == conversationId) {
+          if (growthConfig != null) {
+            await _consumePendingTransitionTurn(conversationId);
+          }
           await _generateAutoTitle();
           // 先同步快照消息；后续 await 期间用户可能切换会话。
           final memoryMessages = List<Message>.from(_messages);
@@ -1124,6 +1274,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               roleplayMode: roleplayMode,
               characterName: characterName,
               characterDescription: characterDescription,
+              growthConfig: growthConfig,
             ),
           );
         }
@@ -1596,9 +1747,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             child: Text(l10n.delete),
             onPressed: () async {
               Navigator.pop(context);
+              final conversationId = _currentConversation?.id;
               setState(() {
                 _messages.clear();
+                _messageKeys.clear();
+                _currentMemory = null;
+                _stageTransitionBanner = null;
+                _memoryRevision++;
               });
+              if (conversationId != null) {
+                await _conversationService.deleteConversationMemory(
+                  conversationId,
+                );
+              }
               await _saveCurrentConversation();
             },
           ),
@@ -1712,6 +1873,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             message: message,
                             userProfile: _userProfile,
                             activePreset: activePreset,
+                            activeStageId: _activeStageIdForPreset(activePreset),
                             assistantName: _currentModel,
                             onEdit: _editUserMessage,
                             onRegenerate: _regenerateAiResponse,
@@ -1730,6 +1892,95 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         },
                       ),
               ),
+              if (_stageTransitionBanner != null)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTokens.accentSoft(context),
+                    border: Border(
+                      top: BorderSide(
+                        color: AppTokens.separator(context),
+                        width: 0.5,
+                      ),
+                    ),
+                  ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxWidth: AppTokens.chatMaxWidth,
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            CupertinoIcons.flag_fill,
+                            size: 14,
+                            color: AppTokens.accent(context),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                setState(() {
+                                  _stageTransitionBanner = null;
+                                  if (isWide) {
+                                    _inspectorTab = 0;
+                                    _inspectorOpen = true;
+                                  }
+                                });
+                                if (!isWide) {
+                                  _openMemoryViewer();
+                                }
+                              },
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      _stageTransitionBanner!,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        color: AppTokens.accent(context),
+                                        fontFamilyFallback: cjkFallback,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    CupertinoIcons.chevron_right,
+                                    size: 13,
+                                    color: AppTokens.accent(context),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          CupertinoButton(
+                            padding: const EdgeInsets.all(2),
+                            minimumSize: const Size(22, 22),
+                            onPressed: () {
+                              setState(() {
+                                _stageTransitionBanner = null;
+                              });
+                            },
+                            child: Icon(
+                              CupertinoIcons.xmark,
+                              size: 13,
+                              color: AppTokens.labelSecondary(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               if (_memoryStatus != null)
                 Container(
                   width: double.infinity,
@@ -1818,7 +2069,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           color: AppTokens.separator(context),
                         ),
                         SizedBox(
-                          width: 300,
+                          width: 348,
                           child: _buildInspectorDrawer(
                             context,
                             l10n,
@@ -2171,52 +2422,193 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         roleplayMode: roleplayActive,
                         preset: activePreset,
                         embedded: true,
+                        memoryCompressionEnabled: _memoryCompressionEnabled,
+                        revision: _memoryRevision,
+                        onMemoryChanged: () {
+                          final id = _currentConversation?.id;
+                          if (id != null) {
+                            unawaited(_refreshCurrentMemory(id));
+                          }
+                        },
                       ))
-                : ListView(
-                    padding: const EdgeInsets.all(14),
-                    children: [
-                      if (worldInfo.background.trim().isNotEmpty) ...[
-                        Text(
-                          l10n.worldInfoBackground,
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
-                            color: AppTokens.labelSecondary(context),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        PresetSectionsView(
-                          sections: [
-                            PresetSection(text: worldInfo.background),
-                          ],
-                          showLabels: false,
-                        ),
-                        const SizedBox(height: 12),
-                      ],
-                      Text(
-                        l10n.presetDetailWorldInfoStats(
-                          worldInfo.entries.length,
-                          worldInfo.scanDepth,
-                          worldInfo.budgetTokens,
-                        ),
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          color: AppTokens.labelTertiary(context),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      for (final entry in worldInfo.entries) ...[
-                        WorldInfoEntryPreviewCard(
-                          entry: entry,
-                          compact: true,
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-                    ],
+                : _buildInspectorWorldInfoList(
+                    context: context,
+                    l10n: l10n,
+                    worldInfo: worldInfo,
+                    growthConfig: activePreset?.growthConfig,
                   ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildInspectorWorldInfoList({
+    required BuildContext context,
+    required AppLocalizations l10n,
+    required WorldInfo worldInfo,
+    CharacterGrowthConfig? growthConfig,
+  }) {
+    final growthContext = growthConfig == null
+        ? null
+        : CharacterGrowthEngine.buildWorldInfoContext(
+            growthConfig,
+            _currentMemory?.roleplay,
+          );
+    final unlockedEntries = <WorldInfoEntry>[];
+    final lockedVisibleEntries =
+        <({WorldInfoEntry entry, WorldInfoSkipReason reason})>[];
+    var hiddenLockedCount = 0;
+
+    for (final entry in worldInfo.entries) {
+      final lockReason = WorldInfoService.checkUnlock(entry, growthContext);
+      if (lockReason == null) {
+        unlockedEntries.add(entry);
+      } else if (entry.unlock?.hiddenUntilUnlocked == true) {
+        hiddenLockedCount++;
+      } else {
+        lockedVisibleEntries.add((entry: entry, reason: lockReason));
+      }
+    }
+
+    final hasGatedEntries = worldInfo.entries.any(
+      (entry) => entry.unlock?.hasConditions == true,
+    );
+
+    return ListView(
+      padding: const EdgeInsets.all(14),
+      children: [
+        if (worldInfo.background.trim().isNotEmpty) ...[
+          Text(
+            l10n.worldInfoBackground,
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: AppTokens.labelSecondary(context),
+            ),
+          ),
+          const SizedBox(height: 6),
+          PresetSectionsView(
+            sections: [PresetSection(text: worldInfo.background)],
+            showLabels: false,
+          ),
+          const SizedBox(height: 12),
+        ],
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                l10n.presetDetailWorldInfoStats(
+                  worldInfo.entries.length,
+                  worldInfo.scanDepth,
+                  worldInfo.budgetTokens,
+                ),
+                style: TextStyle(
+                  fontSize: 11.5,
+                  color: AppTokens.labelTertiary(context),
+                ),
+              ),
+            ),
+            if (hasGatedEntries)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppTokens.accentSoft(context),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  l10n.growthUnlockedProgress(
+                    unlockedEntries.length,
+                    worldInfo.entries.length,
+                  ),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppTokens.accent(context),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        for (final entry in unlockedEntries) ...[
+          WorldInfoEntryPreviewCard(entry: entry, compact: true),
+          const SizedBox(height: 8),
+        ],
+        for (final locked in lockedVisibleEntries) ...[
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(11),
+            decoration: BoxDecoration(
+              color: AppTokens.fillSoft(context),
+              borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+              border: Border.all(
+                color: AppTokens.separator(context),
+                width: 0.5,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  CupertinoIcons.lock_fill,
+                  size: 13,
+                  color: AppTokens.labelTertiary(context),
+                ),
+                const SizedBox(width: 7),
+                Expanded(
+                  child: Text(
+                    locked.entry.title.trim().isEmpty
+                        ? locked.entry.id
+                        : locked.entry.title,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: AppTokens.labelSecondary(context),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  worldInfoSkipReasonLabel(locked.reason, l10n),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppTokens.labelTertiary(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+        if (hiddenLockedCount > 0)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppTokens.fillSoft(context),
+              borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  CupertinoIcons.lock_fill,
+                  size: 13,
+                  color: AppTokens.labelTertiary(context),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l10n.growthHiddenLoreCount(hiddenLockedCount),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTokens.labelSecondary(context),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 
@@ -2621,6 +3013,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           preset: _promptPresetEnabled
               ? _findPresetById(_currentPresetId)
               : null,
+          memoryCompressionEnabled: _memoryCompressionEnabled,
+          revision: _memoryRevision,
+          onMemoryChanged: () {
+            unawaited(_refreshCurrentMemory(conversation.id));
+          },
         ),
       ),
     );

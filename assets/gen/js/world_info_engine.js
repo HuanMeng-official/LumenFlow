@@ -154,8 +154,85 @@
         return String(a.entry.id).localeCompare(String(b.entry.id));
     }
 
+    function matchesCondition(cond, currentVal) {
+        switch (cond.op) {
+            case '>=':
+            case 'gte':
+                return currentVal >= cond.value;
+            case '<=':
+            case 'lte':
+                return currentVal <= cond.value;
+            case '>':
+            case 'gt':
+                return currentVal > cond.value;
+            case '<':
+            case 'lt':
+                return currentVal < cond.value;
+            default:
+                return false;
+        }
+    }
+
+    function checkUnlock(entry, growthContext) {
+        const unlock = entry && entry.unlock;
+        if (!unlock || typeof unlock !== 'object') return null;
+        const stageIds = Array.isArray(unlock.stage_ids)
+            ? unlock.stage_ids.filter(Boolean)
+            : [];
+        const hasMin = Number.isFinite(unlock.min_intimacy);
+        const hasMax = Number.isFinite(unlock.max_intimacy);
+        const metricConditions = Array.isArray(unlock.metric_conditions)
+            ? unlock.metric_conditions
+            : [];
+        if (
+            stageIds.length === 0 &&
+            !hasMin &&
+            !hasMax &&
+            metricConditions.length === 0
+        ) {
+            return null;
+        }
+        if (!growthContext) {
+            return stageIds.length > 0 ? 'stageLocked' : 'metricLocked';
+        }
+        if (stageIds.length > 0) {
+            const stageId = growthContext.currentStageId || '';
+            if (!stageId || !stageIds.includes(stageId)) {
+                return 'stageLocked';
+            }
+        }
+        if (hasMin) {
+            if (
+                !Number.isFinite(growthContext.intimacy) ||
+                growthContext.intimacy < unlock.min_intimacy
+            ) {
+                return 'metricLocked';
+            }
+        }
+        if (hasMax) {
+            if (
+                !Number.isFinite(growthContext.intimacy) ||
+                growthContext.intimacy > unlock.max_intimacy
+            ) {
+                return 'metricLocked';
+            }
+        }
+        const customMetrics = growthContext.customMetrics || {};
+        for (const cond of metricConditions) {
+            const val =
+                cond.metric === 'intimacy'
+                    ? growthContext.intimacy
+                    : customMetrics[cond.metric];
+            if (!Number.isFinite(val) || !matchesCondition(cond, val)) {
+                return 'metricLocked';
+            }
+        }
+        return null;
+    }
+
     function activate(info, scanText, options = {}) {
         const entries = info.entries || [];
+        const growthContext = options.growthContext || null;
         const messages =
             !options.scanMessages || options.scanMessages.length === 0
                 ? [scanText]
@@ -167,6 +244,11 @@
         for (const entry of entries) {
             if (entry.enabled === false) {
                 reasons.set(entry.id, 'disabled');
+                continue;
+            }
+            const lockReason = checkUnlock(entry, growthContext);
+            if (lockReason) {
+                reasons.set(entry.id, lockReason);
                 continue;
             }
 
@@ -237,6 +319,11 @@
                             entry.enabled === false ||
                             candidateIds.has(entry.id)
                         ) {
+                            continue;
+                        }
+                        const recLock = checkUnlock(entry, growthContext);
+                        if (recLock) {
+                            reasons.set(entry.id, recLock);
                             continue;
                         }
                         const key = findMatchedKey(
@@ -345,7 +432,11 @@
     function activateWithExpansion(
         info,
         historyTexts,
-        { currentContent = '', currentAlreadyInHistory = false } = {}
+        {
+            currentContent = '',
+            currentAlreadyInHistory = false,
+            growthContext = null,
+        } = {}
     ) {
         const history = Array.isArray(historyTexts) ? historyTexts : [];
 
@@ -376,6 +467,7 @@
             const timingParts = partsForDepth(timingDepth);
             activation = activate(info, directParts.join('\n'), {
                 scanMessages: timingParts,
+                growthContext,
             });
             if (
                 activation.matched.length >= (info.min_activations || 0) ||
@@ -476,6 +568,7 @@
 
     window.LFWorldInfoEngine = {
         estimateTokens,
+        checkUnlock,
         activate,
         activateWithExpansion,
         buildInjection,

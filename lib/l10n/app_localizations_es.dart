@@ -1991,4 +1991,120 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get presetOverview => 'Personaje';
+
+  @override
+  String get worldInfoSkipStageLocked => 'Etapa bloqueada';
+
+  @override
+  String get worldInfoSkipMetricLocked => 'Condición de métrica no cumplida';
+
+  @override
+  String presetIssueGrowthInvalid(String name) {
+    return 'La configuración de crecimiento de \"$name\" no es válida o está dañada; se cargó como tarjeta estándar';
+  }
+
+  @override
+  String get lumenflowGrowthInvalid => 'El archivo de crecimiento no es válido o está dañado y se omitirá';
+
+  @override
+  String get lumenflowStageImagesInvalid => 'Algunas imágenes de etapa no son válidas o están dañadas y se omitirán';
+
+  @override
+  String get growthBadgeLabel => 'Evolutivo';
+
+  @override
+  String growthStageSummary(int count) {
+    return 'Evolutivo · $count etapas';
+  }
+
+  @override
+  String growthStageSummaryBranching(int count) {
+    return 'Evolutivo · $count etapas · Ramificado';
+  }
+
+  @override
+  String get growthCurrentStage => 'Etapa actual';
+
+  @override
+  String get growthEndingBadge => 'Final';
+
+  @override
+  String get growthCustomNickname => 'Apodo especial';
+
+  @override
+  String get growthMetricsSection => 'Métricas de crecimiento';
+
+  @override
+  String get growthMilestonesSection => 'Hitos de crecimiento';
+
+  @override
+  String get growthMilestonesEmpty => 'Aún no hay transiciones de etapa. Sigue conversando para avanzar.';
+
+  @override
+  String get growthControlsSection => 'Controles de crecimiento';
+
+  @override
+  String get growthSwitchStage => 'Cambiar etapa';
+
+  @override
+  String get growthSwitchStageTitle => 'Seleccionar etapa';
+
+  @override
+  String get growthLockAuto => 'Bloquear crecimiento automático';
+
+  @override
+  String get growthLockAutoDesc => 'Mantén la etapa actual y pausa las transiciones automáticas';
+
+  @override
+  String get growthResetAction => 'Restablecer crecimiento en este chat';
+
+  @override
+  String get growthResetTitle => 'Restablecer progreso de crecimiento';
+
+  @override
+  String get growthResetConfirm => '¿Restablecer las etapas, métricas e hitos de esta conversación a sus valores iniciales? Los mensajes no se eliminarán.';
+
+  @override
+  String get growthMemoryCompressionOffHint => 'El crecimiento automático requiere activar «Compresión de memoria». Aún puedes cambiar de etapa manualmente.';
+
+  @override
+  String growthStageChangedBanner(String stage) {
+    return 'Transición de etapa · Entraste en «$stage»';
+  }
+
+  @override
+  String growthStageChangedBannerWithTitle(String title, String stage) {
+    return '$title · Entraste en «$stage»';
+  }
+
+  @override
+  String get growthSpoilerToggle => 'Mostrar crecimiento completo y lore oculto';
+
+  @override
+  String get growthStagesOverview => 'Resumen de etapas';
+
+  @override
+  String growthHiddenLoreCount(int count) {
+    return '$count entradas ocultas por desbloquear en este chat';
+  }
+
+  @override
+  String get growthLockedEntryTitle => 'Lore bloqueado';
+
+  @override
+  String growthUnlockedProgress(int unlocked, int total) {
+    return 'Desbloqueado $unlocked / $total';
+  }
+
+  @override
+  String get growthSimulatorStage => 'Simular etapa';
+
+  @override
+  String get growthPlaythroughNote => 'El progreso de crecimiento solo se guarda en esta conversación. Los chats nuevos siempre empiezan desde cero.';
+
+  @override
+  String get growthManualSwitchReason => 'Cambio manual de etapa';
+
+  @override
+  String get growthLockedBadge => 'Bloqueado';
 }

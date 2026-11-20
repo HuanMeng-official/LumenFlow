@@ -383,6 +383,7 @@
             advancedOpen: false,
             fields: {},
             worldInfo: null,
+            growth: null,
             avatarDataUrl: '',
             illustrationDataUrl: '',
             avatarMeta: null,
@@ -398,6 +399,7 @@
             advancedOpen: !!document.getElementById('AdvancedOptionsPanel')?.open,
             fields: collectCharacterFields(),
             worldInfo: window.LFWorldInfo.getData(),
+            growth: window.LFGrowth ? window.LFGrowth.getDraftState() : null,
             avatarDataUrl,
             illustrationDataUrl,
             avatarMeta,
@@ -491,6 +493,9 @@
         });
 
         window.LFWorldInfo.setData(draft.worldInfo || {});
+        if (window.LFGrowth) {
+            window.LFGrowth.setDraftState(draft.growth || null);
+        }
         avatarDataUrl =
             typeof draft.avatarDataUrl === 'string' &&
             draft.avatarDataUrl.startsWith('data:image/png')
@@ -504,7 +509,7 @@
         avatarMeta = draft.avatarMeta || null;
         illustrationMeta = draft.illustrationMeta || null;
 
-        activeTab = ['character', 'worldinfo', 'meta', 'export'].includes(
+        activeTab = ['character', 'worldinfo', 'growth', 'meta', 'export'].includes(
             draft.tab
         )
             ? draft.tab
@@ -892,6 +897,7 @@
         document.getElementById('FileName').value = '';
         document.getElementById('AdvancedOptionsPanel').open = false;
         window.LFWorldInfo.reset();
+        if (window.LFGrowth) window.LFGrowth.reset();
         clearAvatar(false);
         clearIllustration(false);
         syncMetaName(true);
@@ -1011,6 +1017,12 @@ ${example}
                 selected && selected.title
                     ? `${d.TabWorldInfo} · ${selected.title}`
                     : d.TabWorldInfo;
+        } else if (activeTab === 'growth' && window.LFGrowth) {
+            const growthData = window.LFGrowth.getData();
+            text = growthData
+                ? JSON.stringify(growthData, null, 2)
+                : '// Growth system disabled';
+            context = d.TabGrowth || '成长系统';
         } else if (activeTab === 'meta') {
             text = JSON.stringify(buildMetaPayload(), null, 2);
             context = d.TabMeta;
@@ -1057,6 +1069,8 @@ ${example}
         const d = dict();
         return {
             disabled: d.SkipDisabled,
+            stageLocked: d.SkipStageLocked || 'Stage locked',
+            metricLocked: d.SkipMetricLocked || 'Metric locked',
             noPrimaryKey: d.SkipNoPrimaryKey,
             missingSecondaryKey: d.SkipMissingSecondaryKey,
             cooldown: d.SkipCooldown,
@@ -1234,6 +1248,37 @@ ${example}
                     : ''
             }
             ${
+                window.LFGrowth && window.LFGrowth.hasContent()
+                    ? (() => {
+                          const g = window.LFGrowth.getData();
+                          const stageItems = (g.stages || [])
+                              .map((s) => {
+                                  const badges = [
+                                      s.id,
+                                      s.is_initial ? (d.GrowthStageInitial || 'Initial') : '',
+                                      s.is_ending ? (d.GrowthStageEnding || 'Ending') : '',
+                                      (s.transitions || []).length
+                                          ? `→ ${(s.transitions || []).map((t) => t.to_stage_id).join(', ')}`
+                                          : '',
+                                  ]
+                                      .filter(Boolean)
+                                      .join(' · ');
+                                  return `
+                                  <div class="card-world-entry">
+                                      <div class="card-world-entry-title">${escapeHtml(s.name || s.id)}</div>
+                                      <div class="card-world-entry-meta">${escapeHtml(badges)}</div>
+                                      ${s.summary ? `<div class="card-world-entry-content">${escapeHtml(s.summary)}</div>` : ''}
+                                  </div>`;
+                              })
+                              .join('');
+                          return `<div class="card-section">
+                              <div class="card-section-title">${escapeHtml(d.TabGrowth || '成长系统')} · ${(g.stages || []).length}</div>
+                              <div class="card-world-entries">${stageItems}</div>
+                          </div>`;
+                      })()
+                    : ''
+            }
+            ${
                 (worldInfo.entries || []).length
                     ? `<div class="card-section">
                         <div class="card-section-title">${escapeHtml(
@@ -1252,10 +1297,118 @@ ${example}
         </div>`;
     }
 
-    function renderActivationTest() {
+    let growthSimState = {
+        stageId: '',
+        intimacy: 20,
+        customMetrics: {},
+    };
+
+    function syncGrowthTestControls() {
+        const box = document.getElementById('GrowthTestControls');
+        if (!box) return null;
+        const growth =
+            window.LFGrowth && window.LFGrowth.hasContent()
+                ? window.LFGrowth.getData()
+                : null;
+        if (!growth || !Array.isArray(growth.stages) || !growth.stages.length) {
+            box.hidden = true;
+            box.innerHTML = '';
+            return null;
+        }
+        const d = dict();
+        const stageIds = growth.stages.map((s) => s.id);
+        const initialStage =
+            growth.stages.find((s) => s.is_initial) || growth.stages[0];
+        if (!stageIds.includes(growthSimState.stageId)) {
+            growthSimState.stageId = initialStage.id;
+            growthSimState.intimacy = Number(growth.initial_intimacy ?? 20);
+        }
+        const nextMetrics = {};
+        for (const m of growth.metrics || []) {
+            const cur = growthSimState.customMetrics[m.id];
+            nextMetrics[m.id] = Number.isFinite(cur)
+                ? Math.min(m.max, Math.max(m.min, cur))
+                : Number(m.initial ?? m.min ?? 0);
+        }
+        growthSimState.customMetrics = nextMetrics;
+
+        const intimacyLabel = growth.intimacy_label || 'Intimacy';
+        box.hidden = false;
+        box.innerHTML = `
+            <div class="test-card">
+                <div class="test-card-header">${escapeHtml(d.GrowthSimTitle || '模拟成长状态')}</div>
+                <div class="test-card-body growth-test-body">
+                    <div class="growth-test-row">
+                        <label for="GrowthSimStageSelect">${escapeHtml(d.GrowthSimStage || 'Stage')}</label>
+                        <select id="GrowthSimStageSelect">
+                            ${growth.stages
+                                .map(
+                                    (s) =>
+                                        `<option value="${escapeHtml(s.id)}" ${
+                                            s.id === growthSimState.stageId ? 'selected' : ''
+                                        }>${escapeHtml(s.name || s.id)}</option>`
+                                )
+                                .join('')}
+                        </select>
+                    </div>
+                    <div class="growth-test-row">
+                        <label>${escapeHtml(intimacyLabel)}</label>
+                        <input type="range" min="0" max="100" value="${growthSimState.intimacy}" data-sim-metric="intimacy">
+                        <span class="growth-test-val">${growthSimState.intimacy}</span>
+                    </div>
+                    ${(growth.metrics || [])
+                        .map(
+                            (m) => `
+                        <div class="growth-test-row">
+                            <label>${escapeHtml(m.name || m.id)}</label>
+                            <input type="range" min="${m.min}" max="${m.max}" value="${growthSimState.customMetrics[m.id]}" data-sim-metric="${escapeHtml(m.id)}">
+                            <span class="growth-test-val">${growthSimState.customMetrics[m.id]}</span>
+                        </div>`
+                        )
+                        .join('')}
+                </div>
+            </div>`;
+
+        if (window.LFSelect && typeof window.LFSelect.enhanceAll === 'function') {
+            window.LFSelect.enhanceAll(box);
+        }
+
+        box.querySelector('#GrowthSimStageSelect')?.addEventListener('change', (e) => {
+            growthSimState.stageId = e.target.value;
+            renderActivationTest(true);
+        });
+        box.querySelectorAll('[data-sim-metric]').forEach((slider) => {
+            slider.addEventListener('input', (e) => {
+                const key = e.target.dataset.simMetric;
+                const val = Math.trunc(Number(e.target.value) || 0);
+                if (key === 'intimacy') growthSimState.intimacy = val;
+                else growthSimState.customMetrics[key] = val;
+                const valEl = e.target.parentElement?.querySelector('.growth-test-val');
+                if (valEl) valEl.textContent = String(val);
+                renderActivationTest(true);
+            });
+        });
+
+        return {
+            currentStageId: growthSimState.stageId,
+            intimacy: growthSimState.intimacy,
+            customMetrics: Object.assign({}, growthSimState.customMetrics),
+        };
+    }
+
+    function renderActivationTest(skipControlsRebuild = false) {
         const results = document.getElementById('WorldInfoTestResults');
         const input = document.getElementById('WorldInfoTestInput');
         if (!results || !input) return;
+        const growthContext = skipControlsRebuild
+            ? window.LFGrowth && window.LFGrowth.hasContent()
+                ? {
+                      currentStageId: growthSimState.stageId,
+                      intimacy: growthSimState.intimacy,
+                      customMetrics: Object.assign({}, growthSimState.customMetrics),
+                  }
+                : null
+            : syncGrowthTestControls();
         const d = dict();
         const lines = input.value
             .split(/\r?\n/)
@@ -1280,7 +1433,7 @@ ${example}
         const activation = window.LFWorldInfoEngine.activateWithExpansion(
             info,
             history,
-            { currentContent: current }
+            { currentContent: current, growthContext }
         );
         const injection = window.LFWorldInfoEngine.buildInjection(
             info,
@@ -2234,6 +2387,14 @@ ${example}
             showToast(worldInfoErrorText(wiError));
             return;
         }
+        if (window.LFGrowth && window.LFGrowth.hasContent()) {
+            const growthError = window.LFGrowth.validate();
+            if (growthError) {
+                switchTab('growth');
+                showToast(growthError);
+                return;
+            }
+        }
 
         try {
             const meta = buildMetaPayload();
@@ -2259,6 +2420,40 @@ ${example}
                     role: 'world_info',
                     bytes: textBytes(JSON.stringify(worldInfo, null, 2))
                 });
+            }
+
+            if (window.LFGrowth && window.LFGrowth.hasContent()) {
+                const growthPayload = window.LFGrowth.getData();
+                files.push({
+                    path: 'character/growth.json',
+                    role: 'growth',
+                    bytes: textBytes(JSON.stringify(growthPayload, null, 2))
+                });
+                const stageImages = window.LFGrowth.getStageImages() || {};
+                for (const stage of growthPayload.stages || []) {
+                    const imgs = stageImages[stage.id];
+                    if (!imgs) continue;
+                    if (imgs.avatarDataUrl) {
+                        const bytes = dataUrlToBytes(imgs.avatarDataUrl);
+                        if (bytes) {
+                            files.push({
+                                path: `character/stages/${stage.id}/avatar.png`,
+                                role: 'stage_avatar',
+                                bytes
+                            });
+                        }
+                    }
+                    if (imgs.illustrationDataUrl) {
+                        const bytes = dataUrlToBytes(imgs.illustrationDataUrl);
+                        if (bytes) {
+                            files.push({
+                                path: `character/stages/${stage.id}/illustration.png`,
+                                role: 'stage_illustration',
+                                bytes
+                            });
+                        }
+                    }
+                }
             }
 
             let avatarBytes = null;
@@ -2389,6 +2584,45 @@ ${example}
                 );
             } else if (legacyBackground) {
                 window.LFWorldInfo.importLegacyBackground(legacyBackground);
+            }
+
+            if (window.LFGrowth) {
+                window.LFGrowth.reset();
+                const growthFile = zip.file('character/growth.json');
+                if (growthFile) {
+                    try {
+                        const growthRaw = JSON.parse(await growthFile.async('string'));
+                        const stageImages = {};
+                        for (const stage of growthRaw.stages || []) {
+                            if (!stage || !stage.id) continue;
+                            const avPath = stage.avatar_file
+                                ? `character/${stage.avatar_file}`
+                                : `character/stages/${stage.id}/avatar.png`;
+                            const ilPath = stage.illustration_file
+                                ? `character/${stage.illustration_file}`
+                                : `character/stages/${stage.id}/illustration.png`;
+                            const avFile = zip.file(avPath) || zip.file(`character/stages/${stage.id}/avatar.png`);
+                            const ilFile = zip.file(ilPath) || zip.file(`character/stages/${stage.id}/illustration.png`);
+                            if (avFile) {
+                                const bytes = await avFile.async('uint8array');
+                                if (isPng(bytes)) {
+                                    stageImages[stage.id] = stageImages[stage.id] || {};
+                                    stageImages[stage.id].avatarDataUrl = await bytesToDataUrl(bytes, 'image/png');
+                                }
+                            }
+                            if (ilFile) {
+                                const bytes = await ilFile.async('uint8array');
+                                if (isPng(bytes)) {
+                                    stageImages[stage.id] = stageImages[stage.id] || {};
+                                    stageImages[stage.id].illustrationDataUrl = await bytesToDataUrl(bytes, 'image/png');
+                                }
+                            }
+                        }
+                        window.LFGrowth.setData(growthRaw, stageImages);
+                    } catch (err) {
+                        console.warn('Ignoring invalid character/growth.json:', err);
+                    }
+                }
             }
 
             avatarMeta = null;
@@ -2524,6 +2758,7 @@ ${example}
         setText('hint-WorldInfoOptional', d.WorldInfoOptional);
         setText('tab-character', d.TabCharacter);
         setText('tab-worldinfo', d.TabWorldInfo);
+        setText('tab-growth', d.TabGrowth || '成长系统');
         setText('tab-meta', d.TabMeta);
         setText('tab-export', d.TabExport);
         setText('btn-AddEntry', d.AddEntry);
@@ -2592,6 +2827,7 @@ ${example}
         renderTagChips();
         renderIconGrid();
         window.LFWorldInfo.refreshLanguage();
+        if (window.LFGrowth) window.LFGrowth.refreshLanguage();
         renderDraftPicker();
         updateTokenCount();
     }
@@ -2702,6 +2938,12 @@ ${example}
             triggerAutoSave();
             updateTokenCount();
         });
+        if (window.LFGrowth) {
+            window.LFGrowth.init(() => {
+                triggerAutoSave();
+                updatePreview();
+            });
+        }
 
         document.querySelectorAll('.tab-button').forEach((button) => {
             button.addEventListener('click', () => switchTab(button.dataset.tab));

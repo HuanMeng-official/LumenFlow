@@ -1,9 +1,12 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 
 import '../l10n/app_localizations.dart';
+import '../models/character_growth.dart';
 import '../models/world_info.dart';
 import '../services/world_info_service.dart';
 import '../utils/app_theme.dart';
+import '../utils/platform_utils.dart';
+import 'desktop/desktop_popover.dart';
 import 'read_only_markdown.dart';
 
 String worldInfoCategoryLabel(
@@ -51,6 +54,8 @@ String worldInfoSkipReasonLabel(
     WorldInfoSkipReason.probability => l10n.worldInfoSkipProbability,
     WorldInfoSkipReason.group => l10n.worldInfoSkipGroup,
     WorldInfoSkipReason.budget => l10n.worldInfoSkipBudget,
+    WorldInfoSkipReason.stageLocked => l10n.worldInfoSkipStageLocked,
+    WorldInfoSkipReason.metricLocked => l10n.worldInfoSkipMetricLocked,
   };
 }
 
@@ -217,15 +222,17 @@ class ActivatedWorldInfoEntryCard extends StatelessWidget {
   }
 }
 
-/// 嵌入式世界书触发测试面板。
+/// 嵌入式世界书触发测试面板（成长型角色卡自动附加阶段与数值模拟器）。
 class WorldInfoTriggerTester extends StatefulWidget {
   const WorldInfoTriggerTester({
     super.key,
     required this.info,
+    this.growthConfig,
     this.compact = false,
   });
 
   final WorldInfo info;
+  final CharacterGrowthConfig? growthConfig;
   final bool compact;
 
   @override
@@ -235,19 +242,39 @@ class WorldInfoTriggerTester extends StatefulWidget {
 class _WorldInfoTriggerTesterState extends State<WorldInfoTriggerTester> {
   final TextEditingController _controller = TextEditingController();
   late WorldInfoActivation _activation;
+  String? _simStageId;
+  int _simIntimacy = 20;
+  Map<String, int> _simCustomMetrics = const {};
 
   @override
   void initState() {
     super.initState();
+    _initGrowthSimulator();
     _runActivation();
   }
 
   @override
   void didUpdateWidget(covariant WorldInfoTriggerTester oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.info != widget.info) {
+    if (oldWidget.growthConfig != widget.growthConfig) {
+      _initGrowthSimulator();
+      _runActivation();
+    } else if (oldWidget.info != widget.info) {
       _runActivation();
     }
+  }
+
+  void _initGrowthSimulator() {
+    final growth = widget.growthConfig;
+    if (growth == null) {
+      _simStageId = null;
+      _simIntimacy = 20;
+      _simCustomMetrics = const {};
+      return;
+    }
+    _simStageId = growth.initialStage.id;
+    _simIntimacy = growth.initialIntimacy.clamp(0, 100);
+    _simCustomMetrics = Map<String, int>.from(growth.initialCustomMetrics());
   }
 
   @override
@@ -257,7 +284,242 @@ class _WorldInfoTriggerTesterState extends State<WorldInfoTriggerTester> {
   }
 
   void _runActivation() {
-    _activation = WorldInfoService.activate(widget.info, _controller.text);
+    final growth = widget.growthConfig;
+    final context = growth == null
+        ? null
+        : WorldInfoGrowthContext(
+            currentStageId: _simStageId ?? growth.initialStage.id,
+            intimacy: _simIntimacy,
+            customMetrics: _simCustomMetrics,
+          );
+    _activation = WorldInfoService.activate(
+      widget.info,
+      _controller.text,
+      growthContext: context,
+    );
+  }
+
+  Future<void> _pickSimulatedStage(
+    BuildContext context,
+    AppLocalizations l10n,
+    CharacterGrowthConfig growth, {
+    BuildContext? anchorContext,
+  }) async {
+    void selectStage(GrowthStage stage) {
+      setState(() {
+        _simStageId = stage.id;
+        _runActivation();
+      });
+    }
+
+    if (anchorContext != null &&
+        anchorContext.mounted &&
+        useWideLayout(MediaQuery.sizeOf(context))) {
+      await showDesktopPopoverMenu(
+        anchorContext: anchorContext,
+        alignRight: true,
+        width: 240,
+        items: [
+          for (final stage in growth.stages)
+            DesktopPopoverItem(
+              label: stage.isEnding
+                  ? '${stage.name} · ${l10n.growthEndingBadge}'
+                  : stage.name,
+              selected: stage.id == _simStageId,
+              onTap: () => selectStage(stage),
+            ),
+        ],
+      );
+      return;
+    }
+
+    await showCupertinoModalPopup<void>(
+      context: context,
+      builder: (sheetContext) => CupertinoActionSheet(
+        title: Text(l10n.growthSimulatorStage),
+        actions: [
+          for (final stage in growth.stages)
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(sheetContext);
+                selectStage(stage);
+              },
+              child: Text(
+                '${stage.name}'
+                '${stage.isEnding ? ' · ${l10n.growthEndingBadge}' : ''}'
+                '${stage.id == _simStageId ? ' ✓' : ''}',
+              ),
+            ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(sheetContext),
+          child: Text(l10n.cancel),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGrowthSimulator(
+    BuildContext context,
+    AppLocalizations l10n,
+    CharacterGrowthConfig growth,
+    List<String> fontFallback,
+  ) {
+    final currentStage =
+        growth.stageById(_simStageId) ?? growth.initialStage;
+    final intimacyTitle = growth.intimacyLabel.trim().isNotEmpty
+        ? growth.intimacyLabel.trim()
+        : l10n.memoryViewerRoleplayIntimacy;
+    final secondary = AppTokens.labelSecondary(context);
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTokens.elevatedSurface(context),
+        borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+        border: Border.all(
+          color: AppTokens.separator(context),
+          width: 0.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Builder(
+            builder: (anchorContext) => GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _pickSimulatedStage(
+                context,
+                l10n,
+                growth,
+                anchorContext: anchorContext,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      l10n.growthSimulatorStage,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: AppTokens.label(context),
+                        fontFamilyFallback: fontFallback,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    currentStage.name,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppTokens.accent(context),
+                      fontWeight: FontWeight.w600,
+                      fontFamilyFallback: fontFallback,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    CupertinoIcons.chevron_up_chevron_down,
+                    size: 13,
+                    color: AppTokens.accent(context),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          _simulatorSliderRow(
+            context,
+            label: intimacyTitle,
+            value: _simIntimacy,
+            min: 0,
+            max: 100,
+            secondary: secondary,
+            fontFallback: fontFallback,
+            onChanged: (next) {
+              setState(() {
+                _simIntimacy = next;
+                _runActivation();
+              });
+            },
+          ),
+          for (final metric in growth.metrics) ...[
+            const SizedBox(height: 6),
+            _simulatorSliderRow(
+              context,
+              label: metric.name,
+              value: (_simCustomMetrics[metric.id] ?? metric.initial).clamp(
+                metric.min,
+                metric.max,
+              ),
+              min: metric.min,
+              max: metric.max,
+              secondary: secondary,
+              fontFallback: fontFallback,
+              onChanged: (next) {
+                setState(() {
+                  _simCustomMetrics = {
+                    ..._simCustomMetrics,
+                    metric.id: next,
+                  };
+                  _runActivation();
+                });
+              },
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _simulatorSliderRow(
+    BuildContext context, {
+    required String label,
+    required int value,
+    required int min,
+    required int max,
+    required Color secondary,
+    required List<String> fontFallback,
+    required ValueChanged<int> onChanged,
+  }) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 72,
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 12.5,
+              color: secondary,
+              fontFamilyFallback: fontFallback,
+            ),
+          ),
+        ),
+        Expanded(
+          child: CupertinoSlider(
+            value: value.toDouble().clamp(min.toDouble(), max.toDouble()),
+            min: min.toDouble(),
+            max: max.toDouble(),
+            onChanged: (v) => onChanged(v.round()),
+          ),
+        ),
+        SizedBox(
+          width: 34,
+          child: Text(
+            '$value',
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: AppTokens.label(context),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -270,6 +532,13 @@ class _WorldInfoTriggerTesterState extends State<WorldInfoTriggerTester> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (widget.growthConfig != null)
+          _buildGrowthSimulator(
+            context,
+            l10n,
+            widget.growthConfig!,
+            fontFallback,
+          ),
         CupertinoTextField(
           controller: _controller,
           placeholder: l10n.worldInfoTestText,

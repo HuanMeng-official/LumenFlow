@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart' as path;
 import 'package:xml/xml.dart';
 
+import '../models/character_growth.dart';
 import '../models/preset_import_result.dart';
 import '../models/preset_load_result.dart';
 import '../models/prompt_preset.dart';
@@ -32,11 +33,14 @@ class CharacterCardArchivePreview {
     required this.language,
     required this.tags,
     required this.hasWorldInfo,
+    this.hasGrowth = false,
     required this.hasAvatar,
     this.hasIllustration = false,
     this.worldInfoInvalid = false,
+    this.growthInvalid = false,
     this.avatarInvalid = false,
     this.illustrationInvalid = false,
+    this.stageImagesInvalid = false,
   });
 
   final PresetValidationResult validation;
@@ -48,17 +52,24 @@ class CharacterCardArchivePreview {
   final String? language;
   final List<String> tags;
   final bool hasWorldInfo;
+  final bool hasGrowth;
   final bool hasAvatar;
   final bool hasIllustration;
 
   /// 归档里有世界书，但无法解析；导入时会被跳过。
   final bool worldInfoInvalid;
 
+  /// 归档里有成长配置，但无法解析；导入时会被跳过。
+  final bool growthInvalid;
+
   /// 归档里有头像，但无法解码或归一化；导入时会被跳过。
   final bool avatarInvalid;
 
   /// 归档里有立绘，但无法解码或归一化；导入时会被跳过。
   final bool illustrationInvalid;
+
+  /// 归档里有阶段差分图无法解码或归一化；损坏的图片会被跳过。
+  final bool stageImagesInvalid;
 }
 
 /// 预设提示词服务，负责加载和管理预设提示词
@@ -133,6 +144,91 @@ class PromptService {
       return segments.join('/');
     }
     return normalized;
+  }
+
+  /// 加载预置角色卡关联的成长配置；缺失或损坏时返回 null。
+  Future<CharacterGrowthConfig?> loadGrowthConfigForPreset(
+    PromptPreset preset,
+  ) async {
+    return (await _loadGrowthConfig(preset)).config;
+  }
+
+  Future<_GrowthLoadResult> _loadGrowthConfig(
+    PromptPreset preset, {
+    String? locale,
+  }) async {
+    final rawPath = preset.growthFile?.trim();
+    if (rawPath == null || rawPath.isEmpty) {
+      return const _GrowthLoadResult(config: null, error: null);
+    }
+
+    final String? content;
+    if (preset.isUserPreset) {
+      content = await _loadUserWorldInfoText(rawPath);
+    } else {
+      final effectiveLocale = locale ?? await _settingsService.getLocale();
+      content = await _loadBuiltInWorldInfoText(rawPath, effectiveLocale);
+    }
+
+    if (content == null || content.trim().isEmpty) {
+      return _GrowthLoadResult(config: null, error: rawPath);
+    }
+
+    try {
+      final decoded = jsonDecode(content);
+      if (decoded is! Map) {
+        throw const FormatException('Growth config must be a JSON object');
+      }
+      return _GrowthLoadResult(
+        config: CharacterGrowthConfig.fromJson(decoded.cast<String, dynamic>()),
+        error: null,
+      );
+    } catch (error) {
+      return _GrowthLoadResult(config: null, error: '$rawPath: $error');
+    }
+  }
+
+  Future<({Map<String, String> avatars, Map<String, String> illustrations})>
+  _resolveUserStageImages(
+    PromptPreset preset,
+    CharacterGrowthConfig? growthConfig,
+  ) async {
+    if (!preset.isUserPreset || growthConfig == null) {
+      return (avatars: const <String, String>{}, illustrations: const <String, String>{});
+    }
+    final avatars = <String, String>{};
+    final illustrations = <String, String>{};
+
+    Future<String?> resolveRelative(String? raw, String fallbackRel) async {
+      final candidates = <String>[
+        if (raw != null && raw.trim().isNotEmpty) ...[
+          raw.trim(),
+          '${preset.id}/${raw.trim()}',
+        ],
+        '${preset.id}/$fallbackRel',
+      ];
+      for (final candidate in candidates) {
+        final resolved = await _resolveUserImagePath(candidate);
+        if (resolved != null) return resolved;
+      }
+      return null;
+    }
+
+    for (final stage in growthConfig.stages) {
+      final avatarPath = await resolveRelative(
+        stage.avatarFile,
+        'stages/${stage.id}/avatar.png',
+      );
+      if (avatarPath != null) avatars[stage.id] = avatarPath;
+
+      final illustrationPath = await resolveRelative(
+        stage.illustrationFile,
+        'stages/${stage.id}/illustration.png',
+      );
+      if (illustrationPath != null) illustrations[stage.id] = illustrationPath;
+    }
+
+    return (avatars: avatars, illustrations: illustrations);
   }
 
   /// 加载预置角色卡关联的世界书；缺失或损坏时返回 null。
@@ -367,7 +463,30 @@ class PromptService {
       worldInfoInvalid = false;
     }
 
-    final combinedHash = _combinedContentHash(validation.content, worldInfo);
+    CharacterGrowthConfig? growthConfig;
+    var growthInvalid = false;
+    final growthBytes = archive.files['character/growth.json'];
+    if (growthBytes != null) {
+      try {
+        final decoded = jsonDecode(utf8.decode(growthBytes));
+        if (decoded is! Map) {
+          throw const FormatException('Invalid character growth config');
+        }
+        growthConfig = CharacterGrowthConfig.fromJson(
+          decoded.cast<String, dynamic>(),
+        );
+      } catch (error) {
+        debugPrint('Ignoring invalid character growth config: $error');
+        growthInvalid = true;
+        growthConfig = null;
+      }
+    }
+
+    final combinedHash = _combinedContentHash(
+      validation.content,
+      worldInfo,
+      growthConfig,
+    );
     validation = PresetValidationResult(
       errors: validation.errors,
       warnings: validation.warnings,
@@ -404,16 +523,83 @@ class PromptService {
       }
     }
 
+    final stageAvatarBytes = <String, Uint8List>{};
+    final stageIllustrationBytes = <String, Uint8List>{};
+    var stageImagesInvalid = false;
+    if (growthConfig != null) {
+      final updatedStages = <GrowthStage>[];
+      for (final stage in growthConfig.stages) {
+        String? normalizedAvatarFile;
+        String? normalizedIllustrationFile;
+
+        final avatarCandidates = <String>[
+          if (stage.hasAvatarFile) 'character/${stage.avatarFile!}',
+          'character/stages/${stage.id}/avatar.png',
+        ];
+        for (final key in avatarCandidates) {
+          final raw = archive.files[key];
+          if (raw == null) continue;
+          try {
+            stageAvatarBytes[stage.id] = await AvatarService.normalizePng(
+              Uint8List.fromList(raw),
+            );
+            normalizedAvatarFile = 'stages/${stage.id}/avatar.png';
+          } catch (error) {
+            debugPrint('Ignoring invalid stage avatar ($key): $error');
+            stageImagesInvalid = true;
+          }
+          break;
+        }
+
+        final illustrationCandidates = <String>[
+          if (stage.hasIllustrationFile) 'character/${stage.illustrationFile!}',
+          'character/stages/${stage.id}/illustration.png',
+        ];
+        for (final key in illustrationCandidates) {
+          final raw = archive.files[key];
+          if (raw == null) continue;
+          try {
+            stageIllustrationBytes[stage.id] =
+                await AvatarService.normalizeIllustration(
+                  Uint8List.fromList(raw),
+                );
+            normalizedIllustrationFile = 'stages/${stage.id}/illustration.png';
+          } catch (error) {
+            debugPrint('Ignoring invalid stage illustration ($key): $error');
+            stageImagesInvalid = true;
+          }
+          break;
+        }
+
+        updatedStages.add(
+          stage.copyWith(
+            avatarFile: normalizedAvatarFile,
+            clearAvatarFile: normalizedAvatarFile == null,
+            illustrationFile: normalizedIllustrationFile,
+            clearIllustrationFile: normalizedIllustrationFile == null,
+          ),
+        );
+      }
+      growthConfig = growthConfig.copyWith(stages: updatedStages);
+    }
+
     return _ParsedCharacterArchive(
       validation: validation,
       meta: meta,
       worldInfo: worldInfo,
       worldInfoJson: worldInfo == null ? null : jsonEncode(worldInfo.toJson()),
+      growthConfig: growthConfig,
+      growthJson:
+          growthConfig == null ? null : jsonEncode(growthConfig.toJson()),
       avatarBytes: avatarBytes,
       illustrationBytes: illustrationBytes,
+      stageAvatarBytes: stageAvatarBytes,
+      stageIllustrationBytes: stageIllustrationBytes,
       worldInfoInvalid: worldInfoInvalid,
+      growthInvalid: growthInvalid,
       avatarInvalid: avatarInvalid,
       illustrationInvalid: illustrationInvalid,
+      stageImagesInvalid: stageImagesInvalid,
     );
   }
 
@@ -492,13 +678,26 @@ class PromptService {
     return dedented.join('\n').trim();
   }
 
-  String _combinedContentHash(String xml, WorldInfo? worldInfo) {
-    if (worldInfo == null) {
+  String _combinedContentHash(
+    String xml,
+    WorldInfo? worldInfo, [
+    CharacterGrowthConfig? growthConfig,
+  ]) {
+    if (worldInfo == null && growthConfig == null) {
       return sha256.convert(utf8.encode(xml)).toString();
     }
-    return sha256
-        .convert(utf8.encode('$xml\n${jsonEncode(worldInfo.toJson())}'))
-        .toString();
+    final buffer = StringBuffer(xml);
+    if (worldInfo != null) {
+      buffer
+        ..write('\n')
+        ..write(jsonEncode(worldInfo.toJson()));
+    }
+    if (growthConfig != null) {
+      buffer
+        ..write('\n')
+        ..write(jsonEncode(growthConfig.toJson()));
+    }
+    return sha256.convert(utf8.encode(buffer.toString())).toString();
   }
 
   String? _firstNonEmpty(List<String?> values) {
@@ -592,9 +791,14 @@ class PromptService {
       final List<PromptPreset> processedPresets = [];
       for (final preset in presets) {
         final worldInfoResult = await _loadWorldInfo(preset);
+        final growthResult = await _loadGrowthConfig(preset);
         final avatarPath = await _resolveUserImagePath(preset.avatarFile);
         final illustrationPath = await _resolveUserImagePath(
           preset.illustrationFile,
+        );
+        final stageImages = await _resolveUserStageImages(
+          preset,
+          growthResult.config,
         );
         if (preset.hasWorldInfoFile && worldInfoResult.info == null) {
           issues.add(
@@ -605,14 +809,26 @@ class PromptService {
             ),
           );
         }
+        if (preset.hasGrowthFile && growthResult.config == null) {
+          issues.add(
+            PresetLoadIssue(
+              type: PresetIssueType.growthInvalid,
+              presetId: preset.id,
+              message: growthResult.error ?? preset.growthFile!,
+            ),
+          );
+        }
 
         if (!preset.hasPromptFile) {
           // 内联正文：绝不把 systemPrompt 当路径解析。
           processedPresets.add(
             preset.copyWith(
               worldInfo: worldInfoResult.info,
+              growthConfig: growthResult.config,
               avatarPath: avatarPath,
               illustrationPath: illustrationPath,
+              stageAvatarPaths: stageImages.avatars,
+              stageIllustrationPaths: stageImages.illustrations,
             ),
           );
           continue;
@@ -645,8 +861,11 @@ class PromptService {
             isBroken: !loaded,
             brokenReason: loaded ? null : rawPromptFile,
             worldInfo: worldInfoResult.info,
+            growthConfig: growthResult.config,
             avatarPath: avatarPath,
             illustrationPath: illustrationPath,
+            stageAvatarPaths: stageImages.avatars,
+            stageIllustrationPaths: stageImages.illustrations,
           ),
         );
       }
@@ -1024,11 +1243,14 @@ class PromptService {
       language: meta.language,
       tags: meta.tags,
       hasWorldInfo: parsed.worldInfo != null,
+      hasGrowth: parsed.growthConfig != null,
       hasAvatar: parsed.avatarBytes != null,
       hasIllustration: parsed.illustrationBytes != null,
       worldInfoInvalid: parsed.worldInfoInvalid,
+      growthInvalid: parsed.growthInvalid,
       avatarInvalid: parsed.avatarInvalid,
       illustrationInvalid: parsed.illustrationInvalid,
+      stageImagesInvalid: parsed.stageImagesInvalid,
     );
   }
 
@@ -1066,9 +1288,13 @@ class PromptService {
       allowDuplicate: allowDuplicate,
       avatarBytes: parsed.avatarBytes,
       illustrationBytes: parsed.illustrationBytes,
+      stageAvatarBytes: parsed.stageAvatarBytes,
+      stageIllustrationBytes: parsed.stageIllustrationBytes,
       useCharacterDirectory: true,
       worldInfo: parsed.worldInfo,
       worldInfoJson: parsed.worldInfoJson,
+      growthConfig: parsed.growthConfig,
+      growthJson: parsed.growthJson,
     );
   }
 
@@ -1095,6 +1321,129 @@ class PromptService {
     WorldInfo? worldInfo = preset.worldInfo;
     if (worldInfo == null && preset.hasWorldInfoFile) {
       worldInfo = await loadWorldInfoForPreset(preset);
+    }
+
+    CharacterGrowthConfig? growthConfig = preset.growthConfig;
+    if (growthConfig == null && preset.hasGrowthFile) {
+      growthConfig = await loadGrowthConfigForPreset(preset);
+    }
+
+    final stageAvatarFiles = <LumenflowArchiveFile>[];
+    final stageIllustrationFiles = <LumenflowArchiveFile>[];
+    if (growthConfig != null) {
+      final normalizedStages = <GrowthStage>[];
+      for (final stage in growthConfig.stages) {
+        Uint8List? stageAvatarBytes;
+        final knownAvatarPath = preset.stageAvatarPaths[stage.id];
+        if (knownAvatarPath != null && knownAvatarPath.isNotEmpty) {
+          final file = File(knownAvatarPath);
+          if (await file.exists()) {
+            stageAvatarBytes = await file.readAsBytes();
+          }
+        }
+        if (stageAvatarBytes == null && preset.isUserPreset) {
+          final candidates = <String>[
+            if (stage.hasAvatarFile) ...[
+              stage.avatarFile!,
+              '${preset.id}/${stage.avatarFile!}',
+            ],
+            '${preset.id}/stages/${stage.id}/avatar.png',
+          ];
+          for (final candidate in candidates) {
+            final resolved = await _resolveUserImagePath(candidate);
+            if (resolved != null) {
+              stageAvatarBytes = await File(resolved).readAsBytes();
+              break;
+            }
+          }
+        } else if (stageAvatarBytes == null &&
+            !preset.isUserPreset &&
+            stage.hasAvatarFile) {
+          try {
+            final data = await _assetBundle.load(
+              'assets/prompt/${stage.avatarFile}',
+            );
+            stageAvatarBytes = data.buffer.asUint8List(
+              data.offsetInBytes,
+              data.lengthInBytes,
+            );
+          } catch (_) {
+            // Optional built-in stage avatar missing.
+          }
+        }
+
+        Uint8List? stageIllustrationBytes;
+        final knownIllustrationPath = preset.stageIllustrationPaths[stage.id];
+        if (knownIllustrationPath != null && knownIllustrationPath.isNotEmpty) {
+          final file = File(knownIllustrationPath);
+          if (await file.exists()) {
+            stageIllustrationBytes = await file.readAsBytes();
+          }
+        }
+        if (stageIllustrationBytes == null && preset.isUserPreset) {
+          final candidates = <String>[
+            if (stage.hasIllustrationFile) ...[
+              stage.illustrationFile!,
+              '${preset.id}/${stage.illustrationFile!}',
+            ],
+            '${preset.id}/stages/${stage.id}/illustration.png',
+          ];
+          for (final candidate in candidates) {
+            final resolved = await _resolveUserImagePath(candidate);
+            if (resolved != null) {
+              stageIllustrationBytes = await File(resolved).readAsBytes();
+              break;
+            }
+          }
+        } else if (stageIllustrationBytes == null &&
+            !preset.isUserPreset &&
+            stage.hasIllustrationFile) {
+          try {
+            final data = await _assetBundle.load(
+              'assets/prompt/${stage.illustrationFile}',
+            );
+            stageIllustrationBytes = data.buffer.asUint8List(
+              data.offsetInBytes,
+              data.lengthInBytes,
+            );
+          } catch (_) {
+            // Optional built-in stage illustration missing.
+          }
+        }
+
+        if (stageAvatarBytes != null) {
+          stageAvatarFiles.add(
+            LumenflowArchiveFile(
+              path: 'character/stages/${stage.id}/avatar.png',
+              role: 'stage_avatar',
+              bytes: stageAvatarBytes,
+            ),
+          );
+        }
+        if (stageIllustrationBytes != null) {
+          stageIllustrationFiles.add(
+            LumenflowArchiveFile(
+              path: 'character/stages/${stage.id}/illustration.png',
+              role: 'stage_illustration',
+              bytes: stageIllustrationBytes,
+            ),
+          );
+        }
+
+        normalizedStages.add(
+          stage.copyWith(
+            avatarFile: stageAvatarBytes != null
+                ? 'stages/${stage.id}/avatar.png'
+                : null,
+            clearAvatarFile: stageAvatarBytes == null,
+            illustrationFile: stageIllustrationBytes != null
+                ? 'stages/${stage.id}/illustration.png'
+                : null,
+            clearIllustrationFile: stageIllustrationBytes == null,
+          ),
+        );
+      }
+      growthConfig = growthConfig.copyWith(stages: normalizedStages);
     }
 
     Uint8List? avatarBytes;
@@ -1196,6 +1545,12 @@ class PromptService {
           role: 'world_info',
           bytes: utf8.encode(jsonEncode(worldInfo.toJson())),
         ),
+      if (growthConfig != null)
+        LumenflowArchiveFile(
+          path: 'character/growth.json',
+          role: 'growth',
+          bytes: utf8.encode(jsonEncode(growthConfig.toJson())),
+        ),
       if (avatarBytes != null)
         LumenflowArchiveFile(
           path: 'character/avatar.png',
@@ -1208,6 +1563,8 @@ class PromptService {
           role: 'illustration',
           bytes: illustrationBytes,
         ),
+      ...stageAvatarFiles,
+      ...stageIllustrationFiles,
     ]);
   }
 
@@ -1254,9 +1611,13 @@ class PromptService {
     bool allowDuplicate = false,
     Uint8List? avatarBytes,
     Uint8List? illustrationBytes,
+    Map<String, Uint8List> stageAvatarBytes = const {},
+    Map<String, Uint8List> stageIllustrationBytes = const {},
     bool useCharacterDirectory = false,
     WorldInfo? worldInfo,
     String? worldInfoJson,
+    CharacterGrowthConfig? growthConfig,
+    String? growthJson,
   }) async {
     if (!validation.isValid) {
       throw PresetValidationException(validation);
@@ -1306,6 +1667,34 @@ class PromptService {
       await worldInfoFile.writeAsString(worldInfoJson);
     }
 
+    String? growthFileName;
+    if (growthJson != null) {
+      growthFileName = useCharacterDirectory
+          ? '$id/growth.json'
+          : '$id.growth.json';
+      final growthFile = File(path.join(userPresetsDir.path, growthFileName));
+      await growthFile.parent.create(recursive: true);
+      await growthFile.writeAsString(growthJson);
+    }
+
+    final stageAvatarPaths = <String, String>{};
+    for (final entry in stageAvatarBytes.entries) {
+      final relPath = '$id/stages/${entry.key}/avatar.png';
+      final dest = File(path.join(userPresetsDir.path, relPath));
+      await dest.parent.create(recursive: true);
+      await dest.writeAsBytes(entry.value, flush: true);
+      stageAvatarPaths[entry.key] = dest.path;
+    }
+
+    final stageIllustrationPaths = <String, String>{};
+    for (final entry in stageIllustrationBytes.entries) {
+      final relPath = '$id/stages/${entry.key}/illustration.png';
+      final dest = File(path.join(userPresetsDir.path, relPath));
+      await dest.parent.create(recursive: true);
+      await dest.writeAsBytes(entry.value, flush: true);
+      stageIllustrationPaths[entry.key] = dest.path;
+    }
+
     final avatarFileName = avatarBytes == null
         ? null
         : await _storePresetAvatar(
@@ -1334,6 +1723,8 @@ class PromptService {
       icon: icon ?? 'person.fill',
       worldInfoFile: worldInfoFileName,
       worldInfo: worldInfo,
+      growthFile: growthFileName,
+      growthConfig: growthConfig,
       avatarFile: avatarFileName,
       avatarPath: avatarFileName == null
           ? null
@@ -1342,6 +1733,8 @@ class PromptService {
       illustrationPath: illustrationFileName == null
           ? null
           : path.join(userPresetsDir.path, illustrationFileName),
+      stageAvatarPaths: stageAvatarPaths,
+      stageIllustrationPaths: stageIllustrationPaths,
       isUserPreset: true,
       contentHash: validation.contentHash,
       language: language,
@@ -1520,6 +1913,95 @@ class PromptService {
           .writeAsString(jsonEncode(worldInfo.toJson()));
     }
 
+    var growthConfig = source.growthConfig;
+    if (growthConfig == null && source.hasGrowthFile) {
+      growthConfig = await loadGrowthConfigForPreset(source);
+    }
+    String? growthFileName;
+    final stageAvatarPaths = <String, String>{};
+    final stageIllustrationPaths = <String, String>{};
+    if (growthConfig != null) {
+      final copiedStages = <GrowthStage>[];
+      for (final stage in growthConfig.stages) {
+        String? copiedAvatarFile;
+        final knownAvatarPath = source.stageAvatarPaths[stage.id];
+        if (knownAvatarPath != null &&
+            knownAvatarPath.isNotEmpty &&
+            await File(knownAvatarPath).exists()) {
+          final relPath = '$id/stages/${stage.id}/avatar.png';
+          final dest = File(path.join(userPresetsDir.path, relPath));
+          await dest.parent.create(recursive: true);
+          await File(knownAvatarPath).copy(dest.path);
+          copiedAvatarFile = 'stages/${stage.id}/avatar.png';
+          stageAvatarPaths[stage.id] = dest.path;
+        } else if (!source.isUserPreset && stage.hasAvatarFile) {
+          try {
+            final data = await _assetBundle.load(
+              'assets/prompt/${stage.avatarFile}',
+            );
+            final bytes = data.buffer.asUint8List(
+              data.offsetInBytes,
+              data.lengthInBytes,
+            );
+            final normalized = await AvatarService.normalizePng(bytes);
+            final relPath = '$id/stages/${stage.id}/avatar.png';
+            final dest = File(path.join(userPresetsDir.path, relPath));
+            await dest.parent.create(recursive: true);
+            await dest.writeAsBytes(normalized, flush: true);
+            copiedAvatarFile = 'stages/${stage.id}/avatar.png';
+            stageAvatarPaths[stage.id] = dest.path;
+          } catch (_) {
+            // Optional built-in stage avatar missing.
+          }
+        }
+
+        String? copiedIllustrationFile;
+        final knownIllustrationPath = source.stageIllustrationPaths[stage.id];
+        if (knownIllustrationPath != null &&
+            knownIllustrationPath.isNotEmpty &&
+            await File(knownIllustrationPath).exists()) {
+          final relPath = '$id/stages/${stage.id}/illustration.png';
+          final dest = File(path.join(userPresetsDir.path, relPath));
+          await dest.parent.create(recursive: true);
+          await File(knownIllustrationPath).copy(dest.path);
+          copiedIllustrationFile = 'stages/${stage.id}/illustration.png';
+          stageIllustrationPaths[stage.id] = dest.path;
+        } else if (!source.isUserPreset && stage.hasIllustrationFile) {
+          try {
+            final data = await _assetBundle.load(
+              'assets/prompt/${stage.illustrationFile}',
+            );
+            final bytes = data.buffer.asUint8List(
+              data.offsetInBytes,
+              data.lengthInBytes,
+            );
+            final normalized = await AvatarService.normalizeIllustration(bytes);
+            final relPath = '$id/stages/${stage.id}/illustration.png';
+            final dest = File(path.join(userPresetsDir.path, relPath));
+            await dest.parent.create(recursive: true);
+            await dest.writeAsBytes(normalized, flush: true);
+            copiedIllustrationFile = 'stages/${stage.id}/illustration.png';
+            stageIllustrationPaths[stage.id] = dest.path;
+          } catch (_) {
+            // Optional built-in stage illustration missing.
+          }
+        }
+
+        copiedStages.add(
+          stage.copyWith(
+            avatarFile: copiedAvatarFile,
+            clearAvatarFile: copiedAvatarFile == null,
+            illustrationFile: copiedIllustrationFile,
+            clearIllustrationFile: copiedIllustrationFile == null,
+          ),
+        );
+      }
+      growthConfig = growthConfig.copyWith(stages: copiedStages);
+      growthFileName = '$id.growth.json';
+      await File(path.join(userPresetsDir.path, growthFileName))
+          .writeAsString(jsonEncode(growthConfig.toJson()));
+    }
+
     final now = DateTime.now();
     final preset = PromptPreset(
       id: id,
@@ -1531,6 +2013,8 @@ class PromptService {
       icon: source.icon,
       worldInfoFile: worldInfoFileName,
       worldInfo: worldInfo,
+      growthFile: growthFileName,
+      growthConfig: growthConfig,
       avatarFile: avatarFileName,
       avatarPath: avatarFileName == null
           ? null
@@ -1539,12 +2023,16 @@ class PromptService {
       illustrationPath: illustrationFileName == null
           ? null
           : path.join(userPresetsDir.path, illustrationFileName),
+      stageAvatarPaths: stageAvatarPaths,
+      stageIllustrationPaths: stageIllustrationPaths,
       isUserPreset: true,
       contentHash:
           source.contentHash ??
-          sha256
-              .convert(utf8.encode(normalizePresetContent(content)))
-              .toString(),
+          _combinedContentHash(
+            normalizePresetContent(content),
+            worldInfo,
+            growthConfig,
+          ),
       language: source.language,
       tags: source.tags,
       createdAt: now,
@@ -1633,6 +2121,22 @@ class PromptService {
         }
       }
 
+      // 删除扁平布局的成长配置文件。
+      final growthFileName = presetToDelete.growthFile;
+      if (growthFileName != null && growthFileName.isNotEmpty) {
+        final safePath = _sanitizePromptFile(growthFileName);
+        if (safePath != null) {
+          final userPresetsDir = await _getUserPresetsDirectory();
+          final fullPath = path.join(userPresetsDir.path, safePath);
+          if (path.isWithin(userPresetsDir.path, fullPath)) {
+            final growthFile = File(fullPath);
+            if (await growthFile.exists()) {
+              await growthFile.delete();
+            }
+          }
+        }
+      }
+
       // 删除角色卡归档使用的子目录（XML、世界书、头像等）。
       try {
         final safeId = path.basename(id);
@@ -1695,10 +2199,27 @@ class PromptService {
             );
           }
 
+          final growthResult = await _loadGrowthConfig(
+            preset,
+            locale: metadataLocale,
+          );
+          if (preset.hasGrowthFile && growthResult.config == null) {
+            issues.add(
+              PresetLoadIssue(
+                type: PresetIssueType.growthInvalid,
+                presetId: preset.id,
+                message: growthResult.error ?? preset.growthFile!,
+              ),
+            );
+          }
+
           if (!preset.hasPromptFile) {
             // 内联正文：直接使用，不再尝试按路径加载。
             processedPresets.add(
-              preset.copyWith(worldInfo: worldInfoResult.info),
+              preset.copyWith(
+                worldInfo: worldInfoResult.info,
+                growthConfig: growthResult.config,
+              ),
             );
             continue;
           }
@@ -1728,6 +2249,7 @@ class PromptService {
               isBroken: cardContent.isEmpty,
               brokenReason: cardContent.isEmpty ? rawPromptFile : null,
               worldInfo: worldInfoResult.info,
+              growthConfig: growthResult.config,
             ),
           );
         }
@@ -1790,6 +2312,13 @@ class _WorldInfoLoadResult {
   final String? error;
 }
 
+class _GrowthLoadResult {
+  const _GrowthLoadResult({required this.config, required this.error});
+
+  final CharacterGrowthConfig? config;
+  final String? error;
+}
+
 class _CharacterMeta {
   const _CharacterMeta({
     this.name,
@@ -1823,22 +2352,34 @@ class _ParsedCharacterArchive {
     required this.meta,
     required this.worldInfo,
     required this.worldInfoJson,
+    required this.growthConfig,
+    required this.growthJson,
     required this.avatarBytes,
     required this.illustrationBytes,
+    required this.stageAvatarBytes,
+    required this.stageIllustrationBytes,
     required this.worldInfoInvalid,
+    required this.growthInvalid,
     required this.avatarInvalid,
     required this.illustrationInvalid,
+    required this.stageImagesInvalid,
   });
 
   final PresetValidationResult validation;
   final _CharacterMeta meta;
   final WorldInfo? worldInfo;
   final String? worldInfoJson;
+  final CharacterGrowthConfig? growthConfig;
+  final String? growthJson;
   final Uint8List? avatarBytes;
   final Uint8List? illustrationBytes;
+  final Map<String, Uint8List> stageAvatarBytes;
+  final Map<String, Uint8List> stageIllustrationBytes;
   final bool worldInfoInvalid;
+  final bool growthInvalid;
   final bool avatarInvalid;
   final bool illustrationInvalid;
+  final bool stageImagesInvalid;
 }
 
 String? _optionalTrimmed(Object? value) {

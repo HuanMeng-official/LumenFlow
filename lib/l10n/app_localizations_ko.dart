@@ -1991,4 +1991,120 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get presetOverview => '캐릭터 설정';
+
+  @override
+  String get worldInfoSkipStageLocked => '단계 잠김';
+
+  @override
+  String get worldInfoSkipMetricLocked => '수치 조건 미충족';
+
+  @override
+  String presetIssueGrowthInvalid(String name) {
+    return '\'$name\'의 성장 설정이 잘못되었거나 손상되어 일반 카드로 불러왔습니다';
+  }
+
+  @override
+  String get lumenflowGrowthInvalid => '성장 설정 파일이 잘못되었거나 손상되어 건너뜁니다';
+
+  @override
+  String get lumenflowStageImagesInvalid => '일부 단계별 이미지가 잘못되었거나 손상되어 건너뜁니다';
+
+  @override
+  String get growthBadgeLabel => '성장형';
+
+  @override
+  String growthStageSummary(int count) {
+    return '성장형 · $count단계';
+  }
+
+  @override
+  String growthStageSummaryBranching(int count) {
+    return '성장형 · $count단계 · 다중 분기';
+  }
+
+  @override
+  String get growthCurrentStage => '현재 단계';
+
+  @override
+  String get growthEndingBadge => '엔딩';
+
+  @override
+  String get growthCustomNickname => '특별 호칭';
+
+  @override
+  String get growthMetricsSection => '성장 지표';
+
+  @override
+  String get growthMilestonesSection => '성장 마일스톤';
+
+  @override
+  String get growthMilestonesEmpty => '아직 단계 전환이 일어나지 않았습니다. 대화를 이어가며 관계를 발전시켜 보세요.';
+
+  @override
+  String get growthControlsSection => '성장 제어';
+
+  @override
+  String get growthSwitchStage => '단계 전환';
+
+  @override
+  String get growthSwitchStageTitle => '단계 선택';
+
+  @override
+  String get growthLockAuto => '자동 성장 잠금';
+
+  @override
+  String get growthLockAutoDesc => '켜면 현재 단계를 유지하고 자동 전환을 일시 중지합니다';
+
+  @override
+  String get growthResetAction => '이 대화의 성장 초기화';
+
+  @override
+  String get growthResetTitle => '성장 진행도 초기화';
+
+  @override
+  String get growthResetConfirm => '이 대화의 단계, 성장 지표 및 마일스톤을 초기 상태로 되돌릴까요? 대화 내역은 삭제되지 않습니다.';
+
+  @override
+  String get growthMemoryCompressionOffHint => '자동 성장은 \'메모리 압축\'을 켜야 작동합니다. 현재도 수동으로 단계를 전환할 수 있습니다.';
+
+  @override
+  String growthStageChangedBanner(String stage) {
+    return '단계 전환 · \'$stage\' 진입';
+  }
+
+  @override
+  String growthStageChangedBannerWithTitle(String title, String stage) {
+    return '$title · \'$stage\' 진입';
+  }
+
+  @override
+  String get growthSpoilerToggle => '전체 성장 단계 및 숨겨진 설정 보기';
+
+  @override
+  String get growthStagesOverview => '성장 단계 개요';
+
+  @override
+  String growthHiddenLoreCount(int count) {
+    return '이 대화에서 해금 대기 중인 숨겨진 설정 $count개';
+  }
+
+  @override
+  String get growthLockedEntryTitle => '잠긴 설정';
+
+  @override
+  String growthUnlockedProgress(int unlocked, int total) {
+    return '해금됨 $unlocked / $total';
+  }
+
+  @override
+  String get growthSimulatorStage => '시뮬레이션 단계';
+
+  @override
+  String get growthPlaythroughNote => '성장 진행도는 이 대화에만 저장됩니다. 새 대화는 항상 초기 단계에서 시작합니다.';
+
+  @override
+  String get growthManualSwitchReason => '수동 단계 전환';
+
+  @override
+  String get growthLockedBadge => '잠금됨';
 }

@@ -1,5 +1,6 @@
 import '../models/conversation_memory.dart';
 import '../models/message.dart';
+import '../models/roleplay_memory.dart';
 import '../utils/memory_fingerprint.dart';
 
 /// 把导出的记忆接到导入后的新消息 ID 上。
@@ -41,11 +42,28 @@ ConversationMemory remapImportedMemory(
       ),
   ];
 
+  final roleplay = memory.roleplay?.copyWith(
+    milestones: [
+      for (final milestone in memory.roleplay!.milestones)
+        GrowthMilestone(
+          id: milestone.id,
+          fromStageId: milestone.fromStageId,
+          toStageId: milestone.toStageId,
+          title: milestone.title,
+          reason: milestone.reason,
+          storyTime: milestone.storyTime,
+          sourceMessageId: mapId(milestone.sourceMessageId),
+          createdAt: milestone.createdAt,
+        ),
+    ],
+  );
+
   final oldBoundary = memory.coveredUntilMessageId;
   if (oldBoundary == null) {
     return memory.copyWith(
       facts: facts,
       rejected: rejected,
+      roleplay: roleplay,
       clearCoverage: true,
     );
   }
@@ -74,6 +92,7 @@ ConversationMemory remapImportedMemory(
   return memory.copyWith(
     facts: facts,
     rejected: rejected,
+    roleplay: roleplay,
     coveredUntilMessageId: mappedBoundary,
     fingerprint: computeMemoryFingerprint(eligible.sublist(0, index + 1)),
   );

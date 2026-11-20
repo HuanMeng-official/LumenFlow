@@ -562,7 +562,15 @@
       "probability": 100,
       "recursive": false,
       "sticky": 0,
-      "cooldown": 0
+      "cooldown": 0,
+      "unlock": {
+        "stage_ids": [
+          "thunder_shelter",
+          "ending_eternal_now"
+        ],
+        "min_intimacy": 55,
+        "hidden_until_unlocked": true
+      }
     },
     {
       "id": "lantern-festival",
@@ -623,7 +631,16 @@
       "probability": 100,
       "recursive": false,
       "sticky": 0,
-      "cooldown": 0
+      "cooldown": 0,
+      "unlock": {
+        "stage_ids": [
+          "thunder_shelter",
+          "ending_eternal_now",
+          "ending_gilded_cage"
+        ],
+        "min_intimacy": 65,
+        "hidden_until_unlocked": true
+      }
     }
   ]
 }

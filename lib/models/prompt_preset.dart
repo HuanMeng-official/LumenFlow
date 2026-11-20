@@ -1,3 +1,4 @@
+import 'character_growth.dart';
 import 'world_info.dart';
 
 class PromptPreset {
@@ -19,6 +20,9 @@ class PromptPreset {
   /// 世界书文件的相对路径（相对 user_prompts/ 或 assets/prompt/）。
   final String? worldInfoFile;
 
+  /// 成长配置文件的相对路径（相对 user_prompts/ 或 assets/prompt/）。
+  final String? growthFile;
+
   /// 角色卡头像文件的相对路径（相对 user_prompts/ 或 assets/prompt/）。
   final String? avatarFile;
 
@@ -28,11 +32,20 @@ class PromptPreset {
   /// 运行期状态：已解析的世界书，不写入 JSON。
   final WorldInfo? worldInfo;
 
+  /// 运行期状态：已解析的成长配置，不写入 JSON。
+  final CharacterGrowthConfig? growthConfig;
+
   /// 运行期状态：头像缓存的绝对路径，不写入 JSON。
   final String? avatarPath;
 
   /// 运行期状态：立绘缓存的绝对路径，不写入 JSON。
   final String? illustrationPath;
+
+  /// 运行期状态：用户卡按阶段 ID 索引的差分头像绝对路径，不写入 JSON。
+  final Map<String, String> stageAvatarPaths;
+
+  /// 运行期状态：用户卡按阶段 ID 索引的差分立绘绝对路径，不写入 JSON。
+  final Map<String, String> stageIllustrationPaths;
 
   /// 运行期状态：是否来自 user_prompts/，不写入 JSON。
   final bool isUserPreset;
@@ -65,11 +78,15 @@ class PromptPreset {
     this.promptFile,
     this.icon = 'person.fill',
     this.worldInfoFile,
+    this.growthFile,
     this.avatarFile,
     this.illustrationFile,
     this.worldInfo,
+    this.growthConfig,
     this.avatarPath,
     this.illustrationPath,
+    this.stageAvatarPaths = const {},
+    this.stageIllustrationPaths = const {},
     this.isUserPreset = false,
     this.contentHash,
     this.language,
@@ -84,6 +101,10 @@ class PromptPreset {
 
   bool get hasWorldInfoFile =>
       worldInfoFile != null && worldInfoFile!.isNotEmpty;
+
+  bool get hasGrowthFile => growthFile != null && growthFile!.isNotEmpty;
+
+  bool get hasGrowth => growthConfig != null;
 
   bool get hasAvatarFile => avatarFile != null && avatarFile!.isNotEmpty;
 
@@ -102,14 +123,20 @@ class PromptPreset {
     String? icon,
     String? worldInfoFile,
     bool clearWorldInfoFile = false,
+    String? growthFile,
+    bool clearGrowthFile = false,
     String? avatarFile,
     bool clearAvatarFile = false,
     String? illustrationFile,
     bool clearIllustrationFile = false,
     WorldInfo? worldInfo,
+    CharacterGrowthConfig? growthConfig,
+    bool clearGrowthConfig = false,
     String? avatarPath,
     String? illustrationPath,
     bool clearIllustrationPath = false,
+    Map<String, String>? stageAvatarPaths,
+    Map<String, String>? stageIllustrationPaths,
     bool? isUserPreset,
     String? contentHash,
     String? language,
@@ -132,15 +159,22 @@ class PromptPreset {
       worldInfoFile: clearWorldInfoFile
           ? null
           : (worldInfoFile ?? this.worldInfoFile),
+      growthFile: clearGrowthFile ? null : (growthFile ?? this.growthFile),
       avatarFile: clearAvatarFile ? null : (avatarFile ?? this.avatarFile),
       illustrationFile: clearIllustrationFile
           ? null
           : (illustrationFile ?? this.illustrationFile),
       worldInfo: worldInfo ?? this.worldInfo,
+      growthConfig: clearGrowthConfig
+          ? null
+          : (growthConfig ?? this.growthConfig),
       avatarPath: avatarPath ?? this.avatarPath,
       illustrationPath: clearIllustrationPath
           ? null
           : (illustrationPath ?? this.illustrationPath),
+      stageAvatarPaths: stageAvatarPaths ?? this.stageAvatarPaths,
+      stageIllustrationPaths:
+          stageIllustrationPaths ?? this.stageIllustrationPaths,
       isUserPreset: isUserPreset ?? this.isUserPreset,
       contentHash: contentHash ?? this.contentHash,
       language: clearLanguage ? null : (language ?? this.language),
@@ -192,6 +226,7 @@ class PromptPreset {
       promptFile: promptFile,
       icon: json['icon'] as String? ?? 'person.fill',
       worldInfoFile: json['world_info_file'] as String?,
+      growthFile: json['growth_file'] as String?,
       avatarFile: json['avatar_file'] as String?,
       illustrationFile: json['illustration_file'] as String?,
       contentHash: json['content_hash'] as String?,
@@ -218,6 +253,7 @@ class PromptPreset {
       if (promptFile != null) 'prompt_file': promptFile,
       'icon': icon,
       if (worldInfoFile != null) 'world_info_file': worldInfoFile,
+      if (growthFile != null) 'growth_file': growthFile,
       if (avatarFile != null) 'avatar_file': avatarFile,
       if (illustrationFile != null) 'illustration_file': illustrationFile,
       if (contentHash != null) 'content_hash': contentHash,

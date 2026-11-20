@@ -1124,6 +1124,95 @@
   "recentConversations": "最近",
   "exportAction": "导出",
   "presetOverview": "人物设定",
+  "worldInfoSkipStageLocked": "阶段未解锁",
+  "worldInfoSkipMetricLocked": "数值条件未满足",
+  "presetIssueGrowthInvalid": "角色「{name}」的成长配置无效或损坏，已按普通角色卡加载",
+  "lumenflowGrowthInvalid": "成长配置文件无效或损坏，导入时将跳过",
+  "lumenflowStageImagesInvalid": "部分阶段差分图片无效或损坏，导入时将跳过",
+  "growthBadgeLabel": "成长型",
+  "growthStageSummary": "成长型 · {count} 阶段",
+  "growthStageSummaryBranching": "成长型 · {count} 阶段 · 多分支",
+  "growthCurrentStage": "当前阶段",
+  "growthEndingBadge": "结局",
+  "growthCustomNickname": "专属称呼",
+  "growthMetricsSection": "成长指标",
+  "growthMilestonesSection": "成长里程碑",
+  "growthMilestonesEmpty": "尚未触发阶段转折，继续对话推进关系。",
+  "growthControlsSection": "成长控制",
+  "growthSwitchStage": "切换阶段",
+  "growthSwitchStageTitle": "选择目标阶段",
+  "growthLockAuto": "锁定自动成长",
+  "growthLockAutoDesc": "开启后仅保留当前阶段，不再自动触发阶段跃迁",
+  "growthResetAction": "重置本对话成长进度",
+  "growthResetTitle": "重置成长进度",
+  "growthResetConfirm": "将本对话中的阶段、成长指标与里程碑恢复为初始状态？对话记录不会被删除。",
+  "growthMemoryCompressionOffHint": "自动成长需开启「记忆压缩」后生效，当前可手动切换阶段。",
+  "growthStageChangedBanner": "阶段跃迁 · 已进入「{stage}」",
+  "growthStageChangedBannerWithTitle": "{title} · 已进入「{stage}」",
+  "growthSpoilerToggle": "显示完整成长与隐藏设定",
+  "growthStagesOverview": "成长阶段总览",
+  "growthHiddenLoreCount": "另有 {count} 条隐藏设定待本对话解锁",
+  "growthLockedEntryTitle": "未解锁设定",
+  "growthUnlockedProgress": "已解锁 {unlocked} / {total}",
+  "growthSimulatorStage": "模拟阶段",
+  "growthPlaythroughNote": "成长进度仅保存在当前对话，新开对话将从初始阶段重新开始。",
+  "growthManualSwitchReason": "手动切换阶段",
+  "growthLockedBadge": "已锁定",
+  "@presetIssueGrowthInvalid": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@growthStageSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@growthStageSummaryBranching": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@growthStageChangedBanner": {
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      }
+    }
+  },
+  "@growthStageChangedBannerWithTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "stage": {
+        "type": "String"
+      }
+    }
+  },
+  "@growthHiddenLoreCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@growthUnlockedProgress": {
+    "placeholders": {
+      "unlocked": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "@mcpConnectedToolsCount": {
     "placeholders": {
       "count": {

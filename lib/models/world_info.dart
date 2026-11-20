@@ -1,3 +1,5 @@
+import 'character_growth.dart';
+
 const int _maxWorldInfoEntries = 500;
 const int _maxWorldInfoContentRunes = 4000;
 const int _maxWorldInfoKeys = 20;
@@ -19,6 +21,107 @@ enum WorldInfoCategory { character, location, item, rule, event, lore, other }
 
 enum WorldInfoMatchMode { substring, word, regex }
 
+/// 世界书条目的成长阶段与数值解锁门控（可选）。
+class WorldInfoUnlockCondition {
+  const WorldInfoUnlockCondition({
+    this.stageIds = const [],
+    this.minIntimacy,
+    this.maxIntimacy,
+    this.metricConditions = const [],
+    this.hiddenUntilUnlocked = false,
+  });
+
+  final List<String> stageIds;
+  final int? minIntimacy;
+  final int? maxIntimacy;
+  final List<GrowthMetricCondition> metricConditions;
+  final bool hiddenUntilUnlocked;
+
+  bool get hasConditions =>
+      stageIds.isNotEmpty ||
+      minIntimacy != null ||
+      maxIntimacy != null ||
+      metricConditions.isNotEmpty;
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (stageIds.isNotEmpty) 'stage_ids': stageIds,
+      if (minIntimacy != null) 'min_intimacy': minIntimacy,
+      if (maxIntimacy != null) 'max_intimacy': maxIntimacy,
+      if (metricConditions.isNotEmpty)
+        'metric_conditions': metricConditions.map((c) => c.toJson()).toList(),
+      if (hiddenUntilUnlocked) 'hidden_until_unlocked': hiddenUntilUnlocked,
+    };
+  }
+
+  factory WorldInfoUnlockCondition.fromJson(
+    Map<String, dynamic> json,
+    String entryId,
+  ) {
+    final stageIds = _stringList(
+      json['stage_ids'] ?? json['stageIds'],
+      'unlock.stage_ids',
+      entryId,
+    );
+    final minIntimacy = _optionalInt(json, 'min_intimacy') ??
+        _optionalInt(json, 'minIntimacy');
+    final maxIntimacy = _optionalInt(json, 'max_intimacy') ??
+        _optionalInt(json, 'maxIntimacy');
+    if (minIntimacy != null && (minIntimacy < 0 || minIntimacy > 100)) {
+      throw FormatException('Invalid unlock.min_intimacy for entry $entryId');
+    }
+    if (maxIntimacy != null && (maxIntimacy < 0 || maxIntimacy > 100)) {
+      throw FormatException('Invalid unlock.max_intimacy for entry $entryId');
+    }
+    if (minIntimacy != null &&
+        maxIntimacy != null &&
+        minIntimacy > maxIntimacy) {
+      throw FormatException(
+        'unlock.min_intimacy exceeds unlock.max_intimacy for entry $entryId',
+      );
+    }
+
+    final rawMetrics = json['metric_conditions'] ?? json['metricConditions'];
+    final metricConditions = <GrowthMetricCondition>[];
+    if (rawMetrics != null) {
+      if (rawMetrics is! List) {
+        throw FormatException(
+          'Invalid unlock.metric_conditions for entry $entryId',
+        );
+      }
+      for (final item in rawMetrics) {
+        if (item is! Map) {
+          throw FormatException(
+            'Invalid unlock.metric_conditions item for entry $entryId',
+          );
+        }
+        metricConditions.add(
+          GrowthMetricCondition.fromJson(
+            item.cast<String, dynamic>(),
+            context: 'world info entry $entryId unlock',
+          ),
+        );
+      }
+    }
+
+    final rawHidden =
+        json['hidden_until_unlocked'] ?? json['hiddenUntilUnlocked'] ?? false;
+    if (rawHidden is! bool) {
+      throw FormatException(
+        'Invalid unlock.hidden_until_unlocked for entry $entryId',
+      );
+    }
+
+    return WorldInfoUnlockCondition(
+      stageIds: stageIds,
+      minIntimacy: minIntimacy,
+      maxIntimacy: maxIntimacy,
+      metricConditions: metricConditions,
+      hiddenUntilUnlocked: rawHidden,
+    );
+  }
+}
+
 class WorldInfoEntry {
   const WorldInfoEntry({
     required this.id,
@@ -39,6 +142,7 @@ class WorldInfoEntry {
     this.recursive = false,
     this.sticky = 0,
     this.cooldown = 0,
+    this.unlock,
   });
 
   final String id;
@@ -70,6 +174,9 @@ class WorldInfoEntry {
   /// 命中后抑制再次激活的消息数。
   final int cooldown;
 
+  /// 可选的成长阶段 / 亲密度 / 自定义属性解锁门控。
+  final WorldInfoUnlockCondition? unlock;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -90,6 +197,9 @@ class WorldInfoEntry {
       'recursive': recursive,
       'sticky': sticky,
       'cooldown': cooldown,
+      if (unlock != null &&
+          (unlock!.hasConditions || unlock!.hiddenUntilUnlocked))
+        'unlock': unlock!.toJson(),
     };
   }
 }
@@ -292,6 +402,21 @@ WorldInfoEntry _entryFromJson(Map<String, dynamic> json) {
     _validateRegexKeys(secondaryKeys, caseSensitive, id);
   }
 
+  WorldInfoUnlockCondition? unlock;
+  final rawUnlock = json['unlock'];
+  if (rawUnlock != null) {
+    if (rawUnlock is! Map) {
+      throw FormatException('Invalid unlock condition for world info entry $id');
+    }
+    final parsed = WorldInfoUnlockCondition.fromJson(
+      rawUnlock.cast<String, dynamic>(),
+      id,
+    );
+    if (parsed.hasConditions || parsed.hiddenUntilUnlocked) {
+      unlock = parsed;
+    }
+  }
+
   return WorldInfoEntry(
     id: id,
     title: title,
@@ -311,6 +436,7 @@ WorldInfoEntry _entryFromJson(Map<String, dynamic> json) {
     recursive: recursiveValue,
     sticky: sticky,
     cooldown: cooldown,
+    unlock: unlock,
   );
 }
 

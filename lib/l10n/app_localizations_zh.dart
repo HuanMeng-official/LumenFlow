@@ -1991,4 +1991,120 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get presetOverview => '人物设定';
+
+  @override
+  String get worldInfoSkipStageLocked => '阶段未解锁';
+
+  @override
+  String get worldInfoSkipMetricLocked => '数值条件未满足';
+
+  @override
+  String presetIssueGrowthInvalid(String name) {
+    return '角色「$name」的成长配置无效或损坏，已按普通角色卡加载';
+  }
+
+  @override
+  String get lumenflowGrowthInvalid => '成长配置文件无效或损坏，导入时将跳过';
+
+  @override
+  String get lumenflowStageImagesInvalid => '部分阶段差分图片无效或损坏，导入时将跳过';
+
+  @override
+  String get growthBadgeLabel => '成长型';
+
+  @override
+  String growthStageSummary(int count) {
+    return '成长型 · $count 阶段';
+  }
+
+  @override
+  String growthStageSummaryBranching(int count) {
+    return '成长型 · $count 阶段 · 多分支';
+  }
+
+  @override
+  String get growthCurrentStage => '当前阶段';
+
+  @override
+  String get growthEndingBadge => '结局';
+
+  @override
+  String get growthCustomNickname => '专属称呼';
+
+  @override
+  String get growthMetricsSection => '成长指标';
+
+  @override
+  String get growthMilestonesSection => '成长里程碑';
+
+  @override
+  String get growthMilestonesEmpty => '尚未触发阶段转折，继续对话推进关系。';
+
+  @override
+  String get growthControlsSection => '成长控制';
+
+  @override
+  String get growthSwitchStage => '切换阶段';
+
+  @override
+  String get growthSwitchStageTitle => '选择目标阶段';
+
+  @override
+  String get growthLockAuto => '锁定自动成长';
+
+  @override
+  String get growthLockAutoDesc => '开启后仅保留当前阶段，不再自动触发阶段跃迁';
+
+  @override
+  String get growthResetAction => '重置本对话成长进度';
+
+  @override
+  String get growthResetTitle => '重置成长进度';
+
+  @override
+  String get growthResetConfirm => '将本对话中的阶段、成长指标与里程碑恢复为初始状态？对话记录不会被删除。';
+
+  @override
+  String get growthMemoryCompressionOffHint => '自动成长需开启「记忆压缩」后生效，当前可手动切换阶段。';
+
+  @override
+  String growthStageChangedBanner(String stage) {
+    return '阶段跃迁 · 已进入「$stage」';
+  }
+
+  @override
+  String growthStageChangedBannerWithTitle(String title, String stage) {
+    return '$title · 已进入「$stage」';
+  }
+
+  @override
+  String get growthSpoilerToggle => '显示完整成长与隐藏设定';
+
+  @override
+  String get growthStagesOverview => '成长阶段总览';
+
+  @override
+  String growthHiddenLoreCount(int count) {
+    return '另有 $count 条隐藏设定待本对话解锁';
+  }
+
+  @override
+  String get growthLockedEntryTitle => '未解锁设定';
+
+  @override
+  String growthUnlockedProgress(int unlocked, int total) {
+    return '已解锁 $unlocked / $total';
+  }
+
+  @override
+  String get growthSimulatorStage => '模拟阶段';
+
+  @override
+  String get growthPlaythroughNote => '成长进度仅保存在当前对话，新开对话将从初始阶段重新开始。';
+
+  @override
+  String get growthManualSwitchReason => '手动切换阶段';
+
+  @override
+  String get growthLockedBadge => '已锁定';
 }

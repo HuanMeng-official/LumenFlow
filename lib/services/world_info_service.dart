@@ -7,12 +7,27 @@ final RegExp _cjkPattern = RegExp(r'[^\x00-\x7F]');
 
 enum WorldInfoSkipReason {
   disabled,
+  stageLocked,
+  metricLocked,
   noPrimaryKey,
   missingSecondaryKey,
   cooldown,
   probability,
   group,
   budget,
+}
+
+/// 世界书激活时的单会话成长上下文（用于阶段与数值门控）。
+class WorldInfoGrowthContext {
+  const WorldInfoGrowthContext({
+    this.currentStageId,
+    this.intimacy,
+    this.customMetrics = const {},
+  });
+
+  final String? currentStageId;
+  final int? intimacy;
+  final Map<String, int> customMetrics;
 }
 
 class WorldInfoSkipDetail {
@@ -126,6 +141,55 @@ class WorldInfoService {
     return WorldInfo.fromJson(json);
   }
 
+  /// 校验单条世界书在指定成长上下文中是否已解锁。
+  ///
+  /// 返回 `null` 表示已解锁可参与匹配；否则返回锁定原因。
+  static WorldInfoSkipReason? checkUnlock(
+    WorldInfoEntry entry,
+    WorldInfoGrowthContext? growthContext,
+  ) {
+    final unlock = entry.unlock;
+    if (unlock == null || !unlock.hasConditions) return null;
+
+    if (growthContext == null) {
+      return unlock.stageIds.isNotEmpty
+          ? WorldInfoSkipReason.stageLocked
+          : WorldInfoSkipReason.metricLocked;
+    }
+
+    if (unlock.stageIds.isNotEmpty) {
+      final stageId = growthContext.currentStageId;
+      if (stageId == null || !unlock.stageIds.contains(stageId)) {
+        return WorldInfoSkipReason.stageLocked;
+      }
+    }
+
+    if (unlock.minIntimacy != null) {
+      final intimacy = growthContext.intimacy;
+      if (intimacy == null || intimacy < unlock.minIntimacy!) {
+        return WorldInfoSkipReason.metricLocked;
+      }
+    }
+
+    if (unlock.maxIntimacy != null) {
+      final intimacy = growthContext.intimacy;
+      if (intimacy == null || intimacy > unlock.maxIntimacy!) {
+        return WorldInfoSkipReason.metricLocked;
+      }
+    }
+
+    for (final condition in unlock.metricConditions) {
+      final currentValue = condition.metric == 'intimacy'
+          ? growthContext.intimacy
+          : growthContext.customMetrics[condition.metric];
+      if (currentValue == null || !condition.matches(currentValue)) {
+        return WorldInfoSkipReason.metricLocked;
+      }
+    }
+
+    return null;
+  }
+
   /// 激活世界书。
   ///
   /// [scanText] 是常规扫描窗口（当前消息 + 最近 `scan_depth` 条）的合并文本，
@@ -138,6 +202,7 @@ class WorldInfoService {
     List<String> historyTexts, {
     String currentContent = '',
     bool currentAlreadyInHistory = false,
+    WorldInfoGrowthContext? growthContext,
   }) {
     List<String> partsForDepth(int depth) {
       final recent = historyTexts.length > depth
@@ -166,6 +231,7 @@ class WorldInfoService {
         info,
         directParts.join('\n'),
         scanMessages: timingParts,
+        growthContext: growthContext,
       );
       if (activation.matched.length >= info.minActivations ||
           depth >= historyTexts.length) {
@@ -183,6 +249,7 @@ class WorldInfoService {
     WorldInfo info,
     String scanText, {
     List<String>? scanMessages,
+    WorldInfoGrowthContext? growthContext,
   }) {
     final messages = scanMessages == null || scanMessages.isEmpty
         ? <String>[scanText]
@@ -194,6 +261,12 @@ class WorldInfoService {
     for (final entry in info.entries) {
       if (!entry.enabled) {
         reasons[entry.id] = WorldInfoSkipReason.disabled;
+        continue;
+      }
+
+      final lockReason = checkUnlock(entry, growthContext);
+      if (lockReason != null) {
+        reasons[entry.id] = lockReason;
         continue;
       }
 
@@ -248,6 +321,9 @@ class WorldInfoService {
         for (final parent in frontier) {
           for (final entry in info.entries) {
             if (!entry.enabled || candidateIds.contains(entry.id)) {
+              continue;
+            }
+            if (checkUnlock(entry, growthContext) != null) {
               continue;
             }
             final key = _findMatchedKey(

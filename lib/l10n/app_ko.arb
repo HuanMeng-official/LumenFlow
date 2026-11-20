@@ -1124,6 +1124,95 @@
   "recentConversations": "최근",
   "exportAction": "내보내기",
   "presetOverview": "캐릭터 설정",
+  "worldInfoSkipStageLocked": "단계 잠김",
+  "worldInfoSkipMetricLocked": "수치 조건 미충족",
+  "presetIssueGrowthInvalid": "'{name}'의 성장 설정이 잘못되었거나 손상되어 일반 카드로 불러왔습니다",
+  "lumenflowGrowthInvalid": "성장 설정 파일이 잘못되었거나 손상되어 건너뜁니다",
+  "lumenflowStageImagesInvalid": "일부 단계별 이미지가 잘못되었거나 손상되어 건너뜁니다",
+  "growthBadgeLabel": "성장형",
+  "growthStageSummary": "성장형 · {count}단계",
+  "growthStageSummaryBranching": "성장형 · {count}단계 · 다중 분기",
+  "growthCurrentStage": "현재 단계",
+  "growthEndingBadge": "엔딩",
+  "growthCustomNickname": "특별 호칭",
+  "growthMetricsSection": "성장 지표",
+  "growthMilestonesSection": "성장 마일스톤",
+  "growthMilestonesEmpty": "아직 단계 전환이 일어나지 않았습니다. 대화를 이어가며 관계를 발전시켜 보세요.",
+  "growthControlsSection": "성장 제어",
+  "growthSwitchStage": "단계 전환",
+  "growthSwitchStageTitle": "단계 선택",
+  "growthLockAuto": "자동 성장 잠금",
+  "growthLockAutoDesc": "켜면 현재 단계를 유지하고 자동 전환을 일시 중지합니다",
+  "growthResetAction": "이 대화의 성장 초기화",
+  "growthResetTitle": "성장 진행도 초기화",
+  "growthResetConfirm": "이 대화의 단계, 성장 지표 및 마일스톤을 초기 상태로 되돌릴까요? 대화 내역은 삭제되지 않습니다.",
+  "growthMemoryCompressionOffHint": "자동 성장은 '메모리 압축'을 켜야 작동합니다. 현재도 수동으로 단계를 전환할 수 있습니다.",
+  "growthStageChangedBanner": "단계 전환 · '{stage}' 진입",
+  "growthStageChangedBannerWithTitle": "{title} · '{stage}' 진입",
+  "growthSpoilerToggle": "전체 성장 단계 및 숨겨진 설정 보기",
+  "growthStagesOverview": "성장 단계 개요",
+  "growthHiddenLoreCount": "이 대화에서 해금 대기 중인 숨겨진 설정 {count}개",
+  "growthLockedEntryTitle": "잠긴 설정",
+  "growthUnlockedProgress": "해금됨 {unlocked} / {total}",
+  "growthSimulatorStage": "시뮬레이션 단계",
+  "growthPlaythroughNote": "성장 진행도는 이 대화에만 저장됩니다. 새 대화는 항상 초기 단계에서 시작합니다.",
+  "growthManualSwitchReason": "수동 단계 전환",
+  "growthLockedBadge": "잠금됨",
+  "@presetIssueGrowthInvalid": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@growthStageSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@growthStageSummaryBranching": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@growthStageChangedBanner": {
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      }
+    }
+  },
+  "@growthStageChangedBannerWithTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "stage": {
+        "type": "String"
+      }
+    }
+  },
+  "@growthHiddenLoreCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@growthUnlockedProgress": {
+    "placeholders": {
+      "unlocked": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "@mcpConnectedToolsCount": {
     "placeholders": {
       "count": {

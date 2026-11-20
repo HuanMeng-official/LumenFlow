@@ -314,5 +314,7 @@ String _skipReasonLabel(WorldInfoSkipReason reason, AppLocalizations l10n) {
     WorldInfoSkipReason.probability => l10n.worldInfoSkipProbability,
     WorldInfoSkipReason.group => l10n.worldInfoSkipGroup,
     WorldInfoSkipReason.budget => l10n.worldInfoSkipBudget,
+    WorldInfoSkipReason.stageLocked => l10n.worldInfoSkipStageLocked,
+    WorldInfoSkipReason.metricLocked => l10n.worldInfoSkipMetricLocked,
   };
 }

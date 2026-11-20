@@ -25,6 +25,9 @@ enum PresetIssueType {
 
   /// 世界书文件缺失、不可读或无法解析。
   worldInfoInvalid,
+
+  /// 成长配置文件缺失、不可读或无法解析。
+  growthInvalid,
 }
 
 /// 一条预设加载问题。

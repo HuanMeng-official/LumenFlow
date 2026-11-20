@@ -342,10 +342,14 @@ class _PresetImportScreenState extends State<PresetImportScreen> {
         l10n.presetImportWarningNameMissing,
       if (widget.archivePreview?.worldInfoInvalid == true)
         l10n.lumenflowWorldInfoInvalid,
+      if (widget.archivePreview?.growthInvalid == true)
+        l10n.lumenflowGrowthInvalid,
       if (widget.archivePreview?.avatarInvalid == true)
         l10n.lumenflowAvatarInvalid,
       if (widget.archivePreview?.illustrationInvalid == true)
         l10n.lumenflowIllustrationInvalid,
+      if (widget.archivePreview?.stageImagesInvalid == true)
+        l10n.lumenflowStageImagesInvalid,
     ];
 
     return SettingsPageScaffold(

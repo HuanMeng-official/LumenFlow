@@ -1124,6 +1124,95 @@
   "recentConversations": "最近",
   "exportAction": "エクスポート",
   "presetOverview": "キャラクター設定",
+  "worldInfoSkipStageLocked": "ステージ未解放",
+  "worldInfoSkipMetricLocked": "指標条件未達成",
+  "presetIssueGrowthInvalid": "「{name}」の成長設定が無効または破損しているため、通常カードとして読み込みました",
+  "lumenflowGrowthInvalid": "成長設定ファイルが無効または破損しているため、スキップされます",
+  "lumenflowStageImagesInvalid": "一部のステージ差分画像が無効または破損しているため、スキップされます",
+  "growthBadgeLabel": "成長型",
+  "growthStageSummary": "成長型 · {count} ステージ",
+  "growthStageSummaryBranching": "成長型 · {count} ステージ · 分岐あり",
+  "growthCurrentStage": "現在のステージ",
+  "growthEndingBadge": "エンディング",
+  "growthCustomNickname": "特別な呼び名",
+  "growthMetricsSection": "成長パラメータ",
+  "growthMilestonesSection": "成長マイルストーン",
+  "growthMilestonesEmpty": "まだステージの転機は起きていません。会話を続けて関係を進めましょう。",
+  "growthControlsSection": "成長コントロール",
+  "growthSwitchStage": "ステージを切り替え",
+  "growthSwitchStageTitle": "ステージを選択",
+  "growthLockAuto": "自動成長をロック",
+  "growthLockAutoDesc": "オンにすると現在のステージを維持し、自動遷移を一時停止します",
+  "growthResetAction": "この会話の成長をリセット",
+  "growthResetTitle": "成長進捗をリセット",
+  "growthResetConfirm": "この会話のステージ・成長指標・マイルストーンを初期状態に戻しますか？会話履歴は削除されません。",
+  "growthMemoryCompressionOffHint": "自動成長には「メモリ圧縮」の有効化が必要です。手動でステージを切り替えることはできます。",
+  "growthStageChangedBanner": "ステージ移行 · 「{stage}」に入りました",
+  "growthStageChangedBannerWithTitle": "{title} · 「{stage}」に入りました",
+  "growthSpoilerToggle": "すべての成長段階と隠し設定を表示",
+  "growthStagesOverview": "成長ステージ一覧",
+  "growthHiddenLoreCount": "この会話で解放待ちの隠し設定が {count} 件あります",
+  "growthLockedEntryTitle": "未解放の設定",
+  "growthUnlockedProgress": "解放済み {unlocked} / {total}",
+  "growthSimulatorStage": "シミュレーション用ステージ",
+  "growthPlaythroughNote": "成長の進捗はこの会話内にのみ保存されます。新しい会話は常に初期ステージから始まります。",
+  "growthManualSwitchReason": "手動でステージを切り替え",
+  "growthLockedBadge": "ロック中",
+  "@presetIssueGrowthInvalid": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@growthStageSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@growthStageSummaryBranching": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@growthStageChangedBanner": {
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      }
+    }
+  },
+  "@growthStageChangedBannerWithTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "stage": {
+        "type": "String"
+      }
+    }
+  },
+  "@growthHiddenLoreCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@growthUnlockedProgress": {
+    "placeholders": {
+      "unlocked": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "@mcpConnectedToolsCount": {
     "placeholders": {
       "count": {

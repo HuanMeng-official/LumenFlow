@@ -18,8 +18,29 @@ String? builtInIllustrationAssetPath(PromptPreset preset) {
   return 'characters/img/illustration/$base.png';
 }
 
-/// 解析角色卡的立绘图片源：用户卡读本地文件，内置卡读打包资源。
-ImageProvider? presetIllustrationProvider(PromptPreset preset) {
+/// 解析角色卡的立绘图片源：支持按当前成长阶段优先读取阶段差分图，缺失时回退默认立绘。
+ImageProvider? presetIllustrationProvider(
+  PromptPreset preset, {
+  String? stageId,
+}) {
+  final stageKey = stageId?.trim();
+  if (stageKey != null && stageKey.isNotEmpty) {
+    final stageFilePath = preset.stageIllustrationPaths[stageKey];
+    if (stageFilePath != null &&
+        stageFilePath.isNotEmpty &&
+        File(stageFilePath).existsSync()) {
+      return FileImage(File(stageFilePath));
+    }
+    if (!preset.isUserPreset) {
+      final stageAsset = preset.growthConfig
+          ?.stageById(stageKey)
+          ?.illustrationFile
+          ?.trim();
+      if (stageAsset != null && stageAsset.isNotEmpty) {
+        return AssetImage('assets/prompt/$stageAsset');
+      }
+    }
+  }
   final filePath = preset.illustrationPath;
   if (filePath != null && filePath.isNotEmpty && File(filePath).existsSync()) {
     return FileImage(File(filePath));

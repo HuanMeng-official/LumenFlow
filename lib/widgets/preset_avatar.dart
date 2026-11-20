@@ -10,6 +10,7 @@ class PresetAvatar extends StatelessWidget {
   const PresetAvatar({
     super.key,
     required this.preset,
+    this.stageId,
     this.size = 32,
     this.iconColor,
     this.backgroundColor,
@@ -17,6 +18,7 @@ class PresetAvatar extends StatelessWidget {
   });
 
   final PromptPreset preset;
+  final String? stageId;
   final double size;
   final Color? iconColor;
   final Color? backgroundColor;
@@ -24,14 +26,33 @@ class PresetAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final avatarPath = preset.avatarPath;
+    final stageKey = stageId?.trim();
+    final stageUserPath = (stageKey != null && stageKey.isNotEmpty)
+        ? preset.stageAvatarPaths[stageKey]
+        : null;
+    final hasStageUserAvatar =
+        stageUserPath != null &&
+        stageUserPath.isNotEmpty &&
+        File(stageUserPath).existsSync();
+    final stageBuiltInFile =
+        (!preset.isUserPreset && stageKey != null && stageKey.isNotEmpty)
+        ? preset.growthConfig?.stageById(stageKey)?.avatarFile?.trim()
+        : null;
+    final stageAssetPath =
+        (stageBuiltInFile != null && stageBuiltInFile.isNotEmpty)
+        ? 'assets/prompt/$stageBuiltInFile'
+        : null;
+
+    final avatarPath = hasStageUserAvatar ? stageUserPath : preset.avatarPath;
     final hasUserAvatar =
         avatarPath != null &&
         avatarPath.isNotEmpty &&
         File(avatarPath).existsSync();
-    final assetPath = !preset.isUserPreset && preset.hasAvatarFile
-        ? 'assets/prompt/${preset.avatarFile}'
-        : null;
+    final assetPath =
+        stageAssetPath ??
+        (!preset.isUserPreset && preset.hasAvatarFile
+            ? 'assets/prompt/${preset.avatarFile}'
+            : null);
     final hasImage = hasUserAvatar || assetPath != null;
     final cacheSize = (size * 3).round();
 

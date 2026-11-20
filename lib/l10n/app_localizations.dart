@@ -3798,6 +3798,210 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Character'**
   String get presetOverview;
+
+  /// No description provided for @worldInfoSkipStageLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Stage locked'**
+  String get worldInfoSkipStageLocked;
+
+  /// No description provided for @worldInfoSkipMetricLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Metric condition not met'**
+  String get worldInfoSkipMetricLocked;
+
+  /// No description provided for @presetIssueGrowthInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth config for \"{name}\" is invalid or corrupt; loaded as a standard card'**
+  String presetIssueGrowthInvalid(String name);
+
+  /// No description provided for @lumenflowGrowthInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth config file is invalid or corrupt and will be skipped'**
+  String get lumenflowGrowthInvalid;
+
+  /// No description provided for @lumenflowStageImagesInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Some stage images are invalid or corrupt and will be skipped'**
+  String get lumenflowStageImagesInvalid;
+
+  /// No description provided for @growthBadgeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth'**
+  String get growthBadgeLabel;
+
+  /// No description provided for @growthStageSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth · {count} stages'**
+  String growthStageSummary(int count);
+
+  /// No description provided for @growthStageSummaryBranching.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth · {count} stages · Branching'**
+  String growthStageSummaryBranching(int count);
+
+  /// No description provided for @growthCurrentStage.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Stage'**
+  String get growthCurrentStage;
+
+  /// No description provided for @growthEndingBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Ending'**
+  String get growthEndingBadge;
+
+  /// No description provided for @growthCustomNickname.
+  ///
+  /// In en, this message translates to:
+  /// **'Special Nickname'**
+  String get growthCustomNickname;
+
+  /// No description provided for @growthMetricsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth Metrics'**
+  String get growthMetricsSection;
+
+  /// No description provided for @growthMilestonesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth Milestones'**
+  String get growthMilestonesSection;
+
+  /// No description provided for @growthMilestonesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No stage transitions yet. Keep chatting to progress.'**
+  String get growthMilestonesEmpty;
+
+  /// No description provided for @growthControlsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth Controls'**
+  String get growthControlsSection;
+
+  /// No description provided for @growthSwitchStage.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch Stage'**
+  String get growthSwitchStage;
+
+  /// No description provided for @growthSwitchStageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Stage'**
+  String get growthSwitchStageTitle;
+
+  /// No description provided for @growthLockAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock Auto Growth'**
+  String get growthLockAuto;
+
+  /// No description provided for @growthLockAutoDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay in the current stage and pause automatic transitions'**
+  String get growthLockAutoDesc;
+
+  /// No description provided for @growthResetAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Growth in This Chat'**
+  String get growthResetAction;
+
+  /// No description provided for @growthResetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Growth Progress'**
+  String get growthResetTitle;
+
+  /// No description provided for @growthResetConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset stages, growth metrics, and milestones in this conversation to initial values? Messages will not be deleted.'**
+  String get growthResetConfirm;
+
+  /// No description provided for @growthMemoryCompressionOffHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic growth requires Memory Compression to be enabled. You can still switch stages manually.'**
+  String get growthMemoryCompressionOffHint;
+
+  /// No description provided for @growthStageChangedBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Stage Transition · Entered \"{stage}\"'**
+  String growthStageChangedBanner(String stage);
+
+  /// No description provided for @growthStageChangedBannerWithTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} · Entered \"{stage}\"'**
+  String growthStageChangedBannerWithTitle(String title, String stage);
+
+  /// No description provided for @growthSpoilerToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Full Growth & Hidden Lore'**
+  String get growthSpoilerToggle;
+
+  /// No description provided for @growthStagesOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth Stages'**
+  String get growthStagesOverview;
+
+  /// No description provided for @growthHiddenLoreCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} hidden entries waiting to be unlocked in this chat'**
+  String growthHiddenLoreCount(int count);
+
+  /// No description provided for @growthLockedEntryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Locked Lore'**
+  String get growthLockedEntryTitle;
+
+  /// No description provided for @growthUnlockedProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlocked {unlocked} / {total}'**
+  String growthUnlockedProgress(int unlocked, int total);
+
+  /// No description provided for @growthSimulatorStage.
+  ///
+  /// In en, this message translates to:
+  /// **'Simulate Stage'**
+  String get growthSimulatorStage;
+
+  /// No description provided for @growthPlaythroughNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth progress is saved only in this conversation. New chats always start fresh.'**
+  String get growthPlaythroughNote;
+
+  /// No description provided for @growthManualSwitchReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual stage switch'**
+  String get growthManualSwitchReason;
+
+  /// No description provided for @growthLockedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Locked'**
+  String get growthLockedBadge;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

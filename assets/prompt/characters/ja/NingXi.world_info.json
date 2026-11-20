@@ -284,7 +284,16 @@
       "probability": 100,
       "recursive": false,
       "sticky": 0,
-      "cooldown": 0
+      "cooldown": 0,
+      "unlock": {
+        "stage_ids": [
+          "white_noise",
+          "unguarded_trust",
+          "quiet_coexistence"
+        ],
+        "min_intimacy": 38,
+        "hidden_until_unlocked": true
+      }
     },
     {
       "id": "freelance-work",
@@ -588,7 +597,15 @@
       "probability": 70,
       "recursive": false,
       "sticky": 0,
-      "cooldown": 0
+      "cooldown": 0,
+      "unlock": {
+        "stage_ids": [
+          "unguarded_trust",
+          "quiet_coexistence"
+        ],
+        "min_intimacy": 62,
+        "hidden_until_unlocked": true
+      }
     },
     {
       "id": "sensory-map",

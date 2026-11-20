@@ -1991,4 +1991,120 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get presetOverview => 'キャラクター設定';
+
+  @override
+  String get worldInfoSkipStageLocked => 'ステージ未解放';
+
+  @override
+  String get worldInfoSkipMetricLocked => '指標条件未達成';
+
+  @override
+  String presetIssueGrowthInvalid(String name) {
+    return '「$name」の成長設定が無効または破損しているため、通常カードとして読み込みました';
+  }
+
+  @override
+  String get lumenflowGrowthInvalid => '成長設定ファイルが無効または破損しているため、スキップされます';
+
+  @override
+  String get lumenflowStageImagesInvalid => '一部のステージ差分画像が無効または破損しているため、スキップされます';
+
+  @override
+  String get growthBadgeLabel => '成長型';
+
+  @override
+  String growthStageSummary(int count) {
+    return '成長型 · $count ステージ';
+  }
+
+  @override
+  String growthStageSummaryBranching(int count) {
+    return '成長型 · $count ステージ · 分岐あり';
+  }
+
+  @override
+  String get growthCurrentStage => '現在のステージ';
+
+  @override
+  String get growthEndingBadge => 'エンディング';
+
+  @override
+  String get growthCustomNickname => '特別な呼び名';
+
+  @override
+  String get growthMetricsSection => '成長パラメータ';
+
+  @override
+  String get growthMilestonesSection => '成長マイルストーン';
+
+  @override
+  String get growthMilestonesEmpty => 'まだステージの転機は起きていません。会話を続けて関係を進めましょう。';
+
+  @override
+  String get growthControlsSection => '成長コントロール';
+
+  @override
+  String get growthSwitchStage => 'ステージを切り替え';
+
+  @override
+  String get growthSwitchStageTitle => 'ステージを選択';
+
+  @override
+  String get growthLockAuto => '自動成長をロック';
+
+  @override
+  String get growthLockAutoDesc => 'オンにすると現在のステージを維持し、自動遷移を一時停止します';
+
+  @override
+  String get growthResetAction => 'この会話の成長をリセット';
+
+  @override
+  String get growthResetTitle => '成長進捗をリセット';
+
+  @override
+  String get growthResetConfirm => 'この会話のステージ・成長指標・マイルストーンを初期状態に戻しますか？会話履歴は削除されません。';
+
+  @override
+  String get growthMemoryCompressionOffHint => '自動成長には「メモリ圧縮」の有効化が必要です。手動でステージを切り替えることはできます。';
+
+  @override
+  String growthStageChangedBanner(String stage) {
+    return 'ステージ移行 · 「$stage」に入りました';
+  }
+
+  @override
+  String growthStageChangedBannerWithTitle(String title, String stage) {
+    return '$title · 「$stage」に入りました';
+  }
+
+  @override
+  String get growthSpoilerToggle => 'すべての成長段階と隠し設定を表示';
+
+  @override
+  String get growthStagesOverview => '成長ステージ一覧';
+
+  @override
+  String growthHiddenLoreCount(int count) {
+    return 'この会話で解放待ちの隠し設定が $count 件あります';
+  }
+
+  @override
+  String get growthLockedEntryTitle => '未解放の設定';
+
+  @override
+  String growthUnlockedProgress(int unlocked, int total) {
+    return '解放済み $unlocked / $total';
+  }
+
+  @override
+  String get growthSimulatorStage => 'シミュレーション用ステージ';
+
+  @override
+  String get growthPlaythroughNote => '成長の進捗はこの会話内にのみ保存されます。新しい会話は常に初期ステージから始まります。';
+
+  @override
+  String get growthManualSwitchReason => '手動でステージを切り替え';
+
+  @override
+  String get growthLockedBadge => 'ロック中';
 }

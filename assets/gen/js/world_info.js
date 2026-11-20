@@ -90,7 +90,37 @@
             recursive: false,
             sticky: 0,
             cooldown: 0,
+            unlockStageIds: [],
+            unlockMinIntimacy: '',
+            unlockMaxIntimacy: '',
+            unlockMetricsText: '',
+            unlockHidden: false,
         };
+    }
+
+    function parseMetricConditionsText(text) {
+        const list = [];
+        const lines = String(text || '').split(/\r?\n/);
+        for (const raw of lines) {
+            const line = raw.trim();
+            if (!line) continue;
+            const match = /^([a-z][a-z0-9_]{0,31})\s*(>=|<=|>|<)\s*(-?\d+)$/.exec(line);
+            if (!match) continue;
+            list.push({
+                metric: match[1],
+                op: match[2],
+                value: Math.trunc(Number(match[3])),
+            });
+        }
+        return list;
+    }
+
+    function formatMetricConditionsText(conditions) {
+        if (!Array.isArray(conditions)) return '';
+        return conditions
+            .filter((c) => c && typeof c.metric === 'string' && typeof c.op === 'string' && Number.isFinite(Number(c.value)))
+            .map((c) => `${c.metric} ${c.op} ${Math.trunc(Number(c.value))}`)
+            .join('\n');
     }
 
     function entryFromRaw(raw) {
@@ -127,6 +157,24 @@
         entry.cooldown = Number.isFinite(Number(raw.cooldown))
             ? Math.min(1000, Math.max(0, Math.trunc(Number(raw.cooldown))))
             : 0;
+        const unlock = raw.unlock && typeof raw.unlock === 'object' ? raw.unlock : null;
+        if (unlock) {
+            entry.unlockStageIds = cleanStrings(unlock.stage_ids || unlock.stageIds);
+            const minInt = unlock.min_intimacy ?? unlock.minIntimacy;
+            const maxInt = unlock.max_intimacy ?? unlock.maxIntimacy;
+            entry.unlockMinIntimacy = Number.isFinite(Number(minInt)) && minInt !== '' && minInt !== null
+                ? String(Math.trunc(Number(minInt)))
+                : '';
+            entry.unlockMaxIntimacy = Number.isFinite(Number(maxInt)) && maxInt !== '' && maxInt !== null
+                ? String(Math.trunc(Number(maxInt)))
+                : '';
+            entry.unlockMetricsText = formatMetricConditionsText(
+                unlock.metric_conditions || unlock.metricConditions
+            );
+            entry.unlockHidden = Boolean(
+                unlock.hidden_until_unlocked ?? unlock.hiddenUntilUnlocked
+            );
+        }
         return entry;
     }
 
@@ -317,6 +365,50 @@
                     <label>${escapeHtml(d.EntryContent)}</label>
                     <textarea data-wi-field="content">${escapeHtml(entry.content)}</textarea>
                 </div>
+                <details class="wi-unlock-details"${
+                    (entry.unlockStageIds && entry.unlockStageIds.length) ||
+                    entry.unlockMinIntimacy !== '' ||
+                    entry.unlockMaxIntimacy !== '' ||
+                    (entry.unlockMetricsText && entry.unlockMetricsText.trim()) ||
+                    entry.unlockHidden
+                        ? ' open'
+                        : ''
+                }>
+                    <summary>${escapeHtml(d.UnlockTitle || '成长解锁门控（可选）')}</summary>
+                    <div class="wi-unlock-body">
+                        <div class="form-group">
+                            <label>${escapeHtml(d.UnlockStages || '允许解锁的阶段 ID（逗号分隔）')}</label>
+                            <input type="text" data-wi-field="unlockStageIds" value="${escapeHtml(
+                                (entry.unlockStageIds || []).join(', ')
+                            )}" placeholder="white_noise, unguarded_trust">
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>${escapeHtml(d.UnlockMinIntimacy || '最低亲密度')}</label>
+                                <input type="number" min="0" max="100" data-wi-field="unlockMinIntimacy"
+                                    value="${escapeHtml(entry.unlockMinIntimacy ?? '')}" placeholder="0-100">
+                            </div>
+                            <div class="form-group">
+                                <label>${escapeHtml(d.UnlockMaxIntimacy || '最高亲密度')}</label>
+                                <input type="number" min="0" max="100" data-wi-field="unlockMaxIntimacy"
+                                    value="${escapeHtml(entry.unlockMaxIntimacy ?? '')}" placeholder="0-100">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>${escapeHtml(d.UnlockMetrics || '自定义指标门槛（每行一条：guard <= 50）')}</label>
+                            <textarea class="compact" data-wi-field="unlockMetricsText"
+                                placeholder="guard <= 50">${escapeHtml(entry.unlockMetricsText || '')}</textarea>
+                        </div>
+                        <div class="form-group wi-flag-row">
+                            <label>
+                                <input type="checkbox" data-wi-field="unlockHidden" ${
+                                    entry.unlockHidden ? 'checked' : ''
+                                }>
+                                ${escapeHtml(d.UnlockHidden || '未解锁前对玩家隐藏（防剧透）')}
+                            </label>
+                        </div>
+                    </div>
+                </details>
             </div>
         </div>`;
     }
@@ -496,14 +588,17 @@
         const index = Number(card.dataset.entryIndex);
         const entry = state.entries[index];
         if (!entry) return;
-        if (field === 'keys' || field === 'secondaryKeys' || field === 'tags') {
+        if (field === 'keys' || field === 'secondaryKeys' || field === 'tags' || field === 'unlockStageIds') {
             entry[field] = splitKeys(target.value);
         } else if (
             ['priority', 'depth', 'probability', 'sticky', 'cooldown'].includes(field)
         ) {
             entry[field] = Math.max(0, Math.trunc(Number(target.value) || 0));
-        } else if (['enabled', 'caseSensitive', 'recursive'].includes(field)) {
+        } else if (['enabled', 'caseSensitive', 'recursive', 'unlockHidden'].includes(field)) {
             entry[field] = Boolean(target.checked);
+        } else if (field === 'unlockMinIntimacy' || field === 'unlockMaxIntimacy') {
+            const raw = String(target.value || '').trim();
+            entry[field] = raw === '' ? '' : String(Math.min(100, Math.max(0, Math.trunc(Number(raw) || 0))));
         } else {
             entry[field] = target.value;
         }
@@ -558,6 +653,7 @@
             tags: [...entry.tags],
             keys: [...entry.keys],
             secondaryKeys: [...entry.secondaryKeys],
+            unlockStageIds: [...(entry.unlockStageIds || [])],
         };
         state.entries.splice(index + 1, 0, copy);
         state.activeEntryId = copy.id;
@@ -922,7 +1018,7 @@
     }
 
     function serializeEntry(entry) {
-        return {
+        const serialized = {
             id: entry.id,
             title: entry.title.trim(),
             category: entry.category,
@@ -950,6 +1046,36 @@
                 Math.max(0, Math.trunc(Number(entry.cooldown) || 0))
             ),
         };
+        const stageIds = (entry.unlockStageIds || [])
+            .map((s) => s.trim())
+            .filter(Boolean);
+        const minStr = String(entry.unlockMinIntimacy ?? '').trim();
+        const maxStr = String(entry.unlockMaxIntimacy ?? '').trim();
+        const metricConditions = parseMetricConditionsText(entry.unlockMetricsText);
+        const hasUnlock =
+            stageIds.length > 0 ||
+            minStr !== '' ||
+            maxStr !== '' ||
+            metricConditions.length > 0 ||
+            Boolean(entry.unlockHidden);
+        if (hasUnlock) {
+            const unlock = {};
+            if (stageIds.length > 0) unlock.stage_ids = stageIds;
+            if (minStr !== '' && Number.isFinite(Number(minStr))) {
+                unlock.min_intimacy = Math.min(100, Math.max(0, Math.trunc(Number(minStr))));
+            }
+            if (maxStr !== '' && Number.isFinite(Number(maxStr))) {
+                unlock.max_intimacy = Math.min(100, Math.max(0, Math.trunc(Number(maxStr))));
+            }
+            if (metricConditions.length > 0) {
+                unlock.metric_conditions = metricConditions;
+            }
+            if (entry.unlockHidden) {
+                unlock.hidden_until_unlocked = true;
+            }
+            serialized.unlock = unlock;
+        }
+        return serialized;
     }
 
     function getData() {

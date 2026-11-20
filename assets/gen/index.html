@@ -61,6 +61,7 @@
         <div class="tab-bar">
             <button type="button" class="tab-button active" data-tab="character" id="tab-character">角色卡</button>
             <button type="button" class="tab-button" data-tab="worldinfo" id="tab-worldinfo">世界书</button>
+            <button type="button" class="tab-button" data-tab="growth" id="tab-growth">成长系统</button>
             <button type="button" class="tab-button" data-tab="meta" id="tab-meta">元数据、头像与立绘</button>
             <button type="button" class="tab-button" data-tab="export" id="tab-export">导出</button>
         </div>
@@ -232,6 +233,70 @@
             <div id="WorldInfoFilterEmpty" class="wi-empty wi-filter-empty" hidden></div>
         </section>
 
+        <section class="tab-panel" data-panel="growth" id="panel-growth">
+            <div class="form-card">
+                <div class="form-group">
+                    <div class="growth-switch-row">
+                        <div class="growth-switch-copy">
+                            <span class="growth-switch-title" id="lbl-GrowthEnable">启用成长型角色卡（单会话独立周目）</span>
+                            <span class="hint" id="hint-GrowthEnable">开启后导出 character/growth.json；新开对话始终从初始阶段开始，不跨会话污染。</span>
+                        </div>
+                        <input type="checkbox" id="GrowthEnabled" aria-labelledby="lbl-GrowthEnable">
+                    </div>
+                </div>
+            </div>
+            <input type="file" id="GrowthFileInput" accept=".json,application/json" hidden>
+            <input type="file" id="GrowthStageImageInput" accept="image/png" hidden>
+            <div id="GrowthValidation" class="validation-panel" hidden></div>
+            <div id="GrowthEditorBody" hidden>
+                <div class="wi-header growth-section-header">
+                    <h3 id="lbl-GrowthIntimacySection">内置亲密度轴（通用羁绊）</h3>
+                    <div class="wi-header-actions">
+                        <button type="button" class="secondary" id="btn-ImportGrowth">导入</button>
+                        <button type="button" class="secondary" id="btn-ExportGrowth">导出</button>
+                    </div>
+                </div>
+                <div class="form-card">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label id="lbl-GrowthIntimacyLabel" for="GrowthIntimacyLabel">自定义展示名</label>
+                            <input type="text" id="GrowthIntimacyLabel">
+                        </div>
+                        <div class="form-group">
+                            <label id="lbl-GrowthInitialIntimacy" for="GrowthInitialIntimacy">初始值</label>
+                            <input type="number" id="GrowthInitialIntimacy" min="0" max="100" value="20">
+                        </div>
+                        <div class="form-group">
+                            <label id="lbl-GrowthMaxIntimacyGain" for="GrowthMaxIntimacyGain">单次最大增幅</label>
+                            <input type="number" id="GrowthMaxIntimacyGain" min="1" max="50" value="8">
+                        </div>
+                        <div class="form-group">
+                            <label id="lbl-GrowthMaxIntimacyLoss" for="GrowthMaxIntimacyLoss">单次最大降幅</label>
+                            <input type="number" id="GrowthMaxIntimacyLoss" min="1" max="50" value="12">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label id="lbl-GrowthIntimacyDesc" for="GrowthIntimacyDesc">判定语义说明</label>
+                        <input type="text" id="GrowthIntimacyDesc">
+                    </div>
+                </div>
+                <div class="wi-header">
+                    <h3 id="lbl-GrowthMetricsTitle">自定义成长指标（最多 4 个）</h3>
+                    <div class="wi-header-actions">
+                        <button type="button" class="secondary" id="btn-AddGrowthMetric">添加指标</button>
+                    </div>
+                </div>
+                <div id="GrowthMetricsList" class="wi-entries"></div>
+                <div class="wi-header">
+                    <h3 id="lbl-GrowthStagesTitle">成长阶段图（1 ~ 20 个，支持分支与多结局）</h3>
+                    <div class="wi-header-actions">
+                        <button type="button" class="secondary" id="btn-AddGrowthStage">添加阶段</button>
+                    </div>
+                </div>
+                <div id="GrowthStagesList" class="wi-entries"></div>
+            </div>
+        </section>
+
         <section class="tab-panel" data-panel="meta" id="panel-meta">
             <div class="form-card">
                 <div class="form-grid">
@@ -356,6 +421,7 @@
                     <h4 id="lbl-WorldInfoTest">激活测试</h4>
                     <p class="hint" id="hint-WorldInfoTest">每行一条消息；最后一行作为当前消息。</p>
                 </div>
+                <div id="GrowthTestControls" class="growth-test-controls" hidden></div>
                 <textarea id="WorldInfoTestInput" class="test-input"></textarea>
                 <button type="button" class="secondary" id="btn-RunWorldInfoTest">运行测试</button>
                 <div id="WorldInfoTestResults" class="test-results"></div>
@@ -372,6 +438,7 @@
 <script src="js/draft_store.js"></script>
 <script src="js/world_info.js"></script>
 <script src="js/world_info_engine.js"></script>
+<script src="js/growth.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

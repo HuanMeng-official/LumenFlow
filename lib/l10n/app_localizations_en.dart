@@ -1991,4 +1991,120 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get presetOverview => 'Character';
+
+  @override
+  String get worldInfoSkipStageLocked => 'Stage locked';
+
+  @override
+  String get worldInfoSkipMetricLocked => 'Metric condition not met';
+
+  @override
+  String presetIssueGrowthInvalid(String name) {
+    return 'Growth config for \"$name\" is invalid or corrupt; loaded as a standard card';
+  }
+
+  @override
+  String get lumenflowGrowthInvalid => 'Growth config file is invalid or corrupt and will be skipped';
+
+  @override
+  String get lumenflowStageImagesInvalid => 'Some stage images are invalid or corrupt and will be skipped';
+
+  @override
+  String get growthBadgeLabel => 'Growth';
+
+  @override
+  String growthStageSummary(int count) {
+    return 'Growth · $count stages';
+  }
+
+  @override
+  String growthStageSummaryBranching(int count) {
+    return 'Growth · $count stages · Branching';
+  }
+
+  @override
+  String get growthCurrentStage => 'Current Stage';
+
+  @override
+  String get growthEndingBadge => 'Ending';
+
+  @override
+  String get growthCustomNickname => 'Special Nickname';
+
+  @override
+  String get growthMetricsSection => 'Growth Metrics';
+
+  @override
+  String get growthMilestonesSection => 'Growth Milestones';
+
+  @override
+  String get growthMilestonesEmpty => 'No stage transitions yet. Keep chatting to progress.';
+
+  @override
+  String get growthControlsSection => 'Growth Controls';
+
+  @override
+  String get growthSwitchStage => 'Switch Stage';
+
+  @override
+  String get growthSwitchStageTitle => 'Select Stage';
+
+  @override
+  String get growthLockAuto => 'Lock Auto Growth';
+
+  @override
+  String get growthLockAutoDesc => 'Stay in the current stage and pause automatic transitions';
+
+  @override
+  String get growthResetAction => 'Reset Growth in This Chat';
+
+  @override
+  String get growthResetTitle => 'Reset Growth Progress';
+
+  @override
+  String get growthResetConfirm => 'Reset stages, growth metrics, and milestones in this conversation to initial values? Messages will not be deleted.';
+
+  @override
+  String get growthMemoryCompressionOffHint => 'Automatic growth requires Memory Compression to be enabled. You can still switch stages manually.';
+
+  @override
+  String growthStageChangedBanner(String stage) {
+    return 'Stage Transition · Entered \"$stage\"';
+  }
+
+  @override
+  String growthStageChangedBannerWithTitle(String title, String stage) {
+    return '$title · Entered \"$stage\"';
+  }
+
+  @override
+  String get growthSpoilerToggle => 'Show Full Growth & Hidden Lore';
+
+  @override
+  String get growthStagesOverview => 'Growth Stages';
+
+  @override
+  String growthHiddenLoreCount(int count) {
+    return '$count hidden entries waiting to be unlocked in this chat';
+  }
+
+  @override
+  String get growthLockedEntryTitle => 'Locked Lore';
+
+  @override
+  String growthUnlockedProgress(int unlocked, int total) {
+    return 'Unlocked $unlocked / $total';
+  }
+
+  @override
+  String get growthSimulatorStage => 'Simulate Stage';
+
+  @override
+  String get growthPlaythroughNote => 'Growth progress is saved only in this conversation. New chats always start fresh.';
+
+  @override
+  String get growthManualSwitchReason => 'Manual stage switch';
+
+  @override
+  String get growthLockedBadge => 'Locked';
 }

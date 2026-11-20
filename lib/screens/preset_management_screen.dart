@@ -155,6 +155,8 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
         l10n.presetIssueCardFileUnreadable(_issuePresetName(issue)),
       PresetIssueType.worldInfoInvalid =>
         l10n.presetIssueWorldInfoInvalid(_issuePresetName(issue)),
+      PresetIssueType.growthInvalid =>
+        l10n.presetIssueGrowthInvalid(_issuePresetName(issue)),
     };
   }
 
@@ -540,6 +542,7 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
   }
 
   Widget _buildSidebarRow(BuildContext context, PromptPreset preset) {
+    final l10n = AppLocalizations.of(context)!;
     final isSelected = widget.selectedPresetId == preset.id;
     final fontFallback =
         cjkFontFallbackForLocale(Localizations.maybeLocaleOf(context));
@@ -571,18 +574,48 @@ class _PresetManagementScreenState extends State<PresetManagementScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    preset.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                      fontFamilyFallback: fontFallback,
-                      color: preset.isBroken
-                          ? AppTokens.labelTertiary(context)
-                          : AppTokens.label(context),
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          preset.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.w500,
+                            fontFamilyFallback: fontFallback,
+                            color: preset.isBroken
+                                ? AppTokens.labelTertiary(context)
+                                : AppTokens.label(context),
+                          ),
+                        ),
+                      ),
+                      if (preset.hasGrowth) ...[
+                        const SizedBox(width: 5),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 1.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTokens.accentSoft(context),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Text(
+                            l10n.growthBadgeLabel,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: AppTokens.accent(context),
+                              fontFamilyFallback: fontFallback,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   if (preset.description.trim().isNotEmpty) ...[
                     const SizedBox(height: 1.5),
@@ -842,6 +875,28 @@ class _PortraitPresetCard extends StatelessWidget {
                           ),
                         ),
                       ),
+                      if (preset.hasGrowth) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5.5,
+                            vertical: 1.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTokens.accentSoft(context),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Text(
+                            l10n.growthBadgeLabel,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: AppTokens.accent(context),
+                              fontFamilyFallback: fontFallback,
+                            ),
+                          ),
+                        ),
+                        if (preset.language != null) const SizedBox(width: 5),
+                      ],
                       if (preset.language != null)
                         Text(
                           preset.language!.toUpperCase(),

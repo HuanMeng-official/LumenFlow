@@ -1124,6 +1124,95 @@
   "recentConversations": "Recientes",
   "exportAction": "Exportar",
   "presetOverview": "Personaje",
+  "worldInfoSkipStageLocked": "Etapa bloqueada",
+  "worldInfoSkipMetricLocked": "Condición de métrica no cumplida",
+  "presetIssueGrowthInvalid": "La configuración de crecimiento de \"{name}\" no es válida o está dañada; se cargó como tarjeta estándar",
+  "lumenflowGrowthInvalid": "El archivo de crecimiento no es válido o está dañado y se omitirá",
+  "lumenflowStageImagesInvalid": "Algunas imágenes de etapa no son válidas o están dañadas y se omitirán",
+  "growthBadgeLabel": "Evolutivo",
+  "growthStageSummary": "Evolutivo · {count} etapas",
+  "growthStageSummaryBranching": "Evolutivo · {count} etapas · Ramificado",
+  "growthCurrentStage": "Etapa actual",
+  "growthEndingBadge": "Final",
+  "growthCustomNickname": "Apodo especial",
+  "growthMetricsSection": "Métricas de crecimiento",
+  "growthMilestonesSection": "Hitos de crecimiento",
+  "growthMilestonesEmpty": "Aún no hay transiciones de etapa. Sigue conversando para avanzar.",
+  "growthControlsSection": "Controles de crecimiento",
+  "growthSwitchStage": "Cambiar etapa",
+  "growthSwitchStageTitle": "Seleccionar etapa",
+  "growthLockAuto": "Bloquear crecimiento automático",
+  "growthLockAutoDesc": "Mantén la etapa actual y pausa las transiciones automáticas",
+  "growthResetAction": "Restablecer crecimiento en este chat",
+  "growthResetTitle": "Restablecer progreso de crecimiento",
+  "growthResetConfirm": "¿Restablecer las etapas, métricas e hitos de esta conversación a sus valores iniciales? Los mensajes no se eliminarán.",
+  "growthMemoryCompressionOffHint": "El crecimiento automático requiere activar «Compresión de memoria». Aún puedes cambiar de etapa manualmente.",
+  "growthStageChangedBanner": "Transición de etapa · Entraste en «{stage}»",
+  "growthStageChangedBannerWithTitle": "{title} · Entraste en «{stage}»",
+  "growthSpoilerToggle": "Mostrar crecimiento completo y lore oculto",
+  "growthStagesOverview": "Resumen de etapas",
+  "growthHiddenLoreCount": "{count} entradas ocultas por desbloquear en este chat",
+  "growthLockedEntryTitle": "Lore bloqueado",
+  "growthUnlockedProgress": "Desbloqueado {unlocked} / {total}",
+  "growthSimulatorStage": "Simular etapa",
+  "growthPlaythroughNote": "El progreso de crecimiento solo se guarda en esta conversación. Los chats nuevos siempre empiezan desde cero.",
+  "growthManualSwitchReason": "Cambio manual de etapa",
+  "growthLockedBadge": "Bloqueado",
+  "@presetIssueGrowthInvalid": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@growthStageSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@growthStageSummaryBranching": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@growthStageChangedBanner": {
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      }
+    }
+  },
+  "@growthStageChangedBannerWithTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "stage": {
+        "type": "String"
+      }
+    }
+  },
+  "@growthHiddenLoreCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@growthUnlockedProgress": {
+    "placeholders": {
+      "unlocked": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "@mcpConnectedToolsCount": {
     "placeholders": {
       "count": {

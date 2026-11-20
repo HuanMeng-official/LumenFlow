@@ -1991,4 +1991,120 @@ class AppLocalizationsLzh extends AppLocalizations {
 
   @override
   String get presetOverview => '人物設定';
+
+  @override
+  String get worldInfoSkipStageLocked => '階段未啟';
+
+  @override
+  String get worldInfoSkipMetricLocked => '數值未達';
+
+  @override
+  String presetIssueGrowthInvalid(String name) {
+    return '角色「$name」之成長錄殘缺或不可讀，已作常規卡載入';
+  }
+
+  @override
+  String get lumenflowGrowthInvalid => '成長錄殘缺或不可讀，導入時將略過';
+
+  @override
+  String get lumenflowStageImagesInvalid => '部分階段差分圖損毀，導入時將略過';
+
+  @override
+  String get growthBadgeLabel => '成長型';
+
+  @override
+  String growthStageSummary(int count) {
+    return '成長型 · $count 階段';
+  }
+
+  @override
+  String growthStageSummaryBranching(int count) {
+    return '成長型 · $count 階段 · 岐路多途';
+  }
+
+  @override
+  String get growthCurrentStage => '今處階段';
+
+  @override
+  String get growthEndingBadge => '終章';
+
+  @override
+  String get growthCustomNickname => '專屬雅稱';
+
+  @override
+  String get growthMetricsSection => '成長度量';
+
+  @override
+  String get growthMilestonesSection => '成長紀事';
+
+  @override
+  String get growthMilestonesEmpty => '尚未遇階段轉折，續談以進情誼。';
+
+  @override
+  String get growthControlsSection => '成長調度';
+
+  @override
+  String get growthSwitchStage => '切換階段';
+
+  @override
+  String get growthSwitchStageTitle => '擇其階段';
+
+  @override
+  String get growthLockAuto => '鎖定自動成長';
+
+  @override
+  String get growthLockAutoDesc => '啟之則駐於今階，不復自動躍遷';
+
+  @override
+  String get growthResetAction => '重置本談成長進度';
+
+  @override
+  String get growthResetTitle => '重置成長進度';
+
+  @override
+  String get growthResetConfirm => '將本談之階段、度量與紀事悉復初態？談話記錄無損。';
+
+  @override
+  String get growthMemoryCompressionOffHint => '自動成長須啟「記憶壓縮」方效，今亦可手動切換階段。';
+
+  @override
+  String growthStageChangedBanner(String stage) {
+    return '階段躍遷 · 已入「$stage」';
+  }
+
+  @override
+  String growthStageChangedBannerWithTitle(String title, String stage) {
+    return '$title · 已入「$stage」';
+  }
+
+  @override
+  String get growthSpoilerToggle => '顯完整成長與隱秘世典';
+
+  @override
+  String get growthStagesOverview => '成長階段總覽';
+
+  @override
+  String growthHiddenLoreCount(int count) {
+    return '尚有 $count 條隱秘世典待本談解鎖';
+  }
+
+  @override
+  String get growthLockedEntryTitle => '未啟世典';
+
+  @override
+  String growthUnlockedProgress(int unlocked, int total) {
+    return '已解鎖 $unlocked / $total';
+  }
+
+  @override
+  String get growthSimulatorStage => '擬測階段';
+
+  @override
+  String get growthPlaythroughNote => '成長進度僅存於本談，新啟對談皆自初階始。';
+
+  @override
+  String get growthManualSwitchReason => '手動切換階段';
+
+  @override
+  String get growthLockedBadge => '已鎖定';
 }

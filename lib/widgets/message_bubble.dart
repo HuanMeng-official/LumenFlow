@@ -361,6 +361,7 @@ class MessageBubble extends StatefulWidget {
   final Message message;
   final UserProfile? userProfile; // 外部传入的用户信息，避免重复加载
   final PromptPreset? activePreset;
+  final String? activeStageId;
   final String? assistantName;
   final Function(Message message)? onEdit;
   final Function(Message message)? onRegenerate;
@@ -375,6 +376,7 @@ class MessageBubble extends StatefulWidget {
     required this.message,
     this.userProfile,
     this.activePreset,
+    this.activeStageId,
     this.assistantName,
     this.onEdit,
     this.onRegenerate,
@@ -1723,7 +1725,11 @@ class _MessageBubbleState extends State<MessageBubble>
               ),
             ),
           ] else if (preset != null) ...[
-            PresetAvatar(preset: preset, size: 22),
+            PresetAvatar(
+              preset: preset,
+              stageId: widget.activeStageId,
+              size: 22,
+            ),
             const SizedBox(width: 7),
             Text(
               preset.name,
