@@ -527,6 +527,7 @@ class SettingsService {
     settings[_platformsKey] = prefs.getString(_platformsKey);
     settings[_currentPlatformIdKey] =
         prefs.getString(_currentPlatformIdKey) ?? 'openai';
+    settings[_mcpServersKey] = prefs.getString(_mcpServersKey);
 
     return settings;
   }
@@ -727,6 +728,15 @@ class SettingsService {
         _currentPlatformIdKey,
         settings[_currentPlatformIdKey] as String,
       );
+    }
+    if (settings.containsKey(_mcpServersKey) &&
+        settings[_mcpServersKey] != null) {
+      final rawMcpServers = settings[_mcpServersKey];
+      if (rawMcpServers is String) {
+        await prefs.setString(_mcpServersKey, rawMcpServers);
+      } else if (rawMcpServers is List) {
+        await prefs.setString(_mcpServersKey, jsonEncode(rawMcpServers));
+      }
     }
 
     _invalidateActiveConfig();

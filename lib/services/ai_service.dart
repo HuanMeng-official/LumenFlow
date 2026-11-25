@@ -9,6 +9,7 @@ import 'memory_service.dart';
 import 'settings_service.dart';
 import 'system_prompt_builder.dart';
 import 'tool_chat_service.dart';
+import 'version_service.dart';
 import 'world_info_service.dart';
 import '../ai/contracts/ai_error.dart';
 import '../ai/contracts/ai_tool_executor.dart';
@@ -59,17 +60,21 @@ import '../utils/ai_tools/time_utils.dart';
 class AIService {
   AIService({
     SettingsService? settingsService,
+    VersionService? versionService,
     this._toolManagerFactory,
     this._toolChatServiceFactory,
     this.toolRefreshInterval = const Duration(seconds: 30),
-  }) : _settingsService = settingsService ?? SettingsService();
+  }) : _settingsService = settingsService ?? SettingsService(),
+       _versionService = versionService ?? VersionService();
 
   final SettingsService _settingsService;
+  final VersionService _versionService;
   final McpToolManager Function(List<McpServerConfig> servers)?
   _toolManagerFactory;
   final ToolChatService Function(AIToolExecutor executor)?
   _toolChatServiceFactory;
   final Duration toolRefreshInterval;
+  String? _cachedAppVersion;
 
   /// Provider 缓存
   AIProvider? _cachedProvider;
@@ -264,11 +269,19 @@ class AIService {
     }
 
     await _toolManager?.dispose();
+    final appVersion = _cachedAppVersion ??=
+        await _versionService.getAppVersion();
+    final clientVersion = appVersion.isNotEmpty
+        ? appVersion
+        : McpClient.defaultClientVersion;
     final manager =
         _toolManagerFactory?.call(servers) ??
         McpToolManager(
           servers: servers,
-          connectionFactory: (config) => McpClient(config: config),
+          connectionFactory: (config) => McpClient(
+            config: config,
+            clientVersion: clientVersion,
+          ),
           timeout: const Duration(seconds: 8),
         );
     await manager.refresh();

@@ -1,5 +1,36 @@
 import '../contracts/ai_tool.dart';
 
+/// Protocol era negotiated with an MCP server.
+enum McpProtocolEra {
+  /// MCP 2026-07-28+: stateless requests with `server/discover`, per-request
+  /// `_meta`, and `MCP-Protocol-Version` / `Mcp-Method` / `Mcp-Name` headers.
+  stateless,
+
+  /// MCP 2024-11-05 .. 2025-11-25: stateful `initialize` / `initialized`
+  /// handshake with optional `Mcp-Session-Id` session tracking.
+  stateful,
+}
+
+class McpServerInfo {
+  final String name;
+  final String version;
+  final String? title;
+
+  const McpServerInfo({
+    required this.name,
+    this.version = '',
+    this.title,
+  });
+
+  factory McpServerInfo.fromJson(Map<String, dynamic> json) {
+    return McpServerInfo(
+      name: json['name']?.toString() ?? '',
+      version: json['version']?.toString() ?? '',
+      title: json['title']?.toString(),
+    );
+  }
+}
+
 class McpServerConfig {
   final String id;
   final String name;
@@ -46,19 +77,25 @@ class McpServerConfig {
 
 class McpTool {
   final String name;
+  final String? title;
   final String description;
   final Map<String, dynamic> inputSchema;
+  final Map<String, dynamic>? outputSchema;
+  final Map<String, dynamic>? annotations;
 
   const McpTool({
     required this.name,
+    this.title,
     this.description = '',
     this.inputSchema = const {},
+    this.outputSchema,
+    this.annotations,
   });
 
   AIToolDefinition toDefinition({required String name}) {
     return AIToolDefinition(
       name: name,
-      description: description,
+      description: description.isNotEmpty ? description : (title ?? ''),
       inputSchema: inputSchema,
     );
   }
@@ -67,9 +104,15 @@ class McpTool {
 class McpException implements Exception {
   final String message;
   final int? code;
+  final int? httpStatus;
   final Object? data;
 
-  const McpException(this.message, {this.code, this.data});
+  const McpException(
+    this.message, {
+    this.code,
+    this.httpStatus,
+    this.data,
+  });
 
   @override
   String toString() {

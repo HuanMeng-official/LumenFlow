@@ -6,6 +6,7 @@ import '../ai/providers/chat_completions_profile.dart';
 import '../ai/providers/responses_tool_provider.dart';
 import '../l10n/app_localizations.dart';
 import '../services/settings_service.dart';
+import '../services/version_service.dart';
 import '../utils/app_theme.dart';
 import '../widgets/settings/settings_page_scaffold.dart';
 import '../widgets/settings/settings_section.dart';
@@ -214,9 +215,13 @@ class _ToolManagementScreenState extends State<ToolManagementScreen> {
 
   Future<void> _testConnection(McpServerConfig config) async {
     final l10n = AppLocalizations.of(context)!;
+    final appVersion = await VersionService().getAppVersion();
     final client = McpClient(
       config: config,
       timeout: const Duration(seconds: 10),
+      clientVersion: appVersion.isNotEmpty
+          ? appVersion
+          : McpClient.defaultClientVersion,
     );
     String message;
     try {
